@@ -1,4 +1,5 @@
 import type { Hashtag, User } from "@/api/contracts";
+
 export const users: readonly User[] = [
   {
     userId: "learner",
@@ -16,6 +17,7 @@ export const users: readonly User[] = [
     displayName: "웹 개발자",
   },
 ];
+
 export const hashtags: readonly Hashtag[] = [
   {
     id: "typescript",

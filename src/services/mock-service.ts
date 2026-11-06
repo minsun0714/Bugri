@@ -41,10 +41,12 @@ export interface GeneratorInput {
   current?: QuizContent;
   prompt?: string;
 }
+
 /** Synchronous mock generator. Never calls a provider or executes code. */
 export type MockGenerator = (
   input: GeneratorInput,
 ) => unknown;
+
 export interface ServiceContext {
   state: UserState;
   allQuizzes: StoredQuiz[];
@@ -54,7 +56,9 @@ export interface ServiceContext {
   generate: MockGenerator;
   dailyReward: number;
 }
+
 const tagIds = hashtags.map((t) => t.id);
+
 const allowed: Record<Operation, string[]> = {
   generate: ["sourceContent"],
   generationBatch: ["batchId"],
@@ -93,6 +97,7 @@ const allowed: Record<Operation, string[]> = {
   equip: ["category", "productId"],
   publicProfile: ["publicId"],
 };
+
 function quizReview(q: StoredQuiz): ReviewQuiz {
   return {
     quizId: q.quizId,
@@ -104,44 +109,55 @@ function quizReview(q: StoredQuiz): ReviewQuiz {
     updatedAt: q.updatedAt,
   };
 }
+
 export function execute<K extends Operation>(
   operation: K,
   input: ApiOperations[K]["request"],
   ctx: ServiceContext,
 ): unknown {
   object(input);
+
   requireValue(
     operation in allowed,
     "알 수 없는 요청입니다.",
   );
+
   keys(input, allowed[operation]);
+
   const r = input as Record<string, unknown>;
   const { state: s, now, id } = ctx;
   const timestamp = now.toISOString();
+
   const ownQuiz = (includeDeleted = false) => {
     text(r.quizId, "quizId");
+
     const q = ctx.allQuizzes.find(
       (q) => q.quizId === r.quizId,
     );
+
     if (!q || (!includeDeleted && q.deletedAt))
       throw new ServiceError(
         "NOT_FOUND",
         "퀴즈를 찾을 수 없습니다.",
         404,
       );
+
     if (q.ownerUserId !== s.userId)
       throw new ServiceError(
         "FORBIDDEN",
         "작성자만 접근할 수 있습니다.",
         403,
       );
+
     return q;
   };
+
   const version = (q: StoredQuiz) => {
     requireValue(
       Number.isInteger(r.expectedVersion),
       "버전이 필요합니다.",
     );
+
     if (r.expectedVersion !== q.version)
       throw new ServiceError(
         "VERSION_CONFLICT",
@@ -149,10 +165,12 @@ export function execute<K extends Operation>(
         409,
       );
   };
+
   const touch = (q: StoredQuiz) => {
     q.version++;
     q.updatedAt = timestamp;
   };
+
   const available = (q: StoredQuiz | undefined) =>
     !!q &&
     !q.deletedAt &&
@@ -160,11 +178,14 @@ export function execute<K extends Operation>(
     (q.status === "PUBLIC" ||
       (q.status === "PRIVATE" &&
         q.ownerUserId === s.userId));
+
   const attemptView = (a: StoredAttempt): AttemptView => {
     const q = ctx.allQuizzes.find(
       (q) => q.quizId === a.quizId,
     );
+
     const visible = available(q);
+
     return {
       attemptId: a.attemptId,
       quizId: a.quizId,
@@ -190,38 +211,48 @@ export function execute<K extends Operation>(
           : null,
     };
   };
+
   const getAttempt = () => {
     text(r.attemptId, "attemptId");
+
     const a = s.attempts.find(
       (a) => a.attemptId === r.attemptId,
     );
+
     if (!a)
       throw new ServiceError(
         "NOT_FOUND",
         "풀이를 찾을 수 없습니다.",
         404,
       );
+
     return a;
   };
+
   const getBatch = () => {
     text(r.batchId, "batchId");
+
     const b = s.batches.find(
       (b) => b.batchId === r.batchId,
     );
+
     if (!b)
       throw new ServiceError(
         "NOT_FOUND",
         "생성 결과를 찾을 수 없습니다.",
         404,
       );
+
     return b;
   };
+
   const generate = (
     input: GeneratorInput,
     single = false,
   ): QuizContent[] => {
     try {
       const output = ctx.generate(input);
+
       requireValue(
         Array.isArray(output) &&
           output.length >= 1 &&
@@ -229,9 +260,11 @@ export function execute<K extends Operation>(
           (!single || output.length === 1),
         "생성 결과는 독립 퀴즈 1~5개여야 합니다.",
       );
+
       output.forEach((content) =>
         validateContent(content, tagIds),
       );
+
       return output;
     } catch {
       throw new ServiceError(
@@ -241,22 +274,28 @@ export function execute<K extends Operation>(
       );
     }
   };
+
   const visibility = (): Visibility => {
     requireValue(
       r.visibility === "PUBLIC" ||
         r.visibility === "PRIVATE",
       "공개 범위를 선택하세요.",
     );
+
     return r.visibility;
   };
+
   const balance = () =>
     s.ledger.reduce((sum, item) => sum + item.amount, 0);
+
   switch (operation) {
     case "generate": {
       source(r.sourceContent);
+
       const contents = generate({
         sourceContent: r.sourceContent,
       });
+
       const batch: GenerationBatch = {
         batchId: id(),
         sourceContent: r.sourceContent,
@@ -266,45 +305,57 @@ export function execute<K extends Operation>(
           savedQuizId: null,
         })),
       };
+
       s.batches.push(batch);
+
       return batch;
     }
+
     case "generationBatch":
       return getBatch();
+
     case "saveBatch": {
       const batch = getBatch();
+
       requireValue(
         r.mode === "SINGLE" || r.mode === "ALL",
         "저장 모드를 선택하세요.",
       );
+
       if (r.mode === "SINGLE") text(r.candidateId);
       else
         requireValue(
           r.candidateId === undefined,
           "일괄 저장에는 candidateId를 사용하지 않습니다.",
         );
+
       const selected = batch.candidates.filter(
         (c) =>
           r.mode === "ALL" ||
           c.candidateId === r.candidateId,
       );
+
       requireValue(
         selected.length > 0,
         "후보를 찾을 수 없습니다.",
       );
+
       return selected.map((c) => {
         if (c.savedQuizId) {
           const existing = s.quizzes.find(
             (q) => q.quizId === c.savedQuizId,
           )!;
+
           if (existing.deletedAt)
             throw new ServiceError(
               "QUIZ_UNAVAILABLE",
               "이미 저장 후 삭제한 후보입니다.",
               409,
             );
+
           return quizReview(existing);
         }
+
         const q: StoredQuiz = {
           quizId: id(),
           ownerUserId: s.userId,
@@ -320,16 +371,20 @@ export function execute<K extends Operation>(
           updatedAt: timestamp,
           deletedAt: null,
         };
+
         s.quizzes.push(q);
         c.savedQuizId = q.quizId;
+
         return quizReview(q);
       });
     }
+
     case "quizzes": {
       requireValue(
         r.scope === "OWN" || r.scope === "PUBLIC",
         "목록 범위를 지정하세요.",
       );
+
       return ctx.allQuizzes
         .filter(
           (q) =>
@@ -343,6 +398,7 @@ export function execute<K extends Operation>(
             r.scope === "OWN"
               ? (q.pending ?? q.active!)
               : q.active!;
+
           return {
             quizId: q.quizId,
             ownerUserId: q.ownerUserId,
@@ -355,18 +411,24 @@ export function execute<K extends Operation>(
           };
         });
     }
+
     case "reviewQuiz":
       return quizReview(ownQuiz());
+
     case "updatePending": {
       const q = ownQuiz();
+
       version(q);
+
       requireValue(
         r.action === "EDIT" || r.action === "MARK_REVIEWED",
         "수정 또는 검토 완료를 선택하세요.",
       );
+
       if (r.action === "EDIT") {
         source(r.sourceContent);
         validateContent(r.content, tagIds);
+
         q.pending = {
           ...r.content,
           revisionId: id(),
@@ -379,20 +441,28 @@ export function execute<K extends Operation>(
             r.sourceContent === undefined,
           "검토 완료와 내용 저장은 별도 요청입니다.",
         );
+
         requireValue(
           q.pending,
           "검토할 수정본이 없습니다.",
         );
+
         q.pending.reviewed = true;
       }
+
       touch(q);
+
       return quizReview(q);
     }
+
     case "regenerate": {
       const q = ownQuiz();
+
       version(q);
       text(r.prompt, "prompt");
+
       const current = q.pending ?? q.active!;
+
       const content = generate(
         {
           sourceContent: current.sourceContent,
@@ -407,6 +477,7 @@ export function execute<K extends Operation>(
         },
         true,
       )[0];
+
       q.pending = {
         ...content,
         revisionId: id(),
@@ -414,51 +485,69 @@ export function execute<K extends Operation>(
         reviewed: false,
         followUpPrompt: r.prompt,
       };
+
       touch(q);
+
       return quizReview(q);
     }
+
     case "approve": {
       const q = ownQuiz();
+
       version(q);
+
       if (!q.pending?.reviewed)
         throw new ServiceError(
           "NOT_REVIEWED",
           "저장된 수정본을 검토 완료하세요.",
           409,
         );
+
       const next =
         r.visibility === undefined && q.status !== "PENDING"
           ? q.status
           : visibility();
+
       q.active = q.pending;
       q.pending = null;
       q.status = next;
       touch(q);
+
       return quizReview(q);
     }
+
     case "visibility": {
       const q = ownQuiz();
+
       version(q);
+
       requireValue(
         q.active,
         "승인된 퀴즈만 공개 범위를 변경할 수 있습니다.",
       );
+
       q.status = visibility();
       touch(q);
+
       return quizReview(q);
     }
+
     case "deleteQuiz": {
       const q = ownQuiz(true);
+
       if (!q.deletedAt) {
         q.deletedAt = timestamp;
         touch(q);
       }
+
       return {
         deleted: true,
       };
     }
+
     case "subscriptions":
       return s.subscriptions;
+
     case "subscribe": {
       requireValue(
         ["PERSON", "HASHTAG", "PERSON_HASHTAG"].includes(
@@ -466,6 +555,7 @@ export function execute<K extends Operation>(
         ),
         "구독 유형을 확인하세요.",
       );
+
       if (r.type !== "HASHTAG")
         requireValue(
           users.some((u) => u.userId === r.authorUserId),
@@ -476,6 +566,7 @@ export function execute<K extends Operation>(
           r.authorUserId === undefined,
           "해시태그 구독은 작성자를 지정하지 않습니다.",
         );
+
       if (r.type !== "PERSON")
         requireValue(
           tagIds.includes(String(r.hashtagId)),
@@ -486,6 +577,7 @@ export function execute<K extends Operation>(
           r.hashtagId === undefined,
           "사람 구독은 태그를 지정하지 않습니다.",
         );
+
       const existing = s.subscriptions.find(
         (sub) =>
           sub.type === r.type &&
@@ -496,24 +588,33 @@ export function execute<K extends Operation>(
             ? sub.hashtagId
             : undefined) === r.hashtagId,
       );
+
       if (existing) return existing;
+
       const sub = {
         ...r,
         subscriptionId: id(),
       } as Subscription;
+
       s.subscriptions.push(sub);
+
       return sub;
     }
+
     case "unsubscribe":
       text(r.subscriptionId);
+
       s.subscriptions = s.subscriptions.filter(
         (sub) => sub.subscriptionId !== r.subscriptionId,
       );
+
       return {
         deleted: true,
       };
+
     case "discoverUsers":
       return users;
+
     case "discoverHashtags":
       return hashtags.filter((t) =>
         ctx.allQuizzes.some(
@@ -523,9 +624,11 @@ export function execute<K extends Operation>(
             q.active?.hashtagIds.includes(t.id),
         ),
       );
+
     case "learningTags": {
       if (r.authorUserId !== undefined)
         text(r.authorUserId);
+
       const qs = candidates(
         ctx.allQuizzes,
         s.subscriptions,
@@ -534,53 +637,65 @@ export function execute<K extends Operation>(
           r.authorUserId === undefined ||
           q.ownerUserId === r.authorUserId,
       );
+
       return hashtags.filter((t) =>
         qs.some((q) => q.active!.hashtagIds.includes(t.id)),
       );
     }
+
     case "learningQuiz":
+
     case "learningNext": {
       if (r.hashtagId !== undefined && r.hashtagId !== null)
         requireValue(
           tagIds.includes(String(r.hashtagId)),
           "태그를 찾을 수 없습니다.",
         );
+
       if (r.mode !== undefined)
         requireValue(
           r.mode === "UNSOLVED" || r.mode === "REPLAY",
           "학습 모드를 확인하세요.",
         );
+
       const hashtagId =
         r.hashtagId === undefined
           ? operation === "learningNext"
             ? s.selection.hashtagId
             : null
           : (r.hashtagId as string | null);
+
       const mode = (r.mode ??
         (operation === "learningNext"
           ? s.selection.mode
           : "UNSOLVED")) as "UNSOLVED" | "REPLAY";
+
       const qs = candidates(
         ctx.allQuizzes,
         s.subscriptions,
         hashtagId,
       );
+
       const completed = new Set(
         s.attempts
           .filter((a) => a.completedAt)
           .map((a) => a.quizId),
       );
+
       const pool = qs.filter((q) =>
         mode === "REPLAY"
           ? completed.has(q.quizId)
           : !completed.has(q.quizId),
       );
+
       const previousIndex = pool.findIndex(
         (q) => q.quizId === s.selection.quizId,
       );
+
       const sameFilter =
         hashtagId === s.selection.hashtagId &&
         mode === s.selection.mode;
+
       const selected =
         sameFilter && previousIndex >= 0
           ? pool[
@@ -589,11 +704,13 @@ export function execute<K extends Operation>(
                 : previousIndex
             ]
           : pool[0];
+
       s.selection = {
         hashtagId,
         mode,
         quizId: selected?.quizId ?? null,
       };
+
       const result: LearningSelection = {
         hashtagId,
         mode,
@@ -607,21 +724,27 @@ export function execute<K extends Operation>(
         quiz: selected ? publicView(selected) : null,
         candidateCount: qs.length,
       };
+
       return result;
     }
+
     case "learningTimezone":
       return {
         timeZone: s.timeZone,
       };
+
     case "updateTimezone":
       requireValue(
         timeZoneValid(r.timeZone),
         "유효한 IANA 시간대가 필요합니다.",
       );
+
       s.timeZone = r.timeZone;
+
       return {
         timeZone: s.timeZone,
       };
+
     case "learningDay": {
       if (!s.timeZone)
         throw new ServiceError(
@@ -629,8 +752,10 @@ export function execute<K extends Operation>(
           "학습 시간대를 설정하세요.",
           409,
         );
+
       const date = localDate(now, s.timeZone);
       const dates = s.days.map((d) => d.learningDate);
+
       return {
         timeZone: s.timeZone,
         learningDate: date,
@@ -639,21 +764,26 @@ export function execute<K extends Operation>(
         completedDates: [...dates].sort(),
       };
     }
+
     case "startAttempt": {
       text(r.quizId);
+
       requireValue(
         r.context === "DIRECT" || r.context === "LEARNING",
         "풀이 진입 경로가 필요합니다.",
       );
+
       const q = ctx.allQuizzes.find(
         (q) => q.quizId === r.quizId,
       );
+
       if (!available(q))
         throw new ServiceError(
           "QUIZ_UNAVAILABLE",
           "이 퀴즈는 풀 수 없습니다.",
           409,
         );
+
       if (
         r.context === "LEARNING" &&
         !candidates(
@@ -669,6 +799,7 @@ export function execute<K extends Operation>(
           "현재 구독·태그의 학습 대상이 아닙니다.",
           409,
         );
+
       const a: StoredAttempt = {
         attemptId: id(),
         quizId: q!.quizId,
@@ -680,14 +811,20 @@ export function execute<K extends Operation>(
         learningDate: null,
         timeZone: null,
       };
+
       s.attempts.push(a);
+
       return attemptView(a);
     }
+
     case "attempt":
       return attemptView(getAttempt());
+
     case "answer": {
       const a = getAttempt();
+
       validateAnswer(r.answer, a.revision.question);
+
       if (a.submittedAnswer) {
         if (!isCorrect(r.answer, a.submittedAnswer))
           throw new ServiceError(
@@ -695,8 +832,10 @@ export function execute<K extends Operation>(
             "이미 제출한 답은 변경할 수 없습니다.",
             409,
           );
+
         return attemptView(a);
       }
+
       if (
         !available(
           ctx.allQuizzes.find((q) => q.quizId === a.quizId),
@@ -707,24 +846,29 @@ export function execute<K extends Operation>(
           "더 이상 제출할 수 없습니다.",
           409,
         );
+
       if (!s.timeZone)
         throw new ServiceError(
           "TIMEZONE_REQUIRED",
           "학습 시간대를 설정하세요.",
           409,
         );
+
       const date = localDate(now, s.timeZone);
+
       a.submittedAnswer = r.answer;
       a.correct = isCorrect(r.answer, a.revision.answer);
       a.completedAt = timestamp;
       a.timeZone = s.timeZone;
       a.learningDate = date;
+
       if (!s.days.some((d) => d.learningDate === date)) {
         s.days.push({
           learningDate: date,
           timeZone: s.timeZone,
           completedAt: timestamp,
         });
+
         if (ctx.dailyReward > 0)
           s.ledger.push({
             id: id(),
@@ -734,30 +878,37 @@ export function execute<K extends Operation>(
             createdAt: timestamp,
           });
       }
+
       return attemptView(a);
     }
+
     case "products":
       if (r.category !== undefined)
         requireValue(
           categories.includes(r.category as never),
           "카테고리를 확인하세요.",
         );
+
       return shopItems.filter(
         (p) =>
           r.category === undefined ||
           p.category === r.category,
       );
+
     case "wallet":
       return {
         balance: balance(),
         ledger: s.ledger,
       };
+
     case "purchase": {
       text(r.productId);
       text(r.requestKey);
+
       const previous = s.purchases.find(
         (p) => p.requestKey === r.requestKey,
       );
+
       if (previous) {
         if (previous.productId !== r.productId)
           throw new ServiceError(
@@ -765,17 +916,21 @@ export function execute<K extends Operation>(
             "같은 요청 키를 다른 상품에 사용할 수 없습니다.",
             409,
           );
+
         return previous;
       }
+
       const product = shopItems.find(
         (p) => p.productId === r.productId,
       );
+
       if (!product)
         throw new ServiceError(
           "NOT_FOUND",
           "상품을 찾을 수 없습니다.",
           404,
         );
+
       if (
         s.purchases.some(
           (p) => p.productId === product.productId,
@@ -786,12 +941,14 @@ export function execute<K extends Operation>(
           "이미 구매한 상품입니다.",
           409,
         );
+
       if (balance() < product.price)
         throw new ServiceError(
           "INSUFFICIENT_BALANCE",
           "BugCoin이 부족합니다.",
           409,
         );
+
       const purchase = {
         purchaseId: id(),
         productId: product.productId,
@@ -799,7 +956,9 @@ export function execute<K extends Operation>(
         price: product.price,
         purchasedAt: timestamp,
       };
+
       s.purchases.push(purchase);
+
       s.ledger.push({
         id: id(),
         amount: -product.price,
@@ -807,8 +966,10 @@ export function execute<K extends Operation>(
         reference: purchase.purchaseId,
         createdAt: timestamp,
       });
+
       return purchase;
     }
+
     case "inventory":
       return {
         products: shopItems.filter((p) =>
@@ -818,17 +979,21 @@ export function execute<K extends Operation>(
         ),
         equipment: s.equipment,
       };
+
     case "equip": {
       requireValue(
         categories.includes(r.category as never),
         "카테고리를 확인하세요.",
       );
+
       const category =
         r.category as keyof typeof s.equipment;
+
       if (r.productId === null)
         delete s.equipment[category];
       else {
         text(r.productId);
+
         requireValue(
           shopItems.some(
             (p) =>
@@ -837,6 +1002,7 @@ export function execute<K extends Operation>(
           ),
           "상품 카테고리가 일치하지 않습니다.",
         );
+
         if (
           !s.purchases.some(
             (p) => p.productId === r.productId,
@@ -847,21 +1013,27 @@ export function execute<K extends Operation>(
             "보관함에 있는 상품만 장착할 수 있습니다.",
             403,
           );
+
         s.equipment[category] = r.productId;
       }
+
       return s.equipment;
     }
+
     case "publicProfile": {
       text(r.publicId);
+
       const user = users.find(
         (u) => u.publicId === r.publicId,
       );
+
       if (!user)
         throw new ServiceError(
           "NOT_FOUND",
           "사용자를 찾을 수 없습니다.",
           404,
         );
+
       return {
         user,
         equipment: ctx.allStates.find(

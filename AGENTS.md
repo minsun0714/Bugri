@@ -53,6 +53,13 @@ Developer learning platform with AI-generated quizzes.
 - ESLint currently enforces this rule in the API, Mock, service, and related test files. Do not expand enforcement into UI/design files as part of API-only work.
 - Keep Jest alias mapping and the E2E test bundle resolver compatible with `tsconfig.json` paths when changing imports.
 
+## Code Spacing
+
+- Separate exported types/interfaces, functions, classes, and test cases with one blank line.
+- Separate declarations from execution, control-flow blocks, multiline calls, and return/throw statements with a blank line. Consecutive imports and short single-line variable declarations may stay grouped.
+- Prettier preserves existing blank lines; ESLint `padding-line-between-statements` inserts missing lines in API/Mock/service code and related tests. Run scoped `eslint --fix` before Prettier when applying spacing in bulk.
+- Keep UI/design files outside this formatting scope. Do not change runtime behavior for spacing changes.
+
 ## Development Workflow
 
 1. Inspect existing code.

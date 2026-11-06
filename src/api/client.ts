@@ -5,6 +5,7 @@ import type {
   Request,
   Response,
 } from "@/api/contracts";
+
 export class ApiClientError extends Error {
   constructor(
     readonly status: number,
@@ -14,6 +15,7 @@ export class ApiClientError extends Error {
     this.name = "ApiClientError";
   }
 }
+
 /** UI depends on this boundary and contracts, never on mock seeds/storage. */
 export function createApiClient(transport: ApiTransport) {
   return {
@@ -25,13 +27,16 @@ export function createApiClient(transport: ApiTransport) {
         operation,
         request,
       );
+
       if ("error" in result.body)
         throw new ApiClientError(
           result.status,
           result.body.error,
         );
+
       return result.body.data;
     },
   };
 }
+
 export type ApiClient = ReturnType<typeof createApiClient>;

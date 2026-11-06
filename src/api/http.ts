@@ -5,11 +5,13 @@ import type {
   Response,
   TransportResponse,
 } from "@/api/contracts";
+
 interface Endpoint {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
   pathKey?: string;
 }
+
 export const endpoints: Record<Operation, Endpoint> = {
   generate: {
     method: "POST",
@@ -144,6 +146,7 @@ export const endpoints: Record<Operation, Endpoint> = {
     pathKey: "publicId",
   },
 };
+
 /** No mock identity, seeds, storage, or real auth implementation is coupled to REST. */
 export function createHttpTransport(
   options: { baseUrl?: string; fetch?: typeof fetch } = {},
@@ -154,6 +157,7 @@ export function createHttpTransport(
       request: Request<K>,
     ): Promise<TransportResponse<Response<K>>> {
       const requestId = globalThis.crypto.randomUUID();
+
       const failure = (
         code: "NETWORK_ERROR" | "INVALID_RESPONSE",
         message: string,
@@ -167,11 +171,15 @@ export function createHttpTransport(
           },
         },
       });
+
       const endpoint = endpoints[operation];
+
       const params = {
         ...request,
       } as Record<string, unknown>;
+
       let path = endpoint.path;
+
       if (endpoint.pathKey) {
         path = path.replace(
           "{id}",
@@ -179,14 +187,19 @@ export function createHttpTransport(
             String(params[endpoint.pathKey]),
           ),
         );
+
         delete params[endpoint.pathKey];
       }
+
       const query = new URLSearchParams();
+
       if (endpoint.method === "GET")
         for (const [key, value] of Object.entries(params))
           if (value !== undefined && value !== null)
             query.set(key, String(value));
+
       let response: globalThis.Response;
+
       try {
         response = await (
           options.fetch ?? globalThis.fetch
@@ -215,8 +228,10 @@ export function createHttpTransport(
           "API 연결에 실패했습니다.",
         );
       }
+
       try {
         const body = await response.json();
+
         if (
           !body ||
           typeof body !== "object" ||
@@ -231,6 +246,7 @@ export function createHttpTransport(
             "INVALID_RESPONSE",
             "API 응답 형식을 확인하세요.",
           );
+
         return {
           status: response.status,
           body,

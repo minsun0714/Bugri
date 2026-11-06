@@ -2,6 +2,7 @@ import type {
   QuizContent,
   ReviewQuiz,
 } from "@/api/contracts";
+
 export const generatedContents: readonly QuizContent[] = [
   {
     title: "타입 선언",
@@ -80,6 +81,7 @@ export const generatedContents: readonly QuizContent[] = [
     hashtagIds: ["javascript"],
   },
 ];
+
 export const quizzes: readonly ReviewQuiz[] =
   generatedContents.map((content, index) => ({
     quizId: `seed-quiz-${index + 1}`,

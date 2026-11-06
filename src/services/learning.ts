@@ -3,10 +3,12 @@ import type {
   Subscription,
 } from "@/api/contracts";
 import type { StoredQuiz } from "@/services/state";
+
 export function publicView(
   quiz: StoredQuiz,
 ): LearningQuizView {
   const r = quiz.active!;
+
   return {
     quizId: quiz.quizId,
     ownerUserId: quiz.ownerUserId,
@@ -16,6 +18,7 @@ export function publicView(
     hashtagIds: r.hashtagIds,
   };
 }
+
 export function candidates(
   quizzes: StoredQuiz[],
   subscriptions: Subscription[],
@@ -37,6 +40,7 @@ export function candidates(
       ),
   );
 }
+
 export function localDate(
   date: Date,
   timeZone: string,
@@ -47,12 +51,14 @@ export function localDate(
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(date);
+
   return ["year", "month", "day"]
     .map(
       (type) => parts.find((p) => p.type === type)!.value,
     )
     .join("-");
 }
+
 export function previousDate(date: string): string {
   return new Date(
     Date.parse(`${date}T12:00:00Z`) - 86400000,
@@ -60,18 +66,23 @@ export function previousDate(date: string): string {
     .toISOString()
     .slice(0, 10);
 }
+
 export function streak(
   dates: string[],
   today: string,
 ): number {
   const completed = new Set(dates);
+
   let cursor = completed.has(today)
     ? today
     : previousDate(today);
+
   let count = 0;
+
   while (completed.has(cursor)) {
     count++;
     cursor = previousDate(cursor);
   }
+
   return count;
 }

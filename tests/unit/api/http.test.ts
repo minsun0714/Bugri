@@ -1,12 +1,14 @@
 import { createApiClient } from "@/api/client";
 import { createHttpTransport, endpoints } from "@/api/http";
 import type { Request } from "@/api/contracts";
+
 const response = (body: unknown, status = 200) =>
   ({
     ok: status < 400,
     status,
     json: async () => body,
   }) as Response;
+
 test("REST encodes path, removes path fields from body and uses explicit envelope", async () => {
   const fetcher = jest.fn().mockResolvedValue(
     response({
@@ -15,14 +17,17 @@ test("REST encodes path, removes path fields from body and uses explicit envelop
       },
     }),
   );
+
   const client = createApiClient(
     createHttpTransport({
       fetch: fetcher,
     }),
   );
+
   await client.request("deleteQuiz", {
     quizId: "a/b",
   });
+
   expect(fetcher).toHaveBeenCalledWith(
     "/api/v1/quizzes/a%2Fb",
     expect.objectContaining({
@@ -30,11 +35,13 @@ test("REST encodes path, removes path fields from body and uses explicit envelop
       body: "{}",
     }),
   );
+
   await client.request("approve", {
     quizId: "q",
     expectedVersion: 2,
     visibility: "PUBLIC",
   });
+
   expect(fetcher).toHaveBeenLastCalledWith(
     "/api/v1/quizzes/q/approve",
     expect.objectContaining({
@@ -46,22 +53,26 @@ test("REST encodes path, removes path fields from body and uses explicit envelop
     }),
   );
 });
+
 test("GET query has no body and omits All hashtag; no mock user or auth headers", async () => {
   const fetcher = jest.fn().mockResolvedValue(
     response({
       data: [],
     }),
   );
+
   const client = createApiClient(
     createHttpTransport({
       baseUrl: "https://api.example.test/api/v1",
       fetch: fetcher,
     }),
   );
+
   await client.request("learningQuiz", {
     hashtagId: null,
     mode: "UNSOLVED",
   });
+
   expect(fetcher).toHaveBeenCalledWith(
     "https://api.example.test/api/v1/learning/quiz?mode=UNSOLVED",
     {
@@ -72,6 +83,7 @@ test("GET query has no body and omits All hashtag; no mock user or auth headers"
     },
   );
 });
+
 test("HTTP errors preserve code and requestId, network/invalid envelopes are distinct", async () => {
   const fetcher = jest.fn().mockResolvedValue(
     response(
@@ -85,11 +97,13 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
       409,
     ),
   );
+
   const client = createApiClient(
     createHttpTransport({
       fetch: fetcher,
     }),
   );
+
   await expect(
     client.request("wallet", {}),
   ).rejects.toMatchObject({
@@ -99,7 +113,9 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
       requestId: "request-1",
     },
   });
+
   fetcher.mockRejectedValueOnce(new Error("offline"));
+
   await expect(
     client.request("wallet", {}),
   ).rejects.toMatchObject({
@@ -107,11 +123,13 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
       code: "NETWORK_ERROR",
     },
   });
+
   fetcher.mockResolvedValueOnce(
     response({
       balance: 10,
     }),
   );
+
   await expect(
     client.request("wallet", {}),
   ).rejects.toMatchObject({
@@ -120,19 +138,23 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
     },
   });
 });
+
 test("all declared operations have an HTTP endpoint", () => {
   expect(Object.keys(endpoints)).toHaveLength(30);
 });
+
 // Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.
 const invalidSubscription: Request<"subscribe"> = {
   // @ts-expect-error quiz subscriptions are not a contract
   type: "QUIZ",
   quizId: "q",
 };
+
 const invalidAnswer: Request<"answer"> = {
   attemptId: "a",
   // @ts-expect-error answers are discriminated by question format
   answer: true,
 };
+
 void invalidSubscription;
 void invalidAnswer;

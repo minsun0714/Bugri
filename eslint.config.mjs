@@ -23,6 +23,72 @@ const eslintConfig = defineConfig([
       "tests/e2e/mock-api.spec.ts",
     ],
     rules: {
+      // Prettier preserves these blank lines; ESLint inserts missing ones.
+      // Use the installed core rule without adding a package dependency.
+      "padding-line-between-statements": [
+        "error",
+        {
+          blankLine: "always",
+          prev: "*",
+          next: [
+            "const",
+            "let",
+            "var",
+            "export",
+            "function",
+            "class",
+            "if",
+            "switch",
+            "for",
+            "while",
+            "do",
+            "try",
+            "return",
+            "throw",
+            "case",
+            "default",
+            "multiline-expression",
+          ],
+        },
+        {
+          blankLine: "always",
+          prev: [
+            "import",
+            "const",
+            "let",
+            "var",
+            "export",
+            "function",
+            "class",
+            "if",
+            "switch",
+            "for",
+            "while",
+            "do",
+            "try",
+            "multiline-expression",
+          ],
+          next: "*",
+        },
+        {
+          blankLine: "any",
+          prev: [
+            "singleline-const",
+            "singleline-let",
+            "singleline-var",
+          ],
+          next: [
+            "singleline-const",
+            "singleline-let",
+            "singleline-var",
+          ],
+        },
+        {
+          blankLine: "any",
+          prev: "import",
+          next: "import",
+        },
+      ],
       "no-restricted-imports": [
         "error",
         {

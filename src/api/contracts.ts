@@ -1,19 +1,24 @@
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 export type QuizStatus = "PENDING" | "PRIVATE" | "PUBLIC";
+
 export type Visibility = Exclude<QuizStatus, "PENDING">;
+
 export interface Hashtag {
   id: string;
   name: string;
 }
+
 export interface User {
   userId: string;
   publicId: string;
   displayName: string;
 }
+
 export interface Choice {
   id: string;
   text: string;
 }
+
 export type Question =
   | {
       type: "SINGLE_CHOICE" | "MULTIPLE_CHOICE";
@@ -21,11 +26,13 @@ export type Question =
       choices: Choice[];
     }
   | { type: "TRUE_FALSE" | "SHORT_ANSWER"; prompt: string };
+
 export type Answer =
   | { type: "SINGLE_CHOICE"; choiceId: string }
   | { type: "MULTIPLE_CHOICE"; choiceIds: string[] }
   | { type: "TRUE_FALSE"; value: boolean }
   | { type: "SHORT_ANSWER"; text: string };
+
 export interface QuizContent {
   title: string;
   question: Question;
@@ -33,12 +40,14 @@ export interface QuizContent {
   explanation: string;
   hashtagIds: string[];
 }
+
 export interface Revision extends QuizContent {
   revisionId: string;
   sourceContent: string;
   reviewed: boolean;
   followUpPrompt?: string;
 }
+
 export interface ReviewQuiz {
   quizId: string;
   ownerUserId: string;
@@ -48,6 +57,7 @@ export interface ReviewQuiz {
   pending: Revision | null;
   updatedAt: string;
 }
+
 export interface QuizSummary {
   quizId: string;
   ownerUserId: string;
@@ -57,6 +67,7 @@ export interface QuizSummary {
   updatedAt: string;
   hasPendingRevision: boolean;
 }
+
 export interface LearningQuizView {
   quizId: string;
   revisionId: string;
@@ -65,6 +76,7 @@ export interface LearningQuizView {
   question: Question;
   hashtagIds: string[];
 }
+
 export interface GenerationBatch {
   batchId: string;
   sourceContent: string;
@@ -74,6 +86,7 @@ export interface GenerationBatch {
     savedQuizId: string | null;
   }[];
 }
+
 export type SubscriptionTarget =
   | { type: "PERSON"; authorUserId: string }
   | { type: "HASHTAG"; hashtagId: string }
@@ -82,13 +95,16 @@ export type SubscriptionTarget =
       authorUserId: string;
       hashtagId: string;
     };
+
 export type Subscription = SubscriptionTarget & {
   subscriptionId: string;
 };
+
 export interface LearningQuery {
   hashtagId?: string | null;
   mode?: "UNSOLVED" | "REPLAY";
 }
+
 export interface LearningSelection {
   hashtagId: string | null;
   mode: "UNSOLVED" | "REPLAY";
@@ -96,12 +112,14 @@ export interface LearningSelection {
   quiz: LearningQuizView | null;
   candidateCount: number;
 }
+
 export interface AttemptResult {
   submittedAnswer: Answer;
   correct: boolean;
   answer: Answer;
   explanation: string;
 }
+
 export interface AttemptView {
   attemptId: string;
   quizId: string;
@@ -113,6 +131,7 @@ export interface AttemptView {
   correct: boolean | null;
   result: AttemptResult | null;
 }
+
 export interface LearningDay {
   learningDate: string;
   timeZone: string;
@@ -120,12 +139,14 @@ export interface LearningDay {
   streak: number;
   completedDates: string[];
 }
+
 export type Category =
   | "KEYBOARD"
   | "MONITOR"
   | "DESK"
   | "ACCESSORY"
   | "BACKGROUND";
+
 export interface Product {
   productId: string;
   name: string;
@@ -133,7 +154,9 @@ export interface Product {
   category: Category;
   price: number;
 }
+
 export type Equipment = Partial<Record<Category, string>>;
+
 export interface LedgerEntry {
   id: string;
   amount: number;
@@ -141,10 +164,12 @@ export interface LedgerEntry {
   reference: string;
   createdAt: string;
 }
+
 export interface Wallet {
   balance: number;
   ledger: LedgerEntry[];
 }
+
 export interface Purchase {
   purchaseId: string;
   productId: string;
@@ -152,18 +177,22 @@ export interface Purchase {
   price: number;
   purchasedAt: string;
 }
+
 export interface Inventory {
   products: Product[];
   equipment: Equipment;
 }
+
 export interface PublicProfile {
   user: User;
   equipment: Equipment;
 }
+
 export interface VersionRequest {
   quizId: string;
   expectedVersion: number;
 }
+
 export type PendingRequest = VersionRequest &
   (
     | {
@@ -173,6 +202,7 @@ export type PendingRequest = VersionRequest &
       }
     | { action: "MARK_REVIEWED" }
   );
+
 export interface ApiOperations {
   generate: {
     request: { sourceContent: string };
@@ -304,11 +334,15 @@ export interface ApiOperations {
     response: PublicProfile;
   };
 }
+
 export type Operation = keyof ApiOperations;
+
 export type Request<K extends Operation> =
   ApiOperations[K]["request"];
+
 export type Response<K extends Operation> =
   ApiOperations[K]["response"];
+
 export type ErrorCode =
   | "VALIDATION_ERROR"
   | "NOT_FOUND"
@@ -326,6 +360,7 @@ export type ErrorCode =
   | "GENERATION_FAILED"
   | "INVALID_RESPONSE"
   | "NETWORK_ERROR";
+
 export interface ErrorBody {
   error: {
     code: ErrorCode;
@@ -334,11 +369,14 @@ export interface ErrorBody {
     requestId: string;
   };
 }
+
 export type Envelope<T> = { data: T } | ErrorBody;
+
 export interface TransportResponse<T> {
   status: number;
   body: Envelope<T>;
 }
+
 export interface ApiTransport {
   request<K extends Operation>(
     operation: K,

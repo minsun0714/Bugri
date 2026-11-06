@@ -22,6 +22,7 @@ import {
 } from "@/mocks/storage";
 import { generatedContents } from "@/mocks/quizzes";
 import { users } from "@/mocks/users";
+
 export interface MockOptions {
   userId: string;
   storage?: StoragePort;
@@ -33,6 +34,7 @@ export interface MockOptions {
   dailyReward?: number;
   generate?: MockGenerator;
 }
+
 /** Instantiate in a browser event/effect. No localStorage access at module import or on a server. */
 export function createMockTransport(
   options: MockOptions,
@@ -49,34 +51,41 @@ export function createMockTransport(
           },
         ]
       : clone(generatedContents);
+
   return {
     async request<K extends Operation>(
       operation: K,
       request: Request<K>,
     ): Promise<TransportResponse<Response<K>>> {
       const requestId = globalThis.crypto.randomUUID();
+
       try {
         requireValue(
           users.some((u) => u.userId === options.userId),
           "알 수 없는 더미 사용자입니다.",
         );
+
         requireValue(
           options.dailyReward === undefined ||
             (Number.isSafeInteger(options.dailyReward) &&
               options.dailyReward >= 0),
           "Mock 보상 설정은 0 이상의 정수여야 합니다.",
         );
+
         requireValue(
           options.fallbackTimeZone === undefined ||
             timeZoneValid(options.fallbackTimeZone),
           "명시적 fallback 시간대를 확인하세요.",
         );
+
         let storage: StoragePort;
+
         try {
           if (options.storage) storage = options.storage;
           else {
             if (typeof window === "undefined")
               throw new Error("Browser required");
+
             storage = window.localStorage;
           }
         } catch {
@@ -86,16 +95,21 @@ export function createMockTransport(
             503,
           );
         }
+
         // Fresh reads on every request observe other dummy users and tabs. Only actor-owned state is written.
         const allStates = users.map((user) =>
           readState(storage, user.userId),
         );
+
         const state = allStates.find(
           (s) => s.userId === options.userId,
         )!;
+
         const before = JSON.stringify(state);
+
         if (!state.timeZone) {
           let detected: string | undefined;
+
           try {
             detected = options.detectTimeZone
               ? options.detectTimeZone()
@@ -104,10 +118,12 @@ export function createMockTransport(
           } catch {
             /* explicit setting remains available */
           }
+
           state.timeZone = timeZoneValid(detected)
             ? detected
             : (options.fallbackTimeZone ?? null);
         }
+
         const data = execute(operation, clone(request), {
           state,
           allStates,
@@ -117,9 +133,11 @@ export function createMockTransport(
           generate: options.generate ?? defaultGenerate,
           dailyReward: options.dailyReward ?? 0,
         });
+
         // One setItem commits the complete mutation; failure leaves persisted state unchanged.
         if (JSON.stringify(state) !== before)
           writeState(storage, state);
+
         return {
           status: 200,
           body: {
@@ -134,6 +152,7 @@ export function createMockTransport(
                 "VALIDATION_ERROR",
                 "요청을 처리할 수 없습니다.",
               );
+
         return {
           status: fault.status,
           body: {

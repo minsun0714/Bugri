@@ -9,9 +9,11 @@ import type {
   Revision,
   Subscription,
 } from "@/api/contracts";
+
 export interface StoredQuiz extends ReviewQuiz {
   deletedAt: string | null;
 }
+
 export interface StoredAttempt {
   attemptId: string;
   quizId: string;
@@ -23,11 +25,13 @@ export interface StoredAttempt {
   learningDate: string | null;
   timeZone: string | null;
 }
+
 export interface StoredDay {
   learningDate: string;
   timeZone: string;
   completedAt: string;
 }
+
 export interface UserState {
   schemaVersion: 1;
   userId: string;

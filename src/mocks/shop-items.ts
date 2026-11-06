@@ -1,4 +1,5 @@
 import type { Product } from "@/api/contracts";
+
 export const shopItems: readonly Product[] = [
   {
     productId: "keyboard-1",
@@ -36,5 +37,6 @@ export const shopItems: readonly Product[] = [
     price: 50,
   },
 ];
+
 /** Fixture only, not a product reward policy. */
 export const initialBugCoin = 100;
