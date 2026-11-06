@@ -1,5 +1,6 @@
 "use client";
 
+import { Tooltip } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import {
@@ -154,12 +155,15 @@ export function ReviewEditor({
       </div>
       {quiz.active && (
         <Card>
-          <h3>현재 서비스 중인 버전</h3>
+          <div className={styles.actions}>
+            <h3>현재 서비스 중인 버전</h3>
+            <Tooltip label="수정본 승인 도움말">
+              수정본을 승인하기 전까지 기존 퀴즈가
+              유지됩니다.
+            </Tooltip>
+          </div>
           <p>
             {quiz.active.title} · {quiz.status}
-          </p>
-          <p className="text-sm text-muted">
-            수정본을 승인하기 전까지 이 버전이 유지됩니다.
           </p>
         </Card>
       )}
@@ -296,11 +300,15 @@ export function ReviewEditor({
         </Card>
       )}
       <Card className={styles.stack}>
-        <h3 className="text-xl">추가 프롬프트로 재생성</h3>
-        <p className="text-sm text-muted">
-          저장된 내용으로 Mock 수정본을 만듭니다. 성공해도
-          자동 승인되지 않습니다.
-        </p>
+        <div className={styles.actions}>
+          <h3 className="text-xl">
+            추가 프롬프트로 재생성
+          </h3>
+          <Tooltip label="재생성 도움말">
+            저장된 내용으로 수정본을 만듭니다. 검토 후
+            승인해야 반영됩니다.
+          </Tooltip>
+        </div>
         <TextField
           label="추가 프롬프트"
           value={prompt}

@@ -1,3 +1,4 @@
+import { Tooltip } from "@/components/ui/tooltip";
 import type { Hashtag, QuizContent } from "@/api/contracts";
 import {
   Button,
@@ -212,21 +213,25 @@ export function ContentFields({
         </fieldset>
       )}
       {answer.type === "SHORT_ANSWER" && (
-        <TextField
-          label="단답 정답"
-          value={answer.text}
-          error={errors.answer}
-          hint="양끝 공백을 제외하고 대소문자를 구분합니다."
-          onChange={(event) =>
-            onChange({
-              ...content,
-              answer: {
-                ...answer,
-                text: event.target.value,
-              },
-            })
-          }
-        />
+        <div className="grid grid-cols-[1fr_auto] items-start gap-2">
+          <TextField
+            label="단답 정답"
+            value={answer.text}
+            error={errors.answer}
+            onChange={(event) =>
+              onChange({
+                ...content,
+                answer: {
+                  ...answer,
+                  text: event.target.value,
+                },
+              })
+            }
+          />
+          <Tooltip label="단답 정답 도움말">
+            양끝 공백은 제외하고 대소문자를 구분합니다.
+          </Tooltip>
+        </div>
       )}
       {fieldError("answer")}
       <div>
@@ -261,9 +266,6 @@ export function ContentFields({
             })
           }
         />
-        <p className="my-2 text-sm text-muted">
-          등록된 태그를 선택하거나 이름을 입력하세요.
-        </p>
         <div className={styles.actions}>
           {tags.map(({ id, name }) => (
             <Button

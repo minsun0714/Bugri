@@ -1,5 +1,6 @@
 "use client";
 
+import { Tooltip } from "@/components/ui/tooltip";
 import { useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import type { GenerationBatch } from "@/api/contracts";
@@ -119,15 +120,17 @@ export function Generation({
       className={styles.stack}
       aria-label="퀴즈 생성"
     >
-      <h2 className="text-2xl">
-        배운 내용으로 퀴즈 만들기
-      </h2>
-      <p className="text-sm text-muted">
-        현재는 실제 AI 대신 고정된 Mock 후보 4개를
-        제공합니다. 내용에 맞춘 생성이 아니며 정답과 해설을
-        직접 확인해야 합니다. 비밀키·개인정보는 입력하지
-        마세요.
-      </p>
+      <div className={styles.actions}>
+        <h2 className="text-2xl">퀴즈 만들기</h2>
+        <span className="text-xs text-muted">
+          Mock 체험
+        </span>
+        <Tooltip label="퀴즈 생성 도움말">
+          실제 AI 대신 예시 퀴즈 4개를 제공합니다. 정답과
+          해설을 확인하세요. 비밀키·개인정보는 입력하지
+          마세요.
+        </Tooltip>
+      </div>
       <fieldset disabled={busy} className="min-w-0">
         <MarkdownEditor
           value={source}
@@ -153,6 +156,10 @@ export function Generation({
             <h2 className="text-xl">
               생성 후보 {batch.candidates.length}개
             </h2>
+            <Tooltip label="후보 저장 도움말">
+              저장한 퀴즈만 내 목록에 표시됩니다. 후보는
+              새로고침 후에도 남습니다.
+            </Tooltip>
             <Button
               variant="secondary"
               disabled={
@@ -166,10 +173,6 @@ export function Generation({
               남은 후보 모두 저장
             </Button>
           </div>
-          <p className="text-sm text-muted">
-            후보는 보존되지만 저장한 퀴즈만 내 목록에
-            나타납니다.
-          </p>
           {batch.candidates.map(
             (
               { candidateId, content, savedQuizId },

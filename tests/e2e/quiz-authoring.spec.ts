@@ -253,3 +253,38 @@ test("stale tabs cannot overwrite and keep unsaved edits", async ({
     other.getByLabel("제목", { exact: true }),
   ).toHaveValue("먼저 저장한 제목");
 });
+
+test("supplementary help opens on hover, focus and mobile tap", async ({
+  page,
+}) => {
+  await page.goto("/quizzes/authoring");
+  const help = page.getByRole("button", {
+    name: "퀴즈 생성 도움말",
+  });
+  await expect(help).toBeVisible();
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  await help.hover();
+  await expect(page.getByRole("tooltip")).toContainText(
+    "예시 퀴즈 4개",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  await help.focus();
+  await expect(page.getByRole("tooltip")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await help.click();
+  await expect(page.getByRole("tooltip")).toBeVisible();
+  await expect(page.locator("body")).toHaveJSProperty(
+    "scrollWidth",
+    390,
+  );
+  await page
+    .getByRole("heading", {
+      name: "퀴즈 작성실",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+});

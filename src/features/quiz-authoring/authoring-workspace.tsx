@@ -1,5 +1,6 @@
 "use client";
 
+import { Tooltip } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { createBrowserApi } from "@/api/browser";
 import type { ApiClient } from "@/api/client";
@@ -152,12 +153,14 @@ export function AuthoringWorkspace() {
 
   return (
     <div className={styles.stack}>
-      <h1 className="text-3xl">퀴즈 작성실</h1>
-      <p className="text-sm text-muted">
-        더미 사용자로 동작하는 프로토타입입니다. 변경 사항은
-        이 브라우저에 저장되며 데이터 삭제·기기 변경 시
-        유실될 수 있습니다.
-      </p>
+      <div className={styles.actions}>
+        <h1 className="text-3xl">퀴즈 작성실</h1>
+        <Tooltip label="저장 및 사용자 안내">
+          더미 사용자로 체험합니다. 변경 사항은 이
+          브라우저에만 저장되며 브라우저 데이터 삭제 시
+          사라집니다.
+        </Tooltip>
+      </div>
       <RequestError error={error} />
       {notice && (
         <p role="status" className="text-primary">
