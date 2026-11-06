@@ -1,3 +1,4 @@
+import { QuizStatus, LearningMode } from "@/api/constants";
 import { users, hashtags } from "@/mocks/users";
 import { quizzes } from "@/mocks/quizzes";
 import { subscriptions } from "@/mocks/subscriptions";
@@ -46,7 +47,7 @@ export function initialState(userId: string): UserState {
     timeZone: null,
     selection: {
       hashtagId: null,
-      mode: "UNSOLVED",
+      mode: LearningMode.UNSOLVED,
       quizId: null,
     },
     purchases: [],
@@ -101,8 +102,8 @@ function validateState(
   const { selection, equipment } = value;
 
   requireValue(
-    selection.mode === "UNSOLVED" ||
-      selection.mode === "REPLAY",
+    selection.mode === LearningMode.UNSOLVED ||
+      selection.mode === LearningMode.REPLAY,
     "학습 모드가 손상되었습니다.",
   );
 
@@ -172,9 +173,7 @@ function validateState(
         typeof q.quizId === "string" &&
         Number.isInteger(q.version) &&
         q.version > 0 &&
-        ["PENDING", "PUBLIC", "PRIVATE"].includes(
-          q.status,
-        ) &&
+        Object.values(QuizStatus).includes(q.status) &&
         typeof q.updatedAt === "string" &&
         (q.deletedAt === null ||
           typeof q.deletedAt === "string"),
@@ -182,7 +181,7 @@ function validateState(
     );
 
     requireValue(
-      q.status === "PENDING"
+      q.status === QuizStatus.PENDING
         ? q.active === null && q.pending !== null
         : q.active !== null,
       "활성 버전이 손상되었습니다.",

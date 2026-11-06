@@ -1,3 +1,8 @@
+import {
+  QuizScope,
+  QuizStatus,
+  LearningState,
+} from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import { createMockTransport } from "@/mocks/adapter";
 
@@ -24,7 +29,7 @@ test("generation is owner-only; individual then bulk save does not duplicate can
 
   expect(
     await api.request("quizzes", {
-      scope: "OWN",
+      scope: QuizScope.OWN,
     }),
   ).toHaveLength(0);
 
@@ -34,7 +39,7 @@ test("generation is owner-only; individual then bulk save does not duplicate can
     candidateId: batch.candidates[0].candidateId,
   });
 
-  expect(first.status).toBe("PENDING");
+  expect(first.status).toBe(QuizStatus.PENDING);
 
   await api.request("saveBatch", {
     batchId: batch.batchId,
@@ -48,7 +53,7 @@ test("generation is owner-only; individual then bulk save does not duplicate can
 
   expect(
     await make().request("quizzes", {
-      scope: "OWN",
+      scope: QuizScope.OWN,
     }),
   ).toHaveLength(batch.candidates.length);
 
@@ -73,7 +78,7 @@ test("learning never exposes answers; wrong answers and replays count once per d
     hashtagId: "typescript",
   });
 
-  expect(selection.state).toBe("AVAILABLE");
+  expect(selection.state).toBe(LearningState.AVAILABLE);
 
   expect(JSON.stringify(selection)).not.toMatch(
     /"answer"|"explanation"|"sourceContent"/,

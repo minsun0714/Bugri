@@ -8,11 +8,12 @@ UI는 `src/api/contracts.ts`의 DTO와 `src/api/browser.ts`의 조립 함수만 
 
 ```ts
 import { createBrowserApi } from '@/api/browser';
+import { LearningMode } from '@/api/contracts';
 
 const api = await createBrowserApi({ mode: 'mock', userId: 'learner' });
 const selection = await api.request('learningQuiz', {
   hashtagId: null, // 전체
-  mode: 'UNSOLVED',
+  mode: LearningMode.UNSOLVED,
 });
 // 이후 next는 현재 태그/모드를 유지. 명시적으로 지정해도 된다.
 const next = await api.request('learningNext', {});
@@ -21,6 +22,12 @@ const next = await api.request('learningNext', {});
 Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`로 교체한다. HTTP 어댑터는 실제 fetch를 사용하며 더미 userId를 전송하지 않는다. 실제 인증 설정·JWT·OAuth는 구현하지 않았다. 서버에서 브라우저 Mock을 호출하면 저장소 오류가 반환된다. Route Handler는 추가하지 않았다.
 
 `api.request()`는 성공 DTO를 반환하고 실패 시 `ApiClientError`를 던진다. `status`, `detail.code`, `detail.message`, `detail.fieldErrors?`, `detail.requestId`로 처리한다. 하위 transport의 성공은 `{ data }`, 실패는 `{ error: { code, message, fieldErrors?, requestId } }`이며 HTTP status는 envelope 외부에 둔다. 모든 요청·응답 타입은 `ApiOperations`, HTTP 메서드·경로는 `src/api/http.ts`의 `endpoints`가 정의한다. GET의 경로 변수를 제외한 요청은 query, 그 외는 JSON body다. 경로 변수는 URL 인코딩하고 body에서 제외한다. HTTP 어댑터는 응답 envelope를 검증하며 실제 서버의 DTO 필드 검증은 2단계 통합 대상이다.
+
+## 상태·모드 상수
+
+`src/api/constants.ts`에 `QuizStatus`, `LearningMode`, `LearningState`, `QuizScope`를 `as const` 객체로 정의하고 같은 이름의 타입을 값에서 추출한다. `src/api/contracts.ts`에서도 다시 내보내므로 UI는 계약 진입점에서 가져올 수 있다. 예: `QuizStatus.PUBLIC`, `LearningState.EXHAUSTED`. 공개 목록 범위는 별도 개념인 `QuizScope.PUBLIC`을 사용한다.
+
+API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한다. 숫자 enum이나 새로운 상태를 추가하지 않는다. 문자열 상수 변경은 계약·저장 데이터 호환성 변경이므로 별도 검토가 필요하다.
 
 ## 문제 형식과 생성
 

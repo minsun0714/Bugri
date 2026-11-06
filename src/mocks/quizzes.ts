@@ -1,3 +1,4 @@
+import { QuizStatus } from "@/api/constants";
 import type {
   QuizContent,
   ReviewQuiz,
@@ -86,7 +87,7 @@ export const quizzes: readonly ReviewQuiz[] =
   generatedContents.map((content, index) => ({
     quizId: `seed-quiz-${index + 1}`,
     ownerUserId: index < 2 ? "author" : "friend",
-    status: "PUBLIC",
+    status: QuizStatus.PUBLIC,
     version: 1,
     active: {
       ...content,

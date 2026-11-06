@@ -53,6 +53,12 @@ Developer learning platform with AI-generated quizzes.
 - ESLint currently enforces this rule in the API, Mock, service, and related test files. Do not expand enforcement into UI/design files as part of API-only work.
 - Keep Jest alias mapping and the E2E test bundle resolver compatible with `tsconfig.json` paths when changing imports.
 
+## Domain Constants
+
+- Define domain status/mode values as shared `as const` objects in `src/api/constants.ts` and derive their union types from those objects. Use members such as `QuizStatus.PUBLIC` and `LearningMode.REPLAY` in application code, fixtures, and test inputs instead of repeating string literals.
+- Keep distinct concepts separate even if they share a wire value: `QuizScope.PUBLIC` is a list filter, while `QuizStatus.PUBLIC` is a quiz status.
+- Preserve existing API/localStorage string values. Literal expectations are allowed in compatibility tests that intentionally verify serialized wire values.
+
 ## Destructuring
 
 - Use object and array destructuring when extracting values into local variables. This is the default coding rule, not an optional style preference. ESLint `prefer-destructuring` enforces variable declarations, including renamed properties, in API/Mock/service code and related tests; assignment expressions remain outside enforcement to preserve mutations.

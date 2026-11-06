@@ -1,3 +1,8 @@
+import {
+  QuizStatus,
+  LearningMode,
+  LearningState,
+} from "@/api/constants";
 import { test, expect, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
@@ -82,129 +87,138 @@ test("browser generation → review → subscription → solve/replay → purcha
 }) => {
   await load(page);
 
-  const outcome = await page.evaluate(async () => {
-    localStorage.clear();
+  const outcome = await page.evaluate(
+    async ({ QuizStatus, LearningMode }) => {
+      localStorage.clear();
 
-    const owner = window.mockApi("author"),
-      learner = window.mockApi("learner");
+      const owner = window.mockApi("author"),
+        learner = window.mockApi("learner");
 
-    const batch = await owner.request("generate", {
-      sourceContent: "코드\n```ts\nconst x = 1;\n```",
-    });
+      const batch = await owner.request("generate", {
+        sourceContent: "코드\n```ts\nconst x = 1;\n```",
+      });
 
-    const [draft] = await owner.request("saveBatch", {
-      batchId: batch.batchId,
-      mode: "SINGLE",
-      candidateId: batch.candidates[0].candidateId,
-    });
+      const [draft] = await owner.request("saveBatch", {
+        batchId: batch.batchId,
+        mode: "SINGLE",
+        candidateId: batch.candidates[0].candidateId,
+      });
 
-    const reviewed = await owner.request("updatePending", {
-      quizId: draft.quizId,
-      expectedVersion: draft.version,
-      action: "MARK_REVIEWED",
-    });
+      const reviewed = await owner.request(
+        "updatePending",
+        {
+          quizId: draft.quizId,
+          expectedVersion: draft.version,
+          action: "MARK_REVIEWED",
+        },
+      );
 
-    await owner.request("approve", {
-      quizId: draft.quizId,
-      expectedVersion: reviewed.version,
-      visibility: "PUBLIC",
-    });
+      await owner.request("approve", {
+        quizId: draft.quizId,
+        expectedVersion: reviewed.version,
+        visibility: QuizStatus.PUBLIC,
+      });
 
-    await learner.request("subscribe", {
-      type: "PERSON",
-      authorUserId: "author",
-    });
+      await learner.request("subscribe", {
+        type: "PERSON",
+        authorUserId: "author",
+      });
 
-    const selected = await learner.request("learningQuiz", {
-      hashtagId: "typescript",
-    });
+      const selected = await learner.request(
+        "learningQuiz",
+        {
+          hashtagId: "typescript",
+        },
+      );
 
-    const first = await learner.request("startAttempt", {
-      quizId: selected.quiz!.quizId,
-      context: "LEARNING",
-    });
-
-    await learner.request("answer", {
-      attemptId: first.attemptId,
-      answer: {
-        type: "SINGLE_CHOICE",
-        choiceId: "a",
-      },
-    });
-
-    const second = await learner.request(
-      "learningNext",
-      {},
-    );
-
-    const nextAttempt = await learner.request(
-      "startAttempt",
-      {
-        quizId: second.quiz!.quizId,
+      const first = await learner.request("startAttempt", {
+        quizId: selected.quiz!.quizId,
         context: "LEARNING",
-      },
-    );
+      });
 
-    await learner.request("answer", {
-      attemptId: nextAttempt.attemptId,
-      answer: {
-        type: "SINGLE_CHOICE",
-        choiceId: "b",
-      },
-    });
+      await learner.request("answer", {
+        attemptId: first.attemptId,
+        answer: {
+          type: "SINGLE_CHOICE",
+          choiceId: "a",
+        },
+      });
 
-    const exhausted = await learner.request(
-      "learningNext",
-      {},
-    );
+      const second = await learner.request(
+        "learningNext",
+        {},
+      );
 
-    const replaySelection = await learner.request(
-      "learningQuiz",
-      {
-        hashtagId: "typescript",
-        mode: "REPLAY",
-      },
-    );
+      const nextAttempt = await learner.request(
+        "startAttempt",
+        {
+          quizId: second.quiz!.quizId,
+          context: "LEARNING",
+        },
+      );
 
-    const replay = await learner.request("startAttempt", {
-      quizId: replaySelection.quiz!.quizId,
-      context: "LEARNING",
-    });
+      await learner.request("answer", {
+        attemptId: nextAttempt.attemptId,
+        answer: {
+          type: "SINGLE_CHOICE",
+          choiceId: "b",
+        },
+      });
 
-    await learner.request("answer", {
-      attemptId: replay.attemptId,
-      answer: {
-        type: "SINGLE_CHOICE",
-        choiceId: "a",
-      },
-    });
+      const exhausted = await learner.request(
+        "learningNext",
+        {},
+      );
 
-    await learner.request("purchase", {
-      productId: "keyboard-1",
-      requestKey: "browser-buy",
-    });
+      const replaySelection = await learner.request(
+        "learningQuiz",
+        {
+          hashtagId: "typescript",
+          mode: LearningMode.REPLAY,
+        },
+      );
 
-    await learner.request("purchase", {
-      productId: "keyboard-1",
-      requestKey: "browser-buy",
-    });
+      const replay = await learner.request("startAttempt", {
+        quizId: replaySelection.quiz!.quizId,
+        context: "LEARNING",
+      });
 
-    await learner.request("equip", {
-      category: "KEYBOARD",
-      productId: "keyboard-1",
-    });
+      await learner.request("answer", {
+        attemptId: replay.attemptId,
+        answer: {
+          type: "SINGLE_CHOICE",
+          choiceId: "a",
+        },
+      });
 
-    return {
-      exhausted: exhausted.state,
-      tag: second.hashtagId,
-      selected,
-      firstId: first.attemptId,
-      replayId: replay.attemptId,
-      day: await learner.request("learningDay", {}),
-    };
-  });
+      await learner.request("purchase", {
+        productId: "keyboard-1",
+        requestKey: "browser-buy",
+      });
 
-  expect(outcome.exhausted).toBe("EXHAUSTED");
+      await learner.request("purchase", {
+        productId: "keyboard-1",
+        requestKey: "browser-buy",
+      });
+
+      await learner.request("equip", {
+        category: "KEYBOARD",
+        productId: "keyboard-1",
+      });
+
+      return {
+        exhausted: exhausted.state,
+        tag: second.hashtagId,
+        selected,
+        firstId: first.attemptId,
+        replayId: replay.attemptId,
+        day: await learner.request("learningDay", {}),
+      };
+    },
+    { QuizStatus, LearningMode },
+  );
+
+  expect(outcome.exhausted).toBe(LearningState.EXHAUSTED);
   expect(outcome.tag).toBe("typescript");
   expect(outcome.replayId).not.toBe(outcome.firstId);
   expect(outcome.day.completedDates).toHaveLength(1);
@@ -262,45 +276,54 @@ test("another tab observes visibility revocation and stale edits without overwri
 
   await load(second);
 
-  await second.evaluate(async () =>
-    window.mockApi("author").request("visibility", {
-      quizId: "seed-quiz-1",
-      expectedVersion: 1,
-      visibility: "PRIVATE",
-    }),
-  );
-
-  const codes = await page.evaluate(async (attemptId) => {
-    const errors: string[] = [];
-
-    try {
-      await window.mockApi("learner").request("answer", {
-        attemptId,
-        answer: {
-          type: "SINGLE_CHOICE",
-          choiceId: "a",
-        },
-      });
-    } catch (error) {
-      errors.push(
-        (error as { detail: { code: string } }).detail.code,
-      );
-    }
-
-    try {
-      await window.mockApi("author").request("visibility", {
+  await second.evaluate(
+    async ({ QuizStatus }) =>
+      window.mockApi("author").request("visibility", {
         quizId: "seed-quiz-1",
         expectedVersion: 1,
-        visibility: "PUBLIC",
-      });
-    } catch (error) {
-      errors.push(
-        (error as { detail: { code: string } }).detail.code,
-      );
-    }
+        visibility: QuizStatus.PRIVATE,
+      }),
+    { QuizStatus },
+  );
 
-    return errors;
-  }, attemptId);
+  const codes = await page.evaluate(
+    async ({ attemptId, QuizStatus }) => {
+      const errors: string[] = [];
+
+      try {
+        await window.mockApi("learner").request("answer", {
+          attemptId,
+          answer: {
+            type: "SINGLE_CHOICE",
+            choiceId: "a",
+          },
+        });
+      } catch (error) {
+        errors.push(
+          (error as { detail: { code: string } }).detail
+            .code,
+        );
+      }
+
+      try {
+        await window
+          .mockApi("author")
+          .request("visibility", {
+            quizId: "seed-quiz-1",
+            expectedVersion: 1,
+            visibility: QuizStatus.PUBLIC,
+          });
+      } catch (error) {
+        errors.push(
+          (error as { detail: { code: string } }).detail
+            .code,
+        );
+      }
+
+      return errors;
+    },
+    { attemptId, QuizStatus },
+  );
 
   expect(codes).toEqual([
     "QUIZ_UNAVAILABLE",

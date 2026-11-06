@@ -1,3 +1,4 @@
+import { QuizStatus } from "@/api/constants";
 import type {
   LearningQuizView,
   Subscription,
@@ -30,7 +31,7 @@ export function candidates(
   return quizzes.filter(
     ({ deletedAt, status, active, ownerUserId }) =>
       !deletedAt &&
-      status === "PUBLIC" &&
+      status === QuizStatus.PUBLIC &&
       active &&
       (!hashtagId ||
         active.hashtagIds.includes(hashtagId)) &&

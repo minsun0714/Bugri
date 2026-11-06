@@ -1,3 +1,9 @@
+import {
+  QuizScope,
+  QuizStatus,
+  LearningMode,
+  LearningState,
+} from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import type {
   Answer,
@@ -66,7 +72,7 @@ async function approve({
   return owner.request("approve", {
     quizId,
     expectedVersion: reviewedVersion,
-    visibility: "PUBLIC",
+    visibility: QuizStatus.PUBLIC,
   });
 }
 
@@ -197,7 +203,7 @@ test.each(
       client.request("approve", {
         quizId: pending.quizId,
         expectedVersion: pending.version,
-        visibility: "PUBLIC",
+        visibility: QuizStatus.PUBLIC,
       }),
     ).rejects.toMatchObject({
       detail: {
@@ -291,7 +297,7 @@ test("review state resets, stale versions fail, active revision remains and old 
     owner.request("approve", {
       quizId: old.quizId,
       expectedVersion: old.version,
-      visibility: "PRIVATE",
+      visibility: QuizStatus.PRIVATE,
     }),
   ).rejects.toMatchObject({
     detail: {
@@ -379,7 +385,7 @@ test("regeneration failure leaves old pending content and successful prompt inta
   ).toBe("코드를 추가");
 });
 
-test.each(["PRIVATE", "DELETE"] as const)(
+test.each([QuizStatus.PRIVATE, "DELETE"] as const)(
   "%s blocks others pending submissions, preserves completion/ledger, and hides content",
   async (change) => {
     const learner = api("learner", {
@@ -412,11 +418,11 @@ test.each(["PRIVATE", "DELETE"] as const)(
     const wallet = await learner.request("wallet", {}),
       day = await learner.request("learningDay", {});
 
-    if (change === "PRIVATE")
+    if (change === QuizStatus.PRIVATE)
       await api("author").request("visibility", {
         quizId: "seed-quiz-1",
         expectedVersion: 1,
-        visibility: "PRIVATE",
+        visibility: QuizStatus.PRIVATE,
       });
     else
       await api("author").request("deleteQuiz", {
@@ -460,7 +466,7 @@ test.each(["PRIVATE", "DELETE"] as const)(
           hashtagId: "typescript",
         })
       ).state,
-    ).toBe("EMPTY");
+    ).toBe(LearningState.EMPTY);
   },
 );
 
@@ -470,7 +476,7 @@ test("private owner can solve; deleting twice is safe and blocks owner submissio
   await owner.request("visibility", {
     quizId: "seed-quiz-1",
     expectedVersion: 1,
-    visibility: "PRIVATE",
+    visibility: QuizStatus.PRIVATE,
   });
 
   const a = await owner.request("startAttempt", {
@@ -503,7 +509,7 @@ test("private owner can solve; deleting twice is safe and blocks owner submissio
   expect(
     (
       await owner.request("quizzes", {
-        scope: "OWN",
+        scope: QuizScope.OWN,
       })
     ).map((q) => q.quizId),
   ).not.toContain("seed-quiz-1");
@@ -551,7 +557,7 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
 
   expect(
     (await client.request("learningQuiz", {})).state,
-  ).toBe("EMPTY");
+  ).toBe(LearningState.EMPTY);
 
   const person = await client.request("subscribe", {
     type: "PERSON",
@@ -598,7 +604,7 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
 
   expect(
     (await client.request("learningNext", {})).state,
-  ).toBe("EXHAUSTED");
+  ).toBe(LearningState.EXHAUSTED);
 
   const subs = await client.request("subscriptions", {});
 
@@ -612,15 +618,15 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
         hashtagId: "typescript",
       })
     ).state,
-  ).toBe("EXHAUSTED");
+  ).toBe(LearningState.EXHAUSTED);
 
   expect(
     (
       await client.request("learningQuiz", {
-        mode: "REPLAY",
+        mode: LearningMode.REPLAY,
       })
     ).state,
-  ).toBe("AVAILABLE");
+  ).toBe(LearningState.AVAILABLE);
 
   expect(await client.request("subscriptions", {})).toEqual(
     subs,

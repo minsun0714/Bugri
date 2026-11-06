@@ -1,3 +1,9 @@
+import {
+  QuizStatus,
+  LearningMode,
+  LearningState,
+  QuizScope,
+} from "@/api/constants";
 import type {
   ApiOperations,
   AttemptView,
@@ -192,8 +198,8 @@ export function execute<K extends Operation>(
     !!q &&
     !q.deletedAt &&
     !!q.active &&
-    (q.status === "PUBLIC" ||
-      (q.status === "PRIVATE" &&
+    (q.status === QuizStatus.PUBLIC ||
+      (q.status === QuizStatus.PRIVATE &&
         q.ownerUserId === s.userId));
 
   const attemptView = ({
@@ -305,8 +311,8 @@ export function execute<K extends Operation>(
 
   const visibility = (): Visibility => {
     requireValue(
-      r.visibility === "PUBLIC" ||
-        r.visibility === "PRIVATE",
+      r.visibility === QuizStatus.PUBLIC ||
+        r.visibility === QuizStatus.PRIVATE,
       "공개 범위를 선택하세요.",
     );
 
@@ -387,7 +393,7 @@ export function execute<K extends Operation>(
         const q: StoredQuiz = {
           quizId: id(),
           ownerUserId: s.userId,
-          status: "PENDING",
+          status: QuizStatus.PENDING,
           version: 1,
           active: null,
           pending: {
@@ -409,7 +415,8 @@ export function execute<K extends Operation>(
 
     case "quizzes": {
       requireValue(
-        r.scope === "OWN" || r.scope === "PUBLIC",
+        r.scope === QuizScope.OWN ||
+          r.scope === QuizScope.PUBLIC,
         "목록 범위를 지정하세요.",
       );
 
@@ -417,13 +424,13 @@ export function execute<K extends Operation>(
         .filter(
           (q) =>
             !q.deletedAt &&
-            (r.scope === "OWN"
+            (r.scope === QuizScope.OWN
               ? q.ownerUserId === s.userId
-              : q.status === "PUBLIC"),
+              : q.status === QuizStatus.PUBLIC),
         )
         .map((q) => {
           const revision =
-            r.scope === "OWN"
+            r.scope === QuizScope.OWN
               ? (q.pending ?? q.active!)
               : q.active!;
 
@@ -435,7 +442,7 @@ export function execute<K extends Operation>(
             hashtagIds: revision.hashtagIds,
             updatedAt: q.updatedAt,
             hasPendingRevision:
-              r.scope === "OWN" && !!q.pending,
+              r.scope === QuizScope.OWN && !!q.pending,
           };
         });
     }
@@ -539,7 +546,8 @@ export function execute<K extends Operation>(
         );
 
       const next =
-        r.visibility === undefined && q.status !== "PENDING"
+        r.visibility === undefined &&
+        q.status !== QuizStatus.PENDING
           ? q.status
           : visibility();
 
@@ -654,7 +662,7 @@ export function execute<K extends Operation>(
       return hashtags.filter((t) =>
         allQuizzes.some(
           (q) =>
-            q.status === "PUBLIC" &&
+            q.status === QuizStatus.PUBLIC &&
             !q.deletedAt &&
             q.active?.hashtagIds.includes(t.id),
         ),
@@ -689,7 +697,8 @@ export function execute<K extends Operation>(
 
       if (r.mode !== undefined)
         requireValue(
-          r.mode === "UNSOLVED" || r.mode === "REPLAY",
+          r.mode === LearningMode.UNSOLVED ||
+            r.mode === LearningMode.REPLAY,
           "학습 모드를 확인하세요.",
         );
 
@@ -703,7 +712,7 @@ export function execute<K extends Operation>(
       const mode = (r.mode ??
         (operation === "learningNext"
           ? s.selection.mode
-          : "UNSOLVED")) as "UNSOLVED" | "REPLAY";
+          : LearningMode.UNSOLVED)) as LearningMode;
 
       const qs = candidates(
         allQuizzes,
@@ -718,7 +727,7 @@ export function execute<K extends Operation>(
       );
 
       const pool = qs.filter((q) =>
-        mode === "REPLAY"
+        mode === LearningMode.REPLAY
           ? completed.has(q.quizId)
           : !completed.has(q.quizId),
       );
@@ -750,12 +759,12 @@ export function execute<K extends Operation>(
         hashtagId,
         mode,
         state: !qs.length
-          ? "EMPTY"
+          ? LearningState.EMPTY
           : selected
-            ? "AVAILABLE"
-            : mode === "UNSOLVED"
-              ? "EXHAUSTED"
-              : "NO_REPLAY",
+            ? LearningState.AVAILABLE
+            : mode === LearningMode.UNSOLVED
+              ? LearningState.EXHAUSTED
+              : LearningState.NO_REPLAY,
         quiz: selected ? publicView(selected) : null,
         candidateCount: qs.length,
       };

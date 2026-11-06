@@ -1,3 +1,4 @@
+import { QuizStatus, LearningMode } from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import { createHttpTransport, endpoints } from "@/api/http";
 import type { Request } from "@/api/contracts";
@@ -39,7 +40,7 @@ test("REST encodes path, removes path fields from body and uses explicit envelop
   await client.request("approve", {
     quizId: "q",
     expectedVersion: 2,
-    visibility: "PUBLIC",
+    visibility: QuizStatus.PUBLIC,
   });
 
   expect(fetcher).toHaveBeenLastCalledWith(
@@ -70,7 +71,7 @@ test("GET query has no body and omits All hashtag; no mock user or auth headers"
 
   await client.request("learningQuiz", {
     hashtagId: null,
-    mode: "UNSOLVED",
+    mode: LearningMode.UNSOLVED,
   });
 
   expect(fetcher).toHaveBeenCalledWith(

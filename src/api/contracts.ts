@@ -1,7 +1,22 @@
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
-export type QuizStatus = "PENDING" | "PRIVATE" | "PUBLIC";
+import {
+  QuizStatus,
+  type LearningMode,
+  type LearningState,
+  type QuizScope,
+} from "@/api/constants";
 
-export type Visibility = Exclude<QuizStatus, "PENDING">;
+export {
+  QuizStatus,
+  LearningMode,
+  LearningState,
+  QuizScope,
+} from "@/api/constants";
+
+export type Visibility = Exclude<
+  QuizStatus,
+  typeof QuizStatus.PENDING
+>;
 
 export interface Hashtag {
   id: string;
@@ -102,13 +117,13 @@ export type Subscription = SubscriptionTarget & {
 
 export interface LearningQuery {
   hashtagId?: string | null;
-  mode?: "UNSOLVED" | "REPLAY";
+  mode?: LearningMode;
 }
 
 export interface LearningSelection {
   hashtagId: string | null;
-  mode: "UNSOLVED" | "REPLAY";
-  state: "AVAILABLE" | "EMPTY" | "EXHAUSTED" | "NO_REPLAY";
+  mode: LearningMode;
+  state: LearningState;
   quiz: LearningQuizView | null;
   candidateCount: number;
 }
@@ -220,7 +235,7 @@ export interface ApiOperations {
     response: ReviewQuiz[];
   };
   quizzes: {
-    request: { scope: "OWN" | "PUBLIC" };
+    request: { scope: QuizScope };
     response: QuizSummary[];
   };
   reviewQuiz: {
