@@ -10,88 +10,41 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project
 
-Developer learning platform with AI-generated quizzes.
+Bugri is a developer learning platform with AI-generated quizzes.
 
-## Development stages
+## Scope and stages
 
-- Stage 1: Next.js 16 + TypeScript prototype, mock API and dummy users/data, Jest + React Testing Library and Playwright, deployed to Vercel.
-- Stage 1 has no database connection, MySQL/Prisma/mysql2 installation, real JWT, or Google OAuth. Load initial fixtures from project mock files and persist user changes in localStorage, isolated by dummy user.
-- Stage 2: Spring Boot + Java 21, MySQL 8.4 + Spring Data JPA, JWT authentication and Google OAuth2 login, real persistence and transactional shop operations. Replace mock API with REST API.
-- Kubernetes remains a separate practice environment. Keep the full product requirements in docs/PRD.md.
+- Implement only the requested scope. Documentation or review requests do not authorize application implementation. Respect worktree/file ownership and exclusions set by the user.
+- Current stage: Next.js 16 + TypeScript prototype, dummy users, Mock API/data, Jest/React Testing Library and Playwright, deployed to Vercel. No DB, MySQL/Prisma/mysql2 installation, real JWT/Google OAuth, or real AI calls.
+- Stage 2: Spring Boot + Java 21, MySQL 8.4 + Spring Data JPA, JWT/Google OAuth2, REST persistence and transactional purchases. Kubernetes remains a separate practice environment. Do not promote future requirements into stage 1.
 
-## Working Rules
+## Required references and workflows
 
-- Read docs/PRD.md before implementing features.
-- Implement only the requested scope.
-- Keep business logic outside route handlers.
-- Use explicit HTTP API contracts.
-- Define request and response types for the stage 1 mock `/api/v1`; keep UI behind the API/service boundary so stage 2 can replace the mock with REST.
-- Do not install or connect MySQL, Prisma, or mysql2, and do not implement real authentication in stage 1.
-- UI must use the typed API client and mock adapter, never mock files or localStorage directly. The adapter may run without HTTP Route Handlers. Deployed mock files are read-only seeds; never write user data to Vercel files or use server memory as persistent storage. localStorage can be lost on browser data deletion or device changes.
-- Detect an IANA timezone from the browser on first use; allow viewing/changing it on My Page. Consider Vercel IP timezone only as a fallback; never infer timezone from country alone. The explicit fallback timezone remains to be decided. Count new quizzes and replays regardless of correctness once per user-local date. Preserve past learning records/rewards after timezone changes; stage 2 records UTC completion times and prevents duplicate daily rewards without trusting browser timezone as security evidence.
-- Validate request and AI response data.
-- Never expose answers or explanations for unsubmitted questions in solving responses or screens. Owner-only draft review may show them. In the mock stage, answer hiding and permission checks validate UX, not actual security.
-- Never execute user-submitted code.
-- Never commit secrets or .env files.
-- The generation contract returns 1–5 independent quizzes per request; stage 1 uses mock results. Owners may save them individually or all at once; saved quizzes start as PENDING. A follow-up prompt can regenerate a PENDING quiz without auto-approving it.
-- After review, the owner chooses PRIVATE or PUBLIC; allow switching between them. Home learning uses PUBLIC quizzes matching direct subscriptions and the selected learning hashtag.
-- Owners can edit, regenerate with an LLM prompt, and delete approved quizzes. Keep the active revision available while a new PENDING revision is reviewed; existing attempts use the revision they started with.
-- Soft-delete quizzes and hide them immediately. PRIVATE/deleted quizzes leave subscription learning immediately; reject other users' in-progress submissions once unavailable. Preserve completed attempts and earned streak, XP, and BugCoin. Deletion also blocks the owner's submissions.
-- Support subscriptions to a user, a hashtag across all users, or a specific user and hashtag combination. Quizzes are learning content selected by those conditions, never subscription targets. Deduplicate matching quizzes by quiz ID.
-- Assign at most three hashtags to each independent quiz.
-- Use dummy users only to verify stage 1 screens and flows; mock identity is not a security feature. Stage 2 uses Google OAuth2, JWT, and an internal User ID for ownership; do not use anonymous OwnerSession ownership.
-- Stage 1 implements BugCoin product listing, purchase and equipment UX with mock state. Stage 2 enforces balances, idempotency, and atomic deduction/inventory updates with MySQL transactions. No real-money checkout or payment gateway.
-- The full product includes direct admin product registration. Do not schedule or generate shop products with AI.
-- Home learning defaults to All and supports one selected hashtag. Keep it for Next question, offer Replay/Choose another tag when unseen quizzes are exhausted, and preserve attempts and subscriptions when changing tags. One completed quiz per day satisfies the streak condition; multiple quizzes per day are allowed. No subscription feed, infinite scrolling, or unrelated default/recommended quiz.
-- Read the relevant installed guide in node_modules/next/dist/docs/ before writing Next.js code.
-- Documentation or review requests do not authorize application implementation.
+- Before implementing a feature, read [PRD](docs/PRD.md), [architecture](docs/ARCHITECTURE.md), and [tasks](docs/TASKS.md). Product rules and REQ/AC live in the PRD; do not duplicate or silently change them here.
+- For API/Mock changes, also read [API contracts and usage](docs/API.md). Consult the relevant PRD sections for quiz generation/revisions, subscriptions, learning/timezones, and shop behavior.
+- For code changes, read [coding conventions](docs/CODING_CONVENTIONS.md).
+- For requested feature implementation or fixes, use [implement-feature](.agents/skills/implement-feature/SKILL.md). Its verification reference also applies to refactoring and configuration changes.
+- For PR preparation, creation, or updates, use [prepare-pr](.agents/skills/prepare-pr/SKILL.md). Ordinary implementation does not itself authorize publishing a PR.
+- For documentation-only changes, follow the documentation exception in the [verification guide](.agents/skills/implement-feature/references/verification.md); do not start implementation or the feature Hook.
 
-## Development Workflow
+## Architectural and safety invariants
 
-1. Inspect existing code.
-2. Propose a brief implementation plan.
-3. Implement one feature.
-4. Run relevant tests.
-5. Fix failures.
-6. Report changed files and test results.
+- Keep business logic outside route handlers. Define explicit typed HTTP request/response contracts and validate requests and generated results.
+- UI uses the typed API client, never Mock files or localStorage directly. Separate browser Mock adapters from HTTP/server code so Spring Boot can replace the Mock implementation.
+- Use read-only TypeScript seeds and dummy-user-isolated localStorage changes. Never persist user data in Vercel files or server memory. Browser storage can be lost and is not a security boundary.
+- Dummy identity and Mock permissions validate UX only. Do not introduce anonymous OwnerSession ownership or claim real authentication/security guarantees.
+- Never expose unsubmitted answers, explanations, or source content in solving/public responses. Owner-only review may include them. Preserve completed records and earned rewards when content becomes unavailable, as specified in the PRD.
+- Never execute user-submitted code or commit secrets/.env files. No real-money checkout or payment gateway.
+- Preserve confirmed product requirements and undecided policies in the PRD/architecture; do not choose product defaults silently.
 
-## Verification
+## Coding essentials
 
-- npm run lint
-- npx tsc --noEmit
-- npm test (Jest + React Testing Library, when configured)
-- npx playwright test (Playwright E2E for UI changes, when configured)
+- Use `@/` imports for `src` modules, including type and dynamic imports.
+- Use shared `as const` objects and derived union types for domain statuses/modes; preserve wire values.
+- Use object/array destructuring for value extraction, including renamed fields and function parameters. Preserve mutations, method receivers, fresh reads, and type narrowing.
+- Keep blank lines between declarations, functions, tests, and processing steps; write objects across lines. Follow the detailed conventions and scoped lint/format settings.
 
-## Automated Verification
+## Completion and review
 
-- Every new feature must include relevant tests.
-- Run unit tests for business logic changes.
-- Run component tests for UI behavior changes.
-- Run Playwright E2E tests for user flow changes.
-- Run lint and TypeScript checks after implementation.
-- Run the full verification pipeline before marking a task DONE.
-
-## Failure Handling
-
-1. Run the relevant verification commands.
-2. If a test fails, analyze the cause.
-3. Fix the implementation, not the test expectation,
-   unless the test contradicts the approved requirements.
-4. Run the failed test again.
-5. Repeat up to 3 times.
-6. If still failing, stop and report the blocker.
-
-Never claim a test passed unless it was executed.
-Never skip or weaken tests to make verification pass.
-
-## Pull Request Rules
-
-- Write PR titles and bodies in Korean. Keep conventional prefixes (`feat:`, `fix:`, `docs:`, `test:`, `chore:`), code identifiers, and commands in English. This does not change commit-message conventions.
-- Keep each PR focused on one purpose. Reference its TASKS ID and related REQ/AC; state when none applies.
-- Use `.github/pull_request_template.md`: 목적, 변경 내용, 검증. Do not add a separate 리뷰 참고 section.
-- Assign file ownership when distributing parallel tasks. Coordinate changes to shared API contracts, package files, and global configuration with the integration owner.
-- After the last code change, run `npm run verify` in that worktree and record the tested commit, executed commands, and results in the PR. Do not mark verification complete before execution.
-- Follow Failure Handling: analyze failures, fix the implementation, and rerun verification, up to 3 attempts. Keep the PR in Draft while required checks fail or remain unexecuted, and report any blocker. Never skip or weaken tests to pass verification.
+- Never claim an unexecuted check passed or skip/weaken tests to obtain a pass. Apply the [verification and failure-handling procedure](.agents/skills/implement-feature/references/verification.md) before reporting completion.
 - Require review by someone other than the implementer. The user makes the final merge decision.
-- Rerun verification after conflict resolution, subsequent code changes, or integration; earlier results do not verify changed code.
-- For documentation-only PRs, run `git diff --check` and review document consistency instead of the functional pipeline. Record why functional checks were not run. This exception does not count as completed implementation verification or justify marking an implementation task DONE.
