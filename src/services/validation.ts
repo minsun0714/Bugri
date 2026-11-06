@@ -21,32 +21,49 @@ export function requireValue(
   field = "request",
 ): asserts condition {
   if (!condition)
-    throw new ServiceError("VALIDATION_ERROR", message, 400, {
-      [field]: message,
-    });
+    throw new ServiceError(
+      "VALIDATION_ERROR",
+      message,
+      400,
+      {
+        [field]: message,
+      },
+    );
 }
 export function object(
   value: unknown,
 ): asserts value is Record<string, unknown> {
   requireValue(
-    value !== null && typeof value === "object" && !Array.isArray(value),
+    value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value),
     "객체가 필요합니다.",
   );
 }
-export function keys(value: Record<string, unknown>, allowed: string[]) {
+export function keys(
+  value: Record<string, unknown>,
+  allowed: string[],
+) {
   requireValue(
-    Object.keys(value).every((key) => allowed.includes(key)),
+    Object.keys(value).every((key) =>
+      allowed.includes(key),
+    ),
     "지원하지 않는 필드입니다.",
   );
 }
-export function text(value: unknown, field = "text"): asserts value is string {
+export function text(
+  value: unknown,
+  field = "text",
+): asserts value is string {
   requireValue(
     typeof value === "string" && value.trim().length > 0,
     "빈 문자열은 허용하지 않습니다.",
     field,
   );
 }
-export function source(value: unknown): asserts value is string {
+export function source(
+  value: unknown,
+): asserts value is string {
   text(value, "sourceContent");
   requireValue(
     [...value].length <= 10_000,
@@ -61,10 +78,19 @@ export const categories: Category[] = [
   "ACCESSORY",
   "BACKGROUND",
 ];
-export function timeZoneValid(value: unknown): value is string {
-  if (typeof value !== "string" || !value || /^[+-]/.test(value)) return false;
+export function timeZoneValid(
+  value: unknown,
+): value is string {
+  if (
+    typeof value !== "string" ||
+    !value ||
+    /^[+-]/.test(value)
+  )
+    return false;
   try {
-    new Intl.DateTimeFormat("en", { timeZone: value }).format();
+    new Intl.DateTimeFormat("en", {
+      timeZone: value,
+    }).format();
     return true;
   } catch {
     return false;
@@ -84,7 +110,9 @@ export function validateAnswer(
     case "SINGLE_CHOICE":
       keys(value, ["type", "choiceId"]);
       requireValue(
-        question.choices.some((c) => c.id === value.choiceId),
+        question.choices.some(
+          (c) => c.id === value.choiceId,
+        ),
         "유효한 선택지가 필요합니다.",
         "answer",
       );
@@ -94,7 +122,8 @@ export function validateAnswer(
       requireValue(
         Array.isArray(value.choiceIds) &&
           value.choiceIds.length > 0 &&
-          new Set(value.choiceIds).size === value.choiceIds.length &&
+          new Set(value.choiceIds).size ===
+            value.choiceIds.length &&
           value.choiceIds.every((id) =>
             question.choices.some((c) => c.id === id),
           ),
@@ -121,19 +150,31 @@ export function validateContent(
   hashtagIds: string[],
 ): asserts value is QuizContent {
   object(value);
-  keys(value, ["title", "question", "answer", "explanation", "hashtagIds"]);
+  keys(value, [
+    "title",
+    "question",
+    "answer",
+    "explanation",
+    "hashtagIds",
+  ]);
   text(value.title, "title");
   text(value.explanation, "explanation");
   object(value.question);
   const q = value.question;
   text(q.prompt, "question.prompt");
   requireValue(
-    ["SINGLE_CHOICE", "MULTIPLE_CHOICE", "TRUE_FALSE", "SHORT_ANSWER"].includes(
-      String(q.type),
-    ),
+    [
+      "SINGLE_CHOICE",
+      "MULTIPLE_CHOICE",
+      "TRUE_FALSE",
+      "SHORT_ANSWER",
+    ].includes(String(q.type)),
     "지원하지 않는 문제 형식입니다.",
   );
-  if (q.type === "SINGLE_CHOICE" || q.type === "MULTIPLE_CHOICE") {
+  if (
+    q.type === "SINGLE_CHOICE" ||
+    q.type === "MULTIPLE_CHOICE"
+  ) {
     keys(q, ["type", "prompt", "choices"]);
     requireValue(
       Array.isArray(q.choices) && q.choices.length >= 2,
@@ -158,19 +199,26 @@ export function validateContent(
   requireValue(
     Array.isArray(value.hashtagIds) &&
       value.hashtagIds.length <= 3 &&
-      new Set(value.hashtagIds).size === value.hashtagIds.length &&
-      value.hashtagIds.every((id) => hashtagIds.includes(id)),
+      new Set(value.hashtagIds).size ===
+        value.hashtagIds.length &&
+      value.hashtagIds.every((id) =>
+        hashtagIds.includes(id),
+      ),
     "서로 다른 유효한 해시태그를 최대 3개 지정하세요.",
     "hashtagIds",
   );
   validateAnswer(value.answer, q as unknown as Question);
 }
-export function isCorrect(answer: Answer, expected: Answer): boolean {
+export function isCorrect(
+  answer: Answer,
+  expected: Answer,
+): boolean {
   if (answer.type !== expected.type) return false;
   switch (answer.type) {
     case "SINGLE_CHOICE":
       return (
-        expected.type === answer.type && answer.choiceId === expected.choiceId
+        expected.type === answer.type &&
+        answer.choiceId === expected.choiceId
       );
     case "MULTIPLE_CHOICE":
       return (
@@ -179,7 +227,10 @@ export function isCorrect(answer: Answer, expected: Answer): boolean {
           [...expected.choiceIds].sort().join("\0")
       );
     case "TRUE_FALSE":
-      return expected.type === answer.type && answer.value === expected.value;
+      return (
+        expected.type === answer.type &&
+        answer.value === expected.value
+      );
     case "SHORT_ANSWER":
       return (
         expected.type === answer.type &&

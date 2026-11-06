@@ -21,9 +21,15 @@ export function createApiClient(transport: ApiTransport) {
       operation: K,
       request: Request<K>,
     ): Promise<Response<K>> {
-      const result = await transport.request(operation, request);
+      const result = await transport.request(
+        operation,
+        request,
+      );
       if ("error" in result.body)
-        throw new ApiClientError(result.status, result.body.error);
+        throw new ApiClientError(
+          result.status,
+          result.body.error,
+        );
       return result.body.data;
     },
   };

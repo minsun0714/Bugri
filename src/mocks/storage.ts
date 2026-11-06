@@ -17,7 +17,8 @@ export interface StoragePort {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
 }
-export const storageKey = (userId: string) => `bugri:mock:v1:${userId}`;
+export const storageKey = (userId: string) =>
+  `bugri:mock:v1:${userId}`;
 export function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
@@ -33,7 +34,11 @@ export function initialState(userId: string): UserState {
     attempts: [...attempts],
     days: [...learningDays],
     timeZone: null,
-    selection: { hashtagId: null, mode: "UNSOLVED", quizId: null },
+    selection: {
+      hashtagId: null,
+      mode: "UNSOLVED",
+      quizId: null,
+    },
     purchases: [],
     equipment: {},
     ledger: [
@@ -66,16 +71,21 @@ function validateState(
     "ledger",
     "purchases",
   ])
-    requireValue(Array.isArray(value[key]), "저장 배열이 손상되었습니다.");
+    requireValue(
+      Array.isArray(value[key]),
+      "저장 배열이 손상되었습니다.",
+    );
   requireValue(
-    value.timeZone === null || timeZoneValid(value.timeZone),
+    value.timeZone === null ||
+      timeZoneValid(value.timeZone),
     "시간대가 손상되었습니다.",
   );
   object(value.selection);
   object(value.equipment);
   const selection = value.selection;
   requireValue(
-    value.selection.mode === "UNSOLVED" || value.selection.mode === "REPLAY",
+    value.selection.mode === "UNSOLVED" ||
+      value.selection.mode === "REPLAY",
     "학습 모드가 손상되었습니다.",
   );
   requireValue(
@@ -90,18 +100,27 @@ function validateState(
   );
   for (const [key, id] of Object.entries(value.equipment))
     requireValue(
-      categories.includes(key as never) && typeof id === "string",
+      categories.includes(key as never) &&
+        typeof id === "string",
       "장착 정보가 손상되었습니다.",
     );
   const s = value as unknown as UserState;
-  const revision = (r: NonNullable<UserState["quizzes"][number]["active"]>) => {
+  const revision = (
+    r: NonNullable<UserState["quizzes"][number]["active"]>,
+  ) => {
     object(r);
-    const { revisionId, sourceContent, reviewed, followUpPrompt, ...content } =
-      r;
+    const {
+      revisionId,
+      sourceContent,
+      reviewed,
+      followUpPrompt,
+      ...content
+    } = r;
     requireValue(
       typeof revisionId === "string" &&
         typeof reviewed === "boolean" &&
-        (followUpPrompt === undefined || typeof followUpPrompt === "string"),
+        (followUpPrompt === undefined ||
+          typeof followUpPrompt === "string"),
       "버전이 손상되었습니다.",
     );
     source(sourceContent);
@@ -117,9 +136,12 @@ function validateState(
         typeof q.quizId === "string" &&
         Number.isInteger(q.version) &&
         q.version > 0 &&
-        ["PENDING", "PUBLIC", "PRIVATE"].includes(q.status) &&
+        ["PENDING", "PUBLIC", "PRIVATE"].includes(
+          q.status,
+        ) &&
         typeof q.updatedAt === "string" &&
-        (q.deletedAt === null || typeof q.deletedAt === "string"),
+        (q.deletedAt === null ||
+          typeof q.deletedAt === "string"),
       "퀴즈가 손상되었습니다.",
     );
     requireValue(
@@ -146,7 +168,9 @@ function validateState(
       requireValue(
         typeof c.candidateId === "string" &&
           (c.savedQuizId === null ||
-            s.quizzes.some((q) => q.quizId === c.savedQuizId)),
+            s.quizzes.some(
+              (q) => q.quizId === c.savedQuizId,
+            )),
         "저장 후보가 손상되었습니다.",
       );
       validateContent(
@@ -159,7 +183,9 @@ function validateState(
     object(sub);
     requireValue(
       typeof sub.subscriptionId === "string" &&
-        ["PERSON", "HASHTAG", "PERSON_HASHTAG"].includes(sub.type),
+        ["PERSON", "HASHTAG", "PERSON_HASHTAG"].includes(
+          sub.type,
+        ),
       "구독이 손상되었습니다.",
     );
     if (sub.type !== "HASHTAG")
@@ -178,8 +204,10 @@ function validateState(
     requireValue(
       typeof a.attemptId === "string" &&
         typeof a.quizId === "string" &&
-        (a.completedAt === null || typeof a.completedAt === "string") &&
-        (a.correct === null || typeof a.correct === "boolean"),
+        (a.completedAt === null ||
+          typeof a.completedAt === "string") &&
+        (a.correct === null ||
+          typeof a.correct === "boolean"),
       "풀이가 손상되었습니다.",
     );
     revision(a.revision);
@@ -201,7 +229,9 @@ function validateState(
         typeof l.id === "string" &&
         typeof l.reference === "string" &&
         typeof l.createdAt === "string" &&
-        ["SEED", "DAILY_COMPLETION", "PURCHASE"].includes(l.reason),
+        ["SEED", "DAILY_COMPLETION", "PURCHASE"].includes(
+          l.reason,
+        ),
       "원장이 손상되었습니다.",
     );
   }
@@ -218,7 +248,10 @@ function validateState(
     );
   }
 }
-export function readState(storage: StoragePort, userId: string): UserState {
+export function readState(
+  storage: StoragePort,
+  userId: string,
+): UserState {
   let raw: string | null;
   try {
     raw = storage.getItem(storageKey(userId));
@@ -242,9 +275,15 @@ export function readState(storage: StoragePort, userId: string): UserState {
     );
   }
 }
-export function writeState(storage: StoragePort, state: UserState) {
+export function writeState(
+  storage: StoragePort,
+  state: UserState,
+) {
   try {
-    storage.setItem(storageKey(state.userId), JSON.stringify(state));
+    storage.setItem(
+      storageKey(state.userId),
+      JSON.stringify(state),
+    );
   } catch {
     throw new ServiceError(
       "STORAGE_UNAVAILABLE",

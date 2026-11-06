@@ -37,7 +37,9 @@ export interface UserState {
   attempts: StoredAttempt[];
   days: StoredDay[];
   timeZone: string | null;
-  selection: Required<LearningQuery> & { quizId: string | null };
+  selection: Required<LearningQuery> & {
+    quizId: string | null;
+  };
   ledger: LedgerEntry[];
   purchases: Purchase[];
   equipment: Equipment;

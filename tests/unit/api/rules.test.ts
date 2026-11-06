@@ -11,9 +11,15 @@ import {
 } from "../../../src/mocks/adapter";
 import { generatedContents } from "../../../src/mocks/quizzes";
 import { storageKey } from "../../../src/mocks/storage";
-import { localDate, streak } from "../../../src/services/learning";
+import {
+  localDate,
+  streak,
+} from "../../../src/services/learning";
 
-const api = (userId = "learner", options: Partial<MockOptions> = {}) =>
+const api = (
+  userId = "learner",
+  options: Partial<MockOptions> = {},
+) =>
   createApiClient(
     createMockTransport({
       userId,
@@ -51,17 +57,22 @@ test.each(["", "   ", "😀".repeat(10_001)])(
   async (sourceContent) => {
     await expect(
       api().request("generate", { sourceContent }),
-    ).rejects.toMatchObject({ detail: { code: "VALIDATION_ERROR" } });
+    ).rejects.toMatchObject({
+      detail: { code: "VALIDATION_ERROR" },
+    });
   },
 );
 test("10,000 unicode code points and code formatting are preserved", async () => {
   const sourceContent = "😀".repeat(10_000);
   expect(
-    (await api().request("generate", { sourceContent })).sourceContent,
+    (await api().request("generate", { sourceContent }))
+      .sourceContent,
   ).toBe(sourceContent);
   const code =
     '설명\n```ts\n  const x = "<script>";\n```\n```java\n  int y = 1;\n```';
-  const b = await api().request("generate", { sourceContent: code });
+  const b = await api().request("generate", {
+    sourceContent: code,
+  });
   const [q] = await api().request("saveBatch", {
     batchId: b.batchId,
     mode: "SINGLE",
@@ -76,75 +87,118 @@ test.each(
     [
       {
         ...generatedContents[0],
-        hashtagIds: ["typescript", "javascript", "web", "java"],
+        hashtagIds: [
+          "typescript",
+          "javascript",
+          "web",
+          "java",
+        ],
       },
     ],
     [
       {
         ...generatedContents[0],
-        answer: { type: "SINGLE_CHOICE", choiceId: "missing" },
+        answer: {
+          type: "SINGLE_CHOICE",
+          choiceId: "missing",
+        },
       },
     ],
   ].map((output) => ({ output })),
-)("rejects malformed generator output atomically", async ({ output }) => {
-  await expect(
-    api("learner", { generate: () => output }).request("generate", {
-      sourceContent: "test",
-    }),
-  ).rejects.toMatchObject({ detail: { code: "GENERATION_FAILED" } });
-  expect(localStorage.getItem(storageKey("learner"))).toBeNull();
-});
+)(
+  "rejects malformed generator output atomically",
+  async ({ output }) => {
+    await expect(
+      api("learner", { generate: () => output }).request(
+        "generate",
+        {
+          sourceContent: "test",
+        },
+      ),
+    ).rejects.toMatchObject({
+      detail: { code: "GENERATION_FAILED" },
+    });
+    expect(
+      localStorage.getItem(storageKey("learner")),
+    ).toBeNull();
+  },
+);
 test.each(
-  generatedContents.map((content) => [content.question.type, content] as const),
-)("grades %s and protects repeated submissions", async (_, content) => {
-  const client = api("learner", { generate: () => [content] });
-  const batch = await client.request("generate", { sourceContent: "학습" });
-  const [pending] = await client.request("saveBatch", {
-    batchId: batch.batchId,
-    mode: "ALL",
-  });
-  await expect(
-    client.request("startAttempt", {
-      quizId: pending.quizId,
+  generatedContents.map(
+    (content) => [content.question.type, content] as const,
+  ),
+)(
+  "grades %s and protects repeated submissions",
+  async (_, content) => {
+    const client = api("learner", {
+      generate: () => [content],
+    });
+    const batch = await client.request("generate", {
+      sourceContent: "학습",
+    });
+    const [pending] = await client.request("saveBatch", {
+      batchId: batch.batchId,
+      mode: "ALL",
+    });
+    await expect(
+      client.request("startAttempt", {
+        quizId: pending.quizId,
+        context: "DIRECT",
+      }),
+    ).rejects.toMatchObject({
+      detail: { code: "QUIZ_UNAVAILABLE" },
+    });
+    await expect(
+      client.request("approve", {
+        quizId: pending.quizId,
+        expectedVersion: pending.version,
+        visibility: "PUBLIC",
+      }),
+    ).rejects.toMatchObject({
+      detail: { code: "NOT_REVIEWED" },
+    });
+    const q = await approve(pending);
+    const attempt = await client.request("startAttempt", {
+      quizId: q.quizId,
       context: "DIRECT",
-    }),
-  ).rejects.toMatchObject({ detail: { code: "QUIZ_UNAVAILABLE" } });
-  await expect(
-    client.request("approve", {
-      quizId: pending.quizId,
-      expectedVersion: pending.version,
-      visibility: "PUBLIC",
-    }),
-  ).rejects.toMatchObject({ detail: { code: "NOT_REVIEWED" } });
-  const q = await approve(pending);
-  const attempt = await client.request("startAttempt", {
-    quizId: q.quizId,
-    context: "DIRECT",
-  });
-  const answer: Answer =
-    content.answer.type === "MULTIPLE_CHOICE"
-      ? {
-          ...content.answer,
-          choiceIds: [...content.answer.choiceIds].reverse(),
-        }
-      : content.answer.type === "SHORT_ANSWER"
-        ? { ...content.answer, text: ` ${content.answer.text} ` }
-        : content.answer;
-  const result = await client.request("answer", {
-    attemptId: attempt.attemptId,
-    answer,
-  });
-  expect(result.correct).toBe(true);
-  expect(
-    await client.request("answer", { attemptId: attempt.attemptId, answer }),
-  ).toEqual(result);
-  expect(
-    await api().request("attempt", { attemptId: attempt.attemptId }),
-  ).toEqual(result);
-  await expect(
-    api("friend").request("attempt", { attemptId: attempt.attemptId }),
-  ).rejects.toMatchObject({ status: 404 });
-});
+    });
+    const answer: Answer =
+      content.answer.type === "MULTIPLE_CHOICE"
+        ? {
+            ...content.answer,
+            choiceIds: [
+              ...content.answer.choiceIds,
+            ].reverse(),
+          }
+        : content.answer.type === "SHORT_ANSWER"
+          ? {
+              ...content.answer,
+              text: ` ${content.answer.text} `,
+            }
+          : content.answer;
+    const result = await client.request("answer", {
+      attemptId: attempt.attemptId,
+      answer,
+    });
+    expect(result.correct).toBe(true);
+    expect(
+      await client.request("answer", {
+        attemptId: attempt.attemptId,
+        answer,
+      }),
+    ).toEqual(result);
+    expect(
+      await api().request("attempt", {
+        attemptId: attempt.attemptId,
+      }),
+    ).toEqual(result);
+    await expect(
+      api("friend").request("attempt", {
+        attemptId: attempt.attemptId,
+      }),
+    ).rejects.toMatchObject({ status: 404 });
+  },
+);
 test("review state resets, stale versions fail, active revision remains and old attempts grade original answer", async () => {
   const owner = api("author"),
     learner = api();
@@ -152,7 +206,9 @@ test("review state resets, stale versions fail, active revision remains and old 
     quizId: "seed-quiz-1",
     context: "DIRECT",
   });
-  const old = await owner.request("reviewQuiz", { quizId: "seed-quiz-1" });
+  const old = await owner.request("reviewQuiz", {
+    quizId: "seed-quiz-1",
+  });
   const edited = await owner.request("updatePending", {
     quizId: old.quizId,
     expectedVersion: old.version,
@@ -171,7 +227,9 @@ test("review state resets, stale versions fail, active revision remains and old 
       expectedVersion: old.version,
       visibility: "PRIVATE",
     }),
-  ).rejects.toMatchObject({ detail: { code: "VERSION_CONFLICT" } });
+  ).rejects.toMatchObject({
+    detail: { code: "VERSION_CONFLICT" },
+  });
   const approved = await approve(edited);
   expect(approved.active!.answer).toEqual({
     type: "SINGLE_CHOICE",
@@ -187,7 +245,9 @@ test("review state resets, stale versions fail, active revision remains and old 
       attemptId: attempt.attemptId,
       answer: { type: "SINGLE_CHOICE", choiceId: "b" },
     }),
-  ).rejects.toMatchObject({ detail: { code: "ALREADY_ANSWERED" } });
+  ).rejects.toMatchObject({
+    detail: { code: "ALREADY_ANSWERED" },
+  });
   await expect(
     learner.request("reviewQuiz", { quizId: old.quizId }),
   ).rejects.toMatchObject({ status: 403 });
@@ -210,11 +270,18 @@ test("regeneration failure leaves old pending content and successful prompt inta
       expectedVersion: first.version,
       prompt: "새 요청",
     }),
-  ).rejects.toMatchObject({ detail: { code: "GENERATION_FAILED" } });
-  expect(localStorage.getItem(storageKey("author"))).toBe(before);
+  ).rejects.toMatchObject({
+    detail: { code: "GENERATION_FAILED" },
+  });
+  expect(localStorage.getItem(storageKey("author"))).toBe(
+    before,
+  );
   expect(
-    (await owner.request("reviewQuiz", { quizId: first.quizId })).pending!
-      .followUpPrompt,
+    (
+      await owner.request("reviewQuiz", {
+        quizId: first.quizId,
+      })
+    ).pending!.followUpPrompt,
   ).toBe("코드를 추가");
 });
 test.each(["PRIVATE", "DELETE"] as const)(
@@ -245,7 +312,10 @@ test.each(["PRIVATE", "DELETE"] as const)(
         expectedVersion: 1,
         visibility: "PRIVATE",
       });
-    else await api("author").request("deleteQuiz", { quizId: "seed-quiz-1" });
+    else
+      await api("author").request("deleteQuiz", {
+        quizId: "seed-quiz-1",
+      });
     await expect(
       learner.request("answer", {
         attemptId: pending.attemptId,
@@ -261,11 +331,18 @@ test.each(["PRIVATE", "DELETE"] as const)(
     expect(retained.correct).toBe(true);
     expect(retained.quiz).toBeNull();
     expect(retained.result).toBeNull();
-    expect(await learner.request("wallet", {})).toEqual(wallet);
-    expect(await learner.request("learningDay", {})).toEqual(day);
+    expect(await learner.request("wallet", {})).toEqual(
+      wallet,
+    );
     expect(
-      (await learner.request("learningQuiz", { hashtagId: "typescript" }))
-        .state,
+      await learner.request("learningDay", {}),
+    ).toEqual(day);
+    expect(
+      (
+        await learner.request("learningQuiz", {
+          hashtagId: "typescript",
+        })
+      ).state,
     ).toBe("EMPTY");
   },
 );
@@ -280,44 +357,77 @@ test("private owner can solve; deleting twice is safe and blocks owner submissio
     quizId: "seed-quiz-1",
     context: "DIRECT",
   });
-  await owner.request("deleteQuiz", { quizId: "seed-quiz-1" });
-  await owner.request("deleteQuiz", { quizId: "seed-quiz-1" });
+  await owner.request("deleteQuiz", {
+    quizId: "seed-quiz-1",
+  });
+  await owner.request("deleteQuiz", {
+    quizId: "seed-quiz-1",
+  });
   await expect(
     owner.request("answer", {
       attemptId: a.attemptId,
       answer: { type: "SINGLE_CHOICE", choiceId: "a" },
     }),
-  ).rejects.toMatchObject({ detail: { code: "QUIZ_UNAVAILABLE" } });
+  ).rejects.toMatchObject({
+    detail: { code: "QUIZ_UNAVAILABLE" },
+  });
   expect(
-    (await owner.request("quizzes", { scope: "OWN" })).map((q) => q.quizId),
+    (await owner.request("quizzes", { scope: "OWN" })).map(
+      (q) => q.quizId,
+    ),
   ).not.toContain("seed-quiz-1");
 });
 test.each([
   [{ type: "PERSON", authorUserId: "author" }, 2],
   [{ type: "HASHTAG", hashtagId: "web" }, 2],
-  [{ type: "PERSON_HASHTAG", authorUserId: "author", hashtagId: "web" }, 1],
-] as const)("subscription filters %j", async (target, count) => {
-  const client = api();
-  await client.request("subscribe", target);
-  expect((await client.request("learningQuiz", {})).candidateCount).toBe(count);
-});
+  [
+    {
+      type: "PERSON_HASHTAG",
+      authorUserId: "author",
+      hashtagId: "web",
+    },
+    1,
+  ],
+] as const)(
+  "subscription filters %j",
+  async (target, count) => {
+    const client = api();
+    await client.request("subscribe", target);
+    expect(
+      (await client.request("learningQuiz", {}))
+        .candidateCount,
+    ).toBe(count);
+  },
+);
 test("overlapping subscriptions deduplicate, tag changes preserve records, unsubscribe rechecks start", async () => {
   const client = api();
-  expect((await client.request("learningQuiz", {})).state).toBe("EMPTY");
+  expect(
+    (await client.request("learningQuiz", {})).state,
+  ).toBe("EMPTY");
   const person = await client.request("subscribe", {
     type: "PERSON",
     authorUserId: "author",
   });
-  await client.request("subscribe", { type: "PERSON", authorUserId: "author" });
+  await client.request("subscribe", {
+    type: "PERSON",
+    authorUserId: "author",
+  });
   const tag = await client.request("subscribe", {
     type: "HASHTAG",
     hashtagId: "typescript",
   });
-  expect((await client.request("learningQuiz", {})).candidateCount).toBe(2);
   expect(
-    (await client.request("learningTags", {})).map((t) => t.id).sort(),
+    (await client.request("learningQuiz", {}))
+      .candidateCount,
+  ).toBe(2);
+  expect(
+    (await client.request("learningTags", {}))
+      .map((t) => t.id)
+      .sort(),
   ).toEqual(["javascript", "typescript", "web"]);
-  await client.request("learningQuiz", { hashtagId: "typescript" });
+  await client.request("learningQuiz", {
+    hashtagId: "typescript",
+  });
   const a = await client.request("startAttempt", {
     quizId: "seed-quiz-1",
     context: "LEARNING",
@@ -326,26 +436,44 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
     attemptId: a.attemptId,
     answer: { type: "SINGLE_CHOICE", choiceId: "a" },
   });
-  expect((await client.request("learningNext", {})).state).toBe("EXHAUSTED");
-  const subs = await client.request("subscriptions", {});
-  await client.request("learningQuiz", { hashtagId: "web" });
   expect(
-    (await client.request("learningQuiz", { hashtagId: "typescript" })).state,
+    (await client.request("learningNext", {})).state,
   ).toBe("EXHAUSTED");
-  expect((await client.request("learningQuiz", { mode: "REPLAY" })).state).toBe(
-    "AVAILABLE",
+  const subs = await client.request("subscriptions", {});
+  await client.request("learningQuiz", {
+    hashtagId: "web",
+  });
+  expect(
+    (
+      await client.request("learningQuiz", {
+        hashtagId: "typescript",
+      })
+    ).state,
+  ).toBe("EXHAUSTED");
+  expect(
+    (
+      await client.request("learningQuiz", {
+        mode: "REPLAY",
+      })
+    ).state,
+  ).toBe("AVAILABLE");
+  expect(await client.request("subscriptions", {})).toEqual(
+    subs,
   );
-  expect(await client.request("subscriptions", {})).toEqual(subs);
   await client.request("unsubscribe", {
     subscriptionId: person.subscriptionId,
   });
-  await client.request("unsubscribe", { subscriptionId: tag.subscriptionId });
+  await client.request("unsubscribe", {
+    subscriptionId: tag.subscriptionId,
+  });
   await expect(
     client.request("startAttempt", {
       quizId: "seed-quiz-1",
       context: "LEARNING",
     }),
-  ).rejects.toMatchObject({ detail: { code: "QUIZ_UNAVAILABLE" } });
+  ).rejects.toMatchObject({
+    detail: { code: "QUIZ_UNAVAILABLE" },
+  });
 });
 test("unknown fields, quiz subscription and wrong answer shapes are rejected", async () => {
   await expect(
@@ -354,7 +482,9 @@ test("unknown fields, quiz subscription and wrong answer shapes are rejected", a
       authorUserId: "author",
       quizId: "seed-quiz-1",
     } as Request<"subscribe">),
-  ).rejects.toMatchObject({ detail: { code: "VALIDATION_ERROR" } });
+  ).rejects.toMatchObject({
+    detail: { code: "VALIDATION_ERROR" },
+  });
   const a = await api().request("startAttempt", {
     quizId: "seed-quiz-1",
     context: "DIRECT",
@@ -364,7 +494,9 @@ test("unknown fields, quiz subscription and wrong answer shapes are rejected", a
       attemptId: a.attemptId,
       answer: { type: "TRUE_FALSE", value: true },
     }),
-  ).rejects.toMatchObject({ detail: { code: "VALIDATION_ERROR" } });
+  ).rejects.toMatchObject({
+    detail: { code: "VALIDATION_ERROR" },
+  });
 });
 test("purchase errors do not mutate balance, key reuse conflicts and equipment checks ownership/category", async () => {
   const client = api();
@@ -374,10 +506,17 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
       productId: "desk-1",
       requestKey: "expensive",
     }),
-  ).rejects.toMatchObject({ detail: { code: "INSUFFICIENT_BALANCE" } });
-  expect(await client.request("wallet", {})).toEqual(before);
+  ).rejects.toMatchObject({
+    detail: { code: "INSUFFICIENT_BALANCE" },
+  });
+  expect(await client.request("wallet", {})).toEqual(
+    before,
+  );
   await expect(
-    client.request("equip", { category: "KEYBOARD", productId: "keyboard-1" }),
+    client.request("equip", {
+      category: "KEYBOARD",
+      productId: "keyboard-1",
+    }),
   ).rejects.toMatchObject({ status: 403 });
   await client.request("purchase", {
     productId: "keyboard-1",
@@ -388,19 +527,33 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
       productId: "accessory-1",
       requestKey: "same",
     }),
-  ).rejects.toMatchObject({ detail: { code: "IDEMPOTENCY_CONFLICT" } });
+  ).rejects.toMatchObject({
+    detail: { code: "IDEMPOTENCY_CONFLICT" },
+  });
   await expect(
-    client.request("purchase", { productId: "keyboard-1", requestKey: "new" }),
-  ).rejects.toMatchObject({ detail: { code: "ALREADY_OWNED" } });
+    client.request("purchase", {
+      productId: "keyboard-1",
+      requestKey: "new",
+    }),
+  ).rejects.toMatchObject({
+    detail: { code: "ALREADY_OWNED" },
+  });
   await expect(
-    client.request("equip", { category: "MONITOR", productId: "keyboard-1" }),
-  ).rejects.toMatchObject({ detail: { code: "VALIDATION_ERROR" } });
+    client.request("equip", {
+      category: "MONITOR",
+      productId: "keyboard-1",
+    }),
+  ).rejects.toMatchObject({
+    detail: { code: "VALIDATION_ERROR" },
+  });
   await client.request("equip", {
     category: "KEYBOARD",
     productId: "keyboard-1",
   });
   expect(
-    await api("author").request("publicProfile", { publicId: "bugri-learner" }),
+    await api("author").request("publicProfile", {
+      publicId: "bugri-learner",
+    }),
   ).toEqual({
     user: {
       userId: "learner",
@@ -410,13 +563,18 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
     equipment: { KEYBOARD: "keyboard-1" },
   });
   expect(
-    await client.request("equip", { category: "KEYBOARD", productId: null }),
+    await client.request("equip", {
+      category: "KEYBOARD",
+      productId: null,
+    }),
   ).toEqual({});
 });
 test("storage failure rolls back and corrupt state is not overwritten", async () => {
   const client = api();
   await client.request("wallet", {});
-  const before = localStorage.getItem(storageKey("learner"));
+  const before = localStorage.getItem(
+    storageKey("learner"),
+  );
   const broken = api("learner", {
     storage: {
       getItem: (key) => localStorage.getItem(key),
@@ -426,21 +584,40 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
     },
   });
   await expect(
-    broken.request("purchase", { productId: "keyboard-1", requestKey: "test" }),
-  ).rejects.toMatchObject({ detail: { code: "STORAGE_UNAVAILABLE" } });
-  expect(localStorage.getItem(storageKey("learner"))).toBe(before);
+    broken.request("purchase", {
+      productId: "keyboard-1",
+      requestKey: "test",
+    }),
+  ).rejects.toMatchObject({
+    detail: { code: "STORAGE_UNAVAILABLE" },
+  });
+  expect(localStorage.getItem(storageKey("learner"))).toBe(
+    before,
+  );
   localStorage.setItem(storageKey("learner"), "{broken");
-  await expect(client.request("wallet", {})).rejects.toMatchObject({
+  await expect(
+    client.request("wallet", {}),
+  ).rejects.toMatchObject({
     detail: { code: "STORAGE_CORRUPT" },
   });
-  expect(localStorage.getItem(storageKey("learner"))).toBe("{broken");
+  expect(localStorage.getItem(storageKey("learner"))).toBe(
+    "{broken",
+  );
   localStorage.clear();
-  expect((await client.request("wallet", {})).balance).toBe(100);
+  expect((await client.request("wallet", {})).balance).toBe(
+    100,
+  );
 });
 test("timezone detection, explicit fallback and saved preference; no implicit fallback", async () => {
-  const client = api("learner", { detectTimeZone: () => undefined });
-  expect((await client.request("learningTimezone", {})).timeZone).toBeNull();
-  await expect(client.request("learningDay", {})).rejects.toMatchObject({
+  const client = api("learner", {
+    detectTimeZone: () => undefined,
+  });
+  expect(
+    (await client.request("learningTimezone", {})).timeZone,
+  ).toBeNull();
+  await expect(
+    client.request("learningDay", {}),
+  ).rejects.toMatchObject({
     detail: { code: "TIMEZONE_REQUIRED" },
   });
   expect(
@@ -451,17 +628,26 @@ test("timezone detection, explicit fallback and saved preference; no implicit fa
       }).request("learningTimezone", {})
     ).timeZone,
   ).toBe("UTC");
-  await client.request("updateTimezone", { timeZone: "America/New_York" });
-  expect((await api().request("learningTimezone", {})).timeZone).toBe(
-    "America/New_York",
-  );
+  await client.request("updateTimezone", {
+    timeZone: "America/New_York",
+  });
+  expect(
+    (await api().request("learningTimezone", {})).timeZone,
+  ).toBe("America/New_York");
   await expect(
-    client.request("updateTimezone", { timeZone: "not-a-zone" }),
-  ).rejects.toMatchObject({ detail: { code: "VALIDATION_ERROR" } });
+    client.request("updateTimezone", {
+      timeZone: "not-a-zone",
+    }),
+  ).rejects.toMatchObject({
+    detail: { code: "VALIDATION_ERROR" },
+  });
 });
 test("daily completion/replay reward once, midnight, and timezone changes preserve past attribution", async () => {
   let now = new Date("2026-03-07T14:59:00Z");
-  const client = api("learner", { now: () => now, dailyReward: 5 });
+  const client = api("learner", {
+    now: () => now,
+    dailyReward: 5,
+  });
   async function complete() {
     const a = await client.request("startAttempt", {
       quizId: "seed-quiz-1",
@@ -474,31 +660,59 @@ test("daily completion/replay reward once, midnight, and timezone changes preser
   }
   const first = await complete();
   await complete();
-  expect((await client.request("wallet", {})).balance).toBe(105);
+  expect((await client.request("wallet", {})).balance).toBe(
+    105,
+  );
   now = new Date("2026-03-07T15:01:00Z");
   await complete();
-  expect((await client.request("learningDay", {})).streak).toBe(2);
-  expect((await client.request("wallet", {})).balance).toBe(110);
-  await client.request("updateTimezone", { timeZone: "America/New_York" });
   expect(
-    await client.request("attempt", { attemptId: first.attemptId }),
+    (await client.request("learningDay", {})).streak,
+  ).toBe(2);
+  expect((await client.request("wallet", {})).balance).toBe(
+    110,
+  );
+  await client.request("updateTimezone", {
+    timeZone: "America/New_York",
+  });
+  expect(
+    await client.request("attempt", {
+      attemptId: first.attemptId,
+    }),
   ).toEqual(first);
   await complete();
-  expect((await client.request("wallet", {})).balance).toBe(110);
+  expect((await client.request("wallet", {})).balance).toBe(
+    110,
+  );
 });
 test("timezone local dates across DST and stale streaks", () => {
-  expect(localDate(new Date("2026-03-08T04:59:00Z"), "America/New_York")).toBe(
-    "2026-03-07",
-  );
-  expect(localDate(new Date("2026-03-08T07:01:00Z"), "America/New_York")).toBe(
-    "2026-03-08",
-  );
-  expect(localDate(new Date("2026-03-08T04:59:00Z"), "Asia/Seoul")).toBe(
-    "2026-03-08",
-  );
-  expect(localDate(new Date("2026-11-01T06:01:00Z"), "America/New_York")).toBe(
-    "2026-11-01",
-  );
-  expect(streak(["2026-03-06", "2026-03-07"], "2026-03-08")).toBe(2);
-  expect(streak(["2026-03-06", "2026-03-07"], "2026-03-09")).toBe(0);
+  expect(
+    localDate(
+      new Date("2026-03-08T04:59:00Z"),
+      "America/New_York",
+    ),
+  ).toBe("2026-03-07");
+  expect(
+    localDate(
+      new Date("2026-03-08T07:01:00Z"),
+      "America/New_York",
+    ),
+  ).toBe("2026-03-08");
+  expect(
+    localDate(
+      new Date("2026-03-08T04:59:00Z"),
+      "Asia/Seoul",
+    ),
+  ).toBe("2026-03-08");
+  expect(
+    localDate(
+      new Date("2026-11-01T06:01:00Z"),
+      "America/New_York",
+    ),
+  ).toBe("2026-11-01");
+  expect(
+    streak(["2026-03-06", "2026-03-07"], "2026-03-08"),
+  ).toBe(2);
+  expect(
+    streak(["2026-03-06", "2026-03-07"], "2026-03-09"),
+  ).toBe(0);
 });

@@ -77,8 +77,14 @@ export interface GenerationBatch {
 export type SubscriptionTarget =
   | { type: "PERSON"; authorUserId: string }
   | { type: "HASHTAG"; hashtagId: string }
-  | { type: "PERSON_HASHTAG"; authorUserId: string; hashtagId: string };
-export type Subscription = SubscriptionTarget & { subscriptionId: string };
+  | {
+      type: "PERSON_HASHTAG";
+      authorUserId: string;
+      hashtagId: string;
+    };
+export type Subscription = SubscriptionTarget & {
+  subscriptionId: string;
+};
 export interface LearningQuery {
   hashtagId?: string | null;
   mode?: "UNSOLVED" | "REPLAY";
@@ -115,7 +121,11 @@ export interface LearningDay {
   completedDates: string[];
 }
 export type Category =
-  "KEYBOARD" | "MONITOR" | "DESK" | "ACCESSORY" | "BACKGROUND";
+  | "KEYBOARD"
+  | "MONITOR"
+  | "DESK"
+  | "ACCESSORY"
+  | "BACKGROUND";
 export interface Product {
   productId: string;
   name: string;
@@ -156,21 +166,41 @@ export interface VersionRequest {
 }
 export type PendingRequest = VersionRequest &
   (
-    | { action: "EDIT"; sourceContent: string; content: QuizContent }
+    | {
+        action: "EDIT";
+        sourceContent: string;
+        content: QuizContent;
+      }
     | { action: "MARK_REVIEWED" }
   );
 export interface ApiOperations {
-  generate: { request: { sourceContent: string }; response: GenerationBatch };
-  generationBatch: { request: { batchId: string }; response: GenerationBatch };
+  generate: {
+    request: { sourceContent: string };
+    response: GenerationBatch;
+  };
+  generationBatch: {
+    request: { batchId: string };
+    response: GenerationBatch;
+  };
   saveBatch: {
     request: { batchId: string } & (
-      { mode: "SINGLE"; candidateId: string } | { mode: "ALL" }
+      | { mode: "SINGLE"; candidateId: string }
+      | { mode: "ALL" }
     );
     response: ReviewQuiz[];
   };
-  quizzes: { request: { scope: "OWN" | "PUBLIC" }; response: QuizSummary[] };
-  reviewQuiz: { request: { quizId: string }; response: ReviewQuiz };
-  updatePending: { request: PendingRequest; response: ReviewQuiz };
+  quizzes: {
+    request: { scope: "OWN" | "PUBLIC" };
+    response: QuizSummary[];
+  };
+  reviewQuiz: {
+    request: { quizId: string };
+    response: ReviewQuiz;
+  };
+  updatePending: {
+    request: PendingRequest;
+    response: ReviewQuiz;
+  };
   regenerate: {
     request: VersionRequest & { prompt: string };
     response: ReviewQuiz;
@@ -183,19 +213,46 @@ export interface ApiOperations {
     request: VersionRequest & { visibility: Visibility };
     response: ReviewQuiz;
   };
-  deleteQuiz: { request: { quizId: string }; response: { deleted: true } };
-  subscriptions: { request: Record<string, never>; response: Subscription[] };
-  subscribe: { request: SubscriptionTarget; response: Subscription };
+  deleteQuiz: {
+    request: { quizId: string };
+    response: { deleted: true };
+  };
+  subscriptions: {
+    request: Record<string, never>;
+    response: Subscription[];
+  };
+  subscribe: {
+    request: SubscriptionTarget;
+    response: Subscription;
+  };
   unsubscribe: {
     request: { subscriptionId: string };
     response: { deleted: true };
   };
-  discoverUsers: { request: Record<string, never>; response: User[] };
-  discoverHashtags: { request: Record<string, never>; response: Hashtag[] };
-  learningTags: { request: { authorUserId?: string }; response: Hashtag[] };
-  learningQuiz: { request: LearningQuery; response: LearningSelection };
-  learningNext: { request: LearningQuery; response: LearningSelection };
-  learningDay: { request: Record<string, never>; response: LearningDay };
+  discoverUsers: {
+    request: Record<string, never>;
+    response: User[];
+  };
+  discoverHashtags: {
+    request: Record<string, never>;
+    response: Hashtag[];
+  };
+  learningTags: {
+    request: { authorUserId?: string };
+    response: Hashtag[];
+  };
+  learningQuiz: {
+    request: LearningQuery;
+    response: LearningSelection;
+  };
+  learningNext: {
+    request: LearningQuery;
+    response: LearningSelection;
+  };
+  learningDay: {
+    request: Record<string, never>;
+    response: LearningDay;
+  };
   learningTimezone: {
     request: Record<string, never>;
     response: { timeZone: string | null };
@@ -205,30 +262,53 @@ export interface ApiOperations {
     response: { timeZone: string };
   };
   startAttempt: {
-    request: { quizId: string; context: "DIRECT" | "LEARNING" };
+    request: {
+      quizId: string;
+      context: "DIRECT" | "LEARNING";
+    };
     response: AttemptView;
   };
-  attempt: { request: { attemptId: string }; response: AttemptView };
+  attempt: {
+    request: { attemptId: string };
+    response: AttemptView;
+  };
   answer: {
     request: { attemptId: string; answer: Answer };
     response: AttemptView;
   };
-  products: { request: { category?: Category }; response: Product[] };
-  wallet: { request: Record<string, never>; response: Wallet };
+  products: {
+    request: { category?: Category };
+    response: Product[];
+  };
+  wallet: {
+    request: Record<string, never>;
+    response: Wallet;
+  };
   purchase: {
     request: { productId: string; requestKey: string };
     response: Purchase;
   };
-  inventory: { request: Record<string, never>; response: Inventory };
+  inventory: {
+    request: Record<string, never>;
+    response: Inventory;
+  };
   equip: {
-    request: { category: Category; productId: string | null };
+    request: {
+      category: Category;
+      productId: string | null;
+    };
     response: Equipment;
   };
-  publicProfile: { request: { publicId: string }; response: PublicProfile };
+  publicProfile: {
+    request: { publicId: string };
+    response: PublicProfile;
+  };
 }
 export type Operation = keyof ApiOperations;
-export type Request<K extends Operation> = ApiOperations[K]["request"];
-export type Response<K extends Operation> = ApiOperations[K]["response"];
+export type Request<K extends Operation> =
+  ApiOperations[K]["request"];
+export type Response<K extends Operation> =
+  ApiOperations[K]["response"];
 export type ErrorCode =
   | "VALIDATION_ERROR"
   | "NOT_FOUND"

@@ -5,13 +5,21 @@ import type {
   Response,
   TransportResponse,
 } from "../api/contracts";
-import { execute, type MockGenerator } from "../services/mock-service";
+import {
+  execute,
+  type MockGenerator,
+} from "../services/mock-service";
 import {
   requireValue,
   ServiceError,
   timeZoneValid,
 } from "../services/validation";
-import { clone, readState, type StoragePort, writeState } from "./storage";
+import {
+  clone,
+  readState,
+  type StoragePort,
+  writeState,
+} from "./storage";
 import { generatedContents } from "./quizzes";
 import { users } from "./users";
 export interface MockOptions {
@@ -26,7 +34,9 @@ export interface MockOptions {
   generate?: MockGenerator;
 }
 /** Instantiate in a browser event/effect. No localStorage access at module import or on a server. */
-export function createMockTransport(options: MockOptions): ApiTransport {
+export function createMockTransport(
+  options: MockOptions,
+): ApiTransport {
   const defaultGenerate: MockGenerator = (input) =>
     input.current
       ? [
@@ -77,15 +87,20 @@ export function createMockTransport(options: MockOptions): ApiTransport {
           );
         }
         // Fresh reads on every request observe other dummy users and tabs. Only actor-owned state is written.
-        const allStates = users.map((user) => readState(storage, user.userId));
-        const state = allStates.find((s) => s.userId === options.userId)!;
+        const allStates = users.map((user) =>
+          readState(storage, user.userId),
+        );
+        const state = allStates.find(
+          (s) => s.userId === options.userId,
+        )!;
         const before = JSON.stringify(state);
         if (!state.timeZone) {
           let detected: string | undefined;
           try {
             detected = options.detectTimeZone
               ? options.detectTimeZone()
-              : Intl.DateTimeFormat().resolvedOptions().timeZone;
+              : Intl.DateTimeFormat().resolvedOptions()
+                  .timeZone;
           } catch {
             /* explicit setting remains available */
           }
@@ -103,8 +118,12 @@ export function createMockTransport(options: MockOptions): ApiTransport {
           dailyReward: options.dailyReward ?? 0,
         });
         // One setItem commits the complete mutation; failure leaves persisted state unchanged.
-        if (JSON.stringify(state) !== before) writeState(storage, state);
-        return { status: 200, body: { data: clone(data) as Response<K> } };
+        if (JSON.stringify(state) !== before)
+          writeState(storage, state);
+        return {
+          status: 200,
+          body: { data: clone(data) as Response<K> },
+        };
       } catch (error) {
         const fault =
           error instanceof ServiceError
@@ -119,7 +138,9 @@ export function createMockTransport(options: MockOptions): ApiTransport {
             error: {
               code: fault.code,
               message: fault.message,
-              ...(fault.fieldErrors ? { fieldErrors: fault.fieldErrors } : {}),
+              ...(fault.fieldErrors
+                ? { fieldErrors: fault.fieldErrors }
+                : {}),
               requestId,
             },
           },

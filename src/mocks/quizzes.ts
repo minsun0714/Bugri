@@ -1,4 +1,7 @@
-import type { QuizContent, ReviewQuiz } from "../api/contracts";
+import type {
+  QuizContent,
+  ReviewQuiz,
+} from "../api/contracts";
 export const generatedContents: readonly QuizContent[] = [
   {
     title: "타입 선언",
@@ -25,13 +28,19 @@ export const generatedContents: readonly QuizContent[] = [
         { id: "c", text: "var" },
       ],
     },
-    answer: { type: "MULTIPLE_CHOICE", choiceIds: ["a", "b"] },
+    answer: {
+      type: "MULTIPLE_CHOICE",
+      choiceIds: ["a", "b"],
+    },
     explanation: "let과 const는 블록 스코프를 가집니다.",
     hashtagIds: ["javascript", "web"],
   },
   {
     title: "HTTP",
-    question: { type: "TRUE_FALSE", prompt: "HTTP는 요청과 응답을 사용한다." },
+    question: {
+      type: "TRUE_FALSE",
+      prompt: "HTTP는 요청과 응답을 사용한다.",
+    },
     answer: { type: "TRUE_FALSE", value: true },
     explanation: "클라이언트의 요청에 서버가 응답합니다.",
     hashtagIds: ["web"],
@@ -47,8 +56,8 @@ export const generatedContents: readonly QuizContent[] = [
     hashtagIds: ["javascript"],
   },
 ];
-export const quizzes: readonly ReviewQuiz[] = generatedContents.map(
-  (content, index) => ({
+export const quizzes: readonly ReviewQuiz[] =
+  generatedContents.map((content, index) => ({
     quizId: `seed-quiz-${index + 1}`,
     ownerUserId: index < 2 ? "author" : "friend",
     status: "PUBLIC",
@@ -61,5 +70,4 @@ export const quizzes: readonly ReviewQuiz[] = generatedContents.map(
     },
     pending: null,
     updatedAt: "2026-01-01T00:00:00.000Z",
-  }),
-);
+  }));

@@ -9,7 +9,9 @@ function browserBundle() {
   const root = process.cwd();
   const modules = new Map<string, string>();
   function collect(file: string): string {
-    const key = path.relative(root, file).replaceAll(path.sep, "/");
+    const key = path
+      .relative(root, file)
+      .replaceAll(path.sep, "/");
     if (modules.has(key)) return key;
     const source = fs.readFileSync(file, "utf8");
     modules.set(key, "");
@@ -27,8 +29,12 @@ function browserBundle() {
     modules.set(key, js);
     return key;
   }
-  const client = collect(path.join(root, "src/api/client.ts"));
-  const adapter = collect(path.join(root, "src/mocks/adapter.ts"));
+  const client = collect(
+    path.join(root, "src/api/client.ts"),
+  );
+  const adapter = collect(
+    path.join(root, "src/mocks/adapter.ts"),
+  );
   return `(function(){ const modules = {${[...modules].map(([key, code]) => `${JSON.stringify(key)}: function(module, exports, require){${code}\n}`).join(",")}}; const cache = {}; function require(key) { if(cache[key]) return cache[key].exports; const m = {exports:{}}; cache[key]=m; modules[key](m,m.exports,require); return m.exports; } window.mockApi = (userId) => require(${JSON.stringify(client)}).createApiClient(require(${JSON.stringify(adapter)}).createMockTransport({userId})); })();`;
 }
 declare global {
@@ -83,20 +89,32 @@ test("browser generation → review → subscription → solve/replay → purcha
       attemptId: first.attemptId,
       answer: { type: "SINGLE_CHOICE", choiceId: "a" },
     });
-    const second = await learner.request("learningNext", {});
-    const nextAttempt = await learner.request("startAttempt", {
-      quizId: second.quiz!.quizId,
-      context: "LEARNING",
-    });
+    const second = await learner.request(
+      "learningNext",
+      {},
+    );
+    const nextAttempt = await learner.request(
+      "startAttempt",
+      {
+        quizId: second.quiz!.quizId,
+        context: "LEARNING",
+      },
+    );
     await learner.request("answer", {
       attemptId: nextAttempt.attemptId,
       answer: { type: "SINGLE_CHOICE", choiceId: "b" },
     });
-    const exhausted = await learner.request("learningNext", {});
-    const replaySelection = await learner.request("learningQuiz", {
-      hashtagId: "typescript",
-      mode: "REPLAY",
-    });
+    const exhausted = await learner.request(
+      "learningNext",
+      {},
+    );
+    const replaySelection = await learner.request(
+      "learningQuiz",
+      {
+        hashtagId: "typescript",
+        mode: "REPLAY",
+      },
+    );
     const replay = await learner.request("startAttempt", {
       quizId: replaySelection.quiz!.quizId,
       context: "LEARNING",
@@ -136,12 +154,20 @@ test("browser generation → review → subscription → solve/replay → purcha
   await page.reload();
   await page.addScriptTag({ content: bundle });
   const restored = await page.evaluate(async () => ({
-    wallet: await window.mockApi("learner").request("wallet", {}),
-    inventory: await window.mockApi("learner").request("inventory", {}),
-    other: await window.mockApi("author").request("inventory", {}),
+    wallet: await window
+      .mockApi("learner")
+      .request("wallet", {}),
+    inventory: await window
+      .mockApi("learner")
+      .request("inventory", {}),
+    other: await window
+      .mockApi("author")
+      .request("inventory", {}),
   }));
   expect(restored.wallet.balance).toBe(70);
-  expect(restored.inventory.equipment.KEYBOARD).toBe("keyboard-1");
+  expect(restored.inventory.equipment.KEYBOARD).toBe(
+    "keyboard-1",
+  );
   expect(restored.other.products).toHaveLength(0);
 });
 test("another tab observes visibility revocation and stale edits without overwriting state", async ({
@@ -154,44 +180,48 @@ test("another tab observes visibility revocation and stale edits without overwri
       (
         await window
           .mockApi("learner")
-          .request("startAttempt", { quizId: "seed-quiz-1", context: "DIRECT" })
+          .request("startAttempt", {
+            quizId: "seed-quiz-1",
+            context: "DIRECT",
+          })
       ).attemptId,
   );
   const second = await context.newPage();
   await load(second);
   await second.evaluate(async () =>
-    window
-      .mockApi("author")
-      .request("visibility", {
-        quizId: "seed-quiz-1",
-        expectedVersion: 1,
-        visibility: "PRIVATE",
-      }),
+    window.mockApi("author").request("visibility", {
+      quizId: "seed-quiz-1",
+      expectedVersion: 1,
+      visibility: "PRIVATE",
+    }),
   );
   const codes = await page.evaluate(async (attemptId) => {
     const errors: string[] = [];
     try {
-      await window
-        .mockApi("learner")
-        .request("answer", {
-          attemptId,
-          answer: { type: "SINGLE_CHOICE", choiceId: "a" },
-        });
+      await window.mockApi("learner").request("answer", {
+        attemptId,
+        answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+      });
     } catch (error) {
-      errors.push((error as { detail: { code: string } }).detail.code);
+      errors.push(
+        (error as { detail: { code: string } }).detail.code,
+      );
     }
     try {
-      await window
-        .mockApi("author")
-        .request("visibility", {
-          quizId: "seed-quiz-1",
-          expectedVersion: 1,
-          visibility: "PUBLIC",
-        });
+      await window.mockApi("author").request("visibility", {
+        quizId: "seed-quiz-1",
+        expectedVersion: 1,
+        visibility: "PUBLIC",
+      });
     } catch (error) {
-      errors.push((error as { detail: { code: string } }).detail.code);
+      errors.push(
+        (error as { detail: { code: string } }).detail.code,
+      );
     }
     return errors;
   }, attemptId);
-  expect(codes).toEqual(["QUIZ_UNAVAILABLE", "VERSION_CONFLICT"]);
+  expect(codes).toEqual([
+    "QUIZ_UNAVAILABLE",
+    "VERSION_CONFLICT",
+  ]);
 });

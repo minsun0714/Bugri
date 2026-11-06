@@ -11,7 +11,8 @@ export async function createBrowserApi(
     | { mode: "http"; baseUrl?: string },
 ): Promise<ApiClient> {
   if (config.mode === "mock") {
-    const { createMockTransport } = await import("../mocks/adapter");
+    const { createMockTransport } =
+      await import("../mocks/adapter");
     return createApiClient(createMockTransport(config));
   }
   const { createHttpTransport } = await import("./http");

@@ -38,30 +38,51 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/quizzes/{id}/regenerate",
     pathKey: "quizId",
   },
-  approve: { method: "POST", path: "/quizzes/{id}/approve", pathKey: "quizId" },
+  approve: {
+    method: "POST",
+    path: "/quizzes/{id}/approve",
+    pathKey: "quizId",
+  },
   visibility: {
     method: "PATCH",
     path: "/quizzes/{id}/visibility",
     pathKey: "quizId",
   },
-  deleteQuiz: { method: "DELETE", path: "/quizzes/{id}", pathKey: "quizId" },
+  deleteQuiz: {
+    method: "DELETE",
+    path: "/quizzes/{id}",
+    pathKey: "quizId",
+  },
   subscriptions: { method: "GET", path: "/subscriptions" },
   subscribe: { method: "POST", path: "/subscriptions" },
   unsubscribe: { method: "DELETE", path: "/subscriptions" },
   discoverUsers: { method: "GET", path: "/discover/users" },
-  discoverHashtags: { method: "GET", path: "/discover/hashtags" },
+  discoverHashtags: {
+    method: "GET",
+    path: "/discover/hashtags",
+  },
   learningTags: { method: "GET", path: "/learning/tags" },
   learningQuiz: { method: "GET", path: "/learning/quiz" },
   learningNext: { method: "POST", path: "/learning/next" },
   learningDay: { method: "GET", path: "/learning/day" },
-  learningTimezone: { method: "GET", path: "/me/learning-timezone" },
-  updateTimezone: { method: "PATCH", path: "/me/learning-timezone" },
+  learningTimezone: {
+    method: "GET",
+    path: "/me/learning-timezone",
+  },
+  updateTimezone: {
+    method: "PATCH",
+    path: "/me/learning-timezone",
+  },
   startAttempt: {
     method: "POST",
     path: "/quizzes/{id}/attempts",
     pathKey: "quizId",
   },
-  attempt: { method: "GET", path: "/attempts/{id}", pathKey: "attemptId" },
+  attempt: {
+    method: "GET",
+    path: "/attempts/{id}",
+    pathKey: "attemptId",
+  },
   answer: {
     method: "POST",
     path: "/attempts/{id}/answer",
@@ -72,7 +93,11 @@ export const endpoints: Record<Operation, Endpoint> = {
   purchase: { method: "POST", path: "/shop/purchases" },
   inventory: { method: "GET", path: "/me/inventory" },
   equip: { method: "PUT", path: "/me/desk/equipment" },
-  publicProfile: { method: "GET", path: "/users/{id}", pathKey: "publicId" },
+  publicProfile: {
+    method: "GET",
+    path: "/users/{id}",
+    pathKey: "publicId",
+  },
 };
 /** No mock identity, seeds, storage, or real auth implementation is coupled to REST. */
 export function createHttpTransport(
@@ -87,14 +112,22 @@ export function createHttpTransport(
       const failure = (
         code: "NETWORK_ERROR" | "INVALID_RESPONSE",
         message: string,
-      ) => ({ status: 502, body: { error: { code, message, requestId } } });
+      ) => ({
+        status: 502,
+        body: { error: { code, message, requestId } },
+      });
       const endpoint = endpoints[operation];
-      const params = { ...request } as Record<string, unknown>;
+      const params = { ...request } as Record<
+        string,
+        unknown
+      >;
       let path = endpoint.path;
       if (endpoint.pathKey) {
         path = path.replace(
           "{id}",
-          encodeURIComponent(String(params[endpoint.pathKey])),
+          encodeURIComponent(
+            String(params[endpoint.pathKey]),
+          ),
         );
         delete params[endpoint.pathKey];
       }
@@ -105,7 +138,9 @@ export function createHttpTransport(
             query.set(key, String(value));
       let response: globalThis.Response;
       try {
-        response = await (options.fetch ?? globalThis.fetch)(
+        response = await (
+          options.fetch ?? globalThis.fetch
+        )(
           `${options.baseUrl ?? "/api/v1"}${path}${query.size ? `?${query}` : ""}`,
           {
             method: endpoint.method,
@@ -121,7 +156,10 @@ export function createHttpTransport(
           },
         );
       } catch {
-        return failure("NETWORK_ERROR", "API 연결에 실패했습니다.");
+        return failure(
+          "NETWORK_ERROR",
+          "API 연결에 실패했습니다.",
+        );
       }
       try {
         const body = await response.json();
@@ -135,10 +173,16 @@ export function createHttpTransport(
               typeof body.error.message !== "string" ||
               typeof body.error.requestId !== "string")
         )
-          return failure("INVALID_RESPONSE", "API 응답 형식을 확인하세요.");
+          return failure(
+            "INVALID_RESPONSE",
+            "API 응답 형식을 확인하세요.",
+          );
         return { status: response.status, body };
       } catch {
-        return failure("INVALID_RESPONSE", "JSON 응답이 필요합니다.");
+        return failure(
+          "INVALID_RESPONSE",
+          "JSON 응답이 필요합니다.",
+        );
       }
     },
   };
