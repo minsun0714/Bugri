@@ -24,6 +24,6 @@ Codex Stop Hook을 사용하는 기능 작업은 [Hook 사용법](../../../docs/
 - UI 구현 전 [공통 UI](../../../src/components/ui/)의 실제 props·상태를 확인하고 먼저 재사용한다. 기본 요소는 `index.tsx`, 태그 입력은 `tag-input.tsx`, Markdown 입력은 `markdown-editor.tsx`, 코드 표시는 `code-block.tsx`, 푸터는 `footer.tsx`를 사용한다. 동일한 역할의 컴포넌트를 기능 폴더에 복제하지 않는다.
 - 색상·폰트·애니메이션은 [globals.css](../../../src/app/globals.css)의 `@theme` 토큰을 기준으로 삼는다. Tailwind와 [공통 클래스 조합](../../../src/components/ui/styles.ts)을 사용하고, 화면마다 별도 색상 체계·전역 CSS·CSS-in-JS를 만들지 않는다.
 - 필요한 상태가 없으면 기존 컴포넌트의 variant나 props로 확장한다. 기존 사용처에 맞지 않는 책임까지 억지로 합치지는 않으며, 새 공통 요소가 필요한 경우 `src/components/ui`에 추가한다. 공통 변경은 기존 화면과 관련 테스트에서도 확인한다.
-- [홈 전시](../../../src/components/showcase/design-showcase.tsx)는 조합·시각 상태를 확인하는 예시다. 전시용 데이터·문구·인터랙션을 실제 제품 로직으로 복사하거나, 일반 기능 화면에서 showcase 모듈을 import하지 않는다. 현재 헤더·모바일 메뉴는 showcase 소속이므로 제품에서 재사용할 때 필요한 부분을 공통 컴포넌트로 분리한다.
+- [홈 전시](../../../src/components/showcase/design-showcase.tsx)는 조합·시각 상태를 확인하는 예시다. 전시용 데이터·문구·인터랙션을 실제 제품 로직으로 복사하거나, 일반 기능 화면에서 showcase 모듈을 import하지 않는다. 헤더·모바일 메뉴는 `src/components/ui/header.tsx`와 `mobile-navigation.tsx`를 재사용한다. 기본 홈에서도 이 헤더와 공통 푸터를 유지하며 본문 전시만 숨긴다.
 - 카드마다 제목 아래 소개 문장을 자동으로 붙이지 않는다. 콘텐츠·상태·다음 행동을 우선 배치하고, 입력 도움말·오류·빈 상태처럼 판단에 필요한 안내만 둔다. 현재 시안의 모든 화면 구성을 확정 제품 요구사항으로 간주하지 않는다.
 - 키보드 포커스, 로딩·비활성·오류 상태, 모바일 줄바꿈과 메뉴 동작을 유지한다. 데이터·저장·API 처리는 공통 UI와 분리하고, UI에는 props와 이벤트로 연결한다.

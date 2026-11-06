@@ -1,7 +1,7 @@
 "use client";
 
 import { styles } from "./styles";
-import { MobileNavigation } from "./mobile-navigation";
+import { Header } from "../ui/header";
 import { Footer } from "../ui/footer";
 
 import { useState, type ReactNode } from "react";
@@ -98,40 +98,7 @@ export default function DesignShowcase() {
   const [subscribed, setSubscribed] = useState(false);
   return (
     <div className="min-h-screen">
-      <header className="relative z-20 border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-[1220px] items-center justify-between gap-4 px-5 py-3.5 sm:py-5 md:px-12">
-          <a href="#top" className={styles.wordmark} aria-label="Bugri 홈">
-            <span className={styles["brand-symbol"]}>b.</span>bugri
-            <span className={styles["brand-dot"]}>●</span>
-          </a>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-xs text-muted sm:block">
-              Design workspace · 0.1
-            </span>
-            <span className="hidden sm:inline-flex">
-              <Badge tone="success">● LIVE PREVIEW</Badge>
-            </span>
-            <MobileNavigation sections={sections} />
-          </div>
-        </div>
-        <nav
-          aria-label="컴포넌트 섹션"
-          className="mx-auto hidden max-w-[1220px] gap-2 overflow-x-auto px-4 pb-3 sm:flex md:px-10"
-        >
-          {sections.map(([id, label], i) => (
-            <a
-              href={`#${id}`}
-              key={id}
-              className="flex shrink-0 items-center gap-2 rounded-full px-3 py-2.5 text-xs text-muted transition-colors hover:bg-primary/10 hover:text-primary focus-visible:bg-primary/10"
-            >
-              <span className="font-mono text-[10px] text-primary/60">
-                0{i + 1}
-              </span>
-              {label}
-            </a>
-          ))}
-        </nav>
-      </header>
+      <Header sections={sections} />
       <main id="top">
         <div className={styles["design-content"]}>
           <section className="flex items-center justify-between gap-6 py-9">
