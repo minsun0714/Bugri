@@ -1,0 +1,81 @@
+import { createApiClient } from "../../../src/api/client";
+import { createHttpTransport, endpoints } from "../../../src/api/http";
+import type { Request } from "../../../src/api/contracts";
+const response = (body: unknown, status = 200) =>
+  ({ ok: status < 400, status, json: async () => body }) as Response;
+test("REST encodes path, removes path fields from body and uses explicit envelope", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(response({ data: { deleted: true } }));
+  const client = createApiClient(createHttpTransport({ fetch: fetcher }));
+  await client.request("deleteQuiz", { quizId: "a/b" });
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/quizzes/a%2Fb",
+    expect.objectContaining({ method: "DELETE", body: "{}" }),
+  );
+  await client.request("approve", {
+    quizId: "q",
+    expectedVersion: 2,
+    visibility: "PUBLIC",
+  });
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/quizzes/q/approve",
+    expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ expectedVersion: 2, visibility: "PUBLIC" }),
+    }),
+  );
+});
+test("GET query has no body and omits All hashtag; no mock user or auth headers", async () => {
+  const fetcher = jest.fn().mockResolvedValue(response({ data: [] }));
+  const client = createApiClient(
+    createHttpTransport({
+      baseUrl: "https://api.example.test/api/v1",
+      fetch: fetcher,
+    }),
+  );
+  await client.request("learningQuiz", { hashtagId: null, mode: "UNSOLVED" });
+  expect(fetcher).toHaveBeenCalledWith(
+    "https://api.example.test/api/v1/learning/quiz?mode=UNSOLVED",
+    { method: "GET", headers: { Accept: "application/json" } },
+  );
+});
+test("HTTP errors preserve code and requestId, network/invalid envelopes are distinct", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(
+      response(
+        {
+          error: {
+            code: "QUIZ_UNAVAILABLE",
+            message: "Unavailable",
+            requestId: "request-1",
+          },
+        },
+        409,
+      ),
+    );
+  const client = createApiClient(createHttpTransport({ fetch: fetcher }));
+  await expect(client.request("wallet", {})).rejects.toMatchObject({
+    status: 409,
+    detail: { code: "QUIZ_UNAVAILABLE", requestId: "request-1" },
+  });
+  fetcher.mockRejectedValueOnce(new Error("offline"));
+  await expect(client.request("wallet", {})).rejects.toMatchObject({
+    detail: { code: "NETWORK_ERROR" },
+  });
+  fetcher.mockResolvedValueOnce(response({ balance: 10 }));
+  await expect(client.request("wallet", {})).rejects.toMatchObject({
+    detail: { code: "INVALID_RESPONSE" },
+  });
+});
+test("all declared operations have an HTTP endpoint", () => {
+  expect(Object.keys(endpoints)).toHaveLength(30);
+});
+// Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.
+// @ts-expect-error quiz subscriptions are not a contract
+const invalidSubscription: Request<"subscribe"> = { type: "QUIZ", quizId: "q" };
+// @ts-expect-error answers are discriminated by question format
+const invalidAnswer: Request<"answer"> = { attemptId: "a", answer: true };
+void invalidSubscription;
+void invalidAnswer;
