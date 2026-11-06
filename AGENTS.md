@@ -61,3 +61,25 @@ Developer learning platform with AI-generated quizzes.
 - npx tsc --noEmit
 - npm test (Jest + React Testing Library, when configured)
 - npx playwright test (Playwright E2E for UI changes, when configured)
+
+## Automated Verification
+
+- Every new feature must include relevant tests.
+- Run unit tests for business logic changes.
+- Run component tests for UI behavior changes.
+- Run Playwright E2E tests for user flow changes.
+- Run lint and TypeScript checks after implementation.
+- Run the full verification pipeline before marking a task DONE.
+
+## Failure Handling
+
+1. Run the relevant verification commands.
+2. If a test fails, analyze the cause.
+3. Fix the implementation, not the test expectation,
+   unless the test contradicts the approved requirements.
+4. Run the failed test again.
+5. Repeat up to 3 times.
+6. If still failing, stop and report the blocker.
+
+Never claim a test passed unless it was executed.
+Never skip or weaken tests to make verification pass.
