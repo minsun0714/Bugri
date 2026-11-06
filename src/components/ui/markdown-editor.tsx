@@ -183,11 +183,13 @@ export function MarkdownEditor({
         <span>
           Markdown 기호 포함 · 코드는 실행되지 않아요
         </span>
-        <span>
-          {count.toLocaleString()} /{" "}
-          {limit.toLocaleString()}
-          {preserveOverflow ? "자" : ""}
-        </span>
+        {Number.isFinite(limit) && (
+          <span>
+            {count.toLocaleString()} /{" "}
+            {limit.toLocaleString()}
+            {preserveOverflow ? "자" : ""}
+          </span>
+        )}
       </div>
       <p
         className={"error-text"}

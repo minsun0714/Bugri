@@ -1,5 +1,5 @@
 import type { QuizContent } from "@/api/contracts";
-import { styles } from "@/features/quiz-authoring/styles";
+import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
 
 export function ContentPreview({
   content,
@@ -32,7 +32,7 @@ export function ContentPreview({
         {question.type} ·{" "}
         {hashtagIds.map((id) => `#${id}`).join(" ")}
       </p>
-      <div className={styles.prose}>{question.prompt}</div>
+      <MarkdownContent>{question.prompt}</MarkdownContent>
       {"choices" in question && (
         <ul className="grid gap-2 pl-5">
           {question.choices.map(({ id, text }) => (
@@ -50,7 +50,7 @@ export function ContentPreview({
       </p>
       <div>
         <h3>해설</h3>
-        <div className={styles.prose}>{explanation}</div>
+        <MarkdownContent>{explanation}</MarkdownContent>
       </div>
     </div>
   );

@@ -6,7 +6,9 @@ import type { ApiClient } from "@/api/client";
 import {
   QuizScope,
   type GenerationBatch,
+  type Hashtag,
   type QuizSummary,
+  type ReviewQuiz,
   type User,
 } from "@/api/contracts";
 import {
@@ -16,6 +18,7 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { Generation } from "@/features/quiz-authoring/generation";
+import { ReviewEditor } from "@/features/quiz-authoring/review-editor";
 import { RequestError } from "@/features/quiz-authoring/feedback";
 import { styles } from "@/features/quiz-authoring/styles";
 import {
@@ -28,12 +31,16 @@ export function AuthoringWorkspace() {
     api: ApiClient;
     userId: string;
     users: User[];
+    tags: Hashtag[];
     batch?: GenerationBatch;
   }>();
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
+  const [review, setReview] = useState<ReviewQuiz>();
   const [error, setError] = useState<unknown>(null);
   const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [reload, setReload] = useState(0);
+  const [notice, setNotice] = useState("");
 
   useUnsavedWarning(dirty);
 
@@ -50,20 +57,26 @@ export function AuthoringWorkspace() {
           mode: "mock",
           userId,
         });
-        const [users, items] = await Promise.all([
+        const [users, items, tags] = await Promise.all([
           api.request("discoverUsers", {}),
           api.request("quizzes", { scope: QuizScope.OWN }),
+          api.request("discoverHashtags", {}),
         ]);
         const batchId = params.get("batch");
+        const quizId = params.get("quiz");
         const batch = batchId
           ? await api.request("generationBatch", {
               batchId,
             })
           : undefined;
+        const selected = quizId
+          ? await api.request("reviewQuiz", { quizId })
+          : undefined;
 
         if (!cancelled) {
-          setSession({ api, userId, users, batch });
+          setSession({ api, userId, users, tags, batch });
           setQuizzes(items);
+          setReview(selected);
           setError(null);
         }
       } catch (error) {
@@ -92,10 +105,49 @@ export function AuthoringWorkspace() {
     }
   }
 
-  function rememberBatch({ batchId }: GenerationBatch) {
+  function rememberBatch(batch: GenerationBatch) {
     const url = new URL(window.location.href);
-    url.searchParams.set("batch", batchId);
+    url.searchParams.set("batch", batch.batchId);
     window.history.replaceState(null, "", url);
+    setSession((current) =>
+      current ? { ...current, batch } : current,
+    );
+  }
+
+  function closeReview() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("quiz");
+    window.history.replaceState(null, "", url);
+    setReview(undefined);
+    setDirty(false);
+  }
+
+  async function openReview(quizId: string) {
+    if (review?.quizId === quizId) return;
+    if (
+      !session ||
+      busy ||
+      (dirty && !window.confirm(leaveMessage))
+    )
+      return;
+    setBusy(true);
+    try {
+      const result = await session.api.request(
+        "reviewQuiz",
+        { quizId },
+      );
+      const url = new URL(window.location.href);
+      url.searchParams.set("quiz", quizId);
+      window.history.replaceState(null, "", url);
+      setDirty(false);
+      setReview(result);
+      setNotice("");
+      setError(null);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -107,17 +159,37 @@ export function AuthoringWorkspace() {
         유실될 수 있습니다.
       </p>
       <RequestError error={error} />
+      {notice && (
+        <p role="status" className="text-primary">
+          {notice}
+        </p>
+      )}
       {!session ? (
         <>
-          <Skeleton />
+          {!error && <Skeleton />}
           {error && (
-            <Button
-              onClick={() =>
-                setReload((value) => value + 1)
-              }
-            >
-              다시 불러오기
-            </Button>
+            <div className={styles.actions}>
+              <Button
+                onClick={() =>
+                  setReload((value) => value + 1)
+                }
+              >
+                다시 불러오기
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  window.history.replaceState(
+                    null,
+                    "",
+                    "/quizzes/authoring",
+                  );
+                  setReload((value) => value + 1);
+                }}
+              >
+                기본 사용자 목록으로 돌아가기
+              </Button>
+            </div>
           )}
         </>
       ) : (
@@ -126,6 +198,7 @@ export function AuthoringWorkspace() {
             더미 사용자
             <select
               value={session.userId}
+              disabled={busy}
               onChange={(event) => {
                 if (dirty && !window.confirm(leaveMessage))
                   return;
@@ -136,6 +209,8 @@ export function AuthoringWorkspace() {
                 );
                 setDirty(false);
                 setSession(undefined);
+                setReview(undefined);
+                setNotice("");
                 setReload((value) => value + 1);
               }}
             >
@@ -148,13 +223,49 @@ export function AuthoringWorkspace() {
               )}
             </select>
           </label>
-          <Generation
-            api={session.api}
-            initialBatch={session.batch}
-            onBatch={rememberBatch}
-            onSaved={() => void refresh()}
-            onDirty={setDirty}
-          />
+          {review ? (
+            <>
+              <div>
+                <Button
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => {
+                    if (
+                      dirty &&
+                      !window.confirm(leaveMessage)
+                    )
+                      return;
+                    closeReview();
+                  }}
+                >
+                  생성 화면으로 돌아가기
+                </Button>
+              </div>
+              <ReviewEditor
+                key={review.quizId}
+                api={session.api}
+                initialQuiz={review}
+                tags={session.tags}
+                onChanged={() => void refresh()}
+                onDeleted={() => {
+                  closeReview();
+                  setNotice("퀴즈를 삭제했습니다.");
+                  void refresh();
+                }}
+                onDirty={setDirty}
+                onBusy={setBusy}
+              />
+            </>
+          ) : (
+            <Generation
+              api={session.api}
+              initialBatch={session.batch}
+              onBatch={rememberBatch}
+              onSaved={() => void refresh()}
+              onDirty={setDirty}
+              onBusy={setBusy}
+            />
+          )}
           <section
             id="my-quizzes"
             className={styles.stack}
@@ -164,6 +275,7 @@ export function AuthoringWorkspace() {
               <h2 className="text-2xl">내 퀴즈 목록</h2>
               <Button
                 variant="ghost"
+                disabled={busy}
                 onClick={() => void refresh()}
               >
                 목록 새로고침
@@ -191,7 +303,7 @@ export function AuthoringWorkspace() {
                 updatedAt,
                 hasPendingRevision,
               }) => (
-                <Card key={quizId} className="grid gap-2">
+                <Card key={quizId} className="grid gap-3">
                   <h3>{title}</h3>
                   <p>
                     {status}
@@ -208,6 +320,19 @@ export function AuthoringWorkspace() {
                       "ko-KR",
                     )}
                   </time>
+                  <div>
+                    <Button
+                      variant="secondary"
+                      disabled={
+                        busy || review?.quizId === quizId
+                      }
+                      onClick={() =>
+                        void openReview(quizId)
+                      }
+                    >
+                      {title} 검토·관리
+                    </Button>
+                  </div>
                 </Card>
               ),
             )}

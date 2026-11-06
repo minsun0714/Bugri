@@ -15,12 +15,14 @@ export function Generation({
   onBatch,
   onSaved,
   onDirty = () => {},
+  onBusy = () => {},
 }: {
   api: ApiClient;
   initialBatch?: GenerationBatch;
   onBatch: (batch: GenerationBatch) => void;
   onSaved: () => void;
   onDirty?: (dirty: boolean) => void;
+  onBusy?: (busy: boolean) => void;
 }) {
   const [source, setSource] = useState(
     initialBatch?.sourceContent ?? "",
@@ -35,6 +37,7 @@ export function Generation({
 
     locked.current = true;
     setBusy(true);
+    onBusy(true);
     setError(null);
     try {
       await action();
@@ -43,6 +46,7 @@ export function Generation({
     } finally {
       locked.current = false;
       setBusy(false);
+      onBusy(false);
     }
   }
 
