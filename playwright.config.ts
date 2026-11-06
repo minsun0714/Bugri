@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = Number(process.env.PLAYWRIGHT_PORT ?? process.env.E2E_PORT ?? "3107");
+const port = Number(
+  process.env.PLAYWRIGHT_PORT ??
+    process.env.E2E_PORT ??
+    "3107",
+);
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error(

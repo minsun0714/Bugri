@@ -1,9 +1,11 @@
-import DesignShowcase from "../components/showcase/design-showcase";
-import { Header } from "../components/ui/header";
-import { Footer } from "../components/ui/footer";
+import DesignShowcase from "@/components/showcase/design-showcase";
+import { Header } from "@/components/ui/header";
+import { Footer } from "@/components/ui/footer";
 
 export default function Home() {
-  if (process.env.BUGRI_UI_PREVIEW === "1") return <DesignShowcase />;
+  if (process.env.BUGRI_UI_PREVIEW === "1")
+    return <DesignShowcase />;
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header
