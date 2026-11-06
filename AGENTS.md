@@ -83,3 +83,15 @@ Developer learning platform with AI-generated quizzes.
 
 Never claim a test passed unless it was executed.
 Never skip or weaken tests to make verification pass.
+
+## Pull Request Rules
+
+- Write PR titles and bodies in Korean. Keep conventional prefixes (`feat:`, `fix:`, `docs:`, `test:`, `chore:`), code identifiers, and commands in English. This does not change commit-message conventions.
+- Keep each PR focused on one purpose. Reference its TASKS ID and related REQ/AC; state when none applies.
+- Use `.github/pull_request_template.md`: 목적, 변경 내용, 검증. Do not add a separate 리뷰 참고 section.
+- Assign file ownership when distributing parallel tasks. Coordinate changes to shared API contracts, package files, and global configuration with the integration owner.
+- After the last code change, run `npm run verify` in that worktree and record the tested commit, executed commands, and results in the PR. Do not mark verification complete before execution.
+- Follow Failure Handling: analyze failures, fix the implementation, and rerun verification, up to 3 attempts. Keep the PR in Draft while required checks fail or remain unexecuted, and report any blocker. Never skip or weaken tests to pass verification.
+- Require review by someone other than the implementer. The user makes the final merge decision.
+- Rerun verification after conflict resolution, subsequent code changes, or integration; earlier results do not verify changed code.
+- For documentation-only PRs, run `git diff --check` and review document consistency instead of the functional pipeline. Record why functional checks were not run. This exception does not count as completed implementation verification or justify marking an implementation task DONE.
