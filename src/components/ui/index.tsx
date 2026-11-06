@@ -1,6 +1,6 @@
 "use client";
 
-import { styles } from "./styles";
+import { styles } from "@/components/ui/styles";
 
 import {
   useEffect,
@@ -12,6 +12,7 @@ import {
 } from "react";
 
 type Tone = "neutral" | "success" | "warning" | "danger";
+
 export function Button({
   variant = "primary",
   size = "md",
@@ -33,11 +34,17 @@ export function Button({
       aria-busy={loading}
       className={`${styles["ui-button"]} ${variant} ${size} ${className}`}
     >
-      {loading && <span className={styles["spinner"]} aria-hidden="true" />}
+      {loading && (
+        <span
+          className={styles["spinner"]}
+          aria-hidden="true"
+        />
+      )}
       {children}
     </button>
   );
 }
+
 export function Badge({
   children,
   tone = "neutral",
@@ -45,13 +52,20 @@ export function Badge({
   children: ReactNode;
   tone?: Tone;
 }) {
-  return <span className={`${styles["ui-badge"]} ${tone}`}>{children}</span>;
+  return (
+    <span className={`${styles["ui-badge"]} ${tone}`}>
+      {children}
+    </span>
+  );
 }
+
 export function Tag({
   children,
   selected = false,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { selected?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  selected?: boolean;
+}) {
   return (
     <button
       type="button"
@@ -63,6 +77,7 @@ export function Tag({
     </button>
   );
 }
+
 export function TextField({
   label,
   error,
@@ -76,6 +91,7 @@ export function TextField({
 }) {
   const generated = useId();
   const fieldId = id ?? generated;
+
   return (
     <div className={styles["ui-field"]}>
       <label htmlFor={fieldId}>{label}</label>
@@ -83,16 +99,22 @@ export function TextField({
         {...props}
         id={fieldId}
         aria-invalid={!!error}
-        aria-describedby={error || hint ? `${fieldId}-help` : undefined}
+        aria-describedby={
+          error || hint ? `${fieldId}-help` : undefined
+        }
       />
       {(error || hint) && (
-        <small id={`${fieldId}-help`} className={error ? "error-text" : ""}>
+        <small
+          id={`${fieldId}-help`}
+          className={error ? "error-text" : ""}
+        >
           {error || hint}
         </small>
       )}
     </div>
   );
 }
+
 export function TextArea({
   label,
   value,
@@ -105,7 +127,8 @@ export function TextArea({
   limit?: number;
 }) {
   const id = useId();
-  const count = Array.from(value).length;
+  const { length: count } = Array.from(value);
+
   return (
     <div className={styles["ui-field"]}>
       <label htmlFor={id}>{label}</label>
@@ -113,7 +136,11 @@ export function TextArea({
         id={id}
         value={value}
         onChange={(event) =>
-          onChange(Array.from(event.target.value).slice(0, limit).join(""))
+          onChange(
+            Array.from(event.target.value)
+              .slice(0, limit)
+              .join(""),
+          )
         }
         aria-describedby={`${id}-count`}
         placeholder="오늘 배운 내용을 자유롭게 적어보세요. 코드도 좋아요."
@@ -125,6 +152,7 @@ export function TextArea({
     </div>
   );
 }
+
 export function Select({
   label,
   options,
@@ -133,6 +161,7 @@ export function Select({
   options: string[];
 }) {
   const id = useId();
+
   return (
     <div className={styles["ui-field"]}>
       <label htmlFor={id}>{label}</label>
@@ -144,6 +173,7 @@ export function Select({
     </div>
   );
 }
+
 export function Switch({
   label,
   checked,
@@ -166,10 +196,13 @@ export function Switch({
     </label>
   );
 }
+
 export function Checkbox({
   label,
   ...props
-}: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+}: InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+}) {
   return (
     <label className={styles["ui-check"]}>
       <input {...props} type="checkbox" />
@@ -177,6 +210,7 @@ export function Checkbox({
     </label>
   );
 }
+
 export function Avatar({
   name,
   size = "md",
@@ -185,11 +219,15 @@ export function Avatar({
   size?: "sm" | "md" | "lg";
 }) {
   return (
-    <span className={`${styles["ui-avatar"]} ${size}`} aria-label={name}>
+    <span
+      className={`${styles["ui-avatar"]} ${size}`}
+      aria-label={name}
+    >
       {Array.from(name)[0]}
     </span>
   );
 }
+
 export function Card({
   children,
   className = "",
@@ -198,11 +236,14 @@ export function Card({
   className?: string;
 }) {
   return (
-    <article className={`${styles["ui-card"]} ${className}`}>
+    <article
+      className={`${styles["ui-card"]} ${className}`}
+    >
       {children}
     </article>
   );
 }
+
 export function Alert({
   title,
   children,
@@ -215,7 +256,11 @@ export function Alert({
   return (
     <div className={`${styles["ui-alert"]} ${tone}`}>
       <span aria-hidden="true">
-        {tone === "success" ? "✓" : tone === "danger" ? "!" : "i"}
+        {tone === "success"
+          ? "✓"
+          : tone === "danger"
+            ? "!"
+            : "i"}
       </span>
       <div>
         <strong>{title}</strong>
@@ -224,6 +269,7 @@ export function Alert({
     </div>
   );
 }
+
 export function EmptyState({
   title,
   description,
@@ -242,6 +288,7 @@ export function EmptyState({
     </div>
   );
 }
+
 export function Skeleton() {
   return (
     <div
@@ -255,7 +302,14 @@ export function Skeleton() {
     </div>
   );
 }
-export function Progress({ value, label }: { value: number; label: string }) {
+
+export function Progress({
+  value,
+  label,
+}: {
+  value: number;
+  label: string;
+}) {
   return (
     <div className={styles["ui-progress"]}>
       <div>
@@ -268,6 +322,7 @@ export function Progress({ value, label }: { value: number; label: string }) {
     </div>
   );
 }
+
 export function Tabs({
   items,
   value,
@@ -281,6 +336,7 @@ export function Tabs({
 }) {
   const id = useId();
   const index = items.indexOf(value);
+
   return (
     <div>
       <div
@@ -300,15 +356,21 @@ export function Tabs({
             onClick={() => onChange(item)}
             onKeyDown={(event) => {
               let next = i;
-              if (event.key === "ArrowRight") next = (i + 1) % items.length;
+
+              if (event.key === "ArrowRight")
+                next = (i + 1) % items.length;
               else if (event.key === "ArrowLeft")
-                next = (i + items.length - 1) % items.length;
+                next =
+                  (i + items.length - 1) % items.length;
               else if (event.key === "Home") next = 0;
-              else if (event.key === "End") next = items.length - 1;
+              else if (event.key === "End")
+                next = items.length - 1;
               else return;
               event.preventDefault();
               onChange(items[next]);
-              document.getElementById(`${id}-${next}`)?.focus();
+              document
+                .getElementById(`${id}-${next}`)
+                ?.focus();
             }}
           >
             {item}
@@ -327,6 +389,7 @@ export function Tabs({
     </div>
   );
 }
+
 export function Modal({
   open,
   onClose,
@@ -340,11 +403,14 @@ export function Modal({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
+
   useEffect(() => {
-    const dialog = ref.current;
+    const { current: dialog } = ref;
+
     if (open) dialog?.showModal();
     else dialog?.close();
   }, [open]);
+
   return (
     <dialog
       ref={ref}
@@ -355,7 +421,11 @@ export function Modal({
     >
       <div className={styles["modal-header"]}>
         <h2 id={id}>{title}</h2>
-        <Button variant="ghost" aria-label="닫기" onClick={onClose}>
+        <Button
+          variant="ghost"
+          aria-label="닫기"
+          onClick={onClose}
+        >
           ×
         </Button>
       </div>
@@ -363,6 +433,7 @@ export function Modal({
     </dialog>
   );
 }
+
 export function Toast({
   message,
   onClose,
@@ -374,12 +445,17 @@ export function Toast({
     <div role="status" className={styles["ui-toast"]}>
       <span aria-hidden="true">✓</span>
       {message}
-      <button type="button" aria-label="알림 닫기" onClick={onClose}>
+      <button
+        type="button"
+        aria-label="알림 닫기"
+        onClick={onClose}
+      >
         ×
       </button>
     </div>
   );
 }
+
 export function Choice({
   label,
   name,
@@ -396,7 +472,9 @@ export function Choice({
   disabled?: boolean;
 }) {
   return (
-    <label className={`${styles["ui-choice"]} ${checked ? "selected" : ""}`}>
+    <label
+      className={`${styles["ui-choice"]} ${checked ? "selected" : ""}`}
+    >
       <input
         type="radio"
         name={name}
@@ -409,6 +487,7 @@ export function Choice({
     </label>
   );
 }
+
 export function Coin({ amount }: { amount: number }) {
   return (
     <span className={styles["ui-coin"]}>
@@ -417,6 +496,7 @@ export function Coin({ amount }: { amount: number }) {
     </span>
   );
 }
+
 export function Pagination({
   page,
   total,
@@ -427,7 +507,10 @@ export function Pagination({
   onChange: (page: number) => void;
 }) {
   return (
-    <nav className={styles["pagination"]} aria-label="페이지 이동">
+    <nav
+      className={styles["pagination"]}
+      aria-label="페이지 이동"
+    >
       <Button
         variant="ghost"
         disabled={page === 1}

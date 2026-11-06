@@ -4,10 +4,10 @@
 
 [PRD.md](PRD.md)의 전체 제품 요구사항을 유지하면서 개발을 두 단계로 나눈다. 현재 작업 대상은 **1단계 Next.js 프로토타입**이다.
 
-| 단계 | 기술 | API·데이터 | 인증·배포 |
-| --- | --- | --- | --- |
+| 단계  | 기술                             | API·데이터                                                                       | 인증·배포                                                                                               |
+| ----- | -------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | 1단계 | Next.js 16 App Router·TypeScript | 타입 기반 Mock API 어댑터, 파일 초기 데이터·localStorage 변경 상태. DB 연결 없음 | 화면 검증용 더미 사용자. 실제 JWT·OAuth 없음. Jest·React Testing Library·Playwright 검증 후 Vercel 배포 |
-| 2단계 | Spring Boot·Java 21 | MySQL 8.4·Spring Data JPA, 실제 REST `/api/v1` | Google OAuth2 로그인·JWT 인증·내부 User ID 소유권. 실제 영속성·구매 트랜잭션·동시성 처리 |
+| 2단계 | Spring Boot·Java 21              | MySQL 8.4·Spring Data JPA, 실제 REST `/api/v1`                                   | Google OAuth2 로그인·JWT 인증·내부 User ID 소유권. 실제 영속성·구매 트랜잭션·동시성 처리                |
 
 1단계에는 MySQL·Prisma·mysql2를 설치하거나 연결하지 않는다. 2단계의 DB·인증·동시성 설계는 향후 구현 계약이며 현재 프로토타입의 보안·영속성 보장을 뜻하지 않는다. Kubernetes는 별도 실습 환경이다. 2단계 Spring Boot의 배포 환경은 아직 정하지 않았다.
 
@@ -18,6 +18,12 @@
 ```
 
 UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID를 소유권의 진실로 삼지 않는다. 요청·응답 타입과 오류 형식은 1단계부터 정의하고 Mock API가 그 계약을 따른다. 2단계에는 API 클라이언트의 엔드포인트 구현을 교체한다. Next.js Route Handler와 Spring Controller는 HTTP 변환만 담당하며 퀴즈 선정·채점·구매 규칙은 서비스 계층에 둔다. Next.js 코드를 구현할 때는 설치된 `node_modules/next/dist/docs/`의 관련 가이드를 먼저 읽는다.
+
+### UI와 상태의 책임
+
+제품 API에 연결되는 화면은 `UI → 필요할 때 기능 흐름 훅 → TanStack Query 조회·변경 훅 → 타입 API 클라이언트 → Mock 어댑터/향후 Spring Boot` 경계를 사용한다. 첫 API 연동 화면에서 QueryClientProvider와 의존성을 추가한다. 현재 공통 UI 전시는 API를 호출하지 않으며 단순 로컬 상태를 Query 캐시에 넣지 않는다.
+
+채점·보상·구매 등 제품 규칙은 API 뒤 서비스가 결정한다. React 밖에서 사용할 수 있는 순수 입력 검증·텍스트 변환과, 상태·이벤트·비동기 흐름을 조율하는 훅을 구분한다. 작은 토글·표시용 계산은 컴포넌트에 두어도 된다. 사용자별 캐시 격리, mutation 이후 관련 데이터 갱신, 입력 보존·초기화 등 구체적인 구현 기준은 [implement-feature](../.agents/skills/implement-feature/SKILL.md#ui비즈니스-규칙api-상태-분리)를 따른다.
 
 ### UI 스타일링
 
@@ -39,18 +45,18 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 
 1단계의 타입과 2단계의 영속 엔티티는 같은 개념을 표현한다. 아래의 2단계 필드·제약은 향후 실제 구현 대상이다.
 
-| 개념 | 공통 계약 및 2단계 규칙 |
-| --- | --- |
-| User | 내부 `userId`, Google `sub`(유일), publicId, displayName, role, learningTimeZone(IANA). 이메일은 소유권 키가 아니다. 1단계에는 더미 사용자만 둔다 |
-| Quiz | 후보 하나당 독립 quizId, ownerUserId, PENDING/PRIVATE/PUBLIC, 활성·검토 중 revision, deletedAt(soft delete) |
-| QuizRevision | 한 문제·정답·해설·원본 학습 내용·코드 블록·reviewed·최대 3개 해시태그. 승인 버전은 불변 |
-| GenerationBatch | 요청당 후보 퀴즈 1~5개와 저장 여부. 개별 저장은 후보 1개, 일괄 저장은 남은 후보 각각에 독립 quizId 부여 |
-| Subscription | subscriberUserId, PERSON / PERSON_HASHTAG / HASHTAG, authorUserId?, hashtagId? |
-| LearningSelection | userId, hashtagId?(null은 전체), 현재 quizId·revisionId. 다음 문제에서도 태그 유지 |
-| LearningDay | userId·사용자 시간대 기준 학습일, 판정에 사용한 시간대. 완료된 날짜는 소급 변경하지 않고 같은 날짜 중복 집계 방지 |
-| Attempt | solverUserId·quizId·revisionId·제출 결과·completedAt(2단계 서버 UTC 시각). 시작한 버전으로 채점하며 미제출 정답은 비공개 |
-| Product / Inventory / DeskEquipment | 관리자 등록 상품, 구매한 상품 보관함, 장착 상태 |
-| BugCoinLedger / Purchase | 보상·차감 원장, 구매 요청 키. 2단계에서 잔액·중복 요청·동시성 제어 |
+| 개념                                | 공통 계약 및 2단계 규칙                                                                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User                                | 내부 `userId`, Google `sub`(유일), publicId, displayName, role, learningTimeZone(IANA). 이메일은 소유권 키가 아니다. 1단계에는 더미 사용자만 둔다 |
+| Quiz                                | 후보 하나당 독립 quizId, ownerUserId, PENDING/PRIVATE/PUBLIC, 활성·검토 중 revision, deletedAt(soft delete)                                       |
+| QuizRevision                        | 한 문제·정답·해설·원본 학습 내용·코드 블록·reviewed·최대 3개 해시태그. 승인 버전은 불변                                                           |
+| GenerationBatch                     | 요청당 후보 퀴즈 1~5개와 저장 여부. 개별 저장은 후보 1개, 일괄 저장은 남은 후보 각각에 독립 quizId 부여                                           |
+| Subscription                        | subscriberUserId, PERSON / PERSON_HASHTAG / HASHTAG, authorUserId?, hashtagId?                                                                    |
+| LearningSelection                   | userId, hashtagId?(null은 전체), 현재 quizId·revisionId. 다음 문제에서도 태그 유지                                                                |
+| LearningDay                         | userId·사용자 시간대 기준 학습일, 판정에 사용한 시간대. 완료된 날짜는 소급 변경하지 않고 같은 날짜 중복 집계 방지                                 |
+| Attempt                             | solverUserId·quizId·revisionId·제출 결과·completedAt(2단계 서버 UTC 시각). 시작한 버전으로 채점하며 미제출 정답은 비공개                          |
+| Product / Inventory / DeskEquipment | 관리자 등록 상품, 구매한 상품 보관함, 장착 상태                                                                                                   |
+| BugCoinLedger / Purchase            | 보상·차감 원장, 구매 요청 키. 2단계에서 잔액·중복 요청·동시성 제어                                                                                |
 
 구독 대상은 사용자·해시태그·사용자와 해시태그의 조합이며, 퀴즈는 조건에 따라 제공되는 학습 콘텐츠다. Subscription은 quizId를 구독 대상으로 받지 않는다.
 
@@ -72,24 +78,24 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 
 REST 교체 시 기본 경로는 `/api/v1`이며 요청·응답 타입을 1단계부터 정의한다. 아래 경로는 계약이며 1단계 브라우저 어댑터에 실제 HTTP 호출을 강제하지 않는다. 성공은 `{ data: ... }`, 오류는 `{ error: { code, message, fieldErrors?, requestId } }` 형식을 쓴다. `sourceContent`는 언어 지정 코드 블록을 포함해 유니코드 코드 포인트 최대 10,000자이며 공백뿐이면 거부한다. UI는 `현재 / 10,000자`를 즉시 표시한다. Mock·실제 API 모두 출력 퀴즈 1~5개와 퀴즈당 태그 3개 상한을 검증한다.
 
-| 경로 | 1단계 Mock API 응답 | 2단계 REST API |
-| --- | --- | --- |
-| POST /quizzes/generate, GET /generation-batches/{id} | 더미 퀴즈 후보 1~5개·저장 여부 | 실제 생성 결과·영속 후보 조회 |
-| POST /generation-batches/{id}/save | SINGLE(candidateId) 또는 ALL; 독립 PENDING 퀴즈 반환 | 중복 저장 방지·영속화 |
-| GET /quizzes, GET /quizzes/{id}/review, PUT /quizzes/{id}/pending | 더미 사용자별 목록·작성자 검토 | JWT·내부 User ID 소유권 검사 |
-| POST /quizzes/{id}/regenerate, POST /quizzes/{id}/approve, PATCH /quizzes/{id}/visibility, DELETE /quizzes/{id} | 수정본·승인·공개 범위·삭제 UX | 버전 검사·영속화·실제 권한 검사 |
-| GET/POST/DELETE /subscriptions | 3종 구독 Mock 상태 | 인증된 사용자 구독 영속화 |
-| GET /discover/users, GET /discover/hashtags | 더미 개발자·태그 탐색 | 실제 공개 데이터 탐색 |
-| GET /learning/tags | 구독 범위의 더미 기술 태그 선택지 | 실제 구독 조건에 맞는 PUBLIC 퀴즈의 태그 |
-| GET /learning/quiz | hashtagId?(전체면 생략), mode(UNSOLVED/REPLAY); 현재 문제 또는 빈 상태·소진 여부 | 구독·태그·완료 기록으로 후보 조회 |
-| POST /learning/next | 현재 선택 hashtagId?, mode; 다음 문제에도 같은 태그 유지 | 새 후보 조회·접근 검사 |
-| GET /learning/day | 사용자 시간대·학습일·당일 완료 조건 | 서버 UTC 완료 기록과 사용자 시간대 기준 조회 |
-| GET/PATCH /me/learning-timezone | IANA 시간대 조회·변경·사용자별 localStorage 저장 | 인증된 사용자 설정 검증·저장; 과거 기록/보상 유지 |
-| POST /quizzes/{id}/attempts, GET /attempts/{id}, POST /attempts/{id}/answer | 풀이·채점 UX, 미제출 정답 비노출 | JWT·버전별 채점·풀이 영속화 |
-| GET /shop/products, GET /me/bugcoin, POST /shop/purchases | 상품·더미 잔액·구매 결과와 부족/중복 오류 | 실제 BugCoin 잔액·원장·구매 트랜잭션 |
-| GET /me/inventory, PUT /me/desk/equipment, GET /users/{publicId} | 보관함·장착·타인 데스크 UX | 소유권 검사·영속화 |
-| POST /admin/shop/products | 1단계 필수 아님; 필요하면 더미 관리자 화면만 | 내부 User 관리자 권한으로 직접 상품 등록 |
-| GET /auth/google/start, GET /auth/google/callback, GET /auth/me, POST /auth/logout | 실제 인증 경로 없음; 더미 사용자 상태만 제공 | Google OAuth2·JWT 발급/검증·로그아웃 |
+| 경로                                                                                                            | 1단계 Mock API 응답                                                              | 2단계 REST API                                    |
+| --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
+| POST /quizzes/generate, GET /generation-batches/{id}                                                            | 더미 퀴즈 후보 1~5개·저장 여부                                                   | 실제 생성 결과·영속 후보 조회                     |
+| POST /generation-batches/{id}/save                                                                              | SINGLE(candidateId) 또는 ALL; 독립 PENDING 퀴즈 반환                             | 중복 저장 방지·영속화                             |
+| GET /quizzes, GET /quizzes/{id}/review, PUT /quizzes/{id}/pending                                               | 더미 사용자별 목록·작성자 검토                                                   | JWT·내부 User ID 소유권 검사                      |
+| POST /quizzes/{id}/regenerate, POST /quizzes/{id}/approve, PATCH /quizzes/{id}/visibility, DELETE /quizzes/{id} | 수정본·승인·공개 범위·삭제 UX                                                    | 버전 검사·영속화·실제 권한 검사                   |
+| GET/POST/DELETE /subscriptions                                                                                  | 3종 구독 Mock 상태                                                               | 인증된 사용자 구독 영속화                         |
+| GET /discover/users, GET /discover/hashtags                                                                     | 더미 개발자·태그 탐색                                                            | 실제 공개 데이터 탐색                             |
+| GET /learning/tags                                                                                              | 구독 범위의 더미 기술 태그 선택지                                                | 실제 구독 조건에 맞는 PUBLIC 퀴즈의 태그          |
+| GET /learning/quiz                                                                                              | hashtagId?(전체면 생략), mode(UNSOLVED/REPLAY); 현재 문제 또는 빈 상태·소진 여부 | 구독·태그·완료 기록으로 후보 조회                 |
+| POST /learning/next                                                                                             | 현재 선택 hashtagId?, mode; 다음 문제에도 같은 태그 유지                         | 새 후보 조회·접근 검사                            |
+| GET /learning/day                                                                                               | 사용자 시간대·학습일·당일 완료 조건                                              | 서버 UTC 완료 기록과 사용자 시간대 기준 조회      |
+| GET/PATCH /me/learning-timezone                                                                                 | IANA 시간대 조회·변경·사용자별 localStorage 저장                                 | 인증된 사용자 설정 검증·저장; 과거 기록/보상 유지 |
+| POST /quizzes/{id}/attempts, GET /attempts/{id}, POST /attempts/{id}/answer                                     | 풀이·채점 UX, 미제출 정답 비노출                                                 | JWT·버전별 채점·풀이 영속화                       |
+| GET /shop/products, GET /me/bugcoin, POST /shop/purchases                                                       | 상품·더미 잔액·구매 결과와 부족/중복 오류                                        | 실제 BugCoin 잔액·원장·구매 트랜잭션              |
+| GET /me/inventory, PUT /me/desk/equipment, GET /users/{publicId}                                                | 보관함·장착·타인 데스크 UX                                                       | 소유권 검사·영속화                                |
+| POST /admin/shop/products                                                                                       | 1단계 필수 아님; 필요하면 더미 관리자 화면만                                     | 내부 User 관리자 권한으로 직접 상품 등록          |
+| GET /auth/google/start, GET /auth/google/callback, GET /auth/me, POST /auth/logout                              | 실제 인증 경로 없음; 더미 사용자 상태만 제공                                     | Google OAuth2·JWT 발급/검증·로그아웃              |
 
 `ReviewQuiz`와 생성 후보는 정답·해설을 포함하는 작성자용 DTO다. `AttemptView`·`LearningQuizView`·공개 목록에는 미제출 정답·해설·원본 학습 내용을 넣지 않는다. 제출 후 결과에만 정답·해설을 제공한다. PUBLIC은 다른 사용자가 풀 수 있고 PRIVATE는 작성자만 푸는 흐름을 1단계에서 모사하며, 실제 접근 통제는 2단계에서 보장한다. 홈 구독 피드 API는 두 단계의 현재 범위에 없다.
 

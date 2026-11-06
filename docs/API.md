@@ -7,16 +7,19 @@
 UI는 `src/api/contracts.ts`의 DTO와 `src/api/browser.ts`의 조립 함수만 사용한다. 브라우저 effect 또는 이벤트에서 다음처럼 구성한다. UI 컴포넌트에 Mock 배열·localStorage 접근을 추가하지 않는다.
 
 ```ts
-import { createBrowserApi } from '@/api/browser';
-import { LearningMode } from '@/api/contracts';
+import { createBrowserApi } from "@/api/browser";
+import { LearningMode } from "@/api/contracts";
 
-const api = await createBrowserApi({ mode: 'mock', userId: 'learner' });
-const selection = await api.request('learningQuiz', {
+const api = await createBrowserApi({
+  mode: "mock",
+  userId: "learner",
+});
+const selection = await api.request("learningQuiz", {
   hashtagId: null, // 전체
   mode: LearningMode.UNSOLVED,
 });
 // 이후 next는 현재 태그/모드를 유지. 명시적으로 지정해도 된다.
-const next = await api.request('learningNext', {});
+const next = await api.request("learningNext", {});
 ```
 
 Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`로 교체한다. HTTP 어댑터는 실제 fetch를 사용하며 더미 userId를 전송하지 않는다. 실제 인증 설정·JWT·OAuth는 구현하지 않았다. 서버에서 브라우저 Mock을 호출하면 저장소 오류가 반환된다. Route Handler는 추가하지 않았다.
@@ -33,12 +36,12 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 사용자 지시에 따라 문제별로 적합한 형식을 선택할 수 있도록 다음 4가지 discriminated union을 제공한다. 최종 제품의 모든 문제 형식이나 AI 제공자 스키마가 확정되었다는 의미는 아니다. 실제 AI 대신 읽기 전용 fixture 4개를 반환하며 입력 내용에 맞춘 추론은 하지 않는다. 생성기 교체 테스트에서는 1~5개 출력을 주입할 수 있다. 재생성은 현재 내용·원본·추가 프롬프트를 입력으로 받아 정확히 1개 수정본을 반환한다.
 
-| type | 문제 데이터 | 답안과 채점 |
-| --- | --- | --- |
-| SINGLE_CHOICE | prompt, choices: `{ id, text }[]` | `{ type, choiceId }`, ID 일치 |
-| MULTIPLE_CHOICE | prompt, choices | `{ type, choiceIds }`, 순서와 무관한 정확한 집합 일치, 부분 점수 없음 |
-| TRUE_FALSE | prompt | `{ type, value: boolean }`, boolean 일치 |
-| SHORT_ANSWER | prompt | `{ type, text }`, 양끝 공백 제거·Unicode NFC 정규화 후 대소문자를 구분한 정확한 일치. 의미 기반/코드 실행 채점 없음 |
+| type            | 문제 데이터                       | 답안과 채점                                                                                                         |
+| --------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| SINGLE_CHOICE   | prompt, choices: `{ id, text }[]` | `{ type, choiceId }`, ID 일치                                                                                       |
+| MULTIPLE_CHOICE | prompt, choices                   | `{ type, choiceIds }`, 순서와 무관한 정확한 집합 일치, 부분 점수 없음                                               |
+| TRUE_FALSE      | prompt                            | `{ type, value: boolean }`, boolean 일치                                                                            |
+| SHORT_ANSWER    | prompt                            | `{ type, text }`, 양끝 공백 제거·Unicode NFC 정규화 후 대소문자를 구분한 정확한 일치. 의미 기반/코드 실행 채점 없음 |
 
 제목·문제·해설·단답은 공백뿐인 문자열을 거부한다. 선택지는 최소 2개이며 ID와 표시 텍스트는 중복될 수 없다. 답은 해당 형식·선택지에 맞아야 한다. 해시태그는 등록된 ID 0~3개이며 중복은 거부한다. 원본 학습 내용은 공백만 허용하지 않고 유니코드 코드 포인트 최대 10,000자다. 코드 블록·언어·줄바꿈·들여쓰기를 문자열 그대로 보존하며 실행하지 않는다. 별도 제목/문제/해설 길이 상한은 확정하지 않았다.
 
@@ -62,12 +65,12 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 `learningQuiz`에서 hashtagId 생략/null은 전체, mode 생략은 UNSOLVED다. `learningNext`는 생략된 필터를 저장된 선택에서 가져온다. 명시적 null은 전체로 바꾼다. 선택·기록은 사용자별로 복원되며 태그 변경은 구독·완료 기록을 변경하지 않는다. UNSOLVED는 완료한 quizId를 제외하고 REPLAY는 완료한 quizId만 사용한다. 가능한 경우 현재 퀴즈 다음 후보를 고르며 미제출 문제를 건너뛰어도 완료로 처리하지 않는다.
 
-| state | 의미 |
-| --- | --- |
-| AVAILABLE | 문제 있음 |
-| EMPTY | 조건에 맞는 공개 후보 자체가 없음. 탐색·구독·다른 태그 안내 |
-| EXHAUSTED | 미풀이 소진. 다시 풀기·다른 태그 안내 |
-| NO_REPLAY | 후보는 있지만 완료한 문제가 없어 다시 풀 수 없음 |
+| state     | 의미                                                        |
+| --------- | ----------------------------------------------------------- |
+| AVAILABLE | 문제 있음                                                   |
+| EMPTY     | 조건에 맞는 공개 후보 자체가 없음. 탐색·구독·다른 태그 안내 |
+| EXHAUSTED | 미풀이 소진. 다시 풀기·다른 태그 안내                       |
+| NO_REPLAY | 후보는 있지만 완료한 문제가 없어 다시 풀 수 없음            |
 
 `startAttempt`의 context는 DIRECT 또는 LEARNING이다. DIRECT는 PUBLIC/작성자 PRIVATE 접근, LEARNING은 현재 구독·태그 조건까지 검사한다. 각 시작은 새 Attempt다. 제출 답은 형식별 Answer이며 시작 당시 revision으로 채점한다. 동일 답 재전송은 최초 결과를 반환하며 답 변경은 409 ALREADY_ANSWERED다.
 
@@ -94,7 +97,6 @@ localStorage 키는 `bugri:mock:v1:{userId}`다. 각 사용자의 작성 퀴즈�
 Jest는 계약·생성 검증·리비전·권한 UX·구독/태그/재도전·시간대·원장·구매·장착·저장 실패·HTTP 변환을 검증한다. Playwright는 테스트 전용 번들로 동일 서비스 코드를 실제 브라우저에 로드해 localStorage 재접속 복원과 탭 간 변경을 검증한다. 제품 UI의 컴포넌트/클릭 여정 검증은 이 작업에 포함하지 않는다.
 
 기본 `npm run verify`는 E2E 전용 3107번 포트를 사용한다. 해당 포트도 사용 중이면 `PLAYWRIGHT_PORT=3108 npm run verify`처럼 빈 포트를 지정한다. 서버 실행 포트와 테스트 baseURL에 같은 값을 적용하며 다른 워크트리의 서버는 재사용하거나 종료하지 않는다. Mock 서비스만 실행하는 `npx playwright test --config=tests/e2e/mock.config.ts`도 같은 설정을 따른다.
-
 
 ## 코드 작성·정리 규칙
 
