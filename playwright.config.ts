@@ -1,10 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const port = process.env.E2E_PORT ?? '3000';
+const baseURL = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: './tests/e2e',
 
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL,
     trace: 'on-first-retry',
   },
 
@@ -16,9 +19,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run start -- -p 3000',
-    url: 'http://127.0.0.1:3000',
-    reuseExistingServer: !process.env.CI,
+    command: `npm run start -- -p ${port}`,
+    url: baseURL,
+    reuseExistingServer: !process.env.CI && !process.env.E2E_PORT,
     timeout: 120_000,
   },
 });

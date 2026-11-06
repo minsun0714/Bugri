@@ -19,6 +19,14 @@ Developer learning platform with AI-generated quizzes.
 - Stage 2: Spring Boot + Java 21, MySQL 8.4 + Spring Data JPA, JWT authentication and Google OAuth2 login, real persistence and transactional shop operations. Replace mock API with REST API.
 - Kubernetes remains a separate practice environment. Keep the full product requirements in docs/PRD.md.
 
+## Styling
+
+- Use Tailwind CSS v4 utilities for all UI styling, including responsive layouts and component states. Do not introduce twin.macro, styled-components, Emotion, or another CSS-in-JS engine.
+- Define shared design tokens in `src/app/globals.css` with `@theme`; use semantic utilities such as `bg-primary`, `text-foreground`, and `border-line`.
+- Keep static utility strings and variant mappings beside their components in `styles.ts` when long class lists need reuse. Class names must be complete literals for Tailwind detection, never interpolated fragments.
+- Global CSS is limited to the Tailwind import, theme/keyframes, and document-wide base/accessibility rules. Use local arbitrary variants for Markdown/highlight output and pseudo-elements; do not restore global component selectors or CSS Modules.
+- Preserve keyboard focus, reduced-motion behavior, and mobile layouts when changing styles.
+
 ## Working Rules
 
 - Read docs/PRD.md before implementing features.
@@ -45,6 +53,11 @@ Developer learning platform with AI-generated quizzes.
 - Home learning defaults to All and supports one selected hashtag. Keep it for Next question, offer Replay/Choose another tag when unseen quizzes are exhausted, and preserve attempts and subscriptions when changing tags. One completed quiz per day satisfies the streak condition; multiple quizzes per day are allowed. No subscription feed, infinite scrolling, or unrelated default/recommended quiz.
 - Read the relevant installed guide in node_modules/next/dist/docs/ before writing Next.js code.
 - Documentation or review requests do not authorize application implementation.
+
+## Commits
+
+- Commit each completed feature after running relevant verification. Report failed or blocked checks explicitly; a commit does not imply DONE or merge readiness.
+- Do not push, open a PR, or merge unless the user requests it.
 
 ## Development Workflow
 
