@@ -1,6 +1,7 @@
 import type {
   Answer,
   Equipment,
+  DeskPositions,
   GenerationBatch,
   LedgerEntry,
   LearningQuery,
@@ -47,4 +48,5 @@ export interface UserState {
   ledger: LedgerEntry[];
   purchases: Purchase[];
   equipment: Equipment;
+  positions: DeskPositions;
 }

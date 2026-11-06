@@ -1,4 +1,7 @@
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
+import { Category } from "@/api/constants";
+import type { DeskPositions } from "@/api/contracts";
+import type { MovableCategory } from "@/lib/desk-layout";
 import type { Equipment } from "@/api/contracts";
 
 /** Original vector artwork. Shared scene coordinates keep thumbnails and equipment identical. */
@@ -506,20 +509,49 @@ export function ProductArtwork({
 export function DeskScene({
   equipment,
   label = "내 데스크",
+  positions = {},
+  renderItem,
 }: {
   equipment: Equipment;
   label?: string;
+  positions?: DeskPositions;
+  renderItem?: (
+    category: MovableCategory,
+    productId: string,
+    children: ReactNode,
+  ) => ReactNode;
 }) {
   const id = useId();
   const names = Object.values(equipment).map(
     (value) => artworkNames[value] ?? "알 수 없는 상품",
   );
+  const item = (category: MovableCategory) => {
+    const productId = equipment[category];
+    if (!productId) return null;
+    const children = <Item productId={productId} />;
+    if (renderItem)
+      return renderItem(category, productId, children);
+    const { x = 0, y = 0 } = positions[category] ?? {};
+    return (
+      <g
+        key={category}
+        data-product-id={productId}
+        transform={`translate(${x} ${y})`}
+      >
+        {children}
+      </g>
+    );
+  };
   return (
     <svg
-      role="img"
+      role={renderItem ? "group" : "img"}
       aria-label={`${label} · ${names.join(", ") || "기본 데스크"}`}
       viewBox="0 0 600 380"
-      className="h-full w-full"
+      className={
+        renderItem
+          ? "h-full w-full touch-none select-none"
+          : "h-full w-full"
+      }
       xmlns="http://www.w3.org/2000/svg"
     >
       {equipment.BACKGROUND ? (
@@ -537,20 +569,10 @@ export function DeskScene({
           fill="#eee8f5"
         />
       )}
-      {equipment.DESK ? (
-        <Item productId={equipment.DESK} />
-      ) : (
-        <Desk base />
-      )}
-      {equipment.MONITOR && (
-        <Item productId={equipment.MONITOR} />
-      )}
-      {equipment.KEYBOARD && (
-        <Item productId={equipment.KEYBOARD} />
-      )}
-      {equipment.ACCESSORY && (
-        <Item productId={equipment.ACCESSORY} />
-      )}
+      {equipment.DESK ? item(Category.DESK) : <Desk base />}
+      {item(Category.MONITOR)}
+      {item(Category.KEYBOARD)}
+      {item(Category.ACCESSORY)}
     </svg>
   );
 }

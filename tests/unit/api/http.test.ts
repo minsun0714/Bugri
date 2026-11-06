@@ -1,4 +1,8 @@
-import { QuizStatus, LearningMode } from "@/api/constants";
+import {
+  Category,
+  QuizStatus,
+  LearningMode,
+} from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import { createHttpTransport, endpoints } from "@/api/http";
 import type { Request } from "@/api/contracts";
@@ -141,7 +145,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(30);
+  expect(Object.keys(endpoints)).toHaveLength(31);
 });
 
 // Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.
@@ -159,3 +163,33 @@ const invalidAnswer: Request<"answer"> = {
 
 void invalidSubscription;
 void invalidAnswer;
+
+test("desk placement sends coordinates to the typed HTTP endpoint", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(
+      response({ data: { KEYBOARD: { x: 30, y: -10 } } }),
+    );
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  const request = {
+    category: Category.KEYBOARD,
+    productId: "keyboard-1",
+    position: { x: 30, y: -10 },
+  };
+
+  await expect(
+    client.request("moveEquipment", request),
+  ).resolves.toEqual({ KEYBOARD: request.position });
+
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/me/desk/position",
+    expect.objectContaining({
+      method: "PUT",
+      body: JSON.stringify(request),
+    }),
+  );
+});

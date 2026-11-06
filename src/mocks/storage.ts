@@ -1,3 +1,7 @@
+import {
+  isMovable,
+  validPosition,
+} from "@/lib/desk-layout";
 import { QuizStatus, LearningMode } from "@/api/constants";
 import { users, hashtags } from "@/mocks/users";
 import { quizzes } from "@/mocks/quizzes";
@@ -52,6 +56,7 @@ export function initialState(userId: string): UserState {
     },
     purchases: [],
     equipment: {},
+    positions: {},
     ledger: [
       {
         id: `seed-balance-${userId}`,
@@ -100,6 +105,22 @@ function validateState(
   object(value.equipment);
 
   const { selection, equipment } = value;
+
+  // Additive v1 migration: existing purchases/equipment are never reset.
+  if (value.positions === undefined) value.positions = {};
+
+  object(value.positions);
+
+  for (const [category, position] of Object.entries(
+    value.positions,
+  )) {
+    requireValue(
+      isMovable(category) &&
+        validPosition(category, position) &&
+        typeof equipment[category] === "string",
+      "배치 정보가 손상되었습니다.",
+    );
+  }
 
   requireValue(
     selection.mode === LearningMode.UNSOLVED ||

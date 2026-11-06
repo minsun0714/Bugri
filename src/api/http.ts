@@ -140,6 +140,10 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "PUT",
     path: "/me/desk/equipment",
   },
+  moveEquipment: {
+    method: "PUT",
+    path: "/me/desk/position",
+  },
   publicProfile: {
     method: "GET",
     path: "/users/{id}",

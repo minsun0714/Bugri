@@ -21,7 +21,7 @@ function Profile({ publicId }: { publicId: string }) {
         </Button>
       </div>
     );
-  const { user, equipment } = profile.data;
+  const { user, equipment, positions } = profile.data;
   return (
     <>
       <p className="mb-3 text-xs font-bold tracking-[.2em] text-primary">
@@ -33,6 +33,7 @@ function Profile({ publicId }: { publicId: string }) {
       <div className="my-7 rounded-3xl border border-line bg-surface p-3">
         <DeskScene
           equipment={equipment}
+          positions={positions}
           label={`${user.displayName}의 데스크`}
         />
       </div>

@@ -133,3 +133,13 @@
 - 공개 프로필 검사는 현재 표시된 main 내부에 잔액·장착 해제 버튼이 없음을 확인하고, Next.js가 보존한 이전 상점의 본인 잔액은 숨겨져 있음을 별도로 검사한다. API 테스트는 구매·장착한 사용자의 공개 응답이 사용자 식별 정보와 장착 상태만 포함하는지 전체 객체 비교로 확인한다. 잔액 부족 메시지는 상품 컬렉션 내부 alert로 범위를 제한하여 Next.js route announcer와 구분했다. E2E 파일 포맷도 수정했다.
 - 최종 검증: Node v22.23.3에서 `PLAYWRIGHT_PORT=3114 npm run verify` 통과(lint·TypeScript·Jest 9 suites/52 tests·production build·Playwright 6 tests). 로그 `.bugri-hooks/verify-shop-resumed.log`. 수정한 상점 E2E 2개와 API 단위 테스트 4개도 별도 실행하여 통과했다. `npm run format:check`, `git diff --check` 통과.
 - 데스크톱 1440px·모바일 390px 실제 브라우저 캡처: `.bugri-hooks/previews/shop-desktop.png`, `shop-mobile.png`. 자산·카테고리 카드 배치를 확인했다. 구현자 외 리뷰와 최종 병합 판단은 남아 있다. push·PR·merge 없음.
+
+## P08D 데스크 드래그 배치
+
+- 상태: IN_PROGRESS(구현·필수 검증 완료, 구현자 외 리뷰 대기). 사용자 요청에 따라 장착된 상품의 포인터·터치 드래그, 키보드 이동, 사용자별 위치 저장·복원 및 공개 데스크 배치를 구현했다. 배경은 고정하며 나머지 카테고리는 화면 안에서 이동한다.
+- 검증 계획: 이동 소유권·좌표 검증·기존 저장 데이터 호환성·저장 실패 보존 API 테스트, 키보드/취소/재시도 UI 테스트, 실제 마우스·터치 이동과 새로고침·공개 데스크 E2E, Node 22.23.3 전체 verify.
+
+- REQ-09/AC-09e 추가. `moveEquipment` 타입 API·HTTP 경로, API 뒤 소유/장착/좌표 검증, Inventory/PublicProfile의 positions, 기존 v1 저장 데이터의 추가 필드 호환 처리를 구현했다. 위치 저장 실패 시 초안·기존 저장 위치를 보존하고 재시도를 제공한다.
+- 미구현 API 6개·UI 2개 테스트 실패를 먼저 확인했다. HTTP operation 증가에 따른 기존 계약 테스트를 갱신하고 좌표 전송 테스트를 추가했다. 실제 터치에서 SVG 내부 상품의 touch-action만으로는 스크롤 취소가 발생해 편집 SVG 루트에 touch-none을 적용했다. 드래그 E2E는 조작 가능·스크롤 위치와 비동기 캐시 반영을 기다린 뒤 저장 위치를 검사한다.
+- Node v22.23.3에서 Hook으로 `PLAYWRIGHT_PORT=3114 npm run verify` 실행·통과: lint, TypeScript, Jest 11 suites/61 tests, production build, Playwright 8 tests. 포맷 전체 검사 `npm run format:check`와 `git diff --check` 통과. 로그 `.bugri-hooks/verify-1.log`.
+- 실제 마우스 이동·모바일 터치 이동/취소·새로고침 복원·사용자 전환·공개 위치 표시를 E2E로 확인했다. 공개 화면은 이동 버튼을 제공하지 않는다. 키보드 이동 후 화면 캡처 `.bugri-hooks/previews/desk-drag.png` 확인. 개발 서버 `http://localhost:3001/shop` 정상 응답 확인. 구현자 외 리뷰와 최종 병합 판단은 남아 있으며 push·PR·merge하지 않는다.

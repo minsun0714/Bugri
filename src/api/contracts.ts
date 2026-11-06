@@ -167,6 +167,15 @@ export interface Product {
 
 export type Equipment = Partial<Record<Category, string>>;
 
+export interface DeskPosition {
+  x: number;
+  y: number;
+}
+
+export type DeskPositions = Partial<
+  Record<Category, DeskPosition>
+>;
+
 export interface LedgerEntry {
   id: string;
   amount: number;
@@ -191,11 +200,13 @@ export interface Purchase {
 export interface Inventory {
   products: Product[];
   equipment: Equipment;
+  positions: DeskPositions;
 }
 
 export interface PublicProfile {
   user: User;
   equipment: Equipment;
+  positions: DeskPositions;
 }
 
 export interface VersionRequest {
@@ -338,6 +349,14 @@ export interface ApiOperations {
       productId: string | null;
     };
     response: Equipment;
+  };
+  moveEquipment: {
+    request: {
+      category: Category;
+      productId: string;
+      position: DeskPosition;
+    };
+    response: DeskPositions;
   };
   publicProfile: {
     request: { publicId: string };

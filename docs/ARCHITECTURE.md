@@ -55,7 +55,7 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 | LearningSelection                   | userId, hashtagId?(null은 전체), 현재 quizId·revisionId. 다음 문제에서도 태그 유지                                                                |
 | LearningDay                         | userId·사용자 시간대 기준 학습일, 판정에 사용한 시간대. 완료된 날짜는 소급 변경하지 않고 같은 날짜 중복 집계 방지                                 |
 | Attempt                             | solverUserId·quizId·revisionId·제출 결과·completedAt(2단계 서버 UTC 시각). 시작한 버전으로 채점하며 미제출 정답은 비공개                          |
-| Product / Inventory / DeskEquipment | 관리자 등록 상품, 구매한 상품 보관함, 장착 상태                                                                                                   |
+| Product / Inventory / DeskEquipment | 관리자 등록 상품, 구매한 상품 보관함, 장착 상태·기준 좌표계의 상품별 이동량                                                                       |
 | BugCoinLedger / Purchase            | 보상·차감 원장, 구매 요청 키. 2단계에서 잔액·중복 요청·동시성 제어                                                                                |
 
 구독 대상은 사용자·해시태그·사용자와 해시태그의 조합이며, 퀴즈는 조건에 따라 제공되는 학습 콘텐츠다. Subscription은 quizId를 구독 대상으로 받지 않는다.
@@ -119,3 +119,5 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 - 2단계: Spring Boot 서비스·REST 계약·MySQL 통합 테스트로 Google OAuth2·JWT·내부 User ID 소유권, 저장 복원, 학습일 중복 집계 방지, 중복 구매·BugCoin 차감의 원자성을 확인한다. 1단계 테스트 통과를 실제 보안·영속성 검증으로 간주하지 않는다.
 - 확정: 1단계 Next.js·TypeScript·Mock API·더미 사용자·Jest·Playwright·Vercel, DB·실제 인증 제외. 2단계 Spring Boot·Java 21·MySQL 8.4·Spring Data JPA·Google OAuth2·JWT·실제 REST API.
 - 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부·시간대 변경 전후 일일 보상 중복 판정 세부 기준, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, BugCoin 지급량, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
+
+데스크 드래그 배치(P08D)는 UI Pointer Events → 타입 moveEquipment API → Mock 서비스 검증 → 사용자별 저장 순서다. 배치 좌표는 Inventory와 공개 프로필에 포함하며 상품 그림의 공통 경계·좌표 제한은 순수 모듈에서 재사용한다. 자세한 계약과 v1 호환 처리는 API.md의 데스크 배치 절을 따른다.

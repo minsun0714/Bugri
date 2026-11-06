@@ -1,4 +1,8 @@
 import {
+  isMovable,
+  validPosition,
+} from "@/lib/desk-layout";
+import {
   QuizStatus,
   LearningMode,
   LearningState,
@@ -101,6 +105,7 @@ const allowed: Record<Operation, string[]> = {
   purchase: ["productId", "requestKey"],
   inventory: [],
   equip: ["category", "productId"],
+  moveEquipment: ["category", "productId", "position"],
   publicProfile: ["publicId"],
 };
 
@@ -1022,6 +1027,7 @@ export function execute<K extends Operation>(
           ),
         ),
         equipment: s.equipment,
+        positions: s.positions,
       };
 
     case "equip": {
@@ -1033,9 +1039,10 @@ export function execute<K extends Operation>(
       const category =
         r.category as keyof typeof s.equipment;
 
-      if (r.productId === null)
+      if (r.productId === null) {
         delete s.equipment[category];
-      else {
+        delete s.positions[category];
+      } else {
         text(r.productId);
 
         requireValue(
@@ -1058,10 +1065,46 @@ export function execute<K extends Operation>(
             403,
           );
 
+        if (s.equipment[category] !== r.productId)
+          delete s.positions[category];
+
         s.equipment[category] = r.productId;
       }
 
       return s.equipment;
+    }
+
+    case "moveEquipment": {
+      requireValue(
+        isMovable(r.category),
+        "이 상품은 이동할 수 없습니다.",
+      );
+
+      const { category } = r;
+
+      text(r.productId);
+
+      requireValue(
+        validPosition(category, r.position),
+        "상품이 화면 안에 있도록 위치를 확인하세요.",
+      );
+
+      if (
+        s.equipment[category] !== r.productId ||
+        !s.purchases.some(
+          (p) => p.productId === r.productId,
+        )
+      ) {
+        throw new ServiceError(
+          "FORBIDDEN",
+          "현재 장착한 내 상품만 이동할 수 있습니다.",
+          403,
+        );
+      }
+
+      s.positions[category] = r.position;
+
+      return s.positions;
     }
 
     case "publicProfile": {
@@ -1083,6 +1126,9 @@ export function execute<K extends Operation>(
         equipment: allStates.find(
           (state) => state.userId === user.userId,
         )!.equipment,
+        positions: allStates.find(
+          (state) => state.userId === user.userId,
+        )!.positions,
       };
     }
   }

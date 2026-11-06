@@ -1,5 +1,7 @@
 "use client";
 
+import { DeskEditor } from "@/components/shop/desk-editor";
+
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { ApiClientError } from "@/api/client";
@@ -15,10 +17,7 @@ import {
 } from "@/components/ui";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
-import {
-  DeskScene,
-  ProductArtwork,
-} from "@/components/shop/artwork";
+import { ProductArtwork } from "@/components/shop/artwork";
 import { ShopProvider } from "@/components/shop/provider";
 import { useShop } from "@/components/shop/use-shop";
 
@@ -54,6 +53,7 @@ function ShopContent({ userId }: { userId: string }) {
     users,
     purchase,
     equip,
+    move,
   } = useShop(userId);
   const [tab, setTab] = useState("상점");
   const [category, setCategory] = useState<Category | null>(
@@ -83,7 +83,8 @@ function ShopContent({ userId }: { userId: string }) {
       (product) =>
         !category || product.category === category,
     ) ?? [];
-  const pending = purchase.isPending || equip.isPending;
+  const pending =
+    purchase.isPending || equip.isPending || move.isPending;
 
   async function buy(productId: string) {
     if (busy.current) return;
@@ -175,13 +176,20 @@ function ShopContent({ userId }: { userId: string }) {
               개 장착
             </Badge>
           </div>
-          <div className="aspect-[600/380]">
-            <DeskScene
+          <div className="min-h-48">
+            <DeskEditor
+              key={JSON.stringify(
+                inventory.data?.equipment ?? {},
+              )}
               equipment={inventory.data?.equipment ?? {}}
+              positions={inventory.data?.positions ?? {}}
+              save={move.mutateAsync}
+              disabled={pending}
             />
           </div>
           <p className="pb-3 text-center text-xs text-muted">
-            보관함에서 장착하면 이 공간에 놓여요.
+            보관함에서 상품을 장착하고 원하는 위치로
+            옮겨보세요.
           </p>
         </div>
       </section>

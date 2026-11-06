@@ -40,7 +40,7 @@ it("purchases once, updates balance, equips and unequips an owned product", asyn
     }),
   ).toBeInTheDocument();
   expect(
-    screen.getByRole("img", {
+    screen.getByRole("group", {
       name: /내 데스크.*새싹 키보드/,
     }),
   ).toBeInTheDocument();
@@ -128,7 +128,7 @@ it("replaces equipment in the same category while keeping both purchases", async
     });
   }
   expect(
-    screen.getByRole("img", {
+    screen.getByRole("group", {
       name: "내 데스크 · 라벤더 키보드",
     }),
   ).toBeInTheDocument();
