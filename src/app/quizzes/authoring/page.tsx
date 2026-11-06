@@ -11,7 +11,7 @@ export default function AuthoringPage() {
           ["my-quizzes", "내 퀴즈"],
         ]}
       />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-10">
+      <main className="mx-auto w-full max-w-[1220px] flex-1 px-5 py-10 md:px-12">
         <AuthoringWorkspace />
       </main>
       <Footer note="퀴즈 작성 · Mock 프로토타입" />

@@ -151,3 +151,9 @@
 - 작성실·생성·후보 저장·수정본·재생성·단답 정답의 보충 설명을 공통 Tooltip으로 옮겼다. 중복 태그 설명은 삭제하고, 오류·현재 상태·승인 대상은 직접 표시한다.
 - Tooltip은 hover·키보드 focus·탭으로 열고 Escape·바깥 클릭으로 닫는다. 모바일에서는 화면 안에 표시한다.
 - Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest 59개·production build·Playwright 8개. 새 단위 테스트 2개와 브라우저 도움말·390px 화면 검증 포함. 독립 리뷰는 남아 있다.
+
+### A 작성 화면 컨테이너 정렬 (2026-11-07)
+
+- 본문 최대 너비를 헤더와 같은 1220px로 맞추고 좌우 여백을 모바일 20px·md 이상 48px로 통일했다.
+- Chromium 실측: 1280px 화면에서 헤더/본문 내용 경계 모두 78~1202px, 390px 화면에서 모두 20~370px.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 59개·production build·Playwright 8개. `git diff --check` 통과.
