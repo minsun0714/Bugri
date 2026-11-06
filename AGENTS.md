@@ -37,12 +37,29 @@ Bugri is a developer learning platform with AI-generated quizzes.
 - Never execute user-submitted code or commit secrets/.env files. No real-money checkout or payment gateway.
 - Preserve confirmed product requirements and undecided policies in the PRD/architecture; do not choose product defaults silently.
 
+## Styling
+
+- Use Tailwind CSS v4 utilities for all UI styling, including responsive layouts and component states. Do not introduce twin.macro, styled-components, Emotion, or another CSS-in-JS engine.
+- Define shared design tokens in `src/app/globals.css` with `@theme`; use semantic utilities such as `bg-primary`, `text-foreground`, and `border-line`.
+- Keep static utility strings and variant mappings beside their components in `styles.ts` when long class lists need reuse. Class names must be complete literals for Tailwind detection, never interpolated fragments.
+- Global CSS is limited to the Tailwind import, theme/keyframes, and document-wide base/accessibility rules. Use local arbitrary variants for Markdown/highlight output and pseudo-elements; do not restore global component selectors or CSS Modules.
+- Preserve keyboard focus, reduced-motion behavior, and mobile layouts when changing styles.
+
 ## Coding essentials
 
 - Use `@/` imports for `src` modules, including type and dynamic imports.
 - Use shared `as const` objects and derived union types for domain statuses/modes; preserve wire values.
 - Use object/array destructuring for value extraction, including renamed fields and function parameters. Preserve mutations, method receivers, fresh reads, and type narrowing.
 - Keep blank lines between declarations, functions, tests, and processing steps; write objects across lines. Follow the detailed conventions and scoped lint/format settings.
+
+## Runtime
+
+- Use Node 22.23.3 as pinned in `.nvmrc` for development and verification; check `node -v` before running commands. Do not report a different runtime as verified.
+
+## Commits
+
+- Commit each completed feature after running relevant verification. Report failed or blocked checks explicitly; a commit does not imply DONE or merge readiness.
+- Do not push, open a PR, or merge unless the user requests it.
 
 ## Completion and review
 

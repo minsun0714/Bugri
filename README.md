@@ -12,11 +12,17 @@
 
 ## 시작하기
 
-개발 서버를 실행합니다.
+Node **22.23.3**을 사용합니다. 프로젝트의 `.nvmrc`와 `package.json`의 engines를 기준으로 로컬·CI·배포 런타임을 맞춥니다. 이미 실행 중인 개발 서버는 종료하고 버전 전환 후 다시 실행합니다.
 
 ```bash
+nvm install
+nvm use
+node -v # v22.23.3
+npm ci
 npm run dev
 ```
+
+이미 열린 터미널이나 Orca 실행 프로세스는 Node 18의 PATH를 유지할 수 있습니다. 해당 터미널에서 `nvm use`를 실행하거나 실행 환경을 재시작하세요. dev·build·start·verify는 실행 전 Node 버전을 검사하고 잘못된 버전이면 중단합니다.
 
 브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
 
@@ -26,3 +32,7 @@ npm run dev
 npm run lint
 npm run build
 ```
+
+## 공통 UI 미리보기
+
+기본 홈은 이번 디자인 시스템의 공통 헤더·모바일 메뉴·푸터를 유지하고 본문 전시만 숨깁니다. 이전 소개 화면으로 복원하지 않습니다. 컴포넌트 전시는 로컬에서 `BUGRI_UI_PREVIEW=1 npm run dev`로 명시적으로 활성화할 때만 표시됩니다. 운영·Vercel 환경에는 이 변수를 설정하지 않습니다. Playwright는 별도 미리보기 빌드를 만들어 기존 컴포넌트 회귀 검사를 유지하며, 기존 서버를 재사용하지 않습니다.

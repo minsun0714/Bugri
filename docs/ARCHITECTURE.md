@@ -19,6 +19,12 @@
 
 UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID를 소유권의 진실로 삼지 않는다. 요청·응답 타입과 오류 형식은 1단계부터 정의하고 Mock API가 그 계약을 따른다. 2단계에는 API 클라이언트의 엔드포인트 구현을 교체한다. Next.js Route Handler와 Spring Controller는 HTTP 변환만 담당하며 퀴즈 선정·채점·구매 규칙은 서비스 계층에 둔다. Next.js 코드를 구현할 때는 설치된 `node_modules/next/dist/docs/`의 관련 가이드를 먼저 읽는다.
 
+### UI 스타일링
+
+Tailwind CSS v4를 `@tailwindcss/postcss`로 Next.js 빌드에 연결한다. `src/app/globals.css`의 `@theme`에서 색상·폰트·애니메이션 토큰을 정의하고, 컴포넌트는 Tailwind 유틸리티로 레이아웃·상태·반응형을 표현한다. 긴 클래스 조합은 해당 디렉터리의 `styles.ts`에 완성된 문자열로 둔다. 이는 빌드 시 추출되는 클래스 목록이며 CSS-in-JS 런타임이 아니다.
+
+Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는 컨테이너의 arbitrary variant로 범위를 제한한다. 캐릭터 도형·가상 요소 역시 Tailwind로 표현한다. 전역 CSS는 import·테마·keyframes·문서 기본/접근성 규칙에 한정하며, 별도 컴포넌트 CSS·CSS Modules·twin.macro는 사용하지 않는다. 색상 견본도 공통 토큰을 사용한다.
+
 ## 2. 1단계 Mock API와 상태
 
 - Mock API는 독립 퀴즈 1~5개 생성 응답, 개별·일괄 PENDING 저장, 검토·공개 범위·풀이, 3종 구독, 학습 태그·다음 문제·다시 풀기·하루 1개 완료 조건, BugCoin 상품 조회·구매·보관함·장착 UX를 지원한다. AI 제공자 호출 대신 고정·가변 더미 응답으로 성공·실패를 재현한다.

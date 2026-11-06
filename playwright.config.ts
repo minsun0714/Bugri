@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = Number(process.env.PLAYWRIGHT_PORT ?? "3107");
+const port = Number(process.env.PLAYWRIGHT_PORT ?? process.env.E2E_PORT ?? "3107");
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error(
@@ -28,7 +28,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `npm run start -- --hostname 127.0.0.1 -p ${port}`,
+    command: `BUGRI_UI_PREVIEW=1 npm run build && npm run start -- --hostname 127.0.0.1 -p ${port}`,
     url: baseURL,
     reuseExistingServer: false,
     timeout: 120_000,
