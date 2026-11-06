@@ -53,6 +53,14 @@ Developer learning platform with AI-generated quizzes.
 - ESLint currently enforces this rule in the API, Mock, service, and related test files. Do not expand enforcement into UI/design files as part of API-only work.
 - Keep Jest alias mapping and the E2E test bundle resolver compatible with `tsconfig.json` paths when changing imports.
 
+## Destructuring
+
+- Use object and array destructuring when extracting values into local variables. This is the default coding rule, not an optional style preference.
+- Write `const { userId, displayName } = user` instead of separate property assignments. Use aliases when renaming: `const { userId: ownerUserId } = user`.
+- Write `const [first] = items` instead of `const first = items[0]`. Avoid long lists of skipped array entries; use direct indexing for a dynamic index.
+- Destructure object parameters in the function signature or at the start of the body when their fields are needed. Destructure returned objects and tuples when extracting their values.
+- Preserve behavior: keep direct property access for mutations, methods that depend on `this`, and reads that must observe updated object state. Preserve TypeScript discriminated-union narrowing; destructure after narrowing where needed.
+
 ## Code Spacing
 
 - Separate exported types/interfaces, functions, classes, and test cases with one blank line.
