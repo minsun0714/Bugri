@@ -21,8 +21,8 @@
 | P01M | Mock 초기 파일 | IN_PROGRESS | P01 | users·quizzes·subscriptions·shop-items·learning-history 초기 데이터 파일, 배포 시 읽기 전용 |
 | P02 | localStorage Mock 어댑터 | IN_PROGRESS | P01M | 초기 파일 읽기·사용자별 변경 상태 저장/복원, UI 직접 의존 제거, HTTP 호출 없이 계약 유지, 서버 파일 쓰기·메모리 영속 저장 금지 |
 | P02T | 학습 시간대 감지·설정 | TODO | P02 | 브라우저 IANA 감지·마이페이지 조회/변경·설정 복원, IP 시간대 검토·국가 코드 추론 금지, 기본 시간대 확정 후 fallback |
-| P03 | 학습 내용 입력·퀴즈 생성 | TODO | P02 | 단일 입력·코드 블록·현재/10,000자, Mock 퀴즈 1~5개와 퀴즈당 태그 최대 3개 |
-| P04 | 퀴즈 개별·일괄 저장·검토 | TODO | P03 | 각 후보의 독립 ID·PENDING 저장, 검토·수정·PRIVATE/PUBLIC 화면 흐름 |
+| P03 | 학습 내용 입력·퀴즈 생성 | IN_PROGRESS | P02 | 단일 입력·코드 블록·현재/10,000자, Mock 퀴즈 1~5개와 퀴즈당 태그 최대 3개 |
+| P04 | 퀴즈 개별·일괄 저장·검토 | IN_PROGRESS | P03 | 각 후보의 독립 ID·PENDING 저장, 검토·수정·PRIVATE/PUBLIC 화면 흐름 |
 | P05 | 퀴즈 풀이 UX | TODO | P04 | 더미 사용자별 풀이, 제출 전 정답 비노출, 결과·버그리 반응 |
 | P06 | 구독 3종·탐색 | TODO | P04 | 사람·사람+태그·전체 작성자+태그 구독, 더미 개발자·해시태그 탐색. 구독 피드 없음 |
 | P07 | 학습 태그·연속 풀이 | TODO | P05, P06, P02T | 기본 전체·단일 태그 선택·다음 문제의 태그 유지·소진 후 다시 풀기/다른 태그·기록 보존·하루 1개 완료 조건 |
@@ -120,3 +120,11 @@
 - import·상수·구조 분해·코드 간격의 기존 상세 규칙은 `docs/CODING_CONVENTIONS.md`로 빠짐없이 옮겼다. AGENTS와 스킬에서 읽는 조건을 명시하고 API 문서의 중복 포맷 절차를 링크로 대체했다.
 - 스킬 2개의 `quick_validate.py` 검증, 상대 링크 25개 확인, Next.js 블록 동일성·코딩 규칙 이관 확인, `git diff --check`와 문서 정합성 검토를 통과했다. 기본 Python에 PyYAML이 없어 임시 가상환경에서 검증 도구를 실행했으며 프로젝트 의존성은 변경하지 않았다.
 - 문서·스킬만 수정하여 기능 pipeline은 실행하지 않았다. 애플리케이션·UI·디자인·설정·package.json·lock·제품 REQ/AC는 변경하지 않았고, 이 작업을 기능 구현 검증 완료 근거로 사용하지 않는다.
+
+### A 작성 UI — 생성·저장·내 목록 (2026-11-07)
+
+- P03 구현: `/quizzes/authoring`, `src/features/quiz-authoring`에서 단일 Markdown 입력·유니코드 글자 수·초과 원문 보존·Mock 생성 안내·후보 복원·개별/일괄 저장·사용자별 목록을 API 클라이언트에 연결했다. P04 검토·관리 화면은 다음 기능 커밋에서 진행한다.
+- 공통 MarkdownEditor에 label/preserveOverflow 옵션을 추가했다. 기존 기본 동작은 유지한다. B/C 기능·Mock/API 계약·패키지·공유 설정은 수정하지 않았다.
+- 테스트 우선: 컴포넌트 미구현으로 신규 테스트 실패 확인 후 구현했다. 입력 검증·중복 없는 저장·오류 후 입력 유지 3개를 검증했다.
+- Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest 7 suites/45 tests·production build·Playwright 5 tests. 생성→개별/일괄 저장→새로고침→사용자 전환을 브라우저로 확인했다. 첫 E2E 실패는 friend 초기 퀴즈 2개를 누락한 테스트 기대값을 실제 seed 계약에 맞춰 수정했다.
+- 작성자 외 독립 검토는 아직 남아 있다. A 전체 완료 및 B/C 통합 검증을 의미하지 않는다.

@@ -1,19 +1,23 @@
 "use client";
 
-import { styles } from "./styles";
+import { styles } from "@/components/ui/styles";
 import { useId, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
-import { Button, Tabs } from "./index";
+import { Button, Tabs } from "@/components/ui/index";
 
 export function MarkdownEditor({
   value,
   onChange,
   limit = 10000,
+  label = "학습 내용",
+  preserveOverflow = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   limit?: number;
+  label?: string;
+  preserveOverflow?: boolean;
 }) {
   const id = useId();
   const input = useRef<HTMLTextAreaElement>(null);
@@ -28,14 +32,19 @@ export function MarkdownEditor({
     const selected = value.slice(start, end);
     const longest = Math.max(
       2,
-      ...(selected.match(/`+/g) ?? []).map((run) => run.length),
+      ...(selected.match(/`+/g) ?? []).map(
+        (run) => run.length,
+      ),
     );
     const fence = "`".repeat(longest + 1);
     const prefix = `${start && value[start - 1] !== "\n" ? "\n\n" : ""}${fence}${language}\n`;
     const inserted = `${prefix}${selected}\n${fence}\n`;
-    const next = value.slice(0, start) + inserted + value.slice(end);
+    const next =
+      value.slice(0, start) + inserted + value.slice(end);
     if (Array.from(next).length > limit) {
-      setError("코드 블록을 추가하면 글자 수 제한을 초과해요.");
+      setError(
+        "코드 블록을 추가하면 글자 수 제한을 초과해요.",
+      );
       return;
     }
     onChange(next);
@@ -51,10 +60,17 @@ export function MarkdownEditor({
   }
   return (
     <div className={styles["markdown-editor"]}>
-      <div className={styles["editor-title"]} id={`${id}-label`}>
-        학습 내용 <span aria-hidden="true">Markdown</span>
+      <div
+        className={styles["editor-title"]}
+        id={`${id}-label`}
+      >
+        {label} <span aria-hidden="true">Markdown</span>
       </div>
-      <Tabs items={["작성", "미리보기"]} value={tab} onChange={setTab}>
+      <Tabs
+        items={["작성", "미리보기"]}
+        value={tab}
+        onChange={setTab}
+      >
         {tab === "작성" ? (
           <>
             <div className={styles["editor-tools"]}>
@@ -65,8 +81,12 @@ export function MarkdownEditor({
                 onClick={() => {
                   if (!picker)
                     selection.current = {
-                      start: input.current?.selectionStart ?? value.length,
-                      end: input.current?.selectionEnd ?? value.length,
+                      start:
+                        input.current?.selectionStart ??
+                        value.length,
+                      end:
+                        input.current?.selectionEnd ??
+                        value.length,
                     };
                   setPicker(!picker);
                 }}
@@ -77,11 +97,15 @@ export function MarkdownEditor({
             </div>
             {picker && (
               <div className={styles["editor-picker"]}>
-                <label htmlFor={`${id}-language`}>삽입할 코드 언어</label>
+                <label htmlFor={`${id}-language`}>
+                  삽입할 코드 언어
+                </label>
                 <select
                   id={`${id}-language`}
                   value={language}
-                  onChange={(event) => setLanguage(event.target.value)}
+                  onChange={(event) =>
+                    setLanguage(event.target.value)
+                  }
                 >
                   {[
                     "typescript",
@@ -107,10 +131,15 @@ export function MarkdownEditor({
               ref={input}
               aria-labelledby={`${id}-label`}
               aria-describedby={`${id}-count ${id}-error`}
+              aria-invalid={count > limit}
               value={value}
               onChange={(event) => {
                 onChange(
-                  Array.from(event.target.value).slice(0, limit).join(""),
+                  preserveOverflow
+                    ? event.target.value
+                    : Array.from(event.target.value)
+                        .slice(0, limit)
+                        .join(""),
                 );
                 setError("");
               }}
@@ -126,10 +155,15 @@ export function MarkdownEditor({
               <Markdown
                 skipHtml
                 rehypePlugins={[
-                  [rehypeHighlight, { detect: false, ignoreMissing: true }],
+                  [
+                    rehypeHighlight,
+                    { detect: false, ignoreMissing: true },
+                  ],
                 ]}
                 components={{
-                  img: ({ alt }) => <span>[이미지: {alt ?? ""}]</span>,
+                  img: ({ alt }) => (
+                    <span>[이미지: {alt ?? ""}]</span>
+                  ),
                 }}
               >
                 {value}
@@ -142,13 +176,24 @@ export function MarkdownEditor({
           </div>
         )}
       </Tabs>
-      <div className={styles["editor-footer"]} id={`${id}-count`}>
-        <span>Markdown 기호 포함 · 코드는 실행되지 않아요</span>
+      <div
+        className={styles["editor-footer"]}
+        id={`${id}-count`}
+      >
         <span>
-          {count.toLocaleString()} / {limit.toLocaleString()}
+          Markdown 기호 포함 · 코드는 실행되지 않아요
+        </span>
+        <span>
+          {count.toLocaleString()} /{" "}
+          {limit.toLocaleString()}
+          {preserveOverflow ? "자" : ""}
         </span>
       </div>
-      <p className={"error-text"} id={`${id}-error`} aria-live="polite">
+      <p
+        className={"error-text"}
+        id={`${id}-error`}
+        aria-live="polite"
+      >
         {error}
       </p>
     </div>
