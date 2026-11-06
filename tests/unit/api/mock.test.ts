@@ -1,5 +1,5 @@
-import { createApiClient } from "../../../src/api/client";
-import { createMockTransport } from "../../../src/mocks/adapter";
+import { createApiClient } from "@/api/client";
+import { createMockTransport } from "@/mocks/adapter";
 
 const make = (userId = "learner") =>
   createApiClient(

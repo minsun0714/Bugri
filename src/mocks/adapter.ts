@@ -4,24 +4,24 @@ import type {
   Request,
   Response,
   TransportResponse,
-} from "../api/contracts";
+} from "@/api/contracts";
 import {
   execute,
   type MockGenerator,
-} from "../services/mock-service";
+} from "@/services/mock-service";
 import {
   requireValue,
   ServiceError,
   timeZoneValid,
-} from "../services/validation";
+} from "@/services/validation";
 import {
   clone,
   readState,
   type StoragePort,
   writeState,
-} from "./storage";
-import { generatedContents } from "./quizzes";
-import { users } from "./users";
+} from "@/mocks/storage";
+import { generatedContents } from "@/mocks/quizzes";
+import { users } from "@/mocks/users";
 export interface MockOptions {
   userId: string;
   storage?: StoragePort;

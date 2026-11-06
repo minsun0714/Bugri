@@ -1,4 +1,4 @@
-import type { Hashtag, User } from "../api/contracts";
+import type { Hashtag, User } from "@/api/contracts";
 export const users: readonly User[] = [
   {
     userId: "learner",

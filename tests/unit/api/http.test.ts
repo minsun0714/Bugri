@@ -1,9 +1,6 @@
-import { createApiClient } from "../../../src/api/client";
-import {
-  createHttpTransport,
-  endpoints,
-} from "../../../src/api/http";
-import type { Request } from "../../../src/api/contracts";
+import { createApiClient } from "@/api/client";
+import { createHttpTransport, endpoints } from "@/api/http";
+import type { Request } from "@/api/contracts";
 const response = (body: unknown, status = 200) =>
   ({
     ok: status < 400,

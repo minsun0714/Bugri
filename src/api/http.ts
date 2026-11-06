@@ -4,7 +4,7 @@ import type {
   Request,
   Response,
   TransportResponse,
-} from "./contracts";
+} from "@/api/contracts";
 interface Endpoint {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;

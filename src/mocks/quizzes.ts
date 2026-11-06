@@ -1,7 +1,7 @@
 import type {
   QuizContent,
   ReviewQuiz,
-} from "../api/contracts";
+} from "@/api/contracts";
 export const generatedContents: readonly QuizContent[] = [
   {
     title: "타입 선언",

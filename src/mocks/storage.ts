@@ -1,9 +1,12 @@
-import { users, hashtags } from "./users";
-import { quizzes } from "./quizzes";
-import { subscriptions } from "./subscriptions";
-import { attempts, learningDays } from "./learning-history";
-import { initialBugCoin } from "./shop-items";
-import type { UserState } from "../services/state";
+import { users, hashtags } from "@/mocks/users";
+import { quizzes } from "@/mocks/quizzes";
+import { subscriptions } from "@/mocks/subscriptions";
+import {
+  attempts,
+  learningDays,
+} from "@/mocks/learning-history";
+import { initialBugCoin } from "@/mocks/shop-items";
+import type { UserState } from "@/services/state";
 import {
   object,
   requireValue,
@@ -12,7 +15,7 @@ import {
   validateContent,
   source,
   categories,
-} from "../services/validation";
+} from "@/services/validation";
 export interface StoragePort {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;

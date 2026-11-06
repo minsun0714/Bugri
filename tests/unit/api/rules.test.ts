@@ -1,20 +1,17 @@
-import { createApiClient } from "../../../src/api/client";
+import { createApiClient } from "@/api/client";
 import type {
   Answer,
   QuizContent,
   Request,
   ReviewQuiz,
-} from "../../../src/api/contracts";
+} from "@/api/contracts";
 import {
   createMockTransport,
   type MockOptions,
-} from "../../../src/mocks/adapter";
-import { generatedContents } from "../../../src/mocks/quizzes";
-import { storageKey } from "../../../src/mocks/storage";
-import {
-  localDate,
-  streak,
-} from "../../../src/services/learning";
+} from "@/mocks/adapter";
+import { generatedContents } from "@/mocks/quizzes";
+import { storageKey } from "@/mocks/storage";
+import { localDate, streak } from "@/services/learning";
 
 const api = (
   userId = "learner",

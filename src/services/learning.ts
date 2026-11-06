@@ -1,8 +1,8 @@
 import type {
   LearningQuizView,
   Subscription,
-} from "../api/contracts";
-import type { StoredQuiz } from "./state";
+} from "@/api/contracts";
+import type { StoredQuiz } from "@/services/state";
 export function publicView(
   quiz: StoredQuiz,
 ): LearningQuizView {

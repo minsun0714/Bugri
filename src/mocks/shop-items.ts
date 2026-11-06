@@ -1,4 +1,4 @@
-import type { Product } from "../api/contracts";
+import type { Product } from "@/api/contracts";
 export const shopItems: readonly Product[] = [
   {
     productId: "keyboard-1",

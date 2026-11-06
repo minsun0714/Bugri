@@ -8,20 +8,20 @@ import type {
   ReviewQuiz,
   Subscription,
   Visibility,
-} from "../api/contracts";
-import { hashtags, users } from "../mocks/users";
-import { shopItems } from "../mocks/shop-items";
+} from "@/api/contracts";
+import { hashtags, users } from "@/mocks/users";
+import { shopItems } from "@/mocks/shop-items";
 import type {
   StoredAttempt,
   StoredQuiz,
   UserState,
-} from "./state";
+} from "@/services/state";
 import {
   candidates,
   localDate,
   publicView,
   streak,
-} from "./learning";
+} from "@/services/learning";
 import {
   categories,
   isCorrect,
@@ -34,7 +34,7 @@ import {
   timeZoneValid,
   validateAnswer,
   validateContent,
-} from "./validation";
+} from "@/services/validation";
 
 export interface GeneratorInput {
   sourceContent: string;

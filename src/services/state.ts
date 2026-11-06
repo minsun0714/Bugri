@@ -8,7 +8,7 @@ import type {
   ReviewQuiz,
   Revision,
   Subscription,
-} from "../api/contracts";
+} from "@/api/contracts";
 export interface StoredQuiz extends ReviewQuiz {
   deletedAt: string | null;
 }

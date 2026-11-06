@@ -46,6 +46,13 @@ Developer learning platform with AI-generated quizzes.
 - Read the relevant installed guide in node_modules/next/dist/docs/ before writing Next.js code.
 - Documentation or review requests do not authorize application implementation.
 
+## Import Style
+
+- Use the existing `@/*` alias for imports of modules under `src`, including same-directory imports, type-only imports, re-exports, and dynamic `import()` calls.
+- Keep package imports and `node:` imports unchanged. Relative paths remain allowed for targets outside `src`, such as the root Playwright configuration.
+- ESLint currently enforces this rule in the API, Mock, service, and related test files. Do not expand enforcement into UI/design files as part of API-only work.
+- Keep Jest alias mapping and the E2E test bundle resolver compatible with `tsconfig.json` paths when changing imports.
+
 ## Development Workflow
 
 1. Inspect existing code.

@@ -4,7 +4,7 @@ import type {
   Operation,
   Request,
   Response,
-} from "./contracts";
+} from "@/api/contracts";
 export class ApiClientError extends Error {
   constructor(
     readonly status: number,

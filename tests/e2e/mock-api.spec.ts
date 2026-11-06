@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
-import type { ApiClient } from "../../src/api/client";
+import type { ApiClient } from "@/api/client";
 
 // Test-only bundle: exercises production TS modules in a real browser without adding UI/routes or dependencies.
 function browserBundle() {
@@ -22,9 +22,21 @@ function browserBundle() {
       },
     }).outputText;
     js = js.replace(
-      /require\("(\.[^"]+)"\)/g,
-      (_, relative: string) =>
-        `require(${JSON.stringify(collect(path.resolve(path.dirname(file), `${relative}.ts`)))})`,
+      /require\("((?:@\/|\.)[^"]+)"\)/g,
+      (_, specifier: string) => {
+        const resolved = specifier.startsWith("@/")
+          ? path.resolve(
+              root,
+              "src",
+              `${specifier.slice(2)}.ts`,
+            )
+          : path.resolve(
+              path.dirname(file),
+              `${specifier}.ts`,
+            );
+
+        return `require(${JSON.stringify(collect(resolved))})`;
+      },
     );
     modules.set(key, js);
     return key;

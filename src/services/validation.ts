@@ -4,7 +4,7 @@ import type {
   ErrorCode,
   QuizContent,
   Question,
-} from "../api/contracts";
+} from "@/api/contracts";
 export class ServiceError extends Error {
   constructor(
     readonly code: ErrorCode,
