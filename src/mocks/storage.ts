@@ -98,34 +98,42 @@ function validateState(
   object(value.selection);
   object(value.equipment);
 
-  const selection = value.selection;
+  const { selection, equipment } = value;
 
   requireValue(
-    value.selection.mode === "UNSOLVED" ||
-      value.selection.mode === "REPLAY",
+    selection.mode === "UNSOLVED" ||
+      selection.mode === "REPLAY",
     "학습 모드가 손상되었습니다.",
   );
 
   requireValue(
-    value.selection.hashtagId === null ||
+    selection.hashtagId === null ||
       hashtags.some((t) => t.id === selection.hashtagId),
     "선택 태그가 손상되었습니다.",
   );
 
   requireValue(
-    value.selection.quizId === null ||
-      typeof value.selection.quizId === "string",
+    selection.quizId === null ||
+      typeof selection.quizId === "string",
     "학습 선택이 손상되었습니다.",
   );
 
-  for (const [key, id] of Object.entries(value.equipment))
+  for (const [key, id] of Object.entries(equipment))
     requireValue(
       categories.includes(key as never) &&
         typeof id === "string",
       "장착 정보가 손상되었습니다.",
     );
 
-  const s = value as unknown as UserState;
+  const {
+    quizzes,
+    batches,
+    subscriptions,
+    attempts,
+    days,
+    ledger,
+    purchases,
+  } = value as unknown as UserState;
 
   const revision = (
     r: NonNullable<UserState["quizzes"][number]["active"]>,
@@ -152,11 +160,11 @@ function validateState(
 
     validateContent(
       content,
-      hashtags.map((t) => t.id),
+      hashtags.map(({ id }) => id),
     );
   };
 
-  for (const q of s.quizzes) {
+  for (const q of quizzes) {
     object(q);
 
     requireValue(
@@ -185,7 +193,7 @@ function validateState(
     if (q.pending) revision(q.pending);
   }
 
-  for (const b of s.batches) {
+  for (const b of batches) {
     object(b);
     source(b.sourceContent);
 
@@ -203,7 +211,7 @@ function validateState(
       requireValue(
         typeof c.candidateId === "string" &&
           (c.savedQuizId === null ||
-            s.quizzes.some(
+            quizzes.some(
               (q) => q.quizId === c.savedQuizId,
             )),
         "저장 후보가 손상되었습니다.",
@@ -211,12 +219,12 @@ function validateState(
 
       validateContent(
         c.content,
-        hashtags.map((t) => t.id),
+        hashtags.map(({ id }) => id),
       );
     }
   }
 
-  for (const sub of s.subscriptions) {
+  for (const sub of subscriptions) {
     object(sub);
 
     requireValue(
@@ -240,7 +248,7 @@ function validateState(
       );
   }
 
-  for (const a of s.attempts) {
+  for (const a of attempts) {
     object(a);
 
     requireValue(
@@ -256,7 +264,7 @@ function validateState(
     revision(a.revision);
   }
 
-  for (const d of s.days) {
+  for (const d of days) {
     object(d);
 
     requireValue(
@@ -268,7 +276,7 @@ function validateState(
     );
   }
 
-  for (const l of s.ledger) {
+  for (const l of ledger) {
     object(l);
 
     requireValue(
@@ -283,7 +291,7 @@ function validateState(
     );
   }
 
-  for (const p of s.purchases) {
+  for (const p of purchases) {
     object(p);
 
     requireValue(

@@ -55,7 +55,7 @@ Developer learning platform with AI-generated quizzes.
 
 ## Destructuring
 
-- Use object and array destructuring when extracting values into local variables. This is the default coding rule, not an optional style preference.
+- Use object and array destructuring when extracting values into local variables. This is the default coding rule, not an optional style preference. ESLint `prefer-destructuring` enforces variable declarations, including renamed properties, in API/Mock/service code and related tests; assignment expressions remain outside enforcement to preserve mutations.
 - Write `const { userId, displayName } = user` instead of separate property assignments. Use aliases when renaming: `const { userId: ownerUserId } = user`.
 - Write `const [first] = items` instead of `const first = items[0]`. Avoid long lists of skipped array entries; use direct indexing for a dynamic index.
 - Destructure object parameters in the function signature or at the start of the body when their fields are needed. Destructure returned objects and tuples when extracting their values.

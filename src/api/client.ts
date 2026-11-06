@@ -11,7 +11,9 @@ export class ApiClientError extends Error {
     readonly status: number,
     readonly detail: ErrorBody["error"],
   ) {
-    super(detail.message);
+    const { message } = detail;
+
+    super(message);
     this.name = "ApiClientError";
   }
 }
@@ -23,18 +25,20 @@ export function createApiClient(transport: ApiTransport) {
       operation: K,
       request: Request<K>,
     ): Promise<Response<K>> {
-      const result = await transport.request(
+      const { status, body } = await transport.request(
         operation,
         request,
       );
 
-      if ("error" in result.body)
-        throw new ApiClientError(
-          result.status,
-          result.body.error,
-        );
+      if ("error" in body) {
+        const { error } = body;
 
-      return result.body.data;
+        throw new ApiClientError(status, error);
+      }
+
+      const { data } = body;
+
+      return data;
     },
   };
 }

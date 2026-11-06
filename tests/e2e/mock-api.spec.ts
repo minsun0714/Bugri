@@ -20,12 +20,12 @@ function browserBundle() {
 
     modules.set(key, "");
 
-    let js = ts.transpileModule(source, {
+    let { outputText: js } = ts.transpileModule(source, {
       compilerOptions: {
         module: ts.ModuleKind.CommonJS,
         target: ts.ScriptTarget.ES2020,
       },
-    }).outputText;
+    });
 
     js = js.replace(
       /require\("((?:@\/|\.)[^"]+)"\)/g,

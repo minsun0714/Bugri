@@ -4,18 +4,21 @@ import type {
 } from "@/api/contracts";
 import type { StoredQuiz } from "@/services/state";
 
-export function publicView(
-  quiz: StoredQuiz,
-): LearningQuizView {
-  const r = quiz.active!;
+export function publicView({
+  quizId,
+  ownerUserId,
+  active,
+}: StoredQuiz): LearningQuizView {
+  const { revisionId, title, question, hashtagIds } =
+    active!;
 
   return {
-    quizId: quiz.quizId,
-    ownerUserId: quiz.ownerUserId,
-    revisionId: r.revisionId,
-    title: r.title,
-    question: r.question,
-    hashtagIds: r.hashtagIds,
+    quizId,
+    ownerUserId,
+    revisionId,
+    title,
+    question,
+    hashtagIds,
   };
 }
 
@@ -25,18 +28,18 @@ export function candidates(
   hashtagId?: string | null,
 ): StoredQuiz[] {
   return quizzes.filter(
-    (q) =>
-      !q.deletedAt &&
-      q.status === "PUBLIC" &&
-      q.active &&
+    ({ deletedAt, status, active, ownerUserId }) =>
+      !deletedAt &&
+      status === "PUBLIC" &&
+      active &&
       (!hashtagId ||
-        q.active.hashtagIds.includes(hashtagId)) &&
+        active.hashtagIds.includes(hashtagId)) &&
       subscriptions.some(
         (s) =>
           (s.type === "HASHTAG" ||
-            s.authorUserId === q.ownerUserId) &&
+            s.authorUserId === ownerUserId) &&
           (s.type === "PERSON" ||
-            q.active!.hashtagIds.includes(s.hashtagId)),
+            active.hashtagIds.includes(s.hashtagId)),
       ),
   );
 }
@@ -53,9 +56,13 @@ export function localDate(
   }).formatToParts(date);
 
   return ["year", "month", "day"]
-    .map(
-      (type) => parts.find((p) => p.type === type)!.value,
-    )
+    .map((type) => {
+      const { value } = parts.find(
+        ({ type: partType }) => partType === type,
+      )!;
+
+      return value;
+    })
     .join("-");
 }
 

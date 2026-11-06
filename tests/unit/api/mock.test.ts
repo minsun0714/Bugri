@@ -28,13 +28,13 @@ test("generation is owner-only; individual then bulk save does not duplicate can
     }),
   ).toHaveLength(0);
 
-  const first = await api.request("saveBatch", {
+  const [first] = await api.request("saveBatch", {
     batchId: batch.batchId,
     mode: "SINGLE",
     candidateId: batch.candidates[0].candidateId,
   });
 
-  expect(first[0].status).toBe("PENDING");
+  expect(first.status).toBe("PENDING");
 
   await api.request("saveBatch", {
     batchId: batch.batchId,
@@ -124,8 +124,13 @@ test("learning never exposes answers; wrong answers and replays count once per d
 
 test("purchase retry deducts once, equipment requires ownership, state survives reload and is isolated", async () => {
   const api = make();
-  const before = (await api.request("wallet", {})).balance;
-  const product = (await api.request("products", {}))[0];
+
+  const { balance: before } = await api.request(
+    "wallet",
+    {},
+  );
+
+  const [product] = await api.request("products", {});
 
   const purchase = await api.request("purchase", {
     productId: product.productId,

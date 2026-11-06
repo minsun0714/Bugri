@@ -23,6 +23,22 @@ const eslintConfig = defineConfig([
       "tests/e2e/mock-api.spec.ts",
     ],
     rules: {
+      "prefer-destructuring": [
+        "error",
+        {
+          VariableDeclarator: {
+            array: true,
+            object: true,
+          },
+          AssignmentExpression: {
+            array: false,
+            object: false,
+          },
+        },
+        {
+          enforceForRenamedProperties: true,
+        },
+      ],
       // Prettier preserves these blank lines; ESLint inserts missing ones.
       // Use the installed core rule without adding a package dependency.
       "padding-line-between-statements": [

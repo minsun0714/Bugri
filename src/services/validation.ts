@@ -114,48 +114,59 @@ export function validateAnswer(
 ): asserts value is Answer {
   object(value);
 
+  const {
+    type,
+    choiceId,
+    choiceIds,
+    value: booleanAnswer,
+    text: answerText,
+  } = value;
+
   requireValue(
-    value.type === question.type,
+    type === question.type,
     "문제 형식에 맞는 답안을 제출하세요.",
     "answer",
   );
 
   switch (question.type) {
-    case "SINGLE_CHOICE":
+    case "SINGLE_CHOICE": {
       keys(value, ["type", "choiceId"]);
 
+      const { choices } = question;
+
       requireValue(
-        question.choices.some(
-          (c) => c.id === value.choiceId,
-        ),
+        choices.some(({ id }) => id === choiceId),
         "유효한 선택지가 필요합니다.",
         "answer",
       );
 
       break;
+    }
 
-    case "MULTIPLE_CHOICE":
+    case "MULTIPLE_CHOICE": {
       keys(value, ["type", "choiceIds"]);
 
+      const { choices } = question;
+
       requireValue(
-        Array.isArray(value.choiceIds) &&
-          value.choiceIds.length > 0 &&
-          new Set(value.choiceIds).size ===
-            value.choiceIds.length &&
-          value.choiceIds.every((id) =>
-            question.choices.some((c) => c.id === id),
+        Array.isArray(choiceIds) &&
+          choiceIds.length > 0 &&
+          new Set(choiceIds).size === choiceIds.length &&
+          choiceIds.every((choiceId) =>
+            choices.some(({ id }) => id === choiceId),
           ),
         "중복 없는 유효한 선택지가 필요합니다.",
         "answer",
       );
 
       break;
+    }
 
     case "TRUE_FALSE":
       keys(value, ["type", "value"]);
 
       requireValue(
-        typeof value.value === "boolean",
+        typeof booleanAnswer === "boolean",
         "OX 답안이 필요합니다.",
         "answer",
       );
@@ -164,7 +175,7 @@ export function validateAnswer(
 
     case "SHORT_ANSWER":
       keys(value, ["type", "text"]);
-      text(value.text, "answer");
+      text(answerText, "answer");
       break;
   }
 }
@@ -183,13 +194,21 @@ export function validateContent(
     "hashtagIds",
   ]);
 
-  text(value.title, "title");
-  text(value.explanation, "explanation");
-  object(value.question);
+  const {
+    title,
+    explanation,
+    question: q,
+    answer,
+    hashtagIds: contentHashtagIds,
+  } = value;
 
-  const q = value.question;
+  text(title, "title");
+  text(explanation, "explanation");
+  object(q);
 
-  text(q.prompt, "question.prompt");
+  const { type, prompt, choices } = q;
+
+  text(prompt, "question.prompt");
 
   requireValue(
     [
@@ -197,31 +216,34 @@ export function validateContent(
       "MULTIPLE_CHOICE",
       "TRUE_FALSE",
       "SHORT_ANSWER",
-    ].includes(String(q.type)),
+    ].includes(String(type)),
     "지원하지 않는 문제 형식입니다.",
   );
 
   if (
-    q.type === "SINGLE_CHOICE" ||
-    q.type === "MULTIPLE_CHOICE"
+    type === "SINGLE_CHOICE" ||
+    type === "MULTIPLE_CHOICE"
   ) {
     keys(q, ["type", "prompt", "choices"]);
 
     requireValue(
-      Array.isArray(q.choices) && q.choices.length >= 2,
+      Array.isArray(choices) && choices.length >= 2,
       "선택지가 2개 이상 필요합니다.",
     );
 
     const ids: string[] = [],
       labels: string[] = [];
 
-    for (const choice of q.choices) {
+    for (const choice of choices) {
       object(choice);
       keys(choice, ["id", "text"]);
-      text(choice.id);
-      text(choice.text);
-      ids.push(choice.id);
-      labels.push(choice.text.trim().normalize("NFC"));
+
+      const { id, text: choiceText } = choice;
+
+      text(id);
+      text(choiceText);
+      ids.push(id);
+      labels.push(choiceText.trim().normalize("NFC"));
     }
 
     requireValue(
@@ -232,18 +254,18 @@ export function validateContent(
   } else keys(q, ["type", "prompt"]);
 
   requireValue(
-    Array.isArray(value.hashtagIds) &&
-      value.hashtagIds.length <= 3 &&
-      new Set(value.hashtagIds).size ===
-        value.hashtagIds.length &&
-      value.hashtagIds.every((id) =>
+    Array.isArray(contentHashtagIds) &&
+      contentHashtagIds.length <= 3 &&
+      new Set(contentHashtagIds).size ===
+        contentHashtagIds.length &&
+      contentHashtagIds.every((id) =>
         hashtagIds.includes(id),
       ),
     "서로 다른 유효한 해시태그를 최대 3개 지정하세요.",
     "hashtagIds",
   );
 
-  validateAnswer(value.answer, q as unknown as Question);
+  validateAnswer(answer, q as unknown as Question);
 }
 
 export function isCorrect(

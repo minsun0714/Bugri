@@ -57,7 +57,7 @@ export interface ServiceContext {
   dailyReward: number;
 }
 
-const tagIds = hashtags.map((t) => t.id);
+const tagIds = hashtags.map(({ id }) => id);
 
 const allowed: Record<Operation, string[]> = {
   generate: ["sourceContent"],
@@ -98,15 +98,23 @@ const allowed: Record<Operation, string[]> = {
   publicProfile: ["publicId"],
 };
 
-function quizReview(q: StoredQuiz): ReviewQuiz {
+function quizReview({
+  quizId,
+  ownerUserId,
+  status,
+  version,
+  active,
+  pending,
+  updatedAt,
+}: StoredQuiz): ReviewQuiz {
   return {
-    quizId: q.quizId,
-    ownerUserId: q.ownerUserId,
-    status: q.status,
-    version: q.version,
-    active: q.active,
-    pending: q.pending,
-    updatedAt: q.updatedAt,
+    quizId,
+    ownerUserId,
+    status,
+    version,
+    active,
+    pending,
+    updatedAt,
   };
 }
 
@@ -125,15 +133,22 @@ export function execute<K extends Operation>(
   keys(input, allowed[operation]);
 
   const r = input as Record<string, unknown>;
-  const { state: s, now, id } = ctx;
+
+  const {
+    state: s,
+    now,
+    id,
+    allQuizzes,
+    allStates,
+    dailyReward,
+  } = ctx;
+
   const timestamp = now.toISOString();
 
   const ownQuiz = (includeDeleted = false) => {
     text(r.quizId, "quizId");
 
-    const q = ctx.allQuizzes.find(
-      (q) => q.quizId === r.quizId,
-    );
+    const q = allQuizzes.find((q) => q.quizId === r.quizId);
 
     if (!q || (!includeDeleted && q.deletedAt))
       throw new ServiceError(
@@ -152,13 +167,15 @@ export function execute<K extends Operation>(
     return q;
   };
 
-  const version = (q: StoredQuiz) => {
+  const version = ({
+    version: currentVersion,
+  }: StoredQuiz) => {
     requireValue(
       Number.isInteger(r.expectedVersion),
       "버전이 필요합니다.",
     );
 
-    if (r.expectedVersion !== q.version)
+    if (r.expectedVersion !== currentVersion)
       throw new ServiceError(
         "VERSION_CONFLICT",
         "최신 내용을 다시 확인하세요.",
@@ -179,34 +196,45 @@ export function execute<K extends Operation>(
       (q.status === "PRIVATE" &&
         q.ownerUserId === s.userId));
 
-  const attemptView = (a: StoredAttempt): AttemptView => {
-    const q = ctx.allQuizzes.find(
-      (q) => q.quizId === a.quizId,
+  const attemptView = ({
+    attemptId,
+    quizId,
+    revision,
+    completedAt,
+    learningDate,
+    timeZone,
+    correct,
+    submittedAnswer,
+  }: StoredAttempt): AttemptView => {
+    const q = allQuizzes.find(
+      ({ quizId: currentQuizId }) =>
+        currentQuizId === quizId,
     );
 
     const visible = available(q);
+    const { revisionId, answer, explanation } = revision;
 
     return {
-      attemptId: a.attemptId,
-      quizId: a.quizId,
-      revisionId: a.revision.revisionId,
+      attemptId,
+      quizId,
+      revisionId,
       quiz: visible
         ? publicView({
             ...q!,
-            active: a.revision,
+            active: revision,
           })
         : null,
-      completedAt: a.completedAt,
-      learningDate: a.learningDate,
-      timeZone: a.timeZone,
-      correct: a.correct,
+      completedAt,
+      learningDate,
+      timeZone,
+      correct,
       result:
-        visible && a.submittedAnswer
+        visible && submittedAnswer
           ? {
-              submittedAnswer: a.submittedAnswer,
-              correct: a.correct!,
-              answer: a.revision.answer,
-              explanation: a.revision.explanation,
+              submittedAnswer,
+              correct: correct!,
+              answer,
+              explanation,
             }
           : null,
     };
@@ -286,7 +314,7 @@ export function execute<K extends Operation>(
   };
 
   const balance = () =>
-    s.ledger.reduce((sum, item) => sum + item.amount, 0);
+    s.ledger.reduce((sum, { amount }) => sum + amount, 0);
 
   switch (operation) {
     case "generate": {
@@ -385,7 +413,7 @@ export function execute<K extends Operation>(
         "목록 범위를 지정하세요.",
       );
 
-      return ctx.allQuizzes
+      return allQuizzes
         .filter(
           (q) =>
             !q.deletedAt &&
@@ -461,27 +489,34 @@ export function execute<K extends Operation>(
       version(q);
       text(r.prompt, "prompt");
 
-      const current = q.pending ?? q.active!;
+      const {
+        sourceContent,
+        title,
+        question,
+        answer,
+        explanation,
+        hashtagIds,
+      } = q.pending ?? q.active!;
 
-      const content = generate(
+      const [content] = generate(
         {
-          sourceContent: current.sourceContent,
+          sourceContent,
           current: {
-            title: current.title,
-            question: current.question,
-            answer: current.answer,
-            explanation: current.explanation,
-            hashtagIds: current.hashtagIds,
+            title,
+            question,
+            answer,
+            explanation,
+            hashtagIds,
           },
           prompt: r.prompt,
         },
         true,
-      )[0];
+      );
 
       q.pending = {
         ...content,
         revisionId: id(),
-        sourceContent: current.sourceContent,
+        sourceContent,
         reviewed: false,
         followUpPrompt: r.prompt,
       };
@@ -617,7 +652,7 @@ export function execute<K extends Operation>(
 
     case "discoverHashtags":
       return hashtags.filter((t) =>
-        ctx.allQuizzes.some(
+        allQuizzes.some(
           (q) =>
             q.status === "PUBLIC" &&
             !q.deletedAt &&
@@ -630,7 +665,7 @@ export function execute<K extends Operation>(
         text(r.authorUserId);
 
       const qs = candidates(
-        ctx.allQuizzes,
+        allQuizzes,
         s.subscriptions,
       ).filter(
         (q) =>
@@ -671,7 +706,7 @@ export function execute<K extends Operation>(
           : "UNSOLVED")) as "UNSOLVED" | "REPLAY";
 
       const qs = candidates(
-        ctx.allQuizzes,
+        allQuizzes,
         s.subscriptions,
         hashtagId,
       );
@@ -773,7 +808,7 @@ export function execute<K extends Operation>(
         "풀이 진입 경로가 필요합니다.",
       );
 
-      const q = ctx.allQuizzes.find(
+      const q = allQuizzes.find(
         (q) => q.quizId === r.quizId,
       );
 
@@ -787,7 +822,7 @@ export function execute<K extends Operation>(
       if (
         r.context === "LEARNING" &&
         !candidates(
-          ctx.allQuizzes,
+          allQuizzes,
           s.subscriptions,
           s.selection.hashtagId,
         ).some(
@@ -838,7 +873,7 @@ export function execute<K extends Operation>(
 
       if (
         !available(
-          ctx.allQuizzes.find((q) => q.quizId === a.quizId),
+          allQuizzes.find((q) => q.quizId === a.quizId),
         )
       )
         throw new ServiceError(
@@ -869,10 +904,10 @@ export function execute<K extends Operation>(
           completedAt: timestamp,
         });
 
-        if (ctx.dailyReward > 0)
+        if (dailyReward > 0)
           s.ledger.push({
             id: id(),
-            amount: ctx.dailyReward,
+            amount: dailyReward,
             reason: "DAILY_COMPLETION",
             reference: date,
             createdAt: timestamp,
@@ -1036,7 +1071,7 @@ export function execute<K extends Operation>(
 
       return {
         user,
-        equipment: ctx.allStates.find(
+        equipment: allStates.find(
           (state) => state.userId === user.userId,
         )!.equipment,
       };

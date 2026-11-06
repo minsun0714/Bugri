@@ -156,6 +156,7 @@ export function createHttpTransport(
       operation: K,
       request: Request<K>,
     ): Promise<TransportResponse<Response<K>>> {
+      const { baseUrl, fetch: fetcher } = options;
       const requestId = globalThis.crypto.randomUUID();
 
       const failure = (
@@ -172,28 +173,32 @@ export function createHttpTransport(
         },
       });
 
-      const endpoint = endpoints[operation];
+      const {
+        [operation]: {
+          method,
+          pathKey,
+          path: endpointPath,
+        },
+      } = endpoints;
 
       const params = {
         ...request,
       } as Record<string, unknown>;
 
-      let path = endpoint.path;
+      let path = endpointPath;
 
-      if (endpoint.pathKey) {
+      if (pathKey) {
         path = path.replace(
           "{id}",
-          encodeURIComponent(
-            String(params[endpoint.pathKey]),
-          ),
+          encodeURIComponent(String(params[pathKey])),
         );
 
-        delete params[endpoint.pathKey];
+        delete params[pathKey];
       }
 
       const query = new URLSearchParams();
 
-      if (endpoint.method === "GET")
+      if (method === "GET")
         for (const [key, value] of Object.entries(params))
           if (value !== undefined && value !== null)
             query.set(key, String(value));
@@ -201,21 +206,19 @@ export function createHttpTransport(
       let response: globalThis.Response;
 
       try {
-        response = await (
-          options.fetch ?? globalThis.fetch
-        )(
-          `${options.baseUrl ?? "/api/v1"}${path}${query.size ? `?${query}` : ""}`,
+        response = await (fetcher ?? globalThis.fetch)(
+          `${baseUrl ?? "/api/v1"}${path}${query.size ? `?${query}` : ""}`,
           {
-            method: endpoint.method,
+            method,
             headers: {
               Accept: "application/json",
-              ...(endpoint.method === "GET"
+              ...(method === "GET"
                 ? {}
                 : {
                     "Content-Type": "application/json",
                   }),
             },
-            ...(endpoint.method === "GET"
+            ...(method === "GET"
               ? {}
               : {
                   body: JSON.stringify(params),
@@ -231,11 +234,12 @@ export function createHttpTransport(
 
       try {
         const body = await response.json();
+        const { ok, status } = response;
 
         if (
           !body ||
           typeof body !== "object" ||
-          (response.ok
+          (ok
             ? !("data" in body) || "error" in body
             : !body.error ||
               typeof body.error.code !== "string" ||
@@ -248,7 +252,7 @@ export function createHttpTransport(
           );
 
         return {
-          status: response.status,
+          status,
           body,
         };
       } catch {

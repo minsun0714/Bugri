@@ -26,30 +26,46 @@ const api = (
     }),
   );
 
-const plain = (q: ReviewQuiz): QuizContent => {
-  const r = q.pending ?? q.active!;
+const plain = ({
+  pending,
+  active,
+}: ReviewQuiz): QuizContent => {
+  const {
+    title,
+    question,
+    answer,
+    explanation,
+    hashtagIds,
+  } = pending ?? active!;
 
   return {
-    title: r.title,
-    question: r.question,
-    answer: r.answer,
-    explanation: r.explanation,
-    hashtagIds: r.hashtagIds,
+    title,
+    question,
+    answer,
+    explanation,
+    hashtagIds,
   };
 };
 
-async function approve(q: ReviewQuiz) {
-  const owner = api(q.ownerUserId);
+async function approve({
+  quizId,
+  ownerUserId,
+  version,
+}: ReviewQuiz) {
+  const owner = api(ownerUserId);
 
-  const reviewed = await owner.request("updatePending", {
-    quizId: q.quizId,
-    expectedVersion: q.version,
-    action: "MARK_REVIEWED",
-  });
+  const { version: reviewedVersion } = await owner.request(
+    "updatePending",
+    {
+      quizId,
+      expectedVersion: version,
+      action: "MARK_REVIEWED",
+    },
+  );
 
   return owner.request("approve", {
-    quizId: q.quizId,
-    expectedVersion: reviewed.version,
+    quizId,
+    expectedVersion: reviewedVersion,
     visibility: "PUBLIC",
   });
 }
