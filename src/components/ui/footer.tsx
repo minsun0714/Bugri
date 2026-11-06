@@ -74,7 +74,7 @@ export function Footer({
           </div>
         </div>
         <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-line/60 pt-5 text-[11px] text-muted">
-          <small className="text-[11px]">© Bugri</small>
+          <small className="text-[11px]">© 2026 Bugri. All rights reserved.</small>
           {note && (
             <span className="inline-flex items-center gap-2">
               <span
