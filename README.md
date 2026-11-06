@@ -32,3 +32,7 @@ npm run dev
 npm run lint
 npm run build
 ```
+
+## 공통 UI 미리보기
+
+기본 홈은 서비스 소개 화면입니다. 컴포넌트 전시는 로컬에서 `BUGRI_UI_PREVIEW=1 npm run dev`로 명시적으로 활성화할 때만 표시됩니다. 운영·Vercel 환경에는 이 변수를 설정하지 않습니다. Playwright는 별도 미리보기 빌드를 만들어 기존 컴포넌트 회귀 검사를 유지하며, 기존 서버를 재사용하지 않습니다.
