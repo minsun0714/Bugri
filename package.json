@@ -14,7 +14,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
-    "verify": "npm run lint && npm run typecheck && npm test -- --runInBand && npm run build && npm run test:e2e"
+    "verify": "npm run lint && npm run typecheck && npm test -- --runInBand && npm run build && npm run test:e2e",
+    "predev": "node scripts/check-node.cjs",
+    "prebuild": "node scripts/check-node.cjs",
+    "prestart": "node scripts/check-node.cjs",
+    "preverify": "node scripts/check-node.cjs"
   },
   "dependencies": {
     "next": "16.4.5",
@@ -41,5 +45,8 @@
     "prettier": "^3.9.10",
     "tailwindcss": "^4.3.4",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22.23.3 <23"
   }
 }

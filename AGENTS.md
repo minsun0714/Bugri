@@ -29,6 +29,8 @@ Developer learning platform with AI-generated quizzes.
 
 ## Working Rules
 
+- Use Node 22.23.3 as pinned in `.nvmrc` for development and verification; check `node -v` before running commands. Do not report a different runtime as verified.
+
 - Read docs/PRD.md before implementing features.
 - Implement only the requested scope.
 - Keep business logic outside route handlers.

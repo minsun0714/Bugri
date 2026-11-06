@@ -12,11 +12,17 @@
 
 ## 시작하기
 
-개발 서버를 실행합니다.
+Node **22.23.3**을 사용합니다. 프로젝트의 `.nvmrc`와 `package.json`의 engines를 기준으로 로컬·CI·배포 런타임을 맞춥니다. 이미 실행 중인 개발 서버는 종료하고 버전 전환 후 다시 실행합니다.
 
 ```bash
+nvm install
+nvm use
+node -v # v22.23.3
+npm ci
 npm run dev
 ```
+
+이미 열린 터미널이나 Orca 실행 프로세스는 Node 18의 PATH를 유지할 수 있습니다. 해당 터미널에서 `nvm use`를 실행하거나 실행 환경을 재시작하세요. dev·build·start·verify는 실행 전 Node 버전을 검사하고 잘못된 버전이면 중단합니다.
 
 브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
 
