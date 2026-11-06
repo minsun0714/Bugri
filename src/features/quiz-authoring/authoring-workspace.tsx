@@ -1,5 +1,6 @@
 "use client";
 
+import { Dropdown } from "@/components/ui/dropdown";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { createBrowserApi } from "@/api/browser";
@@ -17,7 +18,6 @@ import {
   Card,
   EmptyState,
   Skeleton,
-  Select,
 } from "@/components/ui";
 import { Generation } from "@/features/quiz-authoring/generation";
 import { ReviewEditor } from "@/features/quiz-authoring/review-editor";
@@ -167,7 +167,7 @@ export function AuthoringWorkspace() {
         </div>
         {session && (
           <div className="w-full sm:w-52">
-            <Select
+            <Dropdown
               label="더미 사용자"
               value={session.userId}
               disabled={busy}
@@ -177,13 +177,13 @@ export function AuthoringWorkspace() {
                   label: displayName,
                 }),
               )}
-              onChange={(event) => {
+              onValueChange={(userId) => {
                 if (dirty && !window.confirm(leaveMessage))
                   return;
                 window.history.replaceState(
                   null,
                   "",
-                  `/quizzes/authoring?user=${encodeURIComponent(event.target.value)}`,
+                  `/quizzes/authoring?user=${encodeURIComponent(userId)}`,
                 );
                 setDirty(false);
                 setSession(undefined);

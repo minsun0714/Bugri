@@ -7,7 +7,6 @@ import {
 import { ReviewEditor } from "@/features/quiz-authoring/review-editor";
 import { createApiClient } from "@/api/client";
 import { createMockTransport } from "@/mocks/adapter";
-import { QuizStatus } from "@/api/constants";
 
 jest.mock("react-markdown", () => ({
   __esModule: true,
@@ -72,9 +71,15 @@ test("edit must be saved and explicitly reviewed before publication; approved ed
     screen.getByRole("button", { name: "검토 완료 저장" }),
   );
   await screen.findByText("검토 완료");
-  fireEvent.change(
-    screen.getByLabelText("승인 공개 범위"),
-    { target: { value: QuizStatus.PUBLIC } },
+  fireEvent.click(
+    screen.getByRole("combobox", {
+      name: "승인 공개 범위",
+    }),
+  );
+  fireEvent.click(
+    screen.getByRole("option", {
+      name: "공개",
+    }),
   );
   fireEvent.click(
     screen.getByRole("button", {

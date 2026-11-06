@@ -1,5 +1,6 @@
 "use client";
 
+import { Dropdown } from "@/components/ui/dropdown";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
@@ -9,12 +10,7 @@ import {
   type ReviewQuiz,
   type Visibility,
 } from "@/api/contracts";
-import {
-  Button,
-  Card,
-  TextField,
-  Select,
-} from "@/components/ui";
+import { Button, Card, TextField } from "@/components/ui";
 import { ContentFields } from "@/features/quiz-authoring/content-fields";
 import { ContentPreview } from "@/features/quiz-authoring/content-preview";
 import { RequestError } from "@/features/quiz-authoring/feedback";
@@ -252,7 +248,7 @@ export function ReviewEditor({
               검토 완료 저장
             </Button>
           </div>
-          <Select
+          <Dropdown
             label="승인 공개 범위"
             value={visibility}
             disabled={busy}
@@ -266,10 +262,8 @@ export function ReviewEditor({
                 { value: QuizStatus.PUBLIC, label: "공개" },
               ],
             ]}
-            onChange={(event) =>
-              setVisibility(
-                event.target.value as Visibility | "",
-              )
+            onValueChange={(value) =>
+              setVisibility(value as Visibility | "")
             }
           />
           <p className="text-sm text-muted">
@@ -345,7 +339,7 @@ export function ReviewEditor({
       {quiz.active && (
         <Card className={styles.stack}>
           <h3 className="text-xl">현재 버전 공개 범위</h3>
-          <Select
+          <Dropdown
             label="변경할 공개 범위"
             value={nextVisibility}
             disabled={busy || dirty}
@@ -356,10 +350,8 @@ export function ReviewEditor({
               },
               { value: QuizStatus.PUBLIC, label: "공개" },
             ]}
-            onChange={(event) =>
-              setNextVisibility(
-                event.target.value as Visibility,
-              )
+            onValueChange={(value) =>
+              setNextVisibility(value as Visibility)
             }
           />
           <div>

@@ -163,3 +163,10 @@
 - 더미 사용자·승인 공개 범위·현재 공개 범위를 공통 Select로 교체했다. 공통 컴포넌트는 기존 문자열 옵션을 유지하면서 표시명/값 분리, value/onChange/disabled를 지원한다.
 - 큰 작성실 제목을 작은 ‘퀴즈’ 제목으로 정리하고 사용자 선택을 상단 오른쪽에 배치했다. 모바일에서는 줄바꿈한다. 데스크톱 브라우저 캡처로 배치를 확인했다.
 - Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 60개·production build·Playwright 8개. 기존 사용자 전환·공개 범위 동작과 새 공통 Select 테스트를 포함한다. `git diff --check` 통과.
+
+### A 메뉴 형태 공통 드롭다운 적용 (2026-11-07)
+
+- 헤더 모바일 메뉴의 둥근 패널·그림자·보라색 선택 표시를 따르는 공통 `Dropdown`과 상호작용 훅을 추가했다. 사용자·승인 범위·현재 공개 범위 선택에 적용했다. 선택 값과 API 계약은 유지한다.
+- combobox/listbox 의미, 방향키·Home/End·Enter 선택, Escape·Tab·바깥 클릭 닫기, 비활성 상태를 지원한다. 공통 사용 규칙은 CODING_CONVENTIONS에 기록했다.
+- 새 컴포넌트 미구현 실패 확인 후 단위 테스트 3개를 통과했다. 기존 화면 테스트는 커스텀 옵션 클릭으로 변경하고 사용자 전환·승인·비공개 전환 검증을 유지했다. 타입 검사에서 RTL에 없는 exact 옵션을 사용한 오류를 수정했다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 63개·production build·Playwright 9개. 키보드·390px 모바일·바깥 클릭 검증과 데스크톱 열린 패널 캡처 확인 포함. `git diff --check` 통과. 독립 리뷰는 남아 있다.

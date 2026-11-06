@@ -48,16 +48,22 @@ test("generate, save individually and in bulk, restore owner state", async ({
     "타입스크립트\n```ts\n  const value = 1;\n```\n😀",
   );
   await page
-    .getByLabel("더미 사용자")
-    .selectOption("friend");
+    .getByRole("combobox", { name: "더미 사용자" })
+    .click();
+  await page
+    .getByRole("option", { name: "웹 개발자", exact: true })
+    .click();
   await expect(
     page
       .getByRole("region", { name: "내 퀴즈 목록" })
       .getByRole("article"),
   ).toHaveCount(2);
   await page
-    .getByLabel("더미 사용자")
-    .selectOption("learner");
+    .getByRole("combobox", { name: "더미 사용자" })
+    .click();
+  await page
+    .getByRole("option", { name: "학습자", exact: true })
+    .click();
   await expect(
     page
       .getByRole("region", { name: "내 퀴즈 목록" })
@@ -107,8 +113,11 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .getByRole("button", { name: "검토 완료 저장" })
     .click();
   await review
-    .getByLabel("승인 공개 범위")
-    .selectOption("PUBLIC");
+    .getByRole("combobox", { name: "승인 공개 범위" })
+    .click();
+  await review
+    .getByRole("option", { name: "공개", exact: true })
+    .click();
   await review
     .getByRole("button", { name: "선택한 범위로 승인" })
     .click();
@@ -139,8 +148,10 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .getByRole("button", { name: "검토 완료 저장" })
     .click();
   await expect(
-    review.getByLabel("승인 공개 범위"),
-  ).toHaveValue("PUBLIC");
+    review.getByRole("combobox", {
+      name: "승인 공개 범위",
+    }),
+  ).toHaveText("공개");
   await review
     .getByRole("button", { name: "선택한 범위로 승인" })
     .click();
@@ -168,8 +179,11 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .getByRole("button", { name: "선택한 범위로 승인" })
     .click();
   await review
-    .getByLabel("변경할 공개 범위")
-    .selectOption("PRIVATE");
+    .getByRole("combobox", { name: "변경할 공개 범위" })
+    .click();
+  await review
+    .getByRole("option", { name: "나만 풀기", exact: true })
+    .click();
   await review
     .getByRole("button", {
       name: "공개 범위 변경",
@@ -287,4 +301,34 @@ test("supplementary help opens on hover, focus and mobile tap", async ({
     })
     .click();
   await expect(page.getByRole("tooltip")).toHaveCount(0);
+});
+
+test("custom dropdown keyboard and mobile dismissal", async ({
+  page,
+}) => {
+  await page.goto("/quizzes/authoring");
+  const trigger = page.getByRole("combobox", {
+    name: "더미 사용자",
+  });
+  await trigger.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await page.keyboard.press("End");
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveText("웹 개발자");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await trigger.click();
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await expect(page.locator("body")).toHaveJSProperty(
+    "scrollWidth",
+    390,
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page
+    .getByRole("heading", { name: "퀴즈", exact: true })
+    .click();
+  await expect(page.getByRole("listbox")).toHaveCount(0);
 });
