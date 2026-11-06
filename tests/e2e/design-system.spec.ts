@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("showcase interactions, modal keyboard behavior and mobile layout", async ({
   page,
 }, testInfo) => {
-  await page.goto("/");
+  await page.goto("/ui-preview");
   await expect(
     page.getByRole("heading", {
       name: "컴포넌트",

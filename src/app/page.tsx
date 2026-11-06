@@ -1,11 +1,10 @@
-import DesignShowcase from "@/components/showcase/design-showcase";
+import { Suspense } from "react";
+import { SolveScreen } from "@/components/solving/solve-screen";
+import { Skeleton } from "@/components/ui";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 
 export default function Home() {
-  if (process.env.BUGRI_UI_PREVIEW === "1")
-    return <DesignShowcase />;
-
   return (
     <div className="flex min-h-screen flex-col">
       <Header
@@ -16,12 +15,14 @@ export default function Home() {
       />
       <main
         id="top"
-        className="mx-auto w-full max-w-[1220px] flex-1 px-6 py-12 md:px-12"
+        className="mx-auto w-full max-w-3xl flex-1 px-6 py-12 md:px-12"
       >
-        <h1 className="sr-only">Bugri 홈</h1>
+        <Suspense fallback={<Skeleton />}>
+          <SolveScreen />
+        </Suspense>
       </main>
       <div id="site-info">
-        <Footer note="디자인 미리보기 · v0.1" />
+        <Footer note="Bugri · 학습 프로토타입" />
       </div>
     </div>
   );

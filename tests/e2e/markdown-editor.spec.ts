@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 test("Markdown preview preserves code and safely ignores raw HTML", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/ui-preview");
   await expect(
     page.locator(".ui-code .hljs-keyword").first(),
   ).toHaveText("const");
