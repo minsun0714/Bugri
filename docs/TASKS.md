@@ -157,3 +157,9 @@
 - 본문 최대 너비를 헤더와 같은 1220px로 맞추고 좌우 여백을 모바일 20px·md 이상 48px로 통일했다.
 - Chromium 실측: 1280px 화면에서 헤더/본문 내용 경계 모두 78~1202px, 390px 화면에서 모두 20~370px.
 - Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 59개·production build·Playwright 8개. `git diff --check` 통과.
+
+### A 공통 선택 입력·상단 정리 (2026-11-07)
+
+- 더미 사용자·승인 공개 범위·현재 공개 범위를 공통 Select로 교체했다. 공통 컴포넌트는 기존 문자열 옵션을 유지하면서 표시명/값 분리, value/onChange/disabled를 지원한다.
+- 큰 작성실 제목을 작은 ‘퀴즈’ 제목으로 정리하고 사용자 선택을 상단 오른쪽에 배치했다. 모바일에서는 줄바꿈한다. 데스크톱 브라우저 캡처로 배치를 확인했다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 60개·production build·Playwright 8개. 기존 사용자 전환·공개 범위 동작과 새 공통 Select 테스트를 포함한다. `git diff --check` 통과.

@@ -282,7 +282,7 @@ test("supplementary help opens on hover, focus and mobile tap", async ({
   );
   await page
     .getByRole("heading", {
-      name: "퀴즈 작성실",
+      name: "퀴즈",
       exact: true,
     })
     .click();

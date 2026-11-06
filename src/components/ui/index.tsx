@@ -8,6 +8,7 @@ import {
   useRef,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
+  type SelectHTMLAttributes,
   type ReactNode,
 } from "react";
 
@@ -156,19 +157,34 @@ export function TextArea({
 export function Select({
   label,
   options,
-}: {
+  id,
+  ...props
+}: Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  "children"
+> & {
   label: string;
-  options: string[];
+  options: (string | { value: string; label: string })[];
 }) {
-  const id = useId();
+  const generated = useId();
+  const fieldId = id ?? generated;
 
   return (
     <div className={styles["ui-field"]}>
-      <label htmlFor={id}>{label}</label>
-      <select id={id}>
-        {options.map((option) => (
-          <option key={option}>{option}</option>
-        ))}
+      <label htmlFor={fieldId}>{label}</label>
+      <select {...props} id={fieldId}>
+        {options.map((option) => {
+          const { value, label: text } =
+            typeof option === "string"
+              ? { value: option, label: option }
+              : option;
+
+          return (
+            <option key={value} value={value}>
+              {text}
+            </option>
+          );
+        })}
       </select>
     </div>
   );

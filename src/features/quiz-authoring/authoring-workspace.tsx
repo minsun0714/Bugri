@@ -17,6 +17,7 @@ import {
   Card,
   EmptyState,
   Skeleton,
+  Select,
 } from "@/components/ui";
 import { Generation } from "@/features/quiz-authoring/generation";
 import { ReviewEditor } from "@/features/quiz-authoring/review-editor";
@@ -153,13 +154,46 @@ export function AuthoringWorkspace() {
 
   return (
     <div className={styles.stack}>
-      <div className={styles.actions}>
-        <h1 className="text-3xl">퀴즈 작성실</h1>
-        <Tooltip label="저장 및 사용자 안내">
-          더미 사용자로 체험합니다. 변경 사항은 이
-          브라우저에만 저장되며 브라우저 데이터 삭제 시
-          사라집니다.
-        </Tooltip>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
+            퀴즈
+          </h1>
+          <Tooltip label="저장 및 사용자 안내">
+            더미 사용자로 체험합니다. 변경 사항은 이
+            브라우저에만 저장되며 브라우저 데이터 삭제 시
+            사라집니다.
+          </Tooltip>
+        </div>
+        {session && (
+          <div className="w-full sm:w-52">
+            <Select
+              label="더미 사용자"
+              value={session.userId}
+              disabled={busy}
+              options={session.users.map(
+                ({ userId, displayName }) => ({
+                  value: userId,
+                  label: displayName,
+                }),
+              )}
+              onChange={(event) => {
+                if (dirty && !window.confirm(leaveMessage))
+                  return;
+                window.history.replaceState(
+                  null,
+                  "",
+                  `/quizzes/authoring?user=${encodeURIComponent(event.target.value)}`,
+                );
+                setDirty(false);
+                setSession(undefined);
+                setReview(undefined);
+                setNotice("");
+                setReload((value) => value + 1);
+              }}
+            />
+          </div>
+        )}
       </div>
       <RequestError error={error} />
       {notice && (
@@ -197,35 +231,6 @@ export function AuthoringWorkspace() {
         </>
       ) : (
         <>
-          <label className={styles.field}>
-            더미 사용자
-            <select
-              value={session.userId}
-              disabled={busy}
-              onChange={(event) => {
-                if (dirty && !window.confirm(leaveMessage))
-                  return;
-                window.history.replaceState(
-                  null,
-                  "",
-                  `/quizzes/authoring?user=${encodeURIComponent(event.target.value)}`,
-                );
-                setDirty(false);
-                setSession(undefined);
-                setReview(undefined);
-                setNotice("");
-                setReload((value) => value + 1);
-              }}
-            >
-              {session.users.map(
-                ({ userId, displayName }) => (
-                  <option key={userId} value={userId}>
-                    {displayName}
-                  </option>
-                ),
-              )}
-            </select>
-          </label>
           {review ? (
             <>
               <div>

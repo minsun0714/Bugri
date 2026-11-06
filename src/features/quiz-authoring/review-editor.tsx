@@ -9,7 +9,12 @@ import {
   type ReviewQuiz,
   type Visibility,
 } from "@/api/contracts";
-import { Button, Card, TextField } from "@/components/ui";
+import {
+  Button,
+  Card,
+  TextField,
+  Select,
+} from "@/components/ui";
 import { ContentFields } from "@/features/quiz-authoring/content-fields";
 import { ContentPreview } from "@/features/quiz-authoring/content-preview";
 import { RequestError } from "@/features/quiz-authoring/feedback";
@@ -247,28 +252,26 @@ export function ReviewEditor({
               검토 완료 저장
             </Button>
           </div>
-          <label className={styles.field}>
-            승인 공개 범위
-            <select
-              value={visibility}
-              disabled={busy}
-              onChange={(event) =>
-                setVisibility(
-                  event.target.value as Visibility | "",
-                )
-              }
-            >
-              <option value="">
-                공개 범위를 선택하세요
-              </option>
-              <option value={QuizStatus.PRIVATE}>
-                PRIVATE · 나만 풀기
-              </option>
-              <option value={QuizStatus.PUBLIC}>
-                PUBLIC · 다른 사용자도 풀기
-              </option>
-            </select>
-          </label>
+          <Select
+            label="승인 공개 범위"
+            value={visibility}
+            disabled={busy}
+            options={[
+              { value: "", label: "공개 범위 선택" },
+              ...[
+                {
+                  value: QuizStatus.PRIVATE,
+                  label: "나만 풀기",
+                },
+                { value: QuizStatus.PUBLIC, label: "공개" },
+              ],
+            ]}
+            onChange={(event) =>
+              setVisibility(
+                event.target.value as Visibility | "",
+              )
+            }
+          />
           <p className="text-sm text-muted">
             승인 대상: {quiz.pending.title} ·{" "}
             {quiz.pending.hashtagIds
@@ -342,25 +345,23 @@ export function ReviewEditor({
       {quiz.active && (
         <Card className={styles.stack}>
           <h3 className="text-xl">현재 버전 공개 범위</h3>
-          <label className={styles.field}>
-            변경할 공개 범위
-            <select
-              value={nextVisibility}
-              disabled={busy || dirty}
-              onChange={(event) =>
-                setNextVisibility(
-                  event.target.value as Visibility,
-                )
-              }
-            >
-              <option value={QuizStatus.PRIVATE}>
-                PRIVATE · 나만 풀기
-              </option>
-              <option value={QuizStatus.PUBLIC}>
-                PUBLIC · 다른 사용자도 풀기
-              </option>
-            </select>
-          </label>
+          <Select
+            label="변경할 공개 범위"
+            value={nextVisibility}
+            disabled={busy || dirty}
+            options={[
+              {
+                value: QuizStatus.PRIVATE,
+                label: "나만 풀기",
+              },
+              { value: QuizStatus.PUBLIC, label: "공개" },
+            ]}
+            onChange={(event) =>
+              setNextVisibility(
+                event.target.value as Visibility,
+              )
+            }
+          />
           <div>
             <Button
               variant="secondary"
