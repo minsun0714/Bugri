@@ -1,9 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-test("generate, save individually and in bulk, restore owner state", async ({
+test("generation focuses on requests, preserves conversation and saves to a separate owner list", async ({
   page,
 }) => {
   await page.goto("/quizzes/authoring");
+  await expect(
+    page.getByRole("region", { name: "내 퀴즈 목록" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("combobox", { name: "더미 사용자" }),
+  ).toHaveCount(0);
   await page
     .getByRole("textbox", { name: /학습 내용/ })
     .fill(
@@ -15,57 +21,74 @@ test("generate, save individually and in bulk, restore owner state", async ({
   const candidates = page.getByRole("region", {
     name: "생성 후보",
   });
-  await expect(candidates.getByRole("article")).toHaveCount(
-    4,
-  );
   await expect(
-    page
-      .getByRole("region", { name: "내 퀴즈 목록" })
-      .getByRole("article"),
-  ).toHaveCount(0);
-  await candidates
-    .getByRole("button", { name: "개별 저장" })
-    .first()
-    .click();
-  await expect(
-    candidates.getByRole("button", { name: "저장 완료" }),
-  ).toHaveCount(1);
-  await candidates
-    .getByRole("button", { name: "남은 후보 모두 저장" })
-    .click();
-  await expect(
-    page
-      .getByRole("region", { name: "내 퀴즈 목록" })
-      .getByRole("article"),
+    candidates.getByRole("button", {
+      name: /^퀴즈 [1-4]$/,
+    }),
   ).toHaveCount(4);
+  await page
+    .getByLabel("퀴즈 1에 추가 요청")
+    .fill("예시 추가");
+  await page
+    .getByRole("button", { name: "요청 보내기" })
+    .click();
+  await expect(
+    page.getByRole("list", { name: "추가 요청 기록" }),
+  ).toContainText("예시 추가");
+  await expect(
+    candidates.getByRole("article"),
+  ).toContainText("Mock 재생성: 예시 추가");
   await page.reload();
   await expect(
-    candidates.getByRole("button", { name: "저장 완료" }),
-  ).toHaveCount(4);
+    page.getByRole("list", { name: "추가 요청 기록" }),
+  ).toContainText("예시 추가");
+  await page
+    .getByText("학습 내용", { exact: true })
+    .first()
+    .click();
   await expect(
     page.getByRole("textbox", { name: /학습 내용/ }),
   ).toHaveValue(
     "타입스크립트\n```ts\n  const value = 1;\n```\n😀",
   );
-  await page
-    .getByRole("combobox", { name: "더미 사용자" })
-    .click();
-  await page
-    .getByRole("option", { name: "웹 개발자", exact: true })
+  const management = await page.context().newPage();
+  await management.goto("/quizzes/authoring/manage");
+  await expect(
+    management.getByText("저장한 퀴즈가 없습니다"),
+  ).toBeVisible();
+  await candidates
+    .getByRole("button", { name: "개별 저장", exact: true })
     .click();
   await expect(
-    page
+    candidates.getByRole("button", { name: "저장 완료" }),
+  ).toBeVisible();
+  await candidates
+    .getByRole("button", { name: "남은 후보 모두 저장" })
+    .click();
+  await expect(
+    candidates.getByRole("button", {
+      name: /^퀴즈 [1-4] · 저장됨$/,
+    }),
+  ).toHaveCount(4);
+  await management.reload();
+  await expect(
+    management
+      .getByRole("region", { name: "내 퀴즈 목록" })
+      .getByRole("article"),
+  ).toHaveCount(4);
+  await management.goto(
+    "/quizzes/authoring/manage?user=friend",
+  );
+  await expect(
+    management
       .getByRole("region", { name: "내 퀴즈 목록" })
       .getByRole("article"),
   ).toHaveCount(2);
-  await page
-    .getByRole("combobox", { name: "더미 사용자" })
-    .click();
-  await page
-    .getByRole("option", { name: "학습자", exact: true })
-    .click();
+  await management.goto(
+    "/quizzes/authoring/manage?user=learner",
+  );
   await expect(
-    page
+    management
       .getByRole("region", { name: "내 퀴즈 목록" })
       .getByRole("article"),
   ).toHaveCount(4);
@@ -89,7 +112,7 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .first()
     .click();
   await page
-    .getByRole("button", { name: "타입 선언 검토·관리" })
+    .getByRole("link", { name: "검토·승인" })
     .click();
   const review = page.getByRole("region", {
     name: "퀴즈 검토",
@@ -133,7 +156,7 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .fill("수정본 제목");
   page.once("dialog", (dialog) => dialog.dismiss());
   await page
-    .getByRole("button", { name: "생성 화면으로 돌아가기" })
+    .getByRole("button", { name: "목록으로" })
     .click();
   await expect(
     review.getByLabel("제목", { exact: true }),
@@ -222,11 +245,11 @@ test("stale tabs cannot overwrite and keep unsaved edits", async ({
   context,
 }) => {
   await page.goto(
-    "/quizzes/authoring?user=author&quiz=seed-quiz-1",
+    "/quizzes/authoring/manage?user=author&quiz=seed-quiz-1",
   );
   const other = await context.newPage();
   await other.goto(
-    "/quizzes/authoring?user=author&quiz=seed-quiz-1",
+    "/quizzes/authoring/manage?user=author&quiz=seed-quiz-1",
   );
   await expect(
     other.getByLabel("제목", { exact: true }),
@@ -296,26 +319,28 @@ test("supplementary help opens on hover, focus and mobile tap", async ({
   );
   await page
     .getByRole("heading", {
-      name: "퀴즈",
+      name: "퀴즈 만들기",
       exact: true,
     })
     .click();
   await expect(page.getByRole("tooltip")).toHaveCount(0);
 });
 
-test("custom dropdown keyboard and mobile dismissal", async ({
+test("management dropdown retains keyboard and mobile dismissal", async ({
   page,
 }) => {
-  await page.goto("/quizzes/authoring");
+  await page.goto(
+    "/quizzes/authoring/manage?user=author&quiz=seed-quiz-1",
+  );
   const trigger = page.getByRole("combobox", {
-    name: "더미 사용자",
+    name: "변경할 공개 범위",
   });
   await trigger.focus();
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("listbox")).toBeVisible();
   await page.keyboard.press("End");
   await page.keyboard.press("Enter");
-  await expect(trigger).toHaveText("웹 개발자");
+  await expect(trigger).toHaveText("공개");
   await page.setViewportSize({ width: 390, height: 844 });
   await trigger.click();
   await expect(page.getByRole("listbox")).toBeVisible();
@@ -328,7 +353,10 @@ test("custom dropdown keyboard and mobile dismissal", async ({
   await expect(trigger).toBeFocused();
   await trigger.click();
   await page
-    .getByRole("heading", { name: "퀴즈", exact: true })
+    .getByRole("heading", {
+      name: "현재 버전 공개 범위",
+      exact: true,
+    })
     .click();
   await expect(page.getByRole("listbox")).toHaveCount(0);
 });

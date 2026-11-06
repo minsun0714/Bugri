@@ -1,3 +1,4 @@
+import { AuthoringQueryProvider } from "@/features/quiz-authoring/query-provider";
 import {
   fireEvent,
   render,
@@ -28,11 +29,13 @@ function setup() {
   const onBatch = jest.fn();
   const onSaved = jest.fn();
   render(
-    <Generation
-      api={api}
-      onBatch={onBatch}
-      onSaved={onSaved}
-    />,
+    <AuthoringQueryProvider>
+      <Generation
+        api={api}
+        onBatch={onBatch}
+        onSaved={onSaved}
+      />
+    </AuthoringQueryProvider>,
   );
   return { api, onBatch, onSaved };
 }
@@ -112,11 +115,13 @@ test("failed generation preserves source and allows retry", async () => {
       .mockRejectedValue(new Error("저장소 접근 실패")),
   };
   render(
-    <Generation
-      api={api}
-      onBatch={jest.fn()}
-      onSaved={jest.fn()}
-    />,
+    <AuthoringQueryProvider>
+      <Generation
+        api={api}
+        onBatch={jest.fn()}
+        onSaved={jest.fn()}
+      />
+    </AuthoringQueryProvider>,
   );
   fireEvent.change(
     screen.getByRole("textbox", { name: /학습 내용/ }),
@@ -134,4 +139,42 @@ test("failed generation preserves source and allows retry", async () => {
   expect(
     screen.getByRole("button", { name: "퀴즈 생성" }),
   ).toBeEnabled();
+});
+
+test("additional requests refine before saving and preserve input on failure", async () => {
+  const { api } = setup();
+  fireEvent.change(
+    screen.getByRole("textbox", { name: /학습 내용/ }),
+    { target: { value: "타입스크립트" } },
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "퀴즈 생성" }),
+  );
+  const prompt =
+    await screen.findByLabelText("퀴즈 1에 추가 요청");
+  fireEvent.change(prompt, {
+    target: { value: "코드 예시를 추가해줘" },
+  });
+  const request = jest
+    .spyOn(api, "request")
+    .mockRejectedValueOnce(new Error("생성 실패"));
+  fireEvent.click(
+    screen.getByRole("button", { name: "요청 보내기" }),
+  );
+  await screen.findByText("생성 실패");
+  expect(prompt).toHaveValue("코드 예시를 추가해줘");
+  expect(
+    screen.getByRole("heading", { name: "타입 선언" }),
+  ).toBeVisible();
+  request.mockRestore();
+  fireEvent.click(
+    screen.getByRole("button", { name: "요청 보내기" }),
+  );
+  await screen.findByRole("list", {
+    name: "추가 요청 기록",
+  });
+  expect(prompt).toHaveValue("");
+  expect(
+    await api.request("quizzes", { scope: "OWN" }),
+  ).toHaveLength(0);
 });

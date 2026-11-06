@@ -1,3 +1,4 @@
+import { AuthoringQueryProvider } from "@/features/quiz-authoring/query-provider";
 import {
   fireEvent,
   render,
@@ -36,14 +37,16 @@ async function setup(index = 0) {
   const tags = await api.request("discoverHashtags", {});
   const onChanged = jest.fn();
   render(
-    <ReviewEditor
-      api={api}
-      initialQuiz={quiz}
-      tags={tags}
-      onChanged={onChanged}
-      onDeleted={jest.fn()}
-      onDirty={jest.fn()}
-    />,
+    <AuthoringQueryProvider>
+      <ReviewEditor
+        api={api}
+        initialQuiz={quiz}
+        tags={tags}
+        onChanged={onChanged}
+        onDeleted={jest.fn()}
+        onDirty={jest.fn()}
+      />
+    </AuthoringQueryProvider>,
   );
   return { api, quiz, onChanged };
 }

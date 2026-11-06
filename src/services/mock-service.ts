@@ -68,6 +68,7 @@ const tagIds = hashtags.map(({ id }) => id);
 const allowed: Record<Operation, string[]> = {
   generate: ["sourceContent"],
   generationBatch: ["batchId"],
+  refineCandidate: ["batchId", "candidateId", "prompt"],
   saveBatch: ["batchId", "mode", "candidateId"],
   quizzes: ["scope"],
   reviewQuiz: ["quizId"],
@@ -347,6 +348,49 @@ export function execute<K extends Operation>(
 
     case "generationBatch":
       return getBatch();
+
+    case "refineCandidate": {
+      const batch = getBatch();
+
+      text(r.candidateId, "candidateId");
+      text(r.prompt, "prompt");
+
+      const candidate = batch.candidates.find(
+        ({ candidateId }) => candidateId === r.candidateId,
+      );
+
+      if (!candidate)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
+          409,
+        );
+
+      requireValue(
+        candidate.savedQuizId === null,
+        "저장한 퀴즈는 검토 화면에서 수정하세요.",
+      );
+
+      const [content] = generate(
+        {
+          sourceContent: batch.sourceContent,
+          current: candidate.content,
+          prompt: r.prompt,
+        },
+        true,
+      );
+
+      candidate.content = content;
+
+      candidate.history = [
+        ...(candidate.history ?? []),
+        { prompt: r.prompt, content },
+      ];
+
+      candidate.candidateId = id();
+
+      return batch;
+    }
 
     case "saveBatch": {
       const batch = getBatch();

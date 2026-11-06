@@ -8,7 +8,7 @@ export default function AuthoringPage() {
       <Header
         sections={[
           ["generate", "퀴즈 생성"],
-          ["my-quizzes", "내 퀴즈"],
+          ["/quizzes/authoring/manage", "내 퀴즈"],
         ]}
       />
       <main className="mx-auto w-full max-w-[1220px] flex-1 px-5 py-10 md:px-12">

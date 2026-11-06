@@ -220,6 +220,28 @@ function validateState(
         c.content,
         hashtags.map(({ id }) => id),
       );
+
+      if (c.history !== undefined) {
+        requireValue(
+          Array.isArray(c.history),
+          "추가 요청 기록이 손상되었습니다.",
+        );
+
+        for (const item of c.history as unknown[]) {
+          object(item);
+
+          requireValue(
+            typeof item.prompt === "string" &&
+              item.prompt.trim().length > 0,
+            "추가 요청이 손상되었습니다.",
+          );
+
+          validateContent(
+            item.content,
+            hashtags.map(({ id }) => id),
+          );
+        }
+      }
     }
   }
 

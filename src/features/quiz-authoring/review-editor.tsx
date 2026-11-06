@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
 import { Dropdown } from "@/components/ui/dropdown";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
@@ -22,7 +23,8 @@ import { leaveMessage } from "@/features/quiz-authoring/use-unsaved-warning";
 import { styles } from "@/features/quiz-authoring/styles";
 
 export function ReviewEditor({
-  api,
+  api: client,
+  userId = "learner",
   initialQuiz,
   tags,
   onChanged,
@@ -31,6 +33,7 @@ export function ReviewEditor({
   onBusy = () => {},
 }: {
   api: ApiClient;
+  userId?: string;
   initialQuiz: ReviewQuiz;
   tags: Hashtag[];
   onChanged: () => void;
@@ -38,6 +41,7 @@ export function ReviewEditor({
   onDirty: (dirty: boolean) => void;
   onBusy?: (busy: boolean) => void;
 }) {
+  const api = useAuthoringActions(client, userId);
   const initialRevision = (initialQuiz.pending ??
     initialQuiz.active)!;
   const [quiz, setQuiz] = useState(initialQuiz);

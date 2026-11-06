@@ -25,6 +25,10 @@ UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID�
 
 채점·보상·구매 등 제품 규칙은 API 뒤 서비스가 결정한다. React 밖에서 사용할 수 있는 순수 입력 검증·텍스트 변환과, 상태·이벤트·비동기 흐름을 조율하는 훅을 구분한다. 작은 토글·표시용 계산은 컴포넌트에 두어도 된다. 사용자별 캐시 격리, mutation 이후 관련 데이터 갱신, 입력 보존·초기화 등 구체적인 구현 기준은 [implement-feature](../.agents/skills/implement-feature/SKILL.md#ui비즈니스-규칙api-상태-분리)를 따른다.
 
+### 퀴즈 작성 화면
+
+`/quizzes/authoring`은 입력·생성·후보별 추가 요청·저장에 집중하고, `/quizzes/authoring/manage`는 목록·검토·승인·공개 범위·삭제를 담당한다. 더미 사용자 식별은 Mock 조립 경계에 유지하고 생성 화면에는 전환 UI를 두지 않는다. 생성 전후의 후보·추가 요청 기록은 타입 API로 저장·복원하며 명시적 저장 전에는 내 퀴즈 목록에 포함하지 않는다.
+
 ### UI 스타일링
 
 Tailwind CSS v4를 `@tailwindcss/postcss`로 Next.js 빌드에 연결한다. `src/app/globals.css`의 `@theme`에서 색상·폰트·애니메이션 토큰을 정의하고, 컴포넌트는 Tailwind 유틸리티로 레이아웃·상태·반응형을 표현한다. 긴 클래스 조합은 해당 디렉터리의 `styles.ts`에 완성된 문자열로 둔다. 이는 빌드 시 추출되는 클래스 목록이며 CSS-in-JS 런타임이 아니다.

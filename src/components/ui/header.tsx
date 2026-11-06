@@ -38,7 +38,7 @@ export function Header({
       >
         {sections.map(([id, label], i) => (
           <a
-            href={`#${id}`}
+            href={id.startsWith("/") ? id : `#${id}`}
             key={id}
             className="flex shrink-0 items-center gap-2 rounded-full px-3 py-2.5 text-xs text-muted transition-colors hover:bg-primary/10 hover:text-primary focus-visible:bg-primary/10"
           >

@@ -1,17 +1,11 @@
 "use client";
 
-import { Dropdown } from "@/components/ui/dropdown";
-import { Tooltip } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
-import type { ApiClient } from "@/api/client";
 import {
   QuizScope,
   type GenerationBatch,
-  type Hashtag,
-  type QuizSummary,
-  type ReviewQuiz,
-  type User,
 } from "@/api/contracts";
 import {
   Button,
@@ -22,330 +16,293 @@ import {
 import { Generation } from "@/features/quiz-authoring/generation";
 import { ReviewEditor } from "@/features/quiz-authoring/review-editor";
 import { RequestError } from "@/features/quiz-authoring/feedback";
+import { AuthoringQueryProvider } from "@/features/quiz-authoring/query-provider";
+import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring-api";
 import { styles } from "@/features/quiz-authoring/styles";
 import {
   leaveMessage,
   useUnsavedWarning,
 } from "@/features/quiz-authoring/use-unsaved-warning";
 
-export function AuthoringWorkspace() {
-  const [session, setSession] = useState<{
-    api: ApiClient;
-    userId: string;
-    users: User[];
-    tags: Hashtag[];
-    batch?: GenerationBatch;
-  }>();
-  const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
-  const [review, setReview] = useState<ReviewQuiz>();
-  const [error, setError] = useState<unknown>(null);
+function subscribe(callback: () => void) {
+  window.addEventListener("popstate", callback);
+  return () =>
+    window.removeEventListener("popstate", callback);
+}
+
+function setLocationParam(key: string, value?: string) {
+  const url = new URL(window.location.href);
+  if (value) url.searchParams.set(key, value);
+  else url.searchParams.delete(key);
+  window.history.replaceState(null, "", url);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
+export function AuthoringWorkspace({
+  mode = "create",
+}: {
+  mode?: "create" | "manage";
+}) {
+  return (
+    <AuthoringQueryProvider>
+      <Workspace mode={mode} />
+    </AuthoringQueryProvider>
+  );
+}
+
+function Workspace({
+  mode,
+}: {
+  mode: "create" | "manage";
+}) {
+  const search = useSyncExternalStore(
+    subscribe,
+    () => window.location.search,
+    () => null,
+  );
+  const params = new URLSearchParams(search ?? "");
+  const userId = params.get("user") ?? "learner";
+  const quizId = params.get("quiz") ?? "";
+  const batchId = params.get("batch") ?? "";
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [reload, setReload] = useState(0);
   const [notice, setNotice] = useState("");
+  const apiQuery = useQuery({
+    queryKey: ["authoring-client", userId],
+    queryFn: () =>
+      createBrowserApi({ mode: "mock", userId }),
+    enabled: search !== null,
+    staleTime: Infinity,
+  });
+  const { data: api } = apiQuery;
+  const batch = useAuthoringQuery(
+    api,
+    userId,
+    "generationBatch",
+    { batchId },
+    mode === "create" && !!batchId,
+  );
+  const list = useAuthoringQuery(
+    api,
+    userId,
+    "quizzes",
+    { scope: QuizScope.OWN },
+    mode === "manage",
+  );
+  const review = useAuthoringQuery(
+    api,
+    userId,
+    "reviewQuiz",
+    { quizId },
+    mode === "manage" && !!quizId,
+  );
+  const tags = useAuthoringQuery(
+    api,
+    userId,
+    "discoverHashtags",
+    {},
+    mode === "manage" && !!quizId,
+  );
+  const error =
+    apiQuery.error ??
+    (mode === "create"
+      ? batch.error
+      : (list.error ?? review.error ?? tags.error));
+  const createHref = `/quizzes/authoring?user=${encodeURIComponent(userId)}`;
 
   useUnsavedWarning(dirty);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const params = new URLSearchParams(
-          window.location.search,
-        );
-        const userId = params.get("user") ?? "learner";
-        const api = await createBrowserApi({
-          mode: "mock",
-          userId,
-        });
-        const [users, items, tags] = await Promise.all([
-          api.request("discoverUsers", {}),
-          api.request("quizzes", { scope: QuizScope.OWN }),
-          api.request("discoverHashtags", {}),
-        ]);
-        const batchId = params.get("batch");
-        const quizId = params.get("quiz");
-        const batch = batchId
-          ? await api.request("generationBatch", {
-              batchId,
-            })
-          : undefined;
-        const selected = quizId
-          ? await api.request("reviewQuiz", { quizId })
-          : undefined;
-
-        if (!cancelled) {
-          setSession({ api, userId, users, tags, batch });
-          setQuizzes(items);
-          setReview(selected);
-          setError(null);
-        }
-      } catch (error) {
-        if (!cancelled) setError(error);
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [reload]);
-
-  async function refresh() {
-    if (!session) return;
-
-    try {
-      setQuizzes(
-        await session.api.request("quizzes", {
-          scope: QuizScope.OWN,
-        }),
-      );
-      setError(null);
-    } catch (error) {
-      setError(error);
-    }
+  function rememberBatch({ batchId }: GenerationBatch) {
+    setLocationParam("batch", batchId);
   }
-
-  function rememberBatch(batch: GenerationBatch) {
-    const url = new URL(window.location.href);
-    url.searchParams.set("batch", batch.batchId);
-    window.history.replaceState(null, "", url);
-    setSession((current) =>
-      current ? { ...current, batch } : current,
-    );
-  }
-
   function closeReview() {
-    const url = new URL(window.location.href);
-    url.searchParams.delete("quiz");
-    window.history.replaceState(null, "", url);
-    setReview(undefined);
     setDirty(false);
+    setLocationParam("quiz");
+  }
+  function openReview(id: string) {
+    if (busy || (dirty && !window.confirm(leaveMessage)))
+      return;
+    setDirty(false);
+    setLocationParam("quiz", id);
+    setNotice("");
   }
 
-  async function openReview(quizId: string) {
-    if (review?.quizId === quizId) return;
-    if (
-      !session ||
-      busy ||
-      (dirty && !window.confirm(leaveMessage))
-    )
-      return;
-    setBusy(true);
-    try {
-      const result = await session.api.request(
-        "reviewQuiz",
-        { quizId },
-      );
-      const url = new URL(window.location.href);
-      url.searchParams.set("quiz", quizId);
-      window.history.replaceState(null, "", url);
-      setDirty(false);
-      setReview(result);
-      setNotice("");
-      setError(null);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setBusy(false);
-    }
+  async function retry() {
+    await Promise.all([
+      apiQuery.refetch(),
+      ...(mode === "create"
+        ? batchId
+          ? [batch.refetch()]
+          : []
+        : [
+            list.refetch(),
+            ...(quizId
+              ? [review.refetch(), tags.refetch()]
+              : []),
+          ]),
+    ]);
   }
+
+  if (error)
+    return (
+      <div className={styles.stack}>
+        <RequestError error={error} />
+        <div>
+          <Button onClick={() => void retry()}>
+            다시 불러오기
+          </Button>
+        </div>
+        <a
+          href={
+            mode === "create"
+              ? createHref
+              : `/quizzes/authoring/manage?user=${encodeURIComponent(userId)}`
+          }
+          className="text-primary underline"
+        >
+          {mode === "create" ? "새로 만들기" : "목록으로"}
+        </a>
+      </div>
+    );
+  if (
+    !api ||
+    (mode === "create" && batchId && !batch.data) ||
+    (mode === "manage" && !list.data) ||
+    (mode === "manage" &&
+      quizId &&
+      (!review.data || !tags.data))
+  )
+    return <Skeleton />;
+
+  if (mode === "create")
+    return (
+      <Generation
+        key={userId}
+        api={api}
+        userId={userId}
+        initialBatch={batch.data}
+        onBatch={rememberBatch}
+        onSaved={() => {}}
+        onDirty={setDirty}
+        onBusy={setBusy}
+      />
+    );
 
   return (
     <div className={styles.stack}>
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold tracking-tight text-foreground">
-            퀴즈
-          </h1>
-          <Tooltip label="저장 및 사용자 안내">
-            더미 사용자로 체험합니다. 변경 사항은 이
-            브라우저에만 저장되며 브라우저 데이터 삭제 시
-            사라집니다.
-          </Tooltip>
-        </div>
-        {session && (
-          <div className="w-full sm:w-52">
-            <Dropdown
-              label="더미 사용자"
-              value={session.userId}
-              disabled={busy}
-              options={session.users.map(
-                ({ userId, displayName }) => ({
-                  value: userId,
-                  label: displayName,
-                }),
-              )}
-              onValueChange={(userId) => {
-                if (dirty && !window.confirm(leaveMessage))
-                  return;
-                window.history.replaceState(
-                  null,
-                  "",
-                  `/quizzes/authoring?user=${encodeURIComponent(userId)}`,
-                );
-                setDirty(false);
-                setSession(undefined);
-                setReview(undefined);
-                setNotice("");
-                setReload((value) => value + 1);
-              }}
-            />
-          </div>
-        )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">내 퀴즈</h1>
+        <a
+          href={createHref}
+          className="text-sm font-semibold text-primary"
+        >
+          퀴즈 만들기 ↗
+        </a>
       </div>
-      <RequestError error={error} />
       {notice && (
         <p role="status" className="text-primary">
           {notice}
         </p>
       )}
-      {!session ? (
+      {review.data && quizId && (
         <>
-          {!error && <Skeleton />}
-          {error && (
-            <div className={styles.actions}>
-              <Button
-                onClick={() =>
-                  setReload((value) => value + 1)
-                }
-              >
-                다시 불러오기
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  window.history.replaceState(
-                    null,
-                    "",
-                    "/quizzes/authoring",
-                  );
-                  setReload((value) => value + 1);
-                }}
-              >
-                기본 사용자 목록으로 돌아가기
-              </Button>
-            </div>
-          )}
+          <div>
+            <Button
+              variant="ghost"
+              disabled={busy}
+              onClick={() => {
+                if (dirty && !window.confirm(leaveMessage))
+                  return;
+                closeReview();
+              }}
+            >
+              목록으로
+            </Button>
+          </div>
+          <ReviewEditor
+            key={`${userId}:${quizId}`}
+            api={api}
+            userId={userId}
+            initialQuiz={review.data}
+            tags={tags.data ?? []}
+            onChanged={() => void list.refetch()}
+            onDeleted={() => {
+              closeReview();
+              setNotice("퀴즈를 삭제했습니다.");
+              void list.refetch();
+            }}
+            onDirty={setDirty}
+            onBusy={setBusy}
+          />
         </>
-      ) : (
-        <>
-          {review ? (
-            <>
-              <div>
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() => {
-                    if (
-                      dirty &&
-                      !window.confirm(leaveMessage)
-                    )
-                      return;
-                    closeReview();
-                  }}
+      )}
+      {!quizId && (
+        <section
+          id="my-quizzes"
+          className={styles.stack}
+          aria-label="내 퀴즈 목록"
+        >
+          <div>
+            <Button
+              variant="ghost"
+              disabled={list.isFetching}
+              onClick={() => void list.refetch()}
+            >
+              목록 새로고침
+            </Button>
+          </div>
+          {!list.data?.length && (
+            <EmptyState
+              title="저장한 퀴즈가 없습니다"
+              description="퀴즈를 만들고 마음에 드는 결과를 저장하세요."
+              action={
+                <a
+                  href={createHref}
+                  className="text-primary underline"
                 >
-                  생성 화면으로 돌아가기
-                </Button>
-              </div>
-              <ReviewEditor
-                key={review.quizId}
-                api={session.api}
-                initialQuiz={review}
-                tags={session.tags}
-                onChanged={() => void refresh()}
-                onDeleted={() => {
-                  closeReview();
-                  setNotice("퀴즈를 삭제했습니다.");
-                  void refresh();
-                }}
-                onDirty={setDirty}
-                onBusy={setBusy}
-              />
-            </>
-          ) : (
-            <Generation
-              api={session.api}
-              initialBatch={session.batch}
-              onBatch={rememberBatch}
-              onSaved={() => void refresh()}
-              onDirty={setDirty}
-              onBusy={setBusy}
+                  퀴즈 만들기
+                </a>
+              }
             />
           )}
-          <section
-            id="my-quizzes"
-            className={styles.stack}
-            aria-label="내 퀴즈 목록"
-          >
-            <div className={styles.actions}>
-              <h2 className="text-2xl">내 퀴즈 목록</h2>
-              <Button
-                variant="ghost"
-                disabled={busy}
-                onClick={() => void refresh()}
-              >
-                목록 새로고침
-              </Button>
-            </div>
-            {!quizzes.length && (
-              <EmptyState
-                title="저장한 퀴즈가 없습니다"
-                description="학습 내용을 입력하고 생성 후보를 저장해보세요."
-                action={
-                  <a
-                    href="#generate"
-                    className="text-primary underline"
+          {list.data?.map(
+            ({
+              quizId: id,
+              title,
+              status,
+              updatedAt,
+              hasPendingRevision,
+            }) => (
+              <Card key={id} className="grid gap-3">
+                <h2>{title}</h2>
+                <p>
+                  {status}
+                  {hasPendingRevision
+                    ? " · 검토할 수정본 있음"
+                    : ""}
+                </p>
+                <time
+                  dateTime={updatedAt}
+                  className="text-sm text-muted"
+                >
+                  최종 저장:{" "}
+                  {new Date(updatedAt).toLocaleString(
+                    "ko-KR",
+                  )}
+                </time>
+                <div>
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => openReview(id)}
                   >
-                    퀴즈 만들기
-                  </a>
-                }
-              />
-            )}
-            {quizzes.map(
-              ({
-                quizId,
-                title,
-                status,
-                updatedAt,
-                hasPendingRevision,
-              }) => (
-                <Card key={quizId} className="grid gap-3">
-                  <h3>{title}</h3>
-                  <p>
-                    {status}
-                    {hasPendingRevision
-                      ? " · 검토할 수정본 있음"
-                      : ""}
-                  </p>
-                  <time
-                    dateTime={updatedAt}
-                    className="text-sm text-muted"
-                  >
-                    최종 저장:{" "}
-                    {new Date(updatedAt).toLocaleString(
-                      "ko-KR",
-                    )}
-                  </time>
-                  <div>
-                    <Button
-                      variant="secondary"
-                      disabled={
-                        busy || review?.quizId === quizId
-                      }
-                      onClick={() =>
-                        void openReview(quizId)
-                      }
-                    >
-                      {title} 검토·관리
-                    </Button>
-                  </div>
-                </Card>
-              ),
-            )}
-          </section>
-        </>
+                    {title} 검토·관리
+                  </Button>
+                </div>
+              </Card>
+            ),
+          )}
+        </section>
       )}
     </div>
   );

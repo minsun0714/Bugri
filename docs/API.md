@@ -47,6 +47,14 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 생성 후보는 작성자 전용 `GenerationBatch`다. `saveBatch`의 SINGLE은 한 후보, ALL은 후보별 독립 PENDING 퀴즈를 저장한다. 이미 저장된 후보는 같은 퀴즈를 반환하여 재전송이 복제하지 않는다. 저장 후 삭제한 후보의 재저장은 409로 거부한다.
 
+### 저장 전 후보의 추가 요청
+
+`refineCandidate({ batchId, candidateId, prompt })`는 `POST /generation-batches/{id}/refine` 계약이다. 작성자의 미저장 후보 한 개에 원본 학습 내용·현재 후보·추가 요청을 전달하고 검증된 한 개 결과로 갱신한다. 다른 후보·저장한 퀴즈는 바꾸지 않는다. 후보의 선택적 `history` 배열에 `{ prompt, content }` 요청·응답을 보존하며 기존 history 없는 저장 데이터도 읽는다.
+
+성공하면 해당 candidateId를 새 ID로 교체한다. 오래된 후보 ID 요청은 VERSION_CONFLICT이며 최신 후보를 재조회해야 한다. 저장된 후보는 VALIDATION_ERROR, 타인의 batch는 NOT_FOUND다. 생성/저장소 실패 시 기존 결과는 그대로 남는다. 실제 AI는 호출하지 않으며 Mock은 추가 요청을 문제 문구에 표시한다.
+
+작성 UI는 TanStack Query의 사용자별 키로 후보·목록·상세를 조회하고, 변경 성공 후 관련 조회를 무효화한다. 오류 자동 재시도와 창 포커스 자동 재조회는 끄고 편집 입력을 보존한다. QueryClientProvider는 작성 영역에 안정적으로 유지하며 사용자 식별자를 모든 작성 데이터 키에 포함한다.
+
 ## 수정·검토·공개
 
 `reviewQuiz`만 원본·정답·해설을 포함하는 작성자 DTO를 반환한다. `updatePending`은 다음 두 동작을 분리한다.

@@ -170,3 +170,11 @@
 - combobox/listbox 의미, 방향키·Home/End·Enter 선택, Escape·Tab·바깥 클릭 닫기, 비활성 상태를 지원한다. 공통 사용 규칙은 CODING_CONVENTIONS에 기록했다.
 - 새 컴포넌트 미구현 실패 확인 후 단위 테스트 3개를 통과했다. 기존 화면 테스트는 커스텀 옵션 클릭으로 변경하고 사용자 전환·승인·비공개 전환 검증을 유지했다. 타입 검사에서 RTL에 없는 exact 옵션을 사용한 오류를 수정했다.
 - Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 63개·production build·Playwright 9개. 키보드·390px 모바일·바깥 클릭 검증과 데스크톱 열린 패널 캡처 확인 포함. `git diff --check` 통과. 독립 리뷰는 남아 있다.
+
+### A 생성 대화와 관리 화면 분리 — DONE (2026-11-07)
+
+- 생성 화면에서 내 목록·더미 사용자 선택을 제거하고 관리를 `/quizzes/authoring/manage`로 분리한다. 저장 전 후보별 추가 요청·이력·실패 시 입력 보존을 구현한다. Mock 유지, B/C 기능 제외.
+- 새 후보 추가 요청 API·저장 검증과 UI 흐름 테스트를 추가했다. 요청만으로 내 목록에 저장하지 않으며, 실패 시 기존 후보와 요청 입력을 보존한다. candidateId 교체로 오래된 후보 갱신을 거부하고 사용자별 요청·응답 기록을 복원한다.
+- 최신 구현 스킬에 따라 TanStack Query와 작성 영역 Provider, 사용자별 쿼리 키·API mutation 훅을 적용했다. 생성 입력/비동기 흐름은 useGeneration에 분리했다. 원본 API 클라이언트와 Mock 서비스 경계는 유지한다. API/Mock 외 변경은 A 화면·공통 헤더의 경로 링크 지원에 한정한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 67개·production build·Playwright 9개. 후보 추가 요청 정상/실패/권한/오래된 후보/저장 전 목록 제외와 실제 HTTP 직렬화, 생성→대화→복원→개별/일괄 저장→별도 관리·승인·수정·삭제를 확인했다. 데스크톱 대화 화면 캡처를 확인했다.
+- 초기 타입/린트 오류(unknown 조건부 렌더링·테스트 구조 분해)를 수정했다. 전체 검증의 기존 HTTP endpoint 개수 기대값은 새 계약 추가에 따라 30→31로 수정하고 신규 경로/본문 검증을 추가했다. 이후 전체 검증 통과. 실제 LLM 호출·B/C 통합과 독립 리뷰는 이번 완료 범위에 포함하지 않는다.

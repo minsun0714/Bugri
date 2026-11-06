@@ -99,6 +99,7 @@ export interface GenerationBatch {
     candidateId: string;
     content: QuizContent;
     savedQuizId: string | null;
+    history?: { prompt: string; content: QuizContent }[];
   }[];
 }
 
@@ -225,6 +226,14 @@ export interface ApiOperations {
   };
   generationBatch: {
     request: { batchId: string };
+    response: GenerationBatch;
+  };
+  refineCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+      prompt: string;
+    };
     response: GenerationBatch;
   };
   saveBatch: {
