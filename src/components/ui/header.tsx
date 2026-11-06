@@ -1,7 +1,11 @@
-import { Badge } from "./index";
-import { MobileNavigation } from "./mobile-navigation";
+import { Badge } from "@/components/ui/index";
+import { MobileNavigation } from "@/components/ui/mobile-navigation";
 
-export function Header({ sections }: { sections: string[][] }) {
+export function Header({
+  sections,
+}: {
+  sections: string[][];
+}) {
   return (
     <header className="relative z-20 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-[1220px] items-center justify-between gap-4 px-5 py-3.5 sm:py-5 md:px-12">
@@ -14,7 +18,9 @@ export function Header({ sections }: { sections: string[][] }) {
             b.
           </span>
           bugri
-          <span className="-ml-1 mt-2 self-start text-[8px] text-coral">●</span>
+          <span className="-ml-1 mt-2 self-start text-[8px] text-coral">
+            ●
+          </span>
         </a>
         <div className="flex items-center gap-4">
           <span className="hidden text-xs text-muted sm:block">

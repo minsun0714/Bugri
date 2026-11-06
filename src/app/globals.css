@@ -10,7 +10,9 @@
   --color-lime: #dcf58c;
   --color-coral: #f87981;
   --color-sunny: #ffd470;
-  --font-sans: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-sans:
+    Arial, "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
   --animate-shimmer: shimmer 2s infinite;
   @keyframes shimmer {
     to {

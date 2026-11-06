@@ -1,48 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useMobileNavigation } from "@/components/ui/hooks/use-mobile-navigation";
 
-export function MobileNavigation({ sections }: { sections: string[][] }) {
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState("");
-  const root = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const sync = () => setActive(window.location.hash.slice(1));
-    sync();
-    window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
-  }, []);
-  useEffect(() => {
-    if (!open) return;
-    const outside = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-        trigger.current?.focus();
-      }
-    };
-    const desktop = window.matchMedia("(min-width: 640px)");
-    const resize = () => {
-      if (desktop.matches) setOpen(false);
-    };
-    document.addEventListener("pointerdown", outside);
-    document.addEventListener("keydown", escape);
-    desktop.addEventListener("change", resize);
-    return () => {
-      document.removeEventListener("pointerdown", outside);
-      document.removeEventListener("keydown", escape);
-      desktop.removeEventListener("change", resize);
-    };
-  }, [open]);
+export function MobileNavigation({
+  sections,
+}: {
+  sections: string[][];
+}) {
+  const {
+    open,
+    setOpen,
+    active,
+    root,
+    trigger,
+    selectSection,
+  } = useMobileNavigation();
+
   return (
     <div
       ref={root}
       className="sm:hidden"
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node))
+        if (
+          !event.currentTarget.contains(
+            event.relatedTarget as Node,
+          )
+        )
           setOpen(false);
       }}
     >
@@ -93,18 +76,10 @@ export function MobileNavigation({ sections }: { sections: string[][] }) {
               <a
                 key={id}
                 href={`#${id}`}
-                aria-current={active === id ? "location" : undefined}
-                onClick={() => {
-                  setActive(id);
-                  setOpen(false);
-                  requestAnimationFrame(() => {
-                    const section = document.getElementById(id);
-                    if (section) {
-                      section.tabIndex = -1;
-                      section.focus({ preventScroll: true });
-                    }
-                  });
-                }}
+                aria-current={
+                  active === id ? "location" : undefined
+                }
+                onClick={() => selectSection(id)}
                 className={`group flex min-h-14 items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-colors ${active === id ? "bg-primary/10 text-primary" : "text-foreground hover:bg-canvas"}`}
               >
                 <span
@@ -124,7 +99,9 @@ export function MobileNavigation({ sections }: { sections: string[][] }) {
           </div>
           <div className="mx-3 mt-3 border-t border-line pb-1 pt-3 text-[11px] text-muted">
             작은 배움이 쌓이는 곳{" "}
-            <span className="float-right font-bold text-primary">bugri.</span>
+            <span className="float-right font-bold text-primary">
+              bugri.
+            </span>
           </div>
         </nav>
       )}

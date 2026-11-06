@@ -1,7 +1,8 @@
 "use client";
 
 import { styles } from "@/components/ui/styles";
-import { useId, useRef, useState } from "react";
+import { useId } from "react";
+import { useMarkdownEditor } from "@/components/ui/hooks/use-markdown-editor";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import { Button, Tabs } from "@/components/ui/index";
@@ -20,44 +21,25 @@ export function MarkdownEditor({
   preserveOverflow?: boolean;
 }) {
   const id = useId();
-  const input = useRef<HTMLTextAreaElement>(null);
-  const selection = useRef({ start: 0, end: 0 });
-  const [tab, setTab] = useState("작성");
-  const [picker, setPicker] = useState(false);
-  const [language, setLanguage] = useState("typescript");
-  const [error, setError] = useState("");
-  const count = Array.from(value).length;
-  function insertCode() {
-    const { start, end } = selection.current;
-    const selected = value.slice(start, end);
-    const longest = Math.max(
-      2,
-      ...(selected.match(/`+/g) ?? []).map(
-        (run) => run.length,
-      ),
-    );
-    const fence = "`".repeat(longest + 1);
-    const prefix = `${start && value[start - 1] !== "\n" ? "\n\n" : ""}${fence}${language}\n`;
-    const inserted = `${prefix}${selected}\n${fence}\n`;
-    const next =
-      value.slice(0, start) + inserted + value.slice(end);
-    if (Array.from(next).length > limit) {
-      setError(
-        "코드 블록을 추가하면 글자 수 제한을 초과해요.",
-      );
-      return;
-    }
-    onChange(next);
-    setPicker(false);
-    setError("");
-    requestAnimationFrame(() => {
-      input.current?.focus();
-      input.current?.setSelectionRange(
-        start + prefix.length,
-        start + prefix.length + selected.length,
-      );
-    });
-  }
+  const {
+    input,
+    tab,
+    setTab,
+    picker,
+    language,
+    setLanguage,
+    error,
+    count,
+    insertCode,
+    togglePicker,
+    changeValue,
+  } = useMarkdownEditor({
+    value,
+    onChange,
+    limit,
+    preserveOverflow,
+  });
+
   return (
     <div className={styles["markdown-editor"]}>
       <div
@@ -78,18 +60,7 @@ export function MarkdownEditor({
                 size="sm"
                 variant="ghost"
                 aria-expanded={picker}
-                onClick={() => {
-                  if (!picker)
-                    selection.current = {
-                      start:
-                        input.current?.selectionStart ??
-                        value.length,
-                      end:
-                        input.current?.selectionEnd ??
-                        value.length,
-                    };
-                  setPicker(!picker);
-                }}
+                onClick={togglePicker}
               >
                 코드 블록
               </Button>
@@ -133,16 +104,9 @@ export function MarkdownEditor({
               aria-describedby={`${id}-count ${id}-error`}
               aria-invalid={count > limit}
               value={value}
-              onChange={(event) => {
-                onChange(
-                  preserveOverflow
-                    ? event.target.value
-                    : Array.from(event.target.value)
-                        .slice(0, limit)
-                        .join(""),
-                );
-                setError("");
-              }}
+              onChange={({ target: { value } }) =>
+                changeValue(value)
+              }
               rows={9}
               placeholder={
                 "오늘 배운 내용을 Markdown으로 적어보세요.\n\n# 제목\n- 배운 점\n\n코드는 코드 블록 버튼으로 추가할 수 있어요."
