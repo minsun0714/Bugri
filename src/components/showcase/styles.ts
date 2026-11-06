@@ -68,7 +68,5 @@ export const styles = {
     "tab-example flex gap-2.5 items-center justify-between text-[11px] max-[760px]:flex-wrap",
   "desk-card":
     "desk-card [&.desk-card]:bg-[#eee4ff] flex justify-between items-center gap-5 min-h-[179px] [&_h3]:text-[19px] [&_h3]:tracking-[-0.7px] [&_h3]:mt-3.5 [&_h3]:mx-0 [&_h3]:mb-2.25 [&_p]:text-[11px] [&_p]:text-muted [&_.bugri-pet]:shrink-0 max-[400px]:gap-2.5 max-[400px]:[&_h3]:text-[16px]",
-  "design-footer":
-    "design-footer flex justify-between items-center gap-5 mt-12.5 py-7.5 px-0 border-t border-t-line text-[10px] text-[#8e7d9e] [&_.wordmark]:text-[22px] max-[760px]:[&_>_span:nth-child(2)]:hidden",
   "modal-actions": "modal-actions justify-end",
 } as const;

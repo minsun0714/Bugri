@@ -10,6 +10,7 @@
 
 | ID | 작업 | 상태 | 선행 | 완료 기준 |
 | --- | --- | --- | --- | --- |
+| P00F | 공통 푸터 | IN_PROGRESS | P00UI 시안 | 로고·링크·맨 위 이동·모바일 줄바꿈 구현. lint·타입·단위 6개·개발 서버 E2E 2개 통과. 전체 verify는 빌드 환경 포트 권한 오류로 차단되어 DONE 보류 |
 | P00TW | Tailwind 스타일링 전환 | DONE | P00UI 시안 | Tailwind v4·PostCSS·테마 토큰 적용, 컴포넌트 CSS 제거. Node 22에서 E2E_PORT=3101 npm run verify 통과(단위 6개·E2E 2개·lint·타입·빌드). 데스크톱·모바일 캡처 확인. 디자인 검토·임시 홈 복원은 P00UI에서 별도 진행 |
 | P00UI | 공통 UI 컴포넌트·홈 전시 | IN_PROGRESS | P00 | 공통 UI·임시 홈 전시 구현. 해시태그 칩 입력(Enter 추가·개별 삭제·중복 방지·3개 제한), Markdown 작성·미리보기·코드 블록 삽입 적용. Node 22에서 E2E_PORT=3101 npm run verify 통과(단위 6개·E2E 2개), 모바일·모달 키보드 검증. 상단 헤더·모바일 햄버거 드롭다운 반영(선택 표시·Escape/바깥 클릭 닫기). 해당 변경 lint·타입·개발 서버 E2E 2개 통과; 전체 verify는 빌드의 환경 포트 권한 오류로 차단. 디자인 사용자 검토 및 PR 전 홈 복원은 남음. 제품 기능과 별개 |
 | P00 | 단계별 문서 정합성 | DONE | 없음 | AGENTS·PRD·ARCHITECTURE·TASKS의 1·2단계 경계 반영. 기능 구현과 별개 |

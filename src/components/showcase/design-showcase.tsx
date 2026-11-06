@@ -2,6 +2,7 @@
 
 import { styles } from "./styles";
 import { MobileNavigation } from "./mobile-navigation";
+import { Footer } from "../ui/footer";
 
 import { useState, type ReactNode } from "react";
 import {
@@ -446,13 +447,16 @@ export default function DesignShowcase() {
               </div>
             </div>
           </Section>
-          <footer className={styles["design-footer"]}>
-            <span className={styles["wordmark"]}>bugri.</span>
-            <span>Bugri UI · 0.1</span>
-            <a href="#top">맨 위로 ↑</a>
-          </footer>
         </div>
       </main>
+      <Footer
+        links={[
+          { label: "공통 컴포넌트", href: "#actions" },
+          { label: "입력과 폼", href: "#inputs" },
+          { label: "콘텐츠 카드", href: "#cards" },
+        ]}
+        note="디자인 미리보기 · v0.1"
+      />
       <Modal
         open={modal}
         onClose={() => setModal(false)}

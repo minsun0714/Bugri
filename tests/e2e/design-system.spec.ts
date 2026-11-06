@@ -54,6 +54,15 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
     path: testInfo.outputPath("mobile.png"),
     fullPage: true,
   });
+  const footer = page.getByRole("contentinfo", { name: "사이트 정보" });
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer).toBeVisible();
+  await footer.getByRole("link", { name: "입력과 폼", exact: true }).click();
+  await expect(page).toHaveURL(/#inputs$/);
+  await footer
+    .getByRole("link", { name: "페이지 맨 위로", exact: true })
+    .click();
+  await expect(page).toHaveURL(/#top$/);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
