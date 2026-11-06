@@ -28,7 +28,10 @@ export function initialState(userId: string): UserState {
     userId,
     quizzes: quizzes
       .filter((q) => q.ownerUserId === userId)
-      .map((q) => ({ ...q, deletedAt: null })),
+      .map((q) => ({
+        ...q,
+        deletedAt: null,
+      })),
     batches: [],
     subscriptions: [...subscriptions],
     attempts: [...attempts],

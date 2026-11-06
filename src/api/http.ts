@@ -11,7 +11,10 @@ interface Endpoint {
   pathKey?: string;
 }
 export const endpoints: Record<Operation, Endpoint> = {
-  generate: { method: "POST", path: "/quizzes/generate" },
+  generate: {
+    method: "POST",
+    path: "/quizzes/generate",
+  },
   generationBatch: {
     method: "GET",
     path: "/generation-batches/{id}",
@@ -22,7 +25,10 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/generation-batches/{id}/save",
     pathKey: "batchId",
   },
-  quizzes: { method: "GET", path: "/quizzes" },
+  quizzes: {
+    method: "GET",
+    path: "/quizzes",
+  },
   reviewQuiz: {
     method: "GET",
     path: "/quizzes/{id}/review",
@@ -53,18 +59,42 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/quizzes/{id}",
     pathKey: "quizId",
   },
-  subscriptions: { method: "GET", path: "/subscriptions" },
-  subscribe: { method: "POST", path: "/subscriptions" },
-  unsubscribe: { method: "DELETE", path: "/subscriptions" },
-  discoverUsers: { method: "GET", path: "/discover/users" },
+  subscriptions: {
+    method: "GET",
+    path: "/subscriptions",
+  },
+  subscribe: {
+    method: "POST",
+    path: "/subscriptions",
+  },
+  unsubscribe: {
+    method: "DELETE",
+    path: "/subscriptions",
+  },
+  discoverUsers: {
+    method: "GET",
+    path: "/discover/users",
+  },
   discoverHashtags: {
     method: "GET",
     path: "/discover/hashtags",
   },
-  learningTags: { method: "GET", path: "/learning/tags" },
-  learningQuiz: { method: "GET", path: "/learning/quiz" },
-  learningNext: { method: "POST", path: "/learning/next" },
-  learningDay: { method: "GET", path: "/learning/day" },
+  learningTags: {
+    method: "GET",
+    path: "/learning/tags",
+  },
+  learningQuiz: {
+    method: "GET",
+    path: "/learning/quiz",
+  },
+  learningNext: {
+    method: "POST",
+    path: "/learning/next",
+  },
+  learningDay: {
+    method: "GET",
+    path: "/learning/day",
+  },
   learningTimezone: {
     method: "GET",
     path: "/me/learning-timezone",
@@ -88,11 +118,26 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/attempts/{id}/answer",
     pathKey: "attemptId",
   },
-  products: { method: "GET", path: "/shop/products" },
-  wallet: { method: "GET", path: "/me/bugcoin" },
-  purchase: { method: "POST", path: "/shop/purchases" },
-  inventory: { method: "GET", path: "/me/inventory" },
-  equip: { method: "PUT", path: "/me/desk/equipment" },
+  products: {
+    method: "GET",
+    path: "/shop/products",
+  },
+  wallet: {
+    method: "GET",
+    path: "/me/bugcoin",
+  },
+  purchase: {
+    method: "POST",
+    path: "/shop/purchases",
+  },
+  inventory: {
+    method: "GET",
+    path: "/me/inventory",
+  },
+  equip: {
+    method: "PUT",
+    path: "/me/desk/equipment",
+  },
   publicProfile: {
     method: "GET",
     path: "/users/{id}",
@@ -114,13 +159,18 @@ export function createHttpTransport(
         message: string,
       ) => ({
         status: 502,
-        body: { error: { code, message, requestId } },
+        body: {
+          error: {
+            code,
+            message,
+            requestId,
+          },
+        },
       });
       const endpoint = endpoints[operation];
-      const params = { ...request } as Record<
-        string,
-        unknown
-      >;
+      const params = {
+        ...request,
+      } as Record<string, unknown>;
       let path = endpoint.path;
       if (endpoint.pathKey) {
         path = path.replace(
@@ -148,11 +198,15 @@ export function createHttpTransport(
               Accept: "application/json",
               ...(endpoint.method === "GET"
                 ? {}
-                : { "Content-Type": "application/json" }),
+                : {
+                    "Content-Type": "application/json",
+                  }),
             },
             ...(endpoint.method === "GET"
               ? {}
-              : { body: JSON.stringify(params) }),
+              : {
+                  body: JSON.stringify(params),
+                }),
           },
         );
       } catch {
@@ -177,7 +231,10 @@ export function createHttpTransport(
             "INVALID_RESPONSE",
             "API 응답 형식을 확인하세요.",
           );
-        return { status: response.status, body };
+        return {
+          status: response.status,
+          body,
+        };
       } catch {
         return failure(
           "INVALID_RESPONSE",

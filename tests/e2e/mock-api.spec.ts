@@ -45,7 +45,9 @@ declare global {
 const bundle = browserBundle();
 async function load(page: Page) {
   await page.goto("/");
-  await page.addScriptTag({ content: bundle });
+  await page.addScriptTag({
+    content: bundle,
+  });
 }
 
 test("browser generation → review → subscription → solve/replay → purchase/equip survives reload", async ({
@@ -87,7 +89,10 @@ test("browser generation → review → subscription → solve/replay → purcha
     });
     await learner.request("answer", {
       attemptId: first.attemptId,
-      answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "a",
+      },
     });
     const second = await learner.request(
       "learningNext",
@@ -102,7 +107,10 @@ test("browser generation → review → subscription → solve/replay → purcha
     );
     await learner.request("answer", {
       attemptId: nextAttempt.attemptId,
-      answer: { type: "SINGLE_CHOICE", choiceId: "b" },
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "b",
+      },
     });
     const exhausted = await learner.request(
       "learningNext",
@@ -121,7 +129,10 @@ test("browser generation → review → subscription → solve/replay → purcha
     });
     await learner.request("answer", {
       attemptId: replay.attemptId,
-      answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "a",
+      },
     });
     await learner.request("purchase", {
       productId: "keyboard-1",
@@ -152,7 +163,9 @@ test("browser generation → review → subscription → solve/replay → purcha
     /"answer"|"explanation"|"sourceContent"/,
   );
   await page.reload();
-  await page.addScriptTag({ content: bundle });
+  await page.addScriptTag({
+    content: bundle,
+  });
   const restored = await page.evaluate(async () => ({
     wallet: await window
       .mockApi("learner")
@@ -200,7 +213,10 @@ test("another tab observes visibility revocation and stale edits without overwri
     try {
       await window.mockApi("learner").request("answer", {
         attemptId,
-        answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+        answer: {
+          type: "SINGLE_CHOICE",
+          choiceId: "a",
+        },
       });
     } catch (error) {
       errors.push(

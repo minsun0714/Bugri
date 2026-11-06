@@ -18,7 +18,9 @@ test("generation is owner-only; individual then bulk save does not duplicate can
   expect(batch.candidates.length).toBeGreaterThanOrEqual(1);
   expect(batch.candidates.length).toBeLessThanOrEqual(5);
   expect(
-    await api.request("quizzes", { scope: "OWN" }),
+    await api.request("quizzes", {
+      scope: "OWN",
+    }),
   ).toHaveLength(0);
   const first = await api.request("saveBatch", {
     batchId: batch.batchId,
@@ -35,13 +37,17 @@ test("generation is owner-only; individual then bulk save does not duplicate can
     mode: "ALL",
   });
   expect(
-    await make().request("quizzes", { scope: "OWN" }),
+    await make().request("quizzes", {
+      scope: "OWN",
+    }),
   ).toHaveLength(batch.candidates.length);
   await expect(
     make("author").request("generationBatch", {
       batchId: batch.batchId,
     }),
-  ).rejects.toMatchObject({ status: 404 });
+  ).rejects.toMatchObject({
+    status: 404,
+  });
 });
 test("learning never exposes answers; wrong answers and replays count once per day", async () => {
   const api = make();
@@ -63,7 +69,10 @@ test("learning never exposes answers; wrong answers and replays count once per d
   expect(attempt.result).toBeNull();
   const result = await api.request("answer", {
     attemptId: attempt.attemptId,
-    answer: { type: "SINGLE_CHOICE", choiceId: "b" },
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "b",
+    },
   });
   expect(result.correct).toBe(false);
   expect(
@@ -78,7 +87,10 @@ test("learning never exposes answers; wrong answers and replays count once per d
   });
   await api.request("answer", {
     attemptId: replay.attemptId,
-    answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "a",
+    },
   });
   expect(
     (await api.request("learningDay", {})).completedDates,

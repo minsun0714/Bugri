@@ -122,7 +122,9 @@ export function createMockTransport(
           writeState(storage, state);
         return {
           status: 200,
-          body: { data: clone(data) as Response<K> },
+          body: {
+            data: clone(data) as Response<K>,
+          },
         };
       } catch (error) {
         const fault =
@@ -139,7 +141,9 @@ export function createMockTransport(
               code: fault.code,
               message: fault.message,
               ...(fault.fieldErrors
-                ? { fieldErrors: fault.fieldErrors }
+                ? {
+                    fieldErrors: fault.fieldErrors,
+                  }
                 : {}),
               requestId,
             },

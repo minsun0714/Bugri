@@ -56,17 +56,24 @@ test.each(["", "   ", "😀".repeat(10_001)])(
   "rejects invalid source length/blank",
   async (sourceContent) => {
     await expect(
-      api().request("generate", { sourceContent }),
+      api().request("generate", {
+        sourceContent,
+      }),
     ).rejects.toMatchObject({
-      detail: { code: "VALIDATION_ERROR" },
+      detail: {
+        code: "VALIDATION_ERROR",
+      },
     });
   },
 );
 test("10,000 unicode code points and code formatting are preserved", async () => {
   const sourceContent = "😀".repeat(10_000);
   expect(
-    (await api().request("generate", { sourceContent }))
-      .sourceContent,
+    (
+      await api().request("generate", {
+        sourceContent,
+      })
+    ).sourceContent,
   ).toBe(sourceContent);
   const code =
     '설명\n```ts\n  const x = "<script>";\n```\n```java\n  int y = 1;\n```';
@@ -104,19 +111,22 @@ test.each(
         },
       },
     ],
-  ].map((output) => ({ output })),
+  ].map((output) => ({
+    output,
+  })),
 )(
   "rejects malformed generator output atomically",
   async ({ output }) => {
     await expect(
-      api("learner", { generate: () => output }).request(
-        "generate",
-        {
-          sourceContent: "test",
-        },
-      ),
+      api("learner", {
+        generate: () => output,
+      }).request("generate", {
+        sourceContent: "test",
+      }),
     ).rejects.toMatchObject({
-      detail: { code: "GENERATION_FAILED" },
+      detail: {
+        code: "GENERATION_FAILED",
+      },
     });
     expect(
       localStorage.getItem(storageKey("learner")),
@@ -146,7 +156,9 @@ test.each(
         context: "DIRECT",
       }),
     ).rejects.toMatchObject({
-      detail: { code: "QUIZ_UNAVAILABLE" },
+      detail: {
+        code: "QUIZ_UNAVAILABLE",
+      },
     });
     await expect(
       client.request("approve", {
@@ -155,7 +167,9 @@ test.each(
         visibility: "PUBLIC",
       }),
     ).rejects.toMatchObject({
-      detail: { code: "NOT_REVIEWED" },
+      detail: {
+        code: "NOT_REVIEWED",
+      },
     });
     const q = await approve(pending);
     const attempt = await client.request("startAttempt", {
@@ -196,7 +210,9 @@ test.each(
       api("friend").request("attempt", {
         attemptId: attempt.attemptId,
       }),
-    ).rejects.toMatchObject({ status: 404 });
+    ).rejects.toMatchObject({
+      status: 404,
+    });
   },
 );
 test("review state resets, stale versions fail, active revision remains and old attempts grade original answer", async () => {
@@ -216,7 +232,10 @@ test("review state resets, stale versions fail, active revision remains and old 
     sourceContent: "changed",
     content: {
       ...plain(old),
-      answer: { type: "SINGLE_CHOICE", choiceId: "b" },
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "b",
+      },
     },
   });
   expect(edited.active).toEqual(old.active);
@@ -228,7 +247,9 @@ test("review state resets, stale versions fail, active revision remains and old 
       visibility: "PRIVATE",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "VERSION_CONFLICT" },
+    detail: {
+      code: "VERSION_CONFLICT",
+    },
   });
   const approved = await approve(edited);
   expect(approved.active!.answer).toEqual({
@@ -237,20 +258,32 @@ test("review state resets, stale versions fail, active revision remains and old 
   });
   const result = await learner.request("answer", {
     attemptId: attempt.attemptId,
-    answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "a",
+    },
   });
   expect(result.correct).toBe(true);
   await expect(
     learner.request("answer", {
       attemptId: attempt.attemptId,
-      answer: { type: "SINGLE_CHOICE", choiceId: "b" },
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "b",
+      },
     }),
   ).rejects.toMatchObject({
-    detail: { code: "ALREADY_ANSWERED" },
+    detail: {
+      code: "ALREADY_ANSWERED",
+    },
   });
   await expect(
-    learner.request("reviewQuiz", { quizId: old.quizId }),
-  ).rejects.toMatchObject({ status: 403 });
+    learner.request("reviewQuiz", {
+      quizId: old.quizId,
+    }),
+  ).rejects.toMatchObject({
+    status: 403,
+  });
 });
 test("regeneration failure leaves old pending content and successful prompt intact", async () => {
   const owner = api("author");
@@ -271,7 +304,9 @@ test("regeneration failure leaves old pending content and successful prompt inta
       prompt: "새 요청",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "GENERATION_FAILED" },
+    detail: {
+      code: "GENERATION_FAILED",
+    },
   });
   expect(localStorage.getItem(storageKey("author"))).toBe(
     before,
@@ -287,7 +322,9 @@ test("regeneration failure leaves old pending content and successful prompt inta
 test.each(["PRIVATE", "DELETE"] as const)(
   "%s blocks others pending submissions, preserves completion/ledger, and hides content",
   async (change) => {
-    const learner = api("learner", { dailyReward: 7 });
+    const learner = api("learner", {
+      dailyReward: 7,
+    });
     await learner.request("subscribe", {
       type: "PERSON",
       authorUserId: "author",
@@ -302,7 +339,10 @@ test.each(["PRIVATE", "DELETE"] as const)(
     });
     await learner.request("answer", {
       attemptId: done.attemptId,
-      answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "a",
+      },
     });
     const wallet = await learner.request("wallet", {}),
       day = await learner.request("learningDay", {});
@@ -319,11 +359,16 @@ test.each(["PRIVATE", "DELETE"] as const)(
     await expect(
       learner.request("answer", {
         attemptId: pending.attemptId,
-        answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+        answer: {
+          type: "SINGLE_CHOICE",
+          choiceId: "a",
+        },
       }),
     ).rejects.toMatchObject({
       status: 409,
-      detail: { code: "QUIZ_UNAVAILABLE" },
+      detail: {
+        code: "QUIZ_UNAVAILABLE",
+      },
     });
     const retained = await learner.request("attempt", {
       attemptId: done.attemptId,
@@ -366,20 +411,39 @@ test("private owner can solve; deleting twice is safe and blocks owner submissio
   await expect(
     owner.request("answer", {
       attemptId: a.attemptId,
-      answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "a",
+      },
     }),
   ).rejects.toMatchObject({
-    detail: { code: "QUIZ_UNAVAILABLE" },
+    detail: {
+      code: "QUIZ_UNAVAILABLE",
+    },
   });
   expect(
-    (await owner.request("quizzes", { scope: "OWN" })).map(
-      (q) => q.quizId,
-    ),
+    (
+      await owner.request("quizzes", {
+        scope: "OWN",
+      })
+    ).map((q) => q.quizId),
   ).not.toContain("seed-quiz-1");
 });
 test.each([
-  [{ type: "PERSON", authorUserId: "author" }, 2],
-  [{ type: "HASHTAG", hashtagId: "web" }, 2],
+  [
+    {
+      type: "PERSON",
+      authorUserId: "author",
+    },
+    2,
+  ],
+  [
+    {
+      type: "HASHTAG",
+      hashtagId: "web",
+    },
+    2,
+  ],
   [
     {
       type: "PERSON_HASHTAG",
@@ -434,7 +498,10 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
   });
   await client.request("answer", {
     attemptId: a.attemptId,
-    answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "a",
+    },
   });
   expect(
     (await client.request("learningNext", {})).state,
@@ -472,7 +539,9 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
       context: "LEARNING",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "QUIZ_UNAVAILABLE" },
+    detail: {
+      code: "QUIZ_UNAVAILABLE",
+    },
   });
 });
 test("unknown fields, quiz subscription and wrong answer shapes are rejected", async () => {
@@ -483,7 +552,9 @@ test("unknown fields, quiz subscription and wrong answer shapes are rejected", a
       quizId: "seed-quiz-1",
     } as Request<"subscribe">),
   ).rejects.toMatchObject({
-    detail: { code: "VALIDATION_ERROR" },
+    detail: {
+      code: "VALIDATION_ERROR",
+    },
   });
   const a = await api().request("startAttempt", {
     quizId: "seed-quiz-1",
@@ -492,10 +563,15 @@ test("unknown fields, quiz subscription and wrong answer shapes are rejected", a
   await expect(
     api().request("answer", {
       attemptId: a.attemptId,
-      answer: { type: "TRUE_FALSE", value: true },
+      answer: {
+        type: "TRUE_FALSE",
+        value: true,
+      },
     }),
   ).rejects.toMatchObject({
-    detail: { code: "VALIDATION_ERROR" },
+    detail: {
+      code: "VALIDATION_ERROR",
+    },
   });
 });
 test("purchase errors do not mutate balance, key reuse conflicts and equipment checks ownership/category", async () => {
@@ -507,7 +583,9 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
       requestKey: "expensive",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "INSUFFICIENT_BALANCE" },
+    detail: {
+      code: "INSUFFICIENT_BALANCE",
+    },
   });
   expect(await client.request("wallet", {})).toEqual(
     before,
@@ -517,7 +595,9 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
       category: "KEYBOARD",
       productId: "keyboard-1",
     }),
-  ).rejects.toMatchObject({ status: 403 });
+  ).rejects.toMatchObject({
+    status: 403,
+  });
   await client.request("purchase", {
     productId: "keyboard-1",
     requestKey: "same",
@@ -528,7 +608,9 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
       requestKey: "same",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "IDEMPOTENCY_CONFLICT" },
+    detail: {
+      code: "IDEMPOTENCY_CONFLICT",
+    },
   });
   await expect(
     client.request("purchase", {
@@ -536,7 +618,9 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
       requestKey: "new",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "ALREADY_OWNED" },
+    detail: {
+      code: "ALREADY_OWNED",
+    },
   });
   await expect(
     client.request("equip", {
@@ -544,7 +628,9 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
       productId: "keyboard-1",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "VALIDATION_ERROR" },
+    detail: {
+      code: "VALIDATION_ERROR",
+    },
   });
   await client.request("equip", {
     category: "KEYBOARD",
@@ -560,7 +646,9 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
       publicId: "bugri-learner",
       displayName: "학습자",
     },
-    equipment: { KEYBOARD: "keyboard-1" },
+    equipment: {
+      KEYBOARD: "keyboard-1",
+    },
   });
   expect(
     await client.request("equip", {
@@ -589,7 +677,9 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
       requestKey: "test",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "STORAGE_UNAVAILABLE" },
+    detail: {
+      code: "STORAGE_UNAVAILABLE",
+    },
   });
   expect(localStorage.getItem(storageKey("learner"))).toBe(
     before,
@@ -598,7 +688,9 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
   await expect(
     client.request("wallet", {}),
   ).rejects.toMatchObject({
-    detail: { code: "STORAGE_CORRUPT" },
+    detail: {
+      code: "STORAGE_CORRUPT",
+    },
   });
   expect(localStorage.getItem(storageKey("learner"))).toBe(
     "{broken",
@@ -618,7 +710,9 @@ test("timezone detection, explicit fallback and saved preference; no implicit fa
   await expect(
     client.request("learningDay", {}),
   ).rejects.toMatchObject({
-    detail: { code: "TIMEZONE_REQUIRED" },
+    detail: {
+      code: "TIMEZONE_REQUIRED",
+    },
   });
   expect(
     (
@@ -639,7 +733,9 @@ test("timezone detection, explicit fallback and saved preference; no implicit fa
       timeZone: "not-a-zone",
     }),
   ).rejects.toMatchObject({
-    detail: { code: "VALIDATION_ERROR" },
+    detail: {
+      code: "VALIDATION_ERROR",
+    },
   });
 });
 test("daily completion/replay reward once, midnight, and timezone changes preserve past attribution", async () => {
@@ -655,7 +751,10 @@ test("daily completion/replay reward once, midnight, and timezone changes preser
     });
     return client.request("answer", {
       attemptId: a.attemptId,
-      answer: { type: "SINGLE_CHOICE", choiceId: "b" },
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "b",
+      },
     });
   }
   const first = await complete();

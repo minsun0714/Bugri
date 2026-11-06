@@ -9,11 +9,20 @@ export const generatedContents: readonly QuizContent[] = [
       type: "SINGLE_CHOICE",
       prompt: "TypeScript에서 숫자 타입은?",
       choices: [
-        { id: "a", text: "number" },
-        { id: "b", text: "string" },
+        {
+          id: "a",
+          text: "number",
+        },
+        {
+          id: "b",
+          text: "string",
+        },
       ],
     },
-    answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "a",
+    },
     explanation: "숫자 타입은 number입니다.",
     hashtagIds: ["typescript"],
   },
@@ -23,9 +32,18 @@ export const generatedContents: readonly QuizContent[] = [
       type: "MULTIPLE_CHOICE",
       prompt: "블록 스코프를 갖는 선언을 모두 고르세요.",
       choices: [
-        { id: "a", text: "let" },
-        { id: "b", text: "const" },
-        { id: "c", text: "var" },
+        {
+          id: "a",
+          text: "let",
+        },
+        {
+          id: "b",
+          text: "const",
+        },
+        {
+          id: "c",
+          text: "var",
+        },
       ],
     },
     answer: {
@@ -41,7 +59,10 @@ export const generatedContents: readonly QuizContent[] = [
       type: "TRUE_FALSE",
       prompt: "HTTP는 요청과 응답을 사용한다.",
     },
-    answer: { type: "TRUE_FALSE", value: true },
+    answer: {
+      type: "TRUE_FALSE",
+      value: true,
+    },
     explanation: "클라이언트의 요청에 서버가 응답합니다.",
     hashtagIds: ["web"],
   },
@@ -51,7 +72,10 @@ export const generatedContents: readonly QuizContent[] = [
       type: "SHORT_ANSWER",
       prompt: "JavaScript에서 재할당을 막는 선언 키워드는?",
     },
-    answer: { type: "SHORT_ANSWER", text: "const" },
+    answer: {
+      type: "SHORT_ANSWER",
+      text: "const",
+    },
     explanation: "const는 바인딩의 재할당을 금지합니다.",
     hashtagIds: ["javascript"],
   },

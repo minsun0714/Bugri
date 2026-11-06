@@ -11,15 +11,21 @@ const response = (body: unknown, status = 200) =>
     json: async () => body,
   }) as Response;
 test("REST encodes path, removes path fields from body and uses explicit envelope", async () => {
-  const fetcher = jest
-    .fn()
-    .mockResolvedValue(
-      response({ data: { deleted: true } }),
-    );
-  const client = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
+  const fetcher = jest.fn().mockResolvedValue(
+    response({
+      data: {
+        deleted: true,
+      },
+    }),
   );
-  await client.request("deleteQuiz", { quizId: "a/b" });
+  const client = createApiClient(
+    createHttpTransport({
+      fetch: fetcher,
+    }),
+  );
+  await client.request("deleteQuiz", {
+    quizId: "a/b",
+  });
   expect(fetcher).toHaveBeenCalledWith(
     "/api/v1/quizzes/a%2Fb",
     expect.objectContaining({
@@ -44,9 +50,11 @@ test("REST encodes path, removes path fields from body and uses explicit envelop
   );
 });
 test("GET query has no body and omits All hashtag; no mock user or auth headers", async () => {
-  const fetcher = jest
-    .fn()
-    .mockResolvedValue(response({ data: [] }));
+  const fetcher = jest.fn().mockResolvedValue(
+    response({
+      data: [],
+    }),
+  );
   const client = createApiClient(
     createHttpTransport({
       baseUrl: "https://api.example.test/api/v1",
@@ -61,7 +69,9 @@ test("GET query has no body and omits All hashtag; no mock user or auth headers"
     "https://api.example.test/api/v1/learning/quiz?mode=UNSOLVED",
     {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+      },
     },
   );
 });
@@ -79,7 +89,9 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
     ),
   );
   const client = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
+    createHttpTransport({
+      fetch: fetcher,
+    }),
   );
   await expect(
     client.request("wallet", {}),
@@ -94,13 +106,21 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
   await expect(
     client.request("wallet", {}),
   ).rejects.toMatchObject({
-    detail: { code: "NETWORK_ERROR" },
+    detail: {
+      code: "NETWORK_ERROR",
+    },
   });
-  fetcher.mockResolvedValueOnce(response({ balance: 10 }));
+  fetcher.mockResolvedValueOnce(
+    response({
+      balance: 10,
+    }),
+  );
   await expect(
     client.request("wallet", {}),
   ).rejects.toMatchObject({
-    detail: { code: "INVALID_RESPONSE" },
+    detail: {
+      code: "INVALID_RESPONSE",
+    },
   });
 });
 test("all declared operations have an HTTP endpoint", () => {

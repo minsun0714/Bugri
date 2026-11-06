@@ -17,8 +17,20 @@ export const users: readonly User[] = [
   },
 ];
 export const hashtags: readonly Hashtag[] = [
-  { id: "typescript", name: "TypeScript" },
-  { id: "javascript", name: "JavaScript" },
-  { id: "web", name: "Web" },
-  { id: "java", name: "Java" },
+  {
+    id: "typescript",
+    name: "TypeScript",
+  },
+  {
+    id: "javascript",
+    name: "JavaScript",
+  },
+  {
+    id: "web",
+    name: "Web",
+  },
+  {
+    id: "java",
+    name: "Java",
+  },
 ];

@@ -170,7 +170,10 @@ export function execute<K extends Operation>(
       quizId: a.quizId,
       revisionId: a.revision.revisionId,
       quiz: visible
-        ? publicView({ ...q!, active: a.revision })
+        ? publicView({
+            ...q!,
+            active: a.revision,
+          })
         : null,
       completedAt: a.completedAt,
       learningDate: a.learningDate,
@@ -450,7 +453,9 @@ export function execute<K extends Operation>(
         q.deletedAt = timestamp;
         touch(q);
       }
-      return { deleted: true };
+      return {
+        deleted: true,
+      };
     }
     case "subscriptions":
       return s.subscriptions;
@@ -504,7 +509,9 @@ export function execute<K extends Operation>(
       s.subscriptions = s.subscriptions.filter(
         (sub) => sub.subscriptionId !== r.subscriptionId,
       );
-      return { deleted: true };
+      return {
+        deleted: true,
+      };
     case "discoverUsers":
       return users;
     case "discoverHashtags":
@@ -603,14 +610,18 @@ export function execute<K extends Operation>(
       return result;
     }
     case "learningTimezone":
-      return { timeZone: s.timeZone };
+      return {
+        timeZone: s.timeZone,
+      };
     case "updateTimezone":
       requireValue(
         timeZoneValid(r.timeZone),
         "유효한 IANA 시간대가 필요합니다.",
       );
       s.timeZone = r.timeZone;
-      return { timeZone: s.timeZone };
+      return {
+        timeZone: s.timeZone,
+      };
     case "learningDay": {
       if (!s.timeZone)
         throw new ServiceError(
@@ -737,7 +748,10 @@ export function execute<K extends Operation>(
           p.category === r.category,
       );
     case "wallet":
-      return { balance: balance(), ledger: s.ledger };
+      return {
+        balance: balance(),
+        ledger: s.ledger,
+      };
     case "purchase": {
       text(r.productId);
       text(r.requestKey);

@@ -6,7 +6,10 @@ export default defineConfig({
   ...base,
   testDir: ".",
   testMatch: "mock-api.spec.ts",
-  use: { ...base.use, baseURL: "http://127.0.0.1:3107" },
+  use: {
+    ...base.use,
+    baseURL: "http://127.0.0.1:3107",
+  },
   webServer: {
     command: "npm run start -- -p 3107",
     url: "http://127.0.0.1:3107",
