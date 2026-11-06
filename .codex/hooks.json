@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"$(git rev-parse --show-toplevel)/scripts/hooks/verify_stop.py\"",
+            "timeout": 620,
+            "statusMessage": "Bugri 작업 검증 확인"
+          }
+        ]
+      }
+    ]
+  }
+}

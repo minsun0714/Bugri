@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Per-worktree hook state and verification logs
+/.bugri-hooks/
