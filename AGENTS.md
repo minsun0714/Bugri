@@ -44,6 +44,7 @@ Bugri is a developer learning platform with AI-generated quizzes.
 - Keep static utility strings and variant mappings beside their components in `styles.ts` when long class lists need reuse. Class names must be complete literals for Tailwind detection, never interpolated fragments.
 - Global CSS is limited to the Tailwind import, theme/keyframes, and document-wide base/accessibility rules. Use local arbitrary variants for Markdown/highlight output and pseudo-elements; do not restore global component selectors or CSS Modules.
 - Preserve keyboard focus, reduced-motion behavior, and mobile layouts when changing styles.
+- Avoid unsolicited explanatory copy beneath headings, cards, and buttons. Put necessary supplementary help in accessible tooltips; follow the UI copy rules in [coding conventions](docs/CODING_CONVENTIONS.md).
 
 ## Coding essentials
 
