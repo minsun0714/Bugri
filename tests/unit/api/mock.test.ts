@@ -169,3 +169,36 @@ test("purchase retry deducts once, equipment requires ownership, state survives 
       .products,
   ).toHaveLength(0);
 });
+
+test("public desk exposes only the user and equipment, never wallet or inventory", async () => {
+  const owner = make();
+  const [product] = await owner.request("products", {});
+
+  await owner.request("purchase", {
+    productId: product.productId,
+    requestKey: "public-desk-purchase",
+  });
+
+  await owner.request("equip", {
+    category: product.category,
+    productId: product.productId,
+  });
+
+  const profile = await make("friend").request(
+    "publicProfile",
+    {
+      publicId: "bugri-learner",
+    },
+  );
+
+  expect(profile).toEqual({
+    user: {
+      userId: "learner",
+      publicId: "bugri-learner",
+      displayName: "학습자",
+    },
+    equipment: {
+      [product.category]: product.productId,
+    },
+  });
+});

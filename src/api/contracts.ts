@@ -1,5 +1,6 @@
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 import {
+  Category,
   QuizStatus,
   type LearningMode,
   type LearningState,
@@ -7,6 +8,7 @@ import {
 } from "@/api/constants";
 
 export {
+  Category,
   QuizStatus,
   LearningMode,
   LearningState,
@@ -154,13 +156,6 @@ export interface LearningDay {
   streak: number;
   completedDates: string[];
 }
-
-export type Category =
-  | "KEYBOARD"
-  | "MONITOR"
-  | "DESK"
-  | "ACCESSORY"
-  | "BACKGROUND";
 
 export interface Product {
   productId: string;

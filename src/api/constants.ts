@@ -34,3 +34,14 @@ export const QuizScope = {
 
 export type QuizScope =
   (typeof QuizScope)[keyof typeof QuizScope];
+
+export const Category = {
+  KEYBOARD: "KEYBOARD",
+  MONITOR: "MONITOR",
+  DESK: "DESK",
+  ACCESSORY: "ACCESSORY",
+  BACKGROUND: "BACKGROUND",
+} as const;
+
+export type Category =
+  (typeof Category)[keyof typeof Category];

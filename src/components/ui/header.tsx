@@ -3,14 +3,16 @@ import { MobileNavigation } from "@/components/ui/mobile-navigation";
 
 export function Header({
   sections,
+  preview = true,
 }: {
   sections: string[][];
+  preview?: boolean;
 }) {
   return (
     <header className="relative z-20 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-[1220px] items-center justify-between gap-4 px-5 py-3.5 sm:py-5 md:px-12">
         <a
-          href="#top"
+          href={preview ? "#top" : "/"}
           className="flex items-center gap-2.25 text-[29px] font-extrabold tracking-[-1.5px] text-primary"
           aria-label="Bugri 홈"
         >
@@ -24,10 +26,14 @@ export function Header({
         </a>
         <div className="flex items-center gap-4">
           <span className="hidden text-xs text-muted sm:block">
-            Design workspace · 0.1
+            {preview
+              ? "Design workspace · 0.1"
+              : "배움이 쌓이는 작은 공간"}
           </span>
           <span className="hidden sm:inline-flex">
-            <Badge tone="success">● LIVE PREVIEW</Badge>
+            <Badge tone="success">
+              {preview ? "● LIVE PREVIEW" : "BUGRI"}
+            </Badge>
           </span>
           <MobileNavigation sections={sections} />
         </div>
