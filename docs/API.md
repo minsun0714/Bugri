@@ -86,4 +86,4 @@ localStorage 키는 `bugri:mock:v1:{userId}`다. 각 사용자의 작성 퀴즈�
 
 Jest는 계약·생성 검증·리비전·권한 UX·구독/태그/재도전·시간대·원장·구매·장착·저장 실패·HTTP 변환을 검증한다. Playwright는 테스트 전용 번들로 동일 서비스 코드를 실제 브라우저에 로드해 localStorage 재접속 복원과 탭 간 변경을 검증한다. 제품 UI의 컴포넌트/클릭 여정 검증은 이 작업에 포함하지 않는다.
 
-기본 `npm run verify`는 기존 설정의 3000번 포트를 사용한다. 다른 워크트리가 점유하면 서버를 종료하거나 재사용하지 않고 `CI=1 npm run verify`의 차단을 기록한다. 독립 검증은 `npx playwright test --config=tests/e2e/mock.config.ts`로 3107번 포트에서 실행한다. 두 검증 결과를 구분해서 기록한다.
+기본 `npm run verify`는 E2E 전용 3107번 포트를 사용한다. 해당 포트도 사용 중이면 `PLAYWRIGHT_PORT=3108 npm run verify`처럼 빈 포트를 지정한다. 서버 실행 포트와 테스트 baseURL에 같은 값을 적용하며 다른 워크트리의 서버는 재사용하거나 종료하지 않는다. Mock 서비스만 실행하는 `npx playwright test --config=tests/e2e/mock.config.ts`도 같은 설정을 따른다.
