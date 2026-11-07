@@ -136,6 +136,7 @@ export function AnswerForm({
       </fieldset>
       <div className="flex justify-end">
         <Button
+          className="w-full sm:w-auto sm:min-w-28"
           type="submit"
           disabled={!valid}
           loading={pending}

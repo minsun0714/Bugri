@@ -46,9 +46,6 @@ test("private management leads to a public profile without personal data", async
   await expect(
     page.getByRole("main").getByLabel("내 잔액"),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
   const profile = page.getByRole("link", {
     name: "내 공개 프로필 보기",
   });
@@ -159,7 +156,7 @@ test("private management leads to a public profile without personal data", async
       name: "데스크 편집",
       exact: true,
     }),
-  ).toHaveCount(0);
+  ).toHaveAttribute("href", "/my/desk?user=author");
   await expect(
     page.getByRole("heading", {
       name: "데스크",

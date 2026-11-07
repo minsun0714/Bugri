@@ -93,6 +93,8 @@ export interface ServiceContext {
 const tagIds = hashtags.map(({ id }) => id);
 
 const allowed: Record<Operation, string[]> = {
+  guestQuiz: [],
+  guestAnswer: ["quizId", "revisionId", "answer"],
   authoringConversation: [],
   sendAuthoringMessage: ["content", "expectedVersion"],
   generateFromConversation: ["draft", "expectedVersion"],

@@ -59,7 +59,7 @@ async function submit(page: Page, labels: string[]) {
 test("home immediately shows a subscribed question without a list or start button", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await expect(
     page.getByRole("heading", {
       name: "타입 선언",
@@ -96,7 +96,7 @@ test("four formats, restoration, next, exhaustion and tag exploration on home", 
   page,
 }) => {
   await seed(page);
-  await page.goto("/");
+  await page.goto("/?user=learner");
   for (const labels of [
     ["number"],
     ["let", "const"],
@@ -171,7 +171,7 @@ test("tag filtering persists through next and reload without changing subscripti
   page,
 }) => {
   await seed(page);
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await expect(
     page.getByRole("heading", {
       name: "타입 선언",
@@ -290,7 +290,7 @@ test("replay creates a separate attempt and users cannot read each other's resul
   page,
 }) => {
   await seed(page);
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await submit(page, ["number"]);
   const completed = page.url();
   await page
@@ -304,13 +304,17 @@ test("replay creates a separate attempt and users cannot read each other's resul
     }),
   ).toBeDisabled();
   await page
-    .getByText("프로토타입 안내 · 사용자 전환", {
-      exact: true,
-    })
+    .getByRole("button", { name: /데모: 학습자/ })
     .click();
   await page
-    .getByLabel("더미 사용자", { exact: true })
-    .selectOption("friend");
+    .getByRole("combobox", { name: "더미 사용자" })
+    .click();
+  await page
+    .getByRole("option", { name: "친구", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "선택한 사용자로 시작" })
+    .click();
   await expect(
     page.getByText("학습할 퀴즈가 없습니다", {
       exact: true,
@@ -337,7 +341,7 @@ test("replay results stop instead of cycling completed questions", async ({
   page,
 }) => {
   await seed(page);
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await submit(page, ["number"]);
   await page.goto(
     "/?user=learner&tag=typescript&mode=REPLAY",
@@ -392,7 +396,7 @@ test("private transition blocks pending submission and hides completed content",
   page,
 }) => {
   await seed(page);
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await submit(page, ["number"]);
   const completed = page.url();
   await page
@@ -439,7 +443,7 @@ test("failed save preserves input and permits retry", async ({
       subscriptionId: "friend",
     },
   ]);
-  await page.goto("/?tag=javascript");
+  await page.goto("/?user=learner&tag=javascript");
   await page
     .getByLabel("답안", { exact: true })
     .fill("let");
@@ -573,7 +577,7 @@ test("existing empty learner snapshot receives demo subscriptions on reload", as
         JSON.stringify(value),
       );
   }, state);
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await expect(
     page.getByRole("heading", {
       name: "타입 선언",
@@ -838,7 +842,7 @@ test("learning tag dropdown supports mobile dismissal and keyboard selection", a
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/?user=learner");
   const tag = page.getByRole("combobox", {
     name: "학습 태그",
     exact: true,
@@ -879,7 +883,7 @@ test("changing the learning tag warns before discarding an answer", async ({
   page,
 }) => {
   await seed(page);
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await page.getByLabel("number", { exact: true }).check();
   const tag = page.getByRole("combobox", {
     name: "학습 태그",
