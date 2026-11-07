@@ -107,6 +107,11 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "DELETE",
     path: "/subscriptions",
   },
+  tagQuizzes: {
+    method: "GET",
+    path: "/tags/{id}/quizzes",
+    pathKey: "hashtagId",
+  },
   developerQuizzes: {
     method: "GET",
     path: "/developers/{id}/quizzes",

@@ -304,6 +304,15 @@ export interface DiscoveryPage {
   total: number;
 }
 
+export interface TagQuizzesPage {
+  hashtag: Hashtag;
+  subscribed: boolean;
+  items: { quizId: string; title: string; author: User }[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface DeveloperPageQuery {
   publicId: string;
   page: number;
@@ -447,6 +456,14 @@ export interface ApiOperations {
   unsubscribe: {
     request: { subscriptionId: string };
     response: { deleted: true };
+  };
+  tagQuizzes: {
+    request: {
+      hashtagId: string;
+      page: number;
+      pageSize: number;
+    };
+    response: TagQuizzesPage;
   };
   developerQuizzes: {
     request: DeveloperPageQuery & {

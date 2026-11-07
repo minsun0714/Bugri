@@ -127,6 +127,6 @@ test("tag discovery has a separate destination", () => {
   expect(getNavigationItems("friend")).toContainEqual({
     label: "태그 탐색",
     href: "/discover/tags?user=friend",
-    activePaths: ["/discover/tags"],
+    activePaths: ["/discover/tags", "/tags"],
   });
 });

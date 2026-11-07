@@ -100,6 +100,7 @@ export function useSubscribe(userId: string) {
         [
           "discovery",
           "developerQuizzes",
+          "tagQuizzes",
           "developerTags",
           "subscriptions",
           "learningTags",

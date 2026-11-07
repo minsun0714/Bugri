@@ -394,9 +394,12 @@ export function DiscoverySearch({
                 }
                 const {
                   hashtag: { id, name },
-                  subscribed,
+                  subscribed: storedSubscribed,
                   publicQuizCount,
                 } = item;
+                const subscribed = authorize
+                  ? showSubscriptions && storedSubscribed
+                  : storedSubscribed;
 
                 return (
                   <li
@@ -404,11 +407,12 @@ export function DiscoverySearch({
                     className={tagDiscoveryStyles.card}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <strong
-                        className={tagDiscoveryStyles.label}
+                      <Link
+                        href={`/tags/${encodeURIComponent(id)}/quizzes?${new URLSearchParams({ ...(showSubscriptions ? { user: userId } : {}), ...(request.query ? { query: request.query } : {}), discoveryPage: String(request.page), ...(request.subscribedOnly ? { subscribed: "true" } : {}) })}`}
+                        className={`${tagDiscoveryStyles.label} underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-primary`}
                       >
                         #{name}
-                      </strong>
+                      </Link>
                       {subscribed && (
                         <span
                           className={

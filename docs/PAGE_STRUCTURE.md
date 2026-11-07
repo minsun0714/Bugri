@@ -55,6 +55,7 @@
 | `/`                       | 스트릭 요약과 태그별 연속 학습 |
 | `/discover/developers` | 개발자 탐색 |
 | `/discover/tags` | 태그 탐색 |
+| `/tags/[hashtagId]/quizzes` | 태그별 공개 퀴즈 목록·구독·개별 풀이 연결 |
 | `/users/[publicId]`       | 사용자 정보·데스크·최신 퀴즈·학습 활동 |
 | `/shop`                   | 상품 목록·구매                 |
 | `/my`                     | 학습 기록·BugCoin 내역·설정·편집 링크   |

@@ -1,3 +1,4 @@
+import { tagQuizzes } from "@/services/tag-quizzes";
 import { validateProfileAbout } from "@/lib/profile-about";
 import {
   deskItems,
@@ -123,6 +124,7 @@ const allowed: Record<Operation, string[]> = {
   subscriptions: [],
   subscribe: ["type", "authorUserId", "hashtagId"],
   unsubscribe: ["subscriptionId"],
+  tagQuizzes: ["hashtagId", "page", "pageSize"],
   developerQuizzes: [
     "publicId",
     "page",
@@ -1013,6 +1015,17 @@ export function execute<K extends Operation>(
       return {
         deleted: true,
       };
+
+    case "tagQuizzes":
+      return tagQuizzes(
+        {
+          users,
+          hashtags,
+          quizzes: allQuizzes,
+          subscriptions: s.subscriptions,
+        },
+        input as ApiOperations["tagQuizzes"]["request"],
+      );
 
     case "developerQuizzes":
       return developerQuizzes(

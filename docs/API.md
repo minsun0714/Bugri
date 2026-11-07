@@ -224,3 +224,10 @@ BugCoin 내역은 최신순 10개씩 클라이언트 페이지네이션한다. `
 BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체·양수·음수인 행을 대상으로 한다. 0금액은 전체에만 나타난다. 필터 적용 후 페이지 수를 계산하며 필터를 바꾸면 첫 페이지, 사용자를 바꾸면 전체/첫 페이지로 초기화한다. 잔액은 필터와 무관하다. 결과가 없으면 선택한 지급/사용 내역이 없음을 표시하고 탭으로 복귀할 수 있다. API 조회와 저장 계약은 유지한다.
 
 후속 UI 개선에서 BugCoin 페이지 크기를 5개로 변경했다(기본 예시25건은5페이지). 필터·정렬·잔액·API 전체 조회 계약은 유지한다. 목록 날짜는 짧은 연월일로 표시하고 전체 시각·시간대는 time의 접근성 이름으로 보존한다.
+
+## 태그별 공개 퀴즈 목록 (TAG-QUIZ-CATALOG)
+
+- `tagQuizzes`: GET `/tags/{hashtagId}/quizzes`, 요청 `{hashtagId,page,pageSize}`, 응답 `{hashtag,subscribed,items:[{quizId,title,author:{userId,publicId,displayName}}],page,pageSize,total}`. page는 양의 정수, pageSize는 1~50이며 없는 태그는 NOT_FOUND다. 등록된 빈 태그는 total0으로 구분한다.
+- 모든 작성자의 활성 PUBLIC 퀴즈 중 태그에 해당하는 항목을 최근 공개 시각 내림차순·동률 quizId 오름차순으로 정렬한다. PRIVATE/PENDING/삭제/비활성은 제외한다. 정답·해설·문제 본문·원문은 반환하지 않는다.
+- `subscribed`는 현재 더미 사용자의 직접 HASHTAG 구독이다. 방문자 UI는 이 값을 개인 상태로 표시하지 않는다. 목록 조회는 구독을 변경하지 않는다. 기존 subscribe/unsubscribe 성공 시 `tagQuizzes` 사용자별 캐시도 무효화한다.
+- 화면 `/tags/[hashtagId]/quizzes`는 탐색의 query/discoveryPage/subscribed 조건을 보존해 돌아간다. 목록 page와 탐색 discoveryPage는 분리한다. URL user가 없으면 링크·검색으로 임의 사용자를 추가하지 않는다.

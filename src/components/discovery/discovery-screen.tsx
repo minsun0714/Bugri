@@ -91,7 +91,9 @@ export function DiscoveryScreen({
             onLearn={learn}
             onSearch={(next) => {
               const query = new URLSearchParams({
-                user: userId,
+                ...(!isTags || signedIn
+                  ? { user: userId }
+                  : {}),
                 page: String(next.page),
               });
               if (next.query)

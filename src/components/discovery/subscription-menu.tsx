@@ -7,10 +7,12 @@ export function SubscriptionMenu({
   name,
   busy,
   onUnsubscribe,
+  outlined = false,
 }: {
   name: string;
   busy: boolean;
   onUnsubscribe: () => void;
+  outlined?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -63,7 +65,11 @@ export function SubscriptionMenu({
         ref={trigger}
         size="sm"
         variant="ghost"
-        className="!size-11 !min-h-11 !rounded-xl !border-0 !p-0 !shadow-none"
+        className={
+          outlined
+            ? "!size-11 !min-h-11 !rounded-2xl !border !border-primary/15 !bg-surface !p-0 !shadow-none"
+            : "!size-11 !min-h-11 !rounded-xl !border-0 !p-0 !shadow-none"
+        }
         disabled={busy}
         aria-label={`${name} 구독 메뉴`}
         aria-haspopup="menu"
