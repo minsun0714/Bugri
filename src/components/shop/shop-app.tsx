@@ -1,12 +1,11 @@
 "use client";
 
-import { ThreeView } from "@/components/shop/three-view";
-import { DeskTool } from "@/api/constants";
 import { DeskEditor } from "@/components/shop/desk-editor";
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { ApiClientError } from "@/api/client";
+import { errorMessage } from "@/components/shop/errors";
+import { ProductTrial } from "@/components/shop/product-trial";
 import type { Category, Product } from "@/api/contracts";
 import {
   Badge,
@@ -31,22 +30,6 @@ const categories: Record<Category, string> = {
   ACCESSORY: "소품",
   BACKGROUND: "배경",
 };
-
-export function errorMessage(error: unknown) {
-  if (error instanceof ApiClientError) {
-    const messages: Record<string, string> = {
-      INSUFFICIENT_BALANCE:
-        "BugCoin이 부족해요. 다른 상품을 골라보세요.",
-      ALREADY_OWNED: "이미 보관함에 있는 상품이에요.",
-      STORAGE_UNAVAILABLE:
-        "저장 공간에 접근할 수 없어요. 브라우저 설정을 확인하고 다시 시도해 주세요.",
-      STORAGE_CORRUPT:
-        "저장된 데이터를 읽을 수 없어요. 기존 데이터는 보존했어요.",
-    };
-    return messages[error.detail.code] ?? error.message;
-  }
-  return "불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
-}
 
 function ShopContent({
   userId,
@@ -410,6 +393,7 @@ function ShopContent({
       {trial && (
         <Modal
           open
+          size="room"
           onClose={() => {
             setTrial(null);
             requestAnimationFrame(() =>
@@ -418,55 +402,16 @@ function ShopContent({
           }}
           title={`${trial.name} 장착해 보기`}
         >
-          <ThreeView
-            label="장착 미리보기"
-            equipment={{
-              ...inventory.data?.equipment,
-              [trial.category]: trial.productId,
-            }}
+          <ProductTrial
+            product={trial}
+            equipment={inventory.data?.equipment ?? {}}
             transforms={inventory.data?.transforms ?? {}}
-            selected={null}
-            tool={DeskTool.CAMERA}
-            disabled={false}
-            readOnly
-            showViewPresets={false}
+            owned={owned.has(trial.productId)}
+            pending={pending}
+            buy={() => buy(trial.productId)}
+            equip={equip.mutateAsync}
+            move={move.mutateAsync}
           />
-          <p className="mt-3">
-            드래그해서 둘러보세요. 미리보기는 실제 장착
-            상태를 바꾸지 않아요.
-          </p>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Coin amount={trial.price} />
-            {owned.has(trial.productId) ? (
-              <Button
-                disabled={
-                  pending ||
-                  inventory.data?.equipment[
-                    trial.category
-                  ] === trial.productId
-                }
-                onClick={() =>
-                  void changeEquipment(
-                    trial.category,
-                    trial.productId,
-                  )
-                }
-              >
-                {inventory.data?.equipment[
-                  trial.category
-                ] === trial.productId
-                  ? "장착 중"
-                  : "내 데스크에 장착"}
-              </Button>
-            ) : (
-              <Button
-                disabled={pending}
-                onClick={() => void buy(trial.productId)}
-              >
-                구매하기
-              </Button>
-            )}
-          </div>
           {message && (
             <p role="status" className="mt-3">
               {message}

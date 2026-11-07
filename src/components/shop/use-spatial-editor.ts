@@ -22,17 +22,19 @@ export function useSpatialEditor({
   transforms,
   save,
   disabled,
+  initialSelected = null,
+  initialTool = DeskTool.CAMERA,
 }: {
   equipment: Equipment;
   transforms: DeskTransforms;
   save: (request: Draft) => Promise<unknown>;
   disabled: boolean;
+  initialSelected?: MovableCategory | null;
+  initialTool?: DeskTool;
 }) {
   const [selected, setSelected] =
-    useState<MovableCategory | null>(null);
-  const [tool, setTool] = useState<DeskTool>(
-    DeskTool.CAMERA,
-  );
+    useState<MovableCategory | null>(initialSelected);
+  const [tool, setTool] = useState<DeskTool>(initialTool);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [confirmed, setConfirmed] = useState<{
     request: Draft;

@@ -32,6 +32,12 @@ for (const width of [1100, 390]) {
       await expect(
         dialog.getByRole("button", { name, exact: true }),
       ).toHaveCount(0);
+    await dialog
+      .getByRole("button", {
+        name: "시점 회전",
+        exact: true,
+      })
+      .click();
     const canvas = dialog.locator(
       '[data-renderer="canvas"] canvas',
     );

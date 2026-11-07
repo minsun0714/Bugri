@@ -395,11 +395,13 @@ export function Modal({
   onClose,
   title,
   children,
+  size = "standard",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  size?: "standard" | "room";
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -414,7 +416,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className={styles["ui-modal"]}
+      className={`${styles["ui-modal"]} ${size === "room" ? styles["modal-room"] : styles["modal-standard"]}`}
       aria-labelledby={id}
       onCancel={onClose}
       onClose={onClose}

@@ -8,7 +8,7 @@ import { ThreeView } from "@/components/shop/three-view";
 import { DeskTool } from "@/api/constants";
 import { ShopProvider } from "@/components/shop/provider";
 import { usePublicDesk } from "@/components/shop/use-shop";
-import { errorMessage } from "@/components/shop/shop-app";
+import { errorMessage } from "@/components/shop/errors";
 
 function Profile({ publicId }: { publicId: string }) {
   const profile = usePublicDesk(publicId);

@@ -35,7 +35,11 @@ export const styles = {
   "tab-panel":
     "tab-panel pt-5.5 px-0 pb-0 text-[13px] text-muted",
   "ui-modal":
-    "ui-modal m-auto border border-line rounded-[22px] p-6.25 [width:min(440px,_calc(100%_-_32px))] bg-surface text-foreground [box-shadow:0_8px_0_#503a8533] [&::backdrop]:bg-[#18291e66] [&::backdrop]:[backdrop-filter:blur(3px)] [&_p]:text-[14px] [&_p]:text-muted [&_p]:leading-[1.8] [&_p]:mb-6.25",
+    "ui-modal m-auto border border-line rounded-[22px] bg-surface text-foreground [box-shadow:0_8px_0_#503a8533] [&::backdrop]:bg-[#18291e66] [&::backdrop]:[backdrop-filter:blur(3px)] [&_p]:text-[14px] [&_p]:text-muted [&_p]:leading-[1.8] [&_p]:mb-6.25",
+  "modal-standard":
+    "p-6.25 [width:min(440px,_calc(100%_-_32px))]",
+  "modal-room":
+    "w-[calc(100%_-_40px)] max-w-[1124px] p-3 md:w-[calc(100%_-_96px)]",
   "modal-header":
     "modal-header flex items-center justify-between mb-3.75 [&_h2]:text-[20px]",
   "ui-toast":
