@@ -27,6 +27,8 @@ export function useProfileForm(
   >({});
   const [failure, setFailure] = useState("");
   const [busy, setBusy] = useState(false);
+  const [validationAttempt, setValidationAttempt] =
+    useState(0);
   const value = {
     biography,
     links: rows.map(({ link }) => link),
@@ -47,7 +49,18 @@ export function useProfileForm(
         return { ...row, link };
       }),
     );
-    setErrors({});
+    const index = rows.findIndex((row) => row.id === id);
+    setErrors((previous) => {
+      const next = { ...previous };
+      for (const field of Object.keys(patch))
+        delete next[`links.${index}.${field}`];
+      if (
+        patch.kind &&
+        patch.kind !== ProfileLinkKind.OTHER
+      )
+        delete next[`links.${index}.label`];
+      return next;
+    });
   }
 
   function addLink() {
@@ -63,8 +76,29 @@ export function useProfileForm(
   }
 
   function removeLink(id: number) {
+    const removedIndex = rows.findIndex(
+      (row) => row.id === id,
+    );
     setRows(rows.filter((row) => row.id !== id));
-    setErrors({});
+    setErrors((previous) => {
+      const next: Record<string, string> = {};
+      for (const [key, message] of Object.entries(
+        previous,
+      )) {
+        const match = /^links\.(\d+)\.(.+)$/.exec(key);
+        if (!match) {
+          next[key] = message;
+          continue;
+        }
+        const [, indexText, field] = match;
+        const index = Number(indexText);
+        if (index === removedIndex) continue;
+        next[
+          `links.${index > removedIndex ? index - 1 : index}.${field}`
+        ] = message;
+      }
+      return next;
+    });
   }
 
   async function save() {
@@ -72,7 +106,10 @@ export function useProfileForm(
     const validation = validateProfileAbout(value);
     setErrors(validation);
     setFailure("");
-    if (Object.keys(validation).length) return;
+    if (Object.keys(validation).length) {
+      setValidationAttempt((attempt) => attempt + 1);
+      return;
+    }
     setBusy(true);
     try {
       await onSave(value);
@@ -92,6 +129,7 @@ export function useProfileForm(
     setBiography,
     rows,
     errors,
+    validationAttempt,
     failure,
     busy,
     dirty,

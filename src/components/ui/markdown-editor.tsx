@@ -1,5 +1,6 @@
 "use client";
 
+import { Tooltip } from "@/components/ui/tooltip";
 import { Dropdown } from "@/components/ui/dropdown";
 import { styles } from "@/components/ui/styles";
 import { useId, type KeyboardEventHandler } from "react";
@@ -18,7 +19,9 @@ export function MarkdownEditor({
   layout = "tabs",
   className = "",
   onKeyDown,
+  density = "default",
 }: {
+  density?: "default" | "compact";
   layout?: "tabs" | "split";
   value: string;
   onChange: (value: string) => void;
@@ -49,22 +52,29 @@ export function MarkdownEditor({
     preserveOverflow,
   });
 
+  const compact = density === "compact";
+  const codeButton = (
+    <Button
+      size="sm"
+      variant="secondary"
+      aria-expanded={picker}
+      onClick={togglePicker}
+    >
+      + 코드 블럭
+    </Button>
+  );
+
   const editor = (
     <div
       className={styles["editor-shell"]}
       role="group"
       aria-label="Markdown 작성"
     >
-      <div className={styles["editor-tools"]}>
-        <Button
-          size="sm"
-          variant="secondary"
-          aria-expanded={picker}
-          onClick={togglePicker}
-        >
-          + 코드 블럭
-        </Button>
-      </div>
+      {!compact && (
+        <div className={styles["editor-tools"]}>
+          {codeButton}
+        </div>
+      )}
       {picker && (
         <div className={styles["editor-picker"]}>
           <Dropdown
@@ -99,7 +109,7 @@ export function MarkdownEditor({
         onChange={({ target: { value } }) =>
           changeValue(value)
         }
-        rows={9}
+        rows={compact ? 5 : 9}
         placeholder={
           placeholder ??
           "오늘 배운 내용을 Markdown으로 적어보세요.\n\n# 제목\n- 배운 점\n\n코드는 코드 블록 버튼으로 추가할 수 있어요."
@@ -137,14 +147,26 @@ export function MarkdownEditor({
 
   return (
     <div
-      className={`${styles["markdown-editor"]} ${className}`}
+      className={`${styles["markdown-editor"]} ${compact ? styles["markdown-editor-compact"] : ""} ${className}`}
     >
-      <div
-        className={styles["editor-title"]}
-        id={`${id}-label`}
-      >
-        {label} <span aria-hidden="true">Markdown</span>
-      </div>
+      {compact ? (
+        <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold">
+          <span id={`${id}-label`}>{label}</span>
+          <div className="flex items-center gap-1">
+            <Tooltip label="Markdown 작성 도움말">
+              제목은 #, 목록은 -로 시작할 수 있어요. 코드는
+              실행되지 않아요.
+            </Tooltip>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={styles["editor-title"]}
+          id={`${id}-label`}
+        >
+          {label} <span aria-hidden="true">Markdown</span>
+        </div>
+      )}
       {layout === "split" ? (
         <div className="grid min-w-0 gap-5 lg:grid-cols-2">
           <section
@@ -176,7 +198,9 @@ export function MarkdownEditor({
         </Tabs>
       )}
       <div
-        className={styles["editor-footer"]}
+        className={
+          compact ? "sr-only" : styles["editor-footer"]
+        }
         id={`${id}-count`}
       >
         <span>

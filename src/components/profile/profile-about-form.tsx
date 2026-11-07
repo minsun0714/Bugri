@@ -9,6 +9,7 @@ import { Button, TextField } from "@/components/ui";
 import { Dropdown } from "@/components/ui/dropdown";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { profileLinkLabels } from "@/lib/profile-about";
+import { profileStyles } from "@/components/profile/styles";
 import { useProfileForm } from "@/components/profile/use-profile-form";
 
 export function ProfileAboutForm({
@@ -26,6 +27,7 @@ export function ProfileAboutForm({
     setBiography,
     rows,
     errors,
+    validationAttempt,
     failure,
     busy,
     dirty,
@@ -38,6 +40,15 @@ export function ProfileAboutForm({
   const addButton = useRef<HTMLDivElement>(null);
   const id = useId();
   const [discard, setDiscard] = useState(false);
+  const continueButton = useRef<HTMLDivElement>(null);
+  const lastInput = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (discard)
+      continueButton.current
+        ?.querySelector("button")
+        ?.focus();
+  }, [discard]);
 
   useEffect(() => {
     root.current
@@ -48,13 +59,13 @@ export function ProfileAboutForm({
   useUnsavedWarning(dirty);
 
   useEffect(() => {
-    if (Object.keys(errors).length)
+    if (validationAttempt)
       root.current
         ?.querySelector<HTMLElement>(
           '[aria-invalid="true"]',
         )
         ?.focus();
-  }, [errors]);
+  }, [validationAttempt]);
 
   return (
     <form
@@ -62,6 +73,15 @@ export function ProfileAboutForm({
       noValidate
       className="space-y-5"
       aria-label="프로필 편집"
+      onFocusCapture={({ target }) => {
+        if (
+          target instanceof HTMLElement &&
+          target.matches(
+            'input, textarea, [role="combobox"]',
+          )
+        )
+          lastInput.current = target;
+      }}
       onSubmit={(event) => {
         event.preventDefault();
         void save();
@@ -75,6 +95,7 @@ export function ProfileAboutForm({
         <MarkdownEditor
           label="자기소개 (선택)"
           placeholder="관심 분야와 하고 있는 일을 자유롭게 소개해 보세요."
+          density="compact"
           limit={Infinity}
           value={biography}
           onChange={setBiography}
@@ -87,26 +108,33 @@ export function ProfileAboutForm({
           {rows.map(({ id: rowId, link }, index) => (
             <div
               key={rowId}
-              className="grid min-w-0 items-start gap-3 rounded-2xl border border-line p-3 sm:grid-cols-[9rem_minmax(0,1fr)_auto]"
+              className={profileStyles.linkRow}
             >
-              <Dropdown
-                label={`링크 종류 ${index + 1}`}
-                value={link.kind}
-                onValueChange={(kind) =>
-                  changeLink(rowId, {
-                    kind: kind as ProfileLinkKind,
-                  })
-                }
-                options={Object.entries(
-                  profileLinkLabels,
-                ).map(([value, label]) => ({
-                  value,
-                  label,
-                }))}
-              />
-              <div className="min-w-0 space-y-3">
+              <div id={`${id}-kind-${rowId}`}>
+                <Dropdown
+                  hideLabel
+                  triggerClassName="!text-base !font-normal"
+                  label={`링크 종류 ${index + 1}`}
+                  value={link.kind}
+                  onValueChange={(kind) =>
+                    changeLink(rowId, {
+                      kind: kind as ProfileLinkKind,
+                    })
+                  }
+                  options={Object.entries(
+                    profileLinkLabels,
+                  ).map(([value, label]) => ({
+                    value,
+                    label,
+                  }))}
+                />
+              </div>
+              <div className="col-span-2 min-w-0 space-y-2 sm:col-span-1">
                 {link.kind === ProfileLinkKind.OTHER && (
                   <TextField
+                    hideLabel
+                    className="!text-base"
+                    placeholder="표시 이름"
                     label={`표시 이름 ${index + 1}`}
                     value={link.label ?? ""}
                     error={errors[`links.${index}.label`]}
@@ -118,6 +146,8 @@ export function ProfileAboutForm({
                   />
                 )}
                 <TextField
+                  hideLabel
+                  className="!text-base"
                   id={`${id}-url-${rowId}`}
                   label={`URL ${index + 1}`}
                   type="url"
@@ -131,9 +161,10 @@ export function ProfileAboutForm({
                   }
                 />
               </div>
-              <div className="flex justify-end sm:pt-6">
+              <div className="col-start-2 row-start-1 flex justify-end sm:col-start-3">
                 <Button
                   variant="ghost"
+                  className="!size-11 !min-h-11 !p-0 !text-muted"
                   aria-label={`링크 ${index + 1} 삭제`}
                   onClick={() => {
                     removeLink(rowId);
@@ -142,24 +173,50 @@ export function ProfileAboutForm({
                       ?.focus();
                   }}
                 >
-                  삭제
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="size-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6" />
+                  </svg>
                 </Button>
               </div>
             </div>
           ))}
-          <div ref={addButton} className="flex justify-end">
+          <div ref={addButton}>
             <Button
-              variant="secondary"
+              variant="ghost"
+              aria-label="링크 추가"
+              className={profileStyles.addLink}
               onClick={() => {
                 const rowId = addLink();
                 requestAnimationFrame(() =>
                   document
-                    .getElementById(`${id}-url-${rowId}`)
+                    .getElementById(`${id}-kind-${rowId}`)
+                    ?.querySelector<HTMLButtonElement>(
+                      '[role="combobox"]',
+                    )
                     ?.focus(),
                 );
               }}
             >
-              링크 추가
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="size-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
             </Button>
           </div>
         </section>
@@ -171,10 +228,23 @@ export function ProfileAboutForm({
           className="space-y-3 rounded-xl border border-line p-4"
         >
           <p>저장하지 않은 변경을 취소할까요?</p>
-          <div className="flex flex-wrap justify-end gap-2">
+          <div
+            ref={continueButton}
+            className="flex flex-wrap justify-end gap-2"
+          >
             <Button
               variant="secondary"
-              onClick={() => setDiscard(false)}
+              onClick={() => {
+                setDiscard(false);
+                if (lastInput.current?.isConnected)
+                  lastInput.current.focus();
+                else
+                  root.current
+                    ?.querySelector<HTMLTextAreaElement>(
+                      "textarea",
+                    )
+                    ?.focus();
+              }}
             >
               계속 편집
             </Button>
@@ -186,7 +256,7 @@ export function ProfileAboutForm({
       ) : (
         <div className="flex flex-wrap justify-end gap-2">
           <Button
-            variant="secondary"
+            variant="ghost"
             disabled={busy}
             onClick={() =>
               dirty ? setDiscard(true) : onCancel()

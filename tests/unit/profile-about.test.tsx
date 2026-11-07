@@ -77,3 +77,83 @@ test("starts without link fields, validates added rows, preserves failed input a
     }),
   );
 });
+
+test("editing one invalid link preserves other errors and deleting remaps them", async () => {
+  render(
+    <ProfileAboutForm
+      initial={{
+        biography: "",
+        links: [
+          { kind: "OTHER", url: "bad", label: "" },
+          { kind: "BLOG", url: "bad" },
+        ],
+      }}
+      onSave={jest.fn()}
+      onCancel={jest.fn()}
+    />,
+  );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "저장",
+    }),
+  );
+  expect(screen.getByLabelText("URL 2")).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+  const first = screen.getByLabelText("URL 1");
+  first.focus();
+  fireEvent.change(first, {
+    target: { value: "https://example.com" },
+  });
+  expect(first).toHaveFocus();
+  expect(
+    screen.getByLabelText("표시 이름 1"),
+  ).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByLabelText("URL 2")).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "링크 1 삭제" }),
+  );
+  expect(screen.getByLabelText("URL 1")).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+});
+
+test("new links focus their kind and cancelling preserves an editing focus target", async () => {
+  render(
+    <ProfileAboutForm
+      initial={{ biography: "", links: [] }}
+      onSave={jest.fn()}
+      onCancel={jest.fn()}
+    />,
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "링크 추가" }),
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("combobox", { name: "링크 종류 1" }),
+    ).toHaveFocus(),
+  );
+  const url = screen.getByLabelText("URL 1");
+  url.focus();
+  fireEvent.change(url, {
+    target: { value: "https://example.com" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "취소",
+    }),
+  );
+  expect(
+    screen.getByRole("button", { name: "계속 편집" }),
+  ).toHaveFocus();
+  fireEvent.click(
+    screen.getByRole("button", { name: "계속 편집" }),
+  );
+  expect(url).toHaveFocus();
+});

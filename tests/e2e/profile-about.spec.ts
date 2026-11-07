@@ -26,6 +26,30 @@ for (const width of [1280, 390]) {
     });
     await expect(form.getByRole("combobox")).toHaveCount(0);
     await expect(
+      form.getByRole("button", { name: "+ 코드 블럭" }),
+    ).toHaveCount(0);
+    const addLink = form.getByRole("button", {
+      name: "링크 추가",
+    });
+    const addBox = (await addLink.boundingBox())!;
+    const linksBox = (await form
+      .getByRole("region", { name: "프로필 링크" })
+      .boundingBox())!;
+    expect(
+      Math.abs(addBox.width - linksBox.width),
+    ).toBeLessThan(2);
+    const plusBox = (await addLink
+      .locator("svg")
+      .boundingBox())!;
+    expect(
+      Math.abs(
+        plusBox.x +
+          plusBox.width / 2 -
+          addBox.x -
+          addBox.width / 2,
+      ),
+    ).toBeLessThan(2);
+    await expect(
       form.getByRole("textbox", {
         name: "자기소개 (선택)",
       }),
@@ -34,10 +58,25 @@ for (const width of [1280, 390]) {
       .getByRole("textbox", { name: "자기소개 (선택)" })
       .fill("## 만드는 사람\nTypeScript를 좋아합니다.");
     await form
+      .getByRole("tab", { name: "미리보기", exact: true })
+      .click();
+    const preview = form.locator(".markdown-preview");
+    await expect(preview).toHaveCSS(
+      "border-top-width",
+      "1px",
+    );
+    await expect(preview).toHaveCSS("padding", "16px");
+    await expect(
+      preview.getByRole("heading", { name: "만드는 사람" }),
+    ).toBeVisible();
+    await form
+      .getByRole("tab", { name: "작성", exact: true })
+      .click();
+    await form
       .getByRole("button", { name: "링크 추가" })
       .click();
     await expect(
-      form.getByLabel("URL 1", { exact: true }),
+      form.getByRole("combobox", { name: "링크 종류 1" }),
     ).toBeFocused();
     await form
       .getByLabel("URL 1", { exact: true })
@@ -179,6 +218,20 @@ for (const width of [1280, 390]) {
     await form
       .getByRole("textbox", { name: "자기소개 (선택)" })
       .fill("취소할 내용");
+    await form
+      .getByRole("button", { name: "취소", exact: true })
+      .click();
+    await expect(
+      form.getByRole("button", { name: "계속 편집" }),
+    ).toBeFocused();
+    await form
+      .getByRole("button", { name: "계속 편집" })
+      .click();
+    await expect(
+      form.getByRole("textbox", {
+        name: "자기소개 (선택)",
+      }),
+    ).toBeFocused();
     await form
       .getByRole("button", { name: "취소", exact: true })
       .click();
