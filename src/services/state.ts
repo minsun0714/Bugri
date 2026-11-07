@@ -42,6 +42,7 @@ export interface UserState {
   profileAbout?: ProfileAbout;
   /** One-time mock fixture upgrade; absent in older v1 snapshots. */
   learningDemoVersion?: 1;
+  coinHistoryDemoVersion?: 1;
   authoringConversation?: AuthoringConversation;
   userId: string;
   quizzes: StoredQuiz[];

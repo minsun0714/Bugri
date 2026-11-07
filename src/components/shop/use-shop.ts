@@ -1,4 +1,8 @@
 import {
+  useWallet,
+  walletKey,
+} from "@/components/coins/queries";
+import {
   useMutation,
   useQuery,
   useQueryClient,
@@ -15,11 +19,7 @@ export function useShop(userId: string) {
     queryFn: async () =>
       (await api()).request("products", {}),
   });
-  const wallet = useQuery({
-    queryKey: ["shop", userId, "wallet"],
-    queryFn: async () =>
-      (await api()).request("wallet", {}),
-  });
+  const wallet = useWallet(userId);
   const inventory = useQuery({
     queryKey: ["shop", userId, "inventory"],
     queryFn: async () =>
@@ -33,7 +33,7 @@ export function useShop(userId: string) {
   const refresh = async () => {
     await Promise.all([
       client.invalidateQueries({
-        queryKey: ["shop", userId, "wallet"],
+        queryKey: walletKey(userId),
       }),
       client.invalidateQueries({
         queryKey: ["shop", userId, "inventory"],

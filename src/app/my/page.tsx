@@ -4,6 +4,8 @@ import Link from "next/link";
 import { withDemoUser } from "@/components/navigation/routes";
 import { FeatureSectionShell } from "@/components/navigation/feature-section-shell";
 
+import { CoinHistory } from "@/components/coins/coin-history";
+
 type Props = { searchParams: Promise<{ user?: string }> };
 
 async function Content({ searchParams }: Props) {
@@ -13,43 +15,47 @@ async function Content({ searchParams }: Props) {
       ? user
       : "learner";
   return (
-    <Link
-      href={withDemoUser("/my/desk", initialUser)}
-      className="inline-block rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
-    >
-      데스크 편집·보유 상품
-    </Link>
+    <>
+      <h1 className="text-3xl font-semibold">마이페이지</h1>
+      <div className="mt-6">
+        <CoinHistory userId={initialUser} />
+        <section aria-label="개인 관리" className="mt-8">
+          <Link
+            href={withDemoUser("/my/desk", initialUser)}
+            className="flex items-center justify-between gap-4 border-t border-line py-5 text-sm font-semibold text-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            데스크 꾸미기 바로가기
+            <span aria-hidden="true">→</span>
+          </Link>
+          <FeatureSectionShell
+            compact
+            id="learning-history"
+            title="풀이 기록"
+          />
+          <FeatureSectionShell
+            compact
+            id="learning-timezone"
+            title="학습 시간대 설정"
+          />
+        </section>
+      </div>
+    </>
   );
 }
 
 export default function Page(props: Props) {
   return (
     <ProductLayout>
-      <h1 className="mb-6 text-3xl font-semibold">
-        마이페이지
-      </h1>
-      <Suspense
-        fallback={
-          <p role="status" className="p-8 text-muted">
-            불러오는 중…
-          </p>
-        }
-      >
-        <Content {...props} />
-      </Suspense>
-      <div className="mt-10 grid gap-5">
-        <FeatureSectionShell
-          id="learning-history"
-          title="풀이 기록"
-        />
-        <FeatureSectionShell
-          id="bugcoin-history"
-          title="BugCoin 내역"
-        />
-        <FeatureSectionShell
-          id="learning-timezone"
-          title="학습 시간대 설정"
-        />
+      <div>
+        <Suspense
+          fallback={
+            <p role="status" className="p-8 text-muted">
+              불러오는 중…
+            </p>
+          }
+        >
+          <Content {...props} />
+        </Suspense>
       </div>
     </ProductLayout>
   );
