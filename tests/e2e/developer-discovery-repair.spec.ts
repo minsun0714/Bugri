@@ -385,3 +385,70 @@ test("subscription modal searches, filters, removes and restores focus on mobile
     /\/developers\/bugri-friend\/quizzes\?user=learner&tag=/,
   );
 });
+
+test("subscription actions float without resizing cards or rows and Escape keeps the modal open", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/discover/developers?user=learner");
+  const card = page
+    .getByRole("region", { name: "개발자 검색 결과" })
+    .locator("li")
+    .filter({
+      has: page.getByRole("link", {
+        name: "타입 개발자",
+        exact: true,
+      }),
+    });
+  const before = await card.boundingBox();
+  await card
+    .getByRole("button", {
+      name: "타입 개발자 구독 중 · 관리",
+    })
+    .click();
+  await expect(
+    card.getByRole("button", {
+      name: "타입 개발자 구독 해제",
+    }),
+  ).toBeVisible();
+  expect((await card.boundingBox())?.height).toBe(
+    before?.height,
+  );
+  await page.keyboard.press("Escape");
+  await page
+    .locator("summary")
+    .filter({ hasText: "내 구독" })
+    .click();
+  await page
+    .getByRole("button", { name: "전체 보기", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "내 구독",
+    exact: true,
+  });
+  const row = dialog.getByRole("listitem").last();
+  const rowBefore = await row.boundingBox();
+  const trigger = row.getByRole("button", {
+    name: /구독 중 · 관리/,
+  });
+  await trigger.click();
+  const remove = row.getByRole("button", {
+    name: /구독 해제/,
+  });
+  await expect(remove).toBeVisible();
+  expect((await row.boundingBox())?.height).toBe(
+    rowBefore?.height,
+  );
+  const panel = await remove.boundingBox();
+  expect(panel!.y + panel!.height).toBeLessThanOrEqual(568);
+  await page.keyboard.press("Escape");
+  await expect(remove).not.toBeVisible();
+  await expect(dialog).toBeVisible();
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await dialog
+    .getByRole("heading", { name: "내 구독", exact: true })
+    .click();
+  await expect(remove).not.toBeVisible();
+  await expect(dialog).toBeVisible();
+});
