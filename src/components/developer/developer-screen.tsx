@@ -245,12 +245,12 @@ function Catalog({
           )}
           {tags.data && (
             <>
-              <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="flex flex-wrap gap-2">
                 {tags.data.items.map(
                   ({ id, name, quizCount, subscribed }) => (
                     <li
                       key={id}
-                      className="flex flex-wrap items-center justify-between gap-1 rounded-xl border border-line bg-canvas/40 p-2"
+                      className="flex w-fit max-w-full items-center gap-1 rounded-full border border-line bg-canvas/40 py-0.5 pl-3 pr-1"
                     >
                       <button
                         type="button"
@@ -271,7 +271,7 @@ function Catalog({
                         </span>
                       </button>
                       <Button
-                        className="ml-auto"
+                        className="!min-h-0 !rounded-full !border-0 !px-2 !py-1 !shadow-none"
                         size="sm"
                         variant="ghost"
                         disabled={busy || subscribed}

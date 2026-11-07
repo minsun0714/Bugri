@@ -33,6 +33,25 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   await expect(
     tags.getByRole("navigation", { name: "태그 페이지" }),
   ).toHaveCount(0);
+  const tagItems = tags.getByRole("listitem");
+  const itemBounds = await tagItems.evaluateAll((items) =>
+    items.map((item) => {
+      const { height, width, y } =
+        item.getBoundingClientRect();
+
+      return { height, width, y };
+    }),
+  );
+
+  expect(itemBounds).toHaveLength(3);
+  expect(
+    itemBounds.every(
+      ({ height, width }) => height < 40 && width < 250,
+    ),
+  ).toBe(true);
+  expect(new Set(itemBounds.map(({ y }) => y)).size).toBe(
+    1,
+  );
   await expect(quizzes.getByRole("link")).toHaveCount(2);
   await tags
     .getByRole("button", {
