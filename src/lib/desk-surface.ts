@@ -14,6 +14,8 @@ type SurfaceDrop = {
   desk: DeskTransform;
   itemFrame: DeskTransform;
   transform: DeskTransform;
+  /** Contact radius for feet; direct pointer drops have no footprint. */
+  footprint?: number;
 };
 
 const radians = (degrees: number) =>
@@ -43,7 +45,10 @@ export function tabletopDrop({
   desk,
   itemFrame,
   transform,
+  footprint = 0,
 }: SurfaceDrop): DeskTransform | null {
+  if (pitch <= 0) return null;
+
   const angle = radians(yaw);
   const elevation = radians(pitch);
   const height = desk.y + tableHeight;
@@ -60,7 +65,10 @@ export function tabletopDrop({
     center.z;
   const local = localPoint(worldX, worldZ, desk);
 
-  if (Math.abs(local.x) > 2 || Math.abs(local.z) > 1.2)
+  if (
+    Math.abs(local.x) > 2 + footprint ||
+    Math.abs(local.z) > 1.2 + footprint
+  )
     return null;
 
   // The pointer may reach the edge; keep both feet supported by the tabletop.

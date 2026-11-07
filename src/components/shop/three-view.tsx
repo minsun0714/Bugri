@@ -57,7 +57,13 @@ export function ThreeView(props: Props) {
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false);
   const [retry, setRetry] = useState(0);
-  const [angle, setAngle] = useState(45);
+  const [camera, setCamera] = useState({
+    yaw: 45,
+    pitch: 30,
+  });
+  function updateCamera(yaw: number, pitch: number) {
+    setCamera({ yaw, pitch });
+  }
   const [selection, setSelection] =
     useState<SelectionBounds | null>(null);
   function updateSelection(next: SelectionBounds | null) {
@@ -116,7 +122,7 @@ export function ThreeView(props: Props) {
     engine.current?.sync({
       ...props,
       onError: () => setFailed(true),
-      onCamera: setAngle,
+      onCamera: updateCamera,
       onSelectionBounds: updateSelection,
     });
   }, [props]);
@@ -130,7 +136,7 @@ export function ThreeView(props: Props) {
         instance = createDeskEngine(host.current, {
           ...latest.current,
           onError: () => setFailed(true),
-          onCamera: setAngle,
+          onCamera: updateCamera,
           onSelectionBounds: updateSelection,
         });
         engine.current = instance;
@@ -174,7 +180,13 @@ export function ThreeView(props: Props) {
           aria-label="카메라 방위각"
           className="sr-only"
         >
-          {angle}°
+          {camera.yaw}°
+        </output>
+        <output
+          aria-label="카메라 높낮이 각도"
+          className="sr-only"
+        >
+          {camera.pitch}°
         </output>
       </div>
       <div className="relative">

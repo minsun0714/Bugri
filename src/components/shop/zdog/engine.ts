@@ -72,6 +72,7 @@ export function createDeskEngine(
     tool: DeskTool;
     moved: boolean;
     handle: boolean;
+    footOffset: { x: number; y: number } | null;
   } | null = null;
 
   function rebuild() {
@@ -91,9 +92,9 @@ export function createDeskEngine(
       addTo: content,
       updateSort: true,
     });
-    // Draw lower objects with the legs, then the tabletop, then raised objects.
+    // Reverse surface occlusion when the camera moves below the desk.
     const desk = new Zdog.Group({ addTo: furnishings });
-    const lower = new Zdog.Group({
+    const first = new Zdog.Group({
       addTo: desk,
       updateSort: true,
     });
@@ -101,10 +102,12 @@ export function createDeskEngine(
       addTo: desk,
       updateSort: true,
     });
-    const upper = new Zdog.Group({
+    const last = new Zdog.Group({
       addTo: desk,
       updateSort: true,
     });
+    const [lower, upper] =
+      pitch < 0 ? [last, first] : [first, last];
     deskParts(lower, top, equipment.DESK ?? "default");
     const lowerItems = new Zdog.Anchor({ addTo: lower });
     const upperItems = new Zdog.Anchor({ addTo: upper });
@@ -224,6 +227,7 @@ export function createDeskEngine(
     // tabletop or the selected gizmo changes, rather than reparent cached shapes.
     const key = JSON.stringify([
       state.equipment,
+      pitch < 0,
       state.preview && [
         state.preview.productId,
         state.preview.category,
@@ -341,7 +345,7 @@ export function createDeskEngine(
       const spanX = Math.max(850, radius * 200 + 80);
       const spanY = Math.max(
         570,
-        radius * 200 * Math.sin(radians(pitch)) +
+        radius * 200 * Math.abs(Math.sin(radians(pitch))) +
           framingHeight * Math.cos(radians(pitch)) +
           80,
       );
@@ -517,7 +521,33 @@ export function createDeskEngine(
       tool,
       moved: false,
       handle: Boolean(handleTool),
+      footOffset: null,
     };
+    if (
+      category === DeskObject.BUGRI &&
+      tool === DeskTool.MOVE
+    ) {
+      // Zdog's runtime Anchor exposes the transformed model origin (foot level).
+      const anchor = anchors.get(DeskObject.BUGRI) as
+        | (Zdog.Anchor & { renderOrigin: Zdog.Vector })
+        | undefined;
+      if (anchor) {
+        const { x, y, width, height } =
+          canvas.getBoundingClientRect();
+        drag.footOffset = {
+          x:
+            x +
+            width / 2 +
+            anchor.renderOrigin.x * zoom -
+            event.clientX,
+          y:
+            y +
+            height / 2 +
+            anchor.renderOrigin.y * zoom -
+            event.clientY,
+        };
+      }
+    }
     canvas.setPointerCapture(event.pointerId);
     if (state.directManipulation) render();
   }
@@ -537,11 +567,12 @@ export function createDeskEngine(
     if (drag.tool === DeskTool.CAMERA) {
       yaw = drag.yaw + dx * 0.5;
       pitch = Math.max(
-        10,
+        -85,
         Math.min(85, drag.pitch - dy * 0.3),
       );
       state.onCamera?.(
         Math.round(((yaw % 360) + 360) % 360),
+        Math.round(pitch),
       );
       render();
       return;
@@ -573,11 +604,13 @@ export function createDeskEngine(
     } else {
       const cameraAngle = radians(drag.yaw);
       const screenX = dx / drag.zoom / 100;
+      const sine = Math.sin(radians(drag.pitch));
       const screenZ =
         dy /
         drag.zoom /
         100 /
-        Math.sin(radians(drag.pitch));
+        ((Math.sign(sine) || 1) *
+          Math.max(0.1, Math.abs(sine)));
       let x =
         Math.cos(cameraAngle) * screenX +
         Math.sin(cameraAngle) * screenZ;
@@ -606,8 +639,61 @@ export function createDeskEngine(
       };
     }
     next = constrainTransform(category, next);
+    if (
+      drag.moved &&
+      category === DeskObject.BUGRI &&
+      drag.tool === DeskTool.MOVE
+    )
+      next = snapBugri(event, next) ?? next;
     drag.next = next;
     state.onPreview?.(category, next, preview);
+  }
+
+  function snapBugri(
+    event: PointerEvent,
+    transform: DeskTransform,
+  ) {
+    if (!drag) return null;
+    const { x, y, width, height } =
+      canvas.getBoundingClientRect();
+    const desk =
+      state.transforms.DESK ?? defaultTransforms.DESK;
+    const {
+      zoom: scale,
+      yaw: azimuth,
+      pitch: elevation,
+      footOffset,
+    } = drag;
+    const snapAt = (
+      offset: { x: number; y: number },
+      footprint = 0,
+    ) =>
+      tabletopDrop({
+        screen: {
+          x:
+            (event.clientX + offset.x - x - width / 2) /
+            scale /
+            100,
+          y:
+            ((event.clientY + offset.y - y - height / 2) /
+              scale -
+              illustration.translate.y) /
+            100,
+        },
+        yaw: azimuth,
+        pitch: elevation,
+        center: framingCenter,
+        desk,
+        itemFrame: state.itemFrame ?? desk,
+        transform,
+        footprint,
+      });
+
+    // Prefer the visible feet; also accept a direct pointer drop onto the table.
+    return (
+      (footOffset && snapAt(footOffset, 0.4)) ??
+      snapAt({ x: 0, y: 0 })
+    );
   }
 
   function cancel() {
@@ -649,30 +735,7 @@ export function createDeskEngine(
       category === DeskObject.BUGRI &&
       !state.disabled
     ) {
-      const { x, y, width, height } =
-        canvas.getBoundingClientRect();
-      const desk =
-        state.transforms.DESK ?? defaultTransforms.DESK;
-      const snapped = tabletopDrop({
-        screen: {
-          x:
-            (event.clientX - x - width / 2) /
-            drag.zoom /
-            100,
-          y:
-            ((event.clientY - y - height / 2) / drag.zoom -
-              illustration.translate.y) /
-            100,
-        },
-        yaw: drag.yaw,
-        pitch: drag.pitch,
-        center: framingCenter,
-        desk,
-        itemFrame: state.itemFrame ?? desk,
-        transform: next,
-      });
-
-      if (snapped) next = snapped;
+      next = snapBugri(event, next) ?? next;
     }
     drag = null;
     canvas.releasePointerCapture(event.pointerId);
@@ -737,7 +800,7 @@ export function createDeskEngine(
       cancel();
       yaw = view === DeskView.ANGLED ? 45 : 0;
       pitch = view === DeskView.TOP ? 85 : 30;
-      state.onCamera?.(yaw);
+      state.onCamera?.(yaw, pitch);
       render();
     },
     cancel,

@@ -19,9 +19,14 @@ export interface SelectionBounds {
 
 export interface DeskSceneState extends Omit<
   SceneState,
-  "selected" | "onSelect" | "onPreview" | "onCommit"
+  | "selected"
+  | "onSelect"
+  | "onPreview"
+  | "onCommit"
+  | "onCamera"
 > {
   selected: SpatialTarget | null;
+  onCamera?: (yaw: number, pitch: number) => void;
   layerOrder?: readonly SceneTarget[];
   /** Frozen item coordinate frame while the trial desk moves independently. */
   itemFrame?: DeskTransform;

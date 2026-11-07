@@ -63,3 +63,43 @@ test("a moved and rotated trial desk converts back into the frozen item frame", 
     }),
   ).toEqual({ x: -1, y: 1.55, z: 2, rotationY: 135 });
 });
+
+test("a camera at or below the tabletop cannot snap onto its hidden upper face", () => {
+  for (const pitch of [0, -30, -85]) {
+    expect(
+      tabletopDrop({
+        screen: { x: 0, y: 0 },
+        yaw: 45,
+        pitch,
+        center: { x: 0, z: 0 },
+        desk,
+        itemFrame: desk,
+        transform,
+      }),
+    ).toBeNull();
+  }
+});
+
+test("feet touching the edge are supported while a pointer outside remains free", () => {
+  const request = {
+    screen: { x: 2.2, y: -1.55 * Math.cos(Math.PI / 6) },
+    yaw: 0,
+    pitch: 30,
+    center: { x: 0, z: 0 },
+    desk,
+    itemFrame: desk,
+    transform,
+  };
+
+  expect(tabletopDrop(request)).toBeNull();
+  expect(
+    tabletopDrop({ ...request, footprint: 0.4 }),
+  ).toMatchObject({ x: 1.6, y: 1.55, z: 0 });
+  expect(
+    tabletopDrop({
+      ...request,
+      footprint: 0.4,
+      screen: { ...request.screen, x: 2.5 },
+    }),
+  ).toBeNull();
+});
