@@ -12,6 +12,7 @@ export function Dropdown({
   value,
   onValueChange,
   disabled = false,
+  variant = "default",
   hideLabel = false,
   triggerClassName = "",
 }: {
@@ -20,6 +21,7 @@ export function Dropdown({
   value: string;
   onValueChange: (value: string) => void;
   disabled?: boolean;
+  variant?: "default" | "compact";
   hideLabel?: boolean;
   triggerClassName?: string;
 }) {
@@ -67,7 +69,9 @@ export function Dropdown({
       <span
         id={`${id}-label`}
         className={
-          hideLabel ? "sr-only" : "text-xs font-semibold"
+          hideLabel || variant === "compact"
+            ? "sr-only"
+            : "text-xs font-semibold"
         }
       >
         {label}
@@ -90,7 +94,11 @@ export function Dropdown({
         disabled={disabled || !options.length}
         onClick={toggle}
         onKeyDown={onKeyDown}
-        className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${triggerClassName} ${expanded ? "border-primary/20 bg-primary/10 text-primary" : "border-line bg-surface text-foreground hover:bg-canvas"}`}
+        className={
+          variant === "compact"
+            ? `flex h-11 w-full items-center justify-center gap-1 rounded-lg px-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-45 sm:text-sm ${triggerClassName}`
+            : `flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${triggerClassName} ${expanded ? "border-primary/20 bg-primary/10 text-primary" : "border-line bg-surface text-foreground hover:bg-canvas"}`
+        }
       >
         <span className="min-w-0 truncate">
           {selected?.label ?? "선택하세요"}

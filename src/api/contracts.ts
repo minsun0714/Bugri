@@ -174,6 +174,7 @@ export interface LearningDay {
   completed: boolean;
   streak: number;
   completedDates: string[];
+  dailyCounts: { learningDate: string; count: number }[];
 }
 
 export interface Product {

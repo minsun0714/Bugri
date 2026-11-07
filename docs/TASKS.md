@@ -1,5 +1,73 @@
 # Bugri 개발 단계와 작업 계획
 
+### STREAK-CALENDAR-VOLUME — 달력 학습량 시각 강조
+
+- 상태: DONE. 사용자 승인에 따라 완료일은 연두색 농도로 표시하고 개수는 크게, 날짜는 작게 표시한다. 0개도 단위를 붙여 0개로 표시하고 미래는 날짜만 표시한다. 오늘은 테두리 없이 보라색 날짜 띠와 흰 숫자로 구분한다. 날짜 띠는 라벤더색이고 옅은 연보라 구분선으로 개수 영역과 나눈다. 검정 테두리는 사용하지 않는다. 농도는 1개/2~4개/5개 이상으로 구분하는 표시용 기준이며 집계 정책은 변경하지 않는다.
+- [독립 UX·UI 리뷰](ux-reviews/STREAK-CALENDAR-VOLUME.md): 혼합1·0·3·6·2·12·4개 실제 화면에서 날짜/개수 분리와 숫자 잘림 없음을 확인했다. C1은 라벤더 날짜 띠와 오늘 테두리 보완, C2는 사용자 최신 선호에 따라 오늘 테두리 제거·보라 날짜 띠·0개 단위 통일. 같은 두 리뷰어 R2에서 확인, 수정2회. 실제 스크린리더·3자리 이상 숫자·확대는 미확인이다.
+- Node v22.23.3. C2 최종 코드 이후 `PLAYWRIGHT_PORT=3337 npm run verify` 전체 통과(lint·TypeScript·Jest204개·도구3개·production build·E2E123개). 관련 단위15개·E2E6개 통과, `git diff --check` 통과. 로그 `.bugri-hooks/verify-1.log`, 최신 캡처 `.bugri-hooks/previews/streak-calendar/`.
+
+### STREAK-SUMMARY-CENTER — 요약 가로·세로 중앙 정렬
+
+- 상태: DONE. 사용자 승인에 따라 데스크톱에서 버그리·연속 학습·일수·오늘 상태 묶음을 왼쪽 영역의 가로·세로 중앙으로 배치한다. 모바일 세로 배치와 기록 탐색 동작은 유지한다.
+- [독립 UX·UI 검토](ux-reviews/STREAK-SUMMARY-CENTER.md): 1280px에서 묶음과 왼쪽 열의 가로·세로 중심 일치, 390/768 세로 배치 유지 확인. UX는 빈 상태·제출 후 상태를 직접 확인했다. 필수 수정 없음, 수정 0회. 전체 키보드·긴 일수는 직접 미확인.
+- Node v22.23.3. 최초 E2E 서버 시작 timeout 이후 수동 build와 E2E 6개 재실행 통과. 중앙 정렬 최종 코드 이후 전체 `PLAYWRIGHT_PORT=3337 npm run verify` 통과(lint·TypeScript·Jest 204개·도구3개·production build·E2E123개). 이후 달력 후속 조정은 별도 STREAK-CALENDAR-VOLUME으로 검증한다.
+
+### STREAK-HISTORY-BOUND — 기간 선택과 학습 기록 탐색 하한
+
+- 상태: DONE. 사용자 승인에 따라 첫 학습 기록이 있는 연도·월까지만 이동하고 기록이 없으면 올해·이번 달만 표시한다. 연간 첫 기록 이전 월 진입도 막는다. API가 제공하는 완료일과 양수 일별 개수에서 첫 기록을 찾고 빈 중간 기간은 유지한다. 후속 승인에 따라 월·년 탭을 제거하고 날짜 제목 → 월 목록 → 제목 아래 연도 드롭다운으로 바꿨다. 연도 메뉴를 열어도 월별 기록·합계를 유지하며 카드 높이와 선택 후 초점 복귀를 보존한다.
+- [독립 UX·UI 리뷰](ux-reviews/STREAK-HISTORY-BOUND.md): R0의 빈 연도 화면을 사용자 스크린샷이 지적해 종료 판단을 철회했다. C1에서 공통 Dropdown compact variant를 추가하고 R1에서 단일 연도 작은 메뉴·월 목록 유지·동일 높이·키보드/외부 클릭을 직접 확인했다. 수정 1회. 수십 년 목록 스크롤·스크린리더 음성은 미확인이다.
+- Node v22.23.3. 마지막 C1 코드 변경 후 전체 `PLAYWRIGHT_PORT=3337 npm run verify` 통과(lint·TypeScript·Jest 204개·도구 3개·production build·E2E 123개), 로그 `.bugri-hooks/verify-1.log`. 관련 단위 15개·E2E 6개 통과, diff check 통과. 최초 E2E의 이전 탭 초기화 가정 및 C1 제목 높이 1.328px 차이를 각각 수정하고 기대값을 완화하지 않았다. 캡처 `.bugri-hooks/previews/streak-history/`.
+
+### STREAK-PERIODS — 월·년 학습량과 고정 높이
+
+- 상태: DONE. 사용자 최종 승인에 따라 7일 보기를 제거하고 이번 달을 기본으로 하는 월·년 탭으로 정리했다. 두 보기의 카드 높이를 동일하게 유지한다. 월 달력은 6행, 년은 월별 합계와 해당 월 이동을 제공한다. 현재 스트릭은 조회 기간과 독립적이고 사용자 전환 시 이번 달로 돌아간다. API·일별 고유 개수·재풀이 제외 정책은 유지한다.
+- [독립 UX·UI 리뷰](ux-reviews/STREAK-PERIODS.md): C1의 탭별 높이 유지 판단은 사용자 정정으로 철회했다. C2에서 모든 탭의 공통 높이를 구현하고 두 리뷰어가 확인했다. C3는 승인된 주간 제거와 기본 월 변경이며 R3에서 두 리뷰어가 확인했다. 이후 사용자 요청인 연간 2열 × 6행 가로 막대 변경은 STREAK-YEAR-GRID로 별도 검토한다.
+- Node v22.23.3. C3 관련 단위 10개와 스트릭 E2E 4개 통과. 앞선 전체 검사에서 별도 3D 장면의 scrollIntoViewIfNeeded가 30초 시간 초과로 실패했고, 해당 파일 2개 테스트를 변경 없이 재실행해 통과했다. 월·년 기본 보기 및 연간 2열 최종 코드 변경 후 `PLAYWRIGHT_PORT=3337 npm run verify` 전체 통과(lint·TypeScript·Jest 199개·도구 3개·production build·E2E 121개). 로그 `.bugri-hooks/verify-2.log`. diff check 통과.
+
+### STREAK-YEAR-GRID — 연간 2열 표시
+
+- 상태: DONE. 사용자 추가 요청에 따라 연간 학습량을 2열 × 6행의 월·가로 막대·개수로 표시했다. 월·년 동일 높이와 월 진입 동작을 유지한다.
+- [독립 UX·UI R0](ux-reviews/STREAK-YEAR-GRID.md): 새 컨텍스트의 두 리뷰어가 390/768/1280 빈·1개 기록, 높이·정렬을 확인했다. UX는 키보드 월 진입·재풀이 합계 유지 및 별도 코드 리뷰도 수행했다. 필수 문제 없음, 수정 0회. 큰 수치·확대·스크린리더는 미확인이다.
+- 최종 전체 검증은 위 STREAK-PERIODS와 동일 실행으로 통과했다. 당시 제안했던 첫 학습 연도 제한은 후속 STREAK-HISTORY-BOUND에서 사용자 승인 후 구현한다.
+
+### STREAK-DAILY-COUNTS — 최근 7일 학습량
+
+- 상태: DONE. 승인된 일별 고유 퀴즈 완료 개수를 API에서 집계하고 최근7일을 막대와 N개로 표시한다. 같은 현지 학습일·quizId는 다시 풀어도 1개이며 다른 날짜는 별도로 집계한다. 정오 무관, 미제출 제외, 삭제/시간대 변경 후 원래 완료일 보존. 스트릭 기준은 유지한다. PRD AC-12k와 API dailyCounts 계약 반영.
+- API·UI 신규 테스트 의도한 실패 후 관련35개 및 E2E2개 통과. Node v22.23.3 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3337 npm run verify` 전체 통과(lint·TypeScript·Jest195개·도구3개·production build·E2E119개). diff check 통과, 로그 `.bugri-hooks/verify-1.log`.
+- [독립 UX 리뷰](ux-reviews/STREAK-DAILY-COUNTS.md) R0에서 1280/390/768 실제 화면·fixture·키보드 제출/도움말·오답 재풀이 후1개 유지 직접 확인. 필수/일반 문제0개, 수정0회. 오류 강제재현/스크린리더·날짜경계/삭제/시간대 변경은 독립 화면 리뷰 미확인(API 테스트로 집계 확인). 캡처 `.bugri-hooks/previews/streak-volume/`. 구현자 외 코드 리뷰·사용자 최종 디자인 판단은 남아 있다.
+
+### STREAK-BUGRI-UI — 버그리와 절제된 학습 기록
+
+- 상태: DONE. 사용자 승인에 따라 불꽃 대신 공통 Bugri의 초기/응원/완료 표정을 사용하고, 주간 캡슐·배지·오늘 테두리를 작은 완료 표시와 요일로 단순화했다. 기간을 시작일–종료일로 명시하고 숫자/상태 강조를 낮췄다. 기록 상세와 API 정책은 추가하지 않는다.
+- [독립 UX 리뷰](ux-reviews/STREAK-BUGRI-UI.md)에서 768px 상태 제목 단어 분리를 발견해 좌측 최소240px로 수정했다. C1/R1 1회 후 768px 최초/재시작 한줄, 390/1280 회귀없음 직접 확인. 오류·전체 키보드·스크린리더·다른 사용자 격리는 독립 리뷰 미확인으로 남겼다.
+- Node v22.23.3 관련 단위5개·E2E2개 통과. C1 이전 첫 전체검사는 통과했지만 최종 근거로 대체하지 않고 마지막 코드 변경 뒤 `PLAYWRIGHT_PORT=3337 npm run verify` 재실행 통과(lint·TypeScript·Jest193개·도구3개·production build·E2E119개). 로그 `.bugri-hooks/streak-bugri-final-verify.log`, diff check 통과. 캡처 `.bugri-hooks/previews/streak-bugri/`. 구현자 외 코드 리뷰·최종 디자인 판단은 남아 있다.
+
+### STREAK-REFERENCE-UI — 학습 서비스 시각 참고 재설계
+
+- 상태: DONE(요약 시각 재설계). 사용자 승인에 따라 공식 공개 듀오링고/인프런 화면의 숫자 중심과 요일 캡슐을 참고했다. 스트릭 숫자·불꽃 아이콘을 묶고 최근 7일을 옅은 보라색 캡슐/완료 배지/오늘 테두리로 표시한다. 전체 주간/보호 아이템 등 타 서비스 정책을 도입하지 않고 기존 최근7일·집계·상태 문구를 유지한다.
+- [UX 리뷰 기록](ux-reviews/STREAK-REFERENCE-UI.md): 새 컨텍스트 R0의 모바일 밀도 선택적 개선을 채택해 1회(C1/R1) 수정. 독립 실제 화면에서 모바일 카드254→214px·제출 첫화면 노출·키보드 제출·640/768/1280 배치 확인. 최초/재시작/어제4일/오늘5일·개인 격리는 R0 직접 확인. 장애 주입·스크린리더·긴 자릿수는 미확인.
+- Node v22.23.3 관련 단위5개/E2E2개 통과. 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3337 npm run verify` 전체 통과(lint·TypeScript·Jest193개·도구3개·production build·E2E119개). diff check 통과. 캡처 `.bugri-hooks/previews/streak-reference/`. 구현자 외 코드 리뷰·최종 사용자 디자인 판단은 남아 있다.
+
+### STREAK-DEV-UX — dev 병합 후 사용자 목표 UX 점검
+
+- 상태: DONE(스트릭 UX 점검/수정 범위). dev 병합은 리뷰 지침 변경이며 제품 화면 변경은 없다. 새 컨텍스트 리뷰어가 홈 진입→학습 여부 확인→제출→다음 문제와 초기/진행/완료/중단 상태를 점검했다. 기존 학습 기록이 있는데도 ‘첫 기록’으로 안내하던 상태를 ‘오늘부터 다시 / 한 문제로 다시 시작해요’로 수정했다. 기록과 집계 규칙은 유지한다.
+- [독립 UX 리뷰 기록](ux-reviews/STREAK-DEV-UX.md): 수정 1회(C1/R1), 1280×900/390×844에서 재시작 문구·기존 체크·제출 후1일·다음 문제 직접 재검증. 오류 복구/자정/스크린리더는 독립 리뷰 미확인으로 남겼다. 추가 레이아웃 변경이 필요하다는 근거는 발견하지 않았다.
+- Node v22.23.3. 새 테스트 의도한 실패 확인 후 관련 단위 5개·E2E 2개 통과. 전체 verify 최초 실행은 이전 캡처 임시 스크립트 lint 오류로 중단되어 해당 임시 파일을 저장소 밖으로 이동했다. 최종 `PLAYWRIGHT_PORT=3337 npm run verify` 통과(lint·TypeScript·Jest 40 suites/193 tests·도구3개·production build·E2E119개), 로그 `.bugri-hooks/verify-2.log`. diff check 통과. 구현자 외 코드 리뷰/최종 병합 판단은 남아 있다.
+
+### STREAK-HOME-UX — 스트릭 요약 밀도 개선
+
+- 상태: DONE. 사용자 피드백에 따라 큰 카드와 반복 미완료 문구를 줄이고 일수/오늘 상태를 중심으로 최근 7일을 요일로 간결하게 표시했다. 0일은 시작 상태로 표현하고 시간대는 공통 접근성 툴팁으로 이동했다. API·집계 규칙은 유지한다.
+- Node v22.23.3에서 관련 단위 4개·신규 문구/Tooltip focus·Escape를 반영한 E2E 1개 통과. 최종 Hook 수동 호출의 전체 verify 통과(lint·TypeScript·Jest 192개·도구 3개·production build·E2E 118개). `git diff --check` 통과. 기존 표시 문구 기대를 승인된 디자인 변경에 맞췄으며 집계/격리 검증은 유지했다.
+- 독립 UX 리뷰는 실제 1280×900/390×844 초기·완료 상태의 밀도/위계/퀴즈 위치와 Tooltip 키보드를 검토했다. 카드 높이 데스크톱 262→122px, 모바일 246→194px. 필수 수정 없음(수정 0회). 선택적 의견: 넓은 화면의 요약/주간 표시 간격과 오늘 표시가 버튼처럼 읽힐 가능성. 현 우측 정렬 유지도 타당하다는 리뷰에 따라 보류했다. 오류 상태·스크린리더 음성은 이번 리뷰에서 미실행. 캡처 `.bugri-hooks/previews/streak-ux/`. 구현자 외 코드 리뷰 및 사용자 디자인 검토는 남아 있다.
+
+### STREAK-HOME — 홈 연속 학습 요약
+
+- 상태: DONE(홈 요약 구현 범위). AC-12g·AC-05h 및 PAGE_STRUCTURE의 홈 요약 범위. 기존 학습일 API로 현재 스트릭·최근 7일·오늘 완료 여부를 표시하고 제출 후 갱신·사용자 격리·미설정/조회 실패를 검증했다.
+- 스트릭 전용 UI·훅과 홈/풀이 화면의 연결만 변경한다. 시간대 설정(P02T)과 `/my/learning` 상세·이동 링크는 후속 작업이며 이번에 미구현 목적지 링크를 노출하지 않는다. 방문자 풀이의 기존 동작 개편은 별도 담당 범위다.
+- 풀이와 같은 QueryClient 및 `["learningDay", userId]` 키를 사용한다. 제출 성공 후 재조회하고 열린 화면은 60초 간격/포커스 복귀 시 갱신한다. 계산은 기존 서비스가 담당하며 UI는 완료 날짜를 표시한다. 조회 실패를 0일로 표시하지 않는다.
+- 미구현 컴포넌트로 신규 테스트 실패 확인 후 구현했다. 첫 타입 검사/브라우저 빌드는 테스트 오류 응답의 requestId 누락으로 실패했고 수정 후 통과했다. Node v22.23.3에서 관련 단위 14개 및 신규 E2E 1개 통과. 마지막 코드 변경 후 Hook을 수동 호출해 `PLAYWRIGHT_PORT=3337 npm run verify` 전체 통과(lint·TypeScript·Jest 40 suites/192 tests·도구 3 tests·production build·Chromium E2E 118 tests). 로그: `.bugri-hooks/verify-1.log`.
+- 독립 UX 리뷰는 전용 서버의 실제 1280×900/390×844 화면에서 로그인·0일·제출 후 1일/오늘 체크·모바일 넘침·제출 후 Tab 이동을 확인했다. 필수 수정 없음(수정 0회). 로딩/오류/시간대 미확인은 코드·단위 테스트 검토만 수행했으며 실제 오류 화면 조작과 스크린리더 검증은 미실행. 구현자 외 코드 리뷰와 최종 병합 판단은 남아 있다.
+
 ### NAV-01 — 공통 헤더·브레드크럼
 
 - 상태: DONE(요청한 헤더 통합 범위). 공통 ProductLayout에 제품 헤더·현재 메뉴·모바일 메뉴·브레드크럼을 연결했다. UI 전시의 섹션 헤더는 유지한다. 관련: PAGE_STRUCTURE, REQ-04·05·08 및 접근성 기준.
@@ -1184,3 +1252,11 @@
 - 통합 관련 E2E10개·Jest22개 통과. [독립 UX/UI 통합 리뷰](ux-reviews/PROFILE-PR-INTEGRATION.md) PC/mobile 실제확인·자동병합코드확인에서 회귀0개·수정0회. 이전 병렬 부하 시간제한 이력을 고려해 최종 전체검증은 `npm run verify -- -- --workers=1`로 동일검사를 순차 실행하고 실제 명령·종료코드를 Hook상태에 기록한다.
 
 - 최종 Node v22.23.3 `npm run verify -- -- --workers=1` 전체 통과: lint·TypeScript·Jest206개·도구3개·production build·E2E130개(4.9분). 로그 `.bugri-hooks/PROFILE-PR-INTEGRATION-verify.log`. diff check·변경페이지 Prettier 통과. 통합리뷰 필수 미해결 없음. 충돌해결 커밋과 검증 근거를 PR16에 갱신한다.
+
+### PR16 후속 dev 통합 — streak
+
+- 첫통합검증 중 dev에 PR17(78c86a4)이 추가 병합됐다. 공통Dropdown 충돌은 streak의 compact variant와 프로필의 hideLabel/triggerClassName을 함께 보존했다. 다른 자동병합 코드는 유지하며 최신통합 전체검증을 다시 수행한다. PR은 검증동안 Draft를 유지한다.
+
+- 후속통합 관련 E2E8개·Jest21개 통과, 같은 UX/UI리뷰어 R1에서 홈 기간선택·프로필 링크종류메뉴의 PC/mobile선택·키보드·저장 및 코드옵션보존을 확인했다. 회귀0개. 최신전체검증은 동일한 순차verify명령으로 수행한다.
+
+- 후속통합 최종 Node v22.23.3 `npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest222개·도구3개·production build·E2E136개(5.3분). 로그 `.bugri-hooks/PROFILE-PR-INTEGRATION-streak-verify.log`. R1회귀0개, 수정Dropdown Prettier·diff check 통과. 최신dev78c86a4 통합까지 완료했다.
