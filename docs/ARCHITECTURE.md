@@ -119,3 +119,10 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 - 2단계: Spring Boot 서비스·REST 계약·MySQL 통합 테스트로 Google OAuth2·JWT·내부 User ID 소유권, 저장 복원, 학습일 중복 집계 방지, 중복 구매·BugCoin 차감의 원자성을 확인한다. 1단계 테스트 통과를 실제 보안·영속성 검증으로 간주하지 않는다.
 - 확정: 1단계 Next.js·TypeScript·Mock API·더미 사용자·Jest·Playwright·Vercel, DB·실제 인증 제외. 2단계 Spring Boot·Java 21·MySQL 8.4·Spring Data JPA·Google OAuth2·JWT·실제 REST API.
 - 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부·시간대 변경 전후 일일 보상 중복 판정 세부 기준, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, BugCoin 지급량, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
+
+
+## 비로그인 홈 체험 — 문서 합의, 구현 별도
+
+PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따른다. 기존 구독 기반 학습·사용자별 Attempt·학습일·보상 설명은 로그인 사용자(1단계 더미 사용자) 대상이다. 비로그인 방문자는 전체 활성 PUBLIC 퀴즈의 랜덤 풀이·제출 후 해설·다음 문제만 체험하고 개인 기록·스트릭·보상을 남기지 않는다. 익명 소유권이나 더미 사용자 계정에 방문자 기록을 저장하지 않는다.
+
+기존 사용자 기반 API 계약이 이 방문자 기능을 이미 지원한다는 의미는 아니다. 구현 시 별도의 방문자 조회·채점 계약과 제출 전 정답 비노출, 제출 시 공개·삭제 상태 확인을 정의해야 한다. 이번 문서 변경에서는 DTO·엔드포인트·코드를 추가하지 않는다. 1단계 실제 인증·서버 영속성 제외 정책은 유지한다.
