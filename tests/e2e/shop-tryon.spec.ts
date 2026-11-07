@@ -151,12 +151,7 @@ test("trial purchase and equip are explicit and replacing a preview does not sav
   await dialog
     .getByRole("button", { name: "닫기", exact: true })
     .click();
-  await page
-    .getByRole("link", {
-      name: "내 데스크 꾸미기",
-      exact: true,
-    })
-    .click();
+  await page.goto("/my");
   await expect(
     page.getByRole("group", {
       name: "내 데스크 · 새싹 키보드",

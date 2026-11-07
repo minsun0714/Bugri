@@ -24,18 +24,18 @@ function categoryAt(
   const r = data[offset];
   const g = data[offset + 1];
   const b = data[offset + 2];
-  if (r === 0 && g === 255 && b === 255)
+  // Antialiasing can blend a nearly opaque edge by one or two channel values.
+  // Only accept near-pure owner colours; mixed edges and covered pixels stay unpickable.
+  if (r <= 2 && g >= 253 && b >= 253)
     return DeskObject.BUGRI;
-  if (r === 255 && g === 0 && b === 255)
+  if (r >= 253 && g <= 2 && b >= 253)
     return SceneObject.PREVIEW;
-  if (r === 255 && g === 0 && b === 0)
+  if (r >= 253 && g <= 2 && b <= 2)
     return Category.KEYBOARD;
-  if (r === 0 && g === 255 && b === 0)
-    return Category.MONITOR;
-  if (r === 0 && g === 0 && b === 255)
+  if (r <= 2 && g >= 253 && b <= 2) return Category.MONITOR;
+  if (r <= 2 && g <= 2 && b >= 253)
     return Category.ACCESSORY;
-  if (r === 255 && g === 255 && b === 0)
-    return Category.DESK;
+  if (r >= 253 && g >= 253 && b <= 2) return Category.DESK;
   return null;
 }
 

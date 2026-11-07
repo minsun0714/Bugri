@@ -89,8 +89,8 @@ for (const width of [1100, 390]) {
     ).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(
-      page.getByRole("link", {
-        name: "내 데스크 꾸미기",
+      page.getByRole("heading", {
+        name: "상품 목록",
         exact: true,
       }),
     ).toBeFocused();

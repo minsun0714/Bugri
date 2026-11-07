@@ -69,6 +69,8 @@ export function createDeskEngine(
   let framingRadius = 3.7;
   let framingKey = "";
   let framingCenter = { x: 0, z: 0 };
+  let framingOrigin = { x: 0, z: 0 };
+  let framingPoints: { x: number; z: number }[] = [];
   const anchors = new Map<SpatialTarget, Zdog.Anchor>();
   let equipmentKey = "";
   let yaw = 45;
@@ -293,92 +295,87 @@ export function createDeskEngine(
     if (nextFramingKey !== framingKey) {
       const desk =
         state.transforms.DESK ?? defaultTransforms.DESK;
-      let radius = 3.7;
-      framingHeight = 300;
-      for (const category of anchors.keys()) {
-        if (category === Category.DESK) continue;
-        const value =
-          state.transforms[category] ??
-          defaultTransforms[category];
-        const objectHeight =
-          category === Category.MONITOR
-            ? 138
-            : category === Category.ACCESSORY
-              ? 85
-              : category === DeskObject.BUGRI
-                ? 110
-                : 12;
-        framingHeight = Math.max(
-          framingHeight,
-          value.y * 100 + objectHeight,
-        );
-        radius = Math.max(
-          radius,
-          Math.hypot(value.x, value.z) +
-            (category === DeskObject.BUGRI ? 0.7 : 1),
-        );
-      }
       const itemFrame = state.itemFrame ?? desk;
-      radius = Math.max(
-        radius + Math.hypot(itemFrame.x, itemFrame.z),
-        Math.hypot(desk.x, desk.z) + 3,
-      );
-      if (state.preview) {
-        const { category, transform } = state.preview;
-        radius = Math.max(
-          radius,
-          Math.hypot(transform.x, transform.z) +
-            (category === Category.DESK
-              ? 3
-              : 1 + Math.hypot(itemFrame.x, itemFrame.z)),
-        );
+      const sizes: Record<
+        SpatialTarget,
+        { x: number; z: number; height: number }
+      > = {
+        DESK: { x: 2, z: 1.2, height: 155 },
+        KEYBOARD: { x: 0.675, z: 0.26, height: 12 },
+        MONITOR: { x: 0.85, z: 0.225, height: 138 },
+        ACCESSORY: { x: 0.6, z: 0.4, height: 85 },
+        BUGRI: { x: 0.73, z: 0.3, height: 110 },
+      };
+      framingPoints = [];
+      framingHeight = 300;
+      const include = (
+        category: SpatialTarget,
+        value: DeskTransform,
+      ) => {
+        const size = sizes[category];
         framingHeight = Math.max(
           framingHeight,
-          transform.y * 100 +
-            (category === Category.MONITOR
-              ? 138
-              : category === Category.ACCESSORY
-                ? 85
-                : 12),
+          value.y * 100 + size.height,
         );
-      }
-      framingCenter = { x: 0, z: 0 };
-      if (state.preview?.category === Category.DESK) {
-        const added = state.preview.transform;
-        framingCenter = {
-          x: (desk.x + added.x) / 2,
-          z: (desk.z + added.z) / 2,
-        };
-        const distance = (x: number, z: number) =>
-          Math.hypot(
-            x - framingCenter.x,
-            z - framingCenter.z,
-          );
-        radius = Math.max(
-          3.7,
-          distance(desk.x, desk.z) + 2.4,
-          distance(added.x, added.z) + 2.4,
-        );
-        const world = (x: number, z: number) =>
-          new Zdog.Vector({ x, z })
-            .rotate({ y: -radians(itemFrame.rotationY) })
-            .add({ x: itemFrame.x, z: itemFrame.z });
-        for (const category of anchors.keys()) {
-          if (category === Category.DESK) continue;
-          const value =
-            state.transforms[category] ??
-            defaultTransforms[category];
-          const point = world(value.x, value.z);
-          radius = Math.max(
-            radius,
-            distance(point.x, point.z) +
-              (category === DeskObject.BUGRI ? 0.7 : 1),
-          );
+        for (const x of [-size.x, size.x]) {
+          for (const z of [-size.z, size.z]) {
+            const point = new Zdog.Vector({ x, z })
+              .rotate({ y: -radians(value.rotationY) })
+              .add({ x: value.x, z: value.z });
+            if (category !== Category.DESK)
+              point
+                .rotate({
+                  y: -radians(itemFrame.rotationY),
+                })
+                .add({ x: itemFrame.x, z: itemFrame.z });
+            framingPoints.push({ x: point.x, z: point.z });
+          }
         }
-      }
-      framingRadius = radius;
+      };
+      for (const category of anchors.keys())
+        include(
+          category,
+          state.transforms[category] ??
+            defaultTransforms[category],
+        );
+      if (state.preview)
+        include(
+          state.preview.category,
+          state.preview.transform,
+        );
+      const xs = framingPoints.map(({ x }) => x);
+      const zs = framingPoints.map(({ z }) => z);
+      framingOrigin = {
+        x: (Math.min(...xs) + Math.max(...xs)) / 2,
+        z: (Math.min(...zs) + Math.max(...zs)) / 2,
+      };
+      framingRadius = Math.max(
+        3.7,
+        ...framingPoints.map(
+          ({ x, z }) =>
+            Math.hypot(
+              x - framingOrigin.x,
+              z - framingOrigin.z,
+            ) + 0.4,
+        ),
+      );
       framingKey = nextFramingKey;
     }
+    // Keep the entire opening composition centred at each azimuth. Reuse the
+    // captured bounds so editing an item never pulls the camera along with it.
+    const cosine = Math.cos(radians(yaw));
+    const sine = Math.sin(radians(yaw));
+    const projected = framingPoints.map(
+      ({ x, z }) =>
+        cosine * (x - framingOrigin.x) -
+        sine * (z - framingOrigin.z),
+    );
+    const middle =
+      (Math.min(...projected) + Math.max(...projected)) / 2;
+    framingCenter = {
+      x: framingOrigin.x + cosine * middle,
+      z: framingOrigin.z - sine * middle,
+    };
     if (!drag || drag.tool === DeskTool.CAMERA) {
       const radius = framingRadius;
       const spanX = Math.max(850, radius * 200 + 80);

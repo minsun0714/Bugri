@@ -72,12 +72,7 @@ test("shop, own desk and public desk work when WebGL is unavailable", async ({
     .getByRole("dialog")
     .getByRole("button", { name: "닫기", exact: true })
     .click();
-  await page
-    .getByRole("link", {
-      name: "내 데스크 꾸미기",
-      exact: true,
-    })
-    .click();
+  await page.goto("/my");
   await expect(page).toHaveURL(/\/my(?:\?|$)/);
   await page
     .getByRole("button", { name: "새싹 키보드 선택" })

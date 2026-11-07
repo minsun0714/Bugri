@@ -38,12 +38,7 @@ async function equipped(page: Page) {
     .getByRole("dialog")
     .getByRole("button", { name: "닫기", exact: true })
     .click();
-  await page
-    .getByRole("link", {
-      name: "내 데스크 꾸미기",
-      exact: true,
-    })
-    .click();
+  await page.goto("/my");
   await page
     .getByRole("button", { name: "새싹 키보드 선택" })
     .click();

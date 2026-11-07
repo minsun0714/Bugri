@@ -1,5 +1,39 @@
-import { expect, test } from "@playwright/test";
-import { productPoint } from "./helpers/desk";
+import {
+  expect,
+  test,
+  type Locator,
+} from "@playwright/test";
+
+async function visibleCenter(
+  canvas: Locator,
+  color: number[],
+) {
+  await canvas.scrollIntoViewIfNeeded();
+  return canvas.evaluate((element, rgb) => {
+    const c = element as HTMLCanvasElement;
+    const { data } = c
+      .getContext("2d")!
+      .getImageData(0, 0, c.width, c.height);
+    let min = c.width;
+    let max = -1;
+    for (let i = 0; i < data.length; i += 4) {
+      if (
+        data[i + 3] !== 255 ||
+        !rgb.every((v, channel) => data[i + channel] === v)
+      )
+        continue;
+      const x = (i / 4) % c.width;
+      min = Math.min(min, x);
+      max = Math.max(max, x);
+    }
+    if (max < 0)
+      throw new Error("Product has no visible pixels");
+    const box = c.getBoundingClientRect();
+    return {
+      x: box.x + ((min + max) / 2 / c.width) * box.width,
+    };
+  }, color);
+}
 
 for (const width of [1100, 390]) {
   test(`space follows horizontal drag at ${width}px`, async ({
@@ -14,7 +48,7 @@ for (const width of [1100, 390]) {
       const canvas = page.locator(
         '[data-renderer="canvas"] canvas',
       );
-      const start = await productPoint(
+      const start = await visibleCenter(
         canvas,
         [197, 237, 102],
       );
@@ -31,7 +65,7 @@ for (const width of [1100, 390]) {
       };
       await drag(-40);
       expect(
-        (await productPoint(canvas, [197, 237, 102])).x,
+        (await visibleCenter(canvas, [197, 237, 102])).x,
       ).toBeLessThan(start.x - 5);
       await expect(
         page.getByLabel("카메라 방위각"),
@@ -42,7 +76,7 @@ for (const width of [1100, 390]) {
       ).toHaveText("0°");
       await drag(40);
       expect(
-        (await productPoint(canvas, [197, 237, 102])).x,
+        (await visibleCenter(canvas, [197, 237, 102])).x,
       ).toBeGreaterThan(start.x + 5);
       await expect(
         page.getByLabel("카메라 높낮이 각도"),

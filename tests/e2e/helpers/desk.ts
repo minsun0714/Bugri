@@ -30,8 +30,8 @@ export async function productPoint(
       throw new Error("Product has no visible pixels");
     const pixel = pixels[Math.floor(pixels.length / 2)];
     return {
-      x: (pixel % c.width) / c.width,
-      y: Math.floor(pixel / c.width) / c.height,
+      x: ((pixel % c.width) + 0.5) / c.width,
+      y: (Math.floor(pixel / c.width) + 0.5) / c.height,
     };
   }, color);
   const box = await canvas.boundingBox();
