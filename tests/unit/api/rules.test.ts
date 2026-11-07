@@ -1057,3 +1057,64 @@ test("timezone local dates across DST and stale streaks", () => {
     streak(["2026-03-06", "2026-03-07"], "2026-03-09"),
   ).toBe(0);
 });
+
+test("learning volume counts distinct quizzes per stored local date, retaining wrong answers and deleted content", async () => {
+  let now = new Date("2026-03-07T14:59:00Z");
+  const client = api("learner", { now: () => now });
+
+  async function complete(quizId: string, answer: Answer) {
+    const { attemptId } = await client.request(
+      "startAttempt",
+      { quizId, context: "DIRECT" },
+    );
+
+    await client.request("answer", { attemptId, answer });
+  }
+
+  const wrong: Answer = {
+    type: "SINGLE_CHOICE",
+    choiceId: "a",
+  };
+
+  await complete("seed-quiz-1", wrong);
+  await complete("seed-quiz-1", wrong);
+
+  await complete("seed-quiz-2", {
+    type: "MULTIPLE_CHOICE",
+    choiceIds: ["a"],
+  });
+
+  await client.request("startAttempt", {
+    quizId: "seed-quiz-3",
+    context: "DIRECT",
+  });
+
+  expect(
+    (await client.request("learningDay", {})).dailyCounts,
+  ).toEqual([{ learningDate: "2026-03-07", count: 2 }]);
+
+  now = new Date("2026-03-07T15:01:00Z");
+  await complete("seed-quiz-1", wrong);
+
+  await client.request("updateTimezone", {
+    timeZone: "America/New_York",
+  });
+
+  const owner = api("author");
+
+  await owner.request("deleteQuiz", {
+    quizId: "seed-quiz-1",
+  });
+
+  expect(
+    (await client.request("learningDay", {})).dailyCounts,
+  ).toEqual([
+    { learningDate: "2026-03-07", count: 2 },
+    { learningDate: "2026-03-08", count: 1 },
+  ]);
+
+  expect(
+    (await api("friend").request("learningDay", {}))
+      .dailyCounts,
+  ).toEqual([]);
+});

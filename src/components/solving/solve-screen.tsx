@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StreakSummary } from "@/components/streak/streak-summary";
 import {
   useRouter,
   useSearchParams,
@@ -218,8 +219,10 @@ function Session({
 
 export function SolveScreen({
   direct = false,
+  showStreak = false,
 }: {
   direct?: boolean;
+  showStreak?: boolean;
 }) {
   const params = useSearchParams();
   const selectedUser = params.get("user");
@@ -246,6 +249,7 @@ export function SolveScreen({
             : "w-full space-y-5"
         }
       >
+        {showStreak && <StreakSummary userId={userId} />}
         {selectedUser || direct ? (
           <Session
             key={JSON.stringify(location)}

@@ -46,6 +46,7 @@ import type {
 } from "@/services/state";
 import {
   candidates,
+  dailyQuizCounts,
   localDate,
   publicView,
   questionKey,
@@ -1197,6 +1198,7 @@ export function execute<K extends Operation>(
         completed: dates.includes(date),
         streak: streak(dates, date),
         completedDates: [...dates].sort(),
+        dailyCounts: dailyQuizCounts(s.attempts),
       };
     }
 
