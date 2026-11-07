@@ -1,4 +1,6 @@
 export const developerStyles = {
+  profileQuizzes:
+    "min-w-0 rounded-3xl border border-line bg-surface p-4 sm:p-6",
   header: "flex flex-wrap items-center gap-3",
   avatar:
     "shrink-0 [&_.ui-avatar]:!size-12 [&_.ui-avatar]:!rounded-2xl [&_.ui-avatar]:!border-0 [&_.ui-avatar]:!bg-lime/55 [&_.ui-avatar]:!text-foreground",

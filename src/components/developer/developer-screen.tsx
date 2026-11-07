@@ -261,7 +261,9 @@ function Catalog({
   const quizSection = (
     <section
       aria-label="개발자의 공개 퀴즈"
-      className="min-w-0"
+      className={
+        profile ? developerStyles.profileQuizzes : "min-w-0"
+      }
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg">
@@ -341,7 +343,7 @@ function Catalog({
           )}
         </ul>
       ) : profile ? (
-        <p className="py-6 text-center text-sm text-muted">
+        <p className="py-2 text-center text-sm text-muted">
           공개된 퀴즈가 없습니다
         </p>
       ) : (
