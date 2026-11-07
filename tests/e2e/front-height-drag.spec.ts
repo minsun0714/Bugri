@@ -25,9 +25,9 @@ for (const width of [1100, 390]) {
     await expect(canvas).toBeVisible();
     await canvas.scrollIntoViewIfNeeded();
     const box = (await canvas.boundingBox())!;
-    await page.mouse.move(box.x + 10, box.y + 20);
+    await page.mouse.move(box.x + 10, box.y + 120);
     await page.mouse.down();
-    await page.mouse.move(box.x + 100, box.y + 120, {
+    await page.mouse.move(box.x + 100, box.y + 20, {
       steps: 10,
     });
     await page.mouse.up();
@@ -69,9 +69,9 @@ for (const width of [1100, 390]) {
       )![1],
     ).toBe(initial.match(/Z ([\d.-]+)/)![1]);
     const floor = (await placement.textContent())!;
-    await page.mouse.move(box.x + 10, box.y + 150);
+    await page.mouse.move(box.x + 10, box.y + 50);
     await page.mouse.down();
-    await page.mouse.move(box.x + 60, box.y + 50, {
+    await page.mouse.move(box.x + 60, box.y + 150, {
       steps: 10,
     });
     await page.mouse.up();

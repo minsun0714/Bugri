@@ -21,14 +21,12 @@ for (const width of [1100, 390]) {
       await page.setViewportSize({ width, height: 1000 });
       await page.goto("/shop");
       const card = (title: string) =>
-        page
-          .getByRole("article")
-          .filter({
-            has: page.getByRole("heading", {
-              name: title,
-              exact: true,
-            }),
-          });
+        page.getByRole("article").filter({
+          has: page.getByRole("heading", {
+            name: title,
+            exact: true,
+          }),
+        });
       await card(name)
         .getByRole("button", { name: "장착해 보기" })
         .click();
@@ -81,9 +79,9 @@ for (const width of [1100, 390]) {
         .getByLabel("선택 상품 배치")
         .textContent();
       const box = (await canvas.boundingBox())!;
-      await page.mouse.move(box.x + 10, box.y + 110);
+      await page.mouse.move(box.x + 10, box.y + 10);
       await page.mouse.down();
-      await page.mouse.move(box.x + 130, box.y + 10, {
+      await page.mouse.move(box.x + 130, box.y + 110, {
         steps: 12,
       });
       await page.mouse.up();

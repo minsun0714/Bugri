@@ -590,7 +590,7 @@ export function createDeskEngine(
       yaw = drag.yaw - dx * 0.5;
       pitch = Math.max(
         -85,
-        Math.min(85, drag.pitch - dy * 0.3),
+        Math.min(85, drag.pitch + dy * 0.3),
       );
       state.onCamera?.(
         Math.round(((yaw % 360) + 360) % 360),

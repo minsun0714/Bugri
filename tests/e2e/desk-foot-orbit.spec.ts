@@ -93,9 +93,9 @@ for (const width of [1100, 390]) {
       .getByLabel("선택 상품 배치")
       .textContent();
     const box = (await canvas.boundingBox())!;
-    await page.mouse.move(box.x + 10, box.y + 160);
+    await page.mouse.move(box.x + 10, box.y + 60);
     await page.mouse.down();
-    await page.mouse.move(box.x + 130, box.y + 60, {
+    await page.mouse.move(box.x + 130, box.y + 160, {
       steps: 12,
     });
     await page.mouse.up();
@@ -135,9 +135,9 @@ for (const width of [1100, 390]) {
       (element as HTMLCanvasElement).toDataURL(),
     );
     const box = (await canvas.boundingBox())!;
-    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.move(box.x + 10, box.y + 290);
     await page.mouse.down();
-    await page.mouse.move(box.x + 10, box.y + 290, {
+    await page.mouse.move(box.x + 10, box.y + 10, {
       steps: 12,
     });
     await page.mouse.up();
@@ -150,9 +150,9 @@ for (const width of [1100, 390]) {
       dialog.getByLabel("카메라 방위각"),
     ).toHaveText("45°");
     for (let i = 0; i < 2; i++) {
-      await page.mouse.move(box.x + 10, box.y + 290);
+      await page.mouse.move(box.x + 10, box.y + 10);
       await page.mouse.down();
-      await page.mouse.move(box.x + 10, box.y + 10, {
+      await page.mouse.move(box.x + 10, box.y + 290, {
         steps: 12,
       });
       await page.mouse.up();
