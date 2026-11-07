@@ -344,7 +344,11 @@ export function Tabs({
   value,
   onChange,
   children,
+  label = "컴포넌트 미리보기",
+  disabled = false,
 }: {
+  label?: string;
+  disabled?: boolean;
   items: string[];
   value: string;
   onChange: (value: string) => void;
@@ -354,15 +358,16 @@ export function Tabs({
   const index = items.indexOf(value);
 
   return (
-    <div>
+    <div className="min-w-0">
       <div
         className={styles["ui-tabs"]}
         role="tablist"
-        aria-label="컴포넌트 미리보기"
+        aria-label={label}
       >
         {items.map((item, i) => (
           <button
             type="button"
+            disabled={disabled}
             key={item}
             role="tab"
             id={`${id}-${i}`}

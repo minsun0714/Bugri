@@ -27,7 +27,7 @@ UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID�
 
 ### 퀴즈 작성 화면
 
-`/quizzes/authoring`은 바깥 학습 입력과 생성 버튼을 제공한다. 생성 후 공통 Modal에는 후보를 먼저 표시하고 LLM 수정 선택 시에만 대화를 펼친다. 바로 공개는 후보 한 개의 명시적 검토·PUBLIC 승인 요청이며 서비스의 publishCandidate에서 검증·저장을 한 번에 수행한다. batch 쿼리 파라미터로 반영된 작업을 새로고침 후 복원한다. 기존 `/quizzes/authoring/results?batch={id}` 직접 접근은 유지하되 생성 후 자동 이동하지 않는다. `/quizzes/authoring/manage`는 저장한 퀴즈의 검토·승인·관리를 담당한다. 후보의 직접 편집·추가 요청은 타입 API에서 검증하고 새 candidateId로 오래된 수정 충돌을 막는다. UI는 Mock·localStorage를 직접 접근하지 않는다. 미반영 편집·추가 요청은 모달 닫기 시 유지하며 페이지 이탈 경고를 적용한다.
+`/quizzes/authoring`은 바깥 학습 입력과 생성 버튼을 제공한다. 퀴즈 선택은 공통 Tabs의 키보드 탐색을 사용하고 보조 동작은 공통 ActionMenu로 모은다. 생성 후 공통 Modal에는 후보를 먼저 표시하고 LLM 수정 선택 시에만 대화를 펼친다. 바로 공개는 후보 한 개의 명시적 검토·PUBLIC 승인 요청이며 서비스의 publishCandidate에서 검증·저장을 한 번에 수행한다. batch 쿼리 파라미터로 반영된 작업을 새로고침 후 복원한다. 기존 `/quizzes/authoring/results?batch={id}` 직접 접근은 유지하되 생성 후 자동 이동하지 않는다. `/quizzes/authoring/manage`는 저장한 퀴즈의 검토·승인·관리를 담당한다. 후보의 직접 편집·추가 요청은 타입 API에서 검증하고 새 candidateId로 오래된 수정 충돌을 막는다. UI는 Mock·localStorage를 직접 접근하지 않는다. 미반영 편집·추가 요청은 모달 닫기 시 유지하며 페이지 이탈 경고를 적용한다.
 
 ### UI 스타일링
 

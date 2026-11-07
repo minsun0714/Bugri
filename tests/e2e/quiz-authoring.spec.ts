@@ -32,7 +32,7 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     name: "생성 후보",
   });
   await expect(
-    candidates.getByRole("button", {
+    candidates.getByRole("tab", {
       name: /^퀴즈 [1-4]$/,
     }),
   ).toHaveCount(4);
@@ -58,6 +58,9 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("예시 추가");
+  await page
+    .getByRole("button", { name: "더 보기" })
+    .click();
   await page
     .getByRole("button", { name: "직접 수정" })
     .click();
@@ -95,16 +98,22 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     management.getByText("저장한 퀴즈가 없습니다"),
   ).toBeVisible();
   await candidates
+    .getByRole("button", { name: "더 보기" })
+    .click();
+  await candidates
     .getByRole("button", { name: "개별 저장", exact: true })
     .click();
   await expect(
-    candidates.getByRole("button", { name: "저장 완료" }),
+    candidates.getByText("저장 완료", { exact: true }),
   ).toBeVisible();
+  await candidates
+    .getByRole("button", { name: "더 보기" })
+    .click();
   await candidates
     .getByRole("button", { name: "남은 후보 모두 저장" })
     .click();
   await expect(
-    candidates.getByRole("button", {
+    candidates.getByRole("tab", {
       name: /^퀴즈 [1-4] · 저장됨$/,
     }),
   ).toHaveCount(4);
@@ -147,6 +156,9 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
       name: "퀴즈 만들기",
       exact: true,
     })
+    .click();
+  await page
+    .getByRole("button", { name: "더 보기" })
     .click();
   await page
     .getByRole("button", { name: "개별 저장", exact: true })
@@ -492,4 +504,47 @@ test("initial results hide chat and publish only the displayed quiz", async ({
       exact: true,
     }),
   ).toContainText("PUBLIC");
+});
+
+test("quiz tabs support keyboard selection and secondary actions stay in the menu", async ({
+  page,
+}) => {
+  await page.goto("/quizzes/authoring");
+  await page
+    .getByRole("textbox", { name: /학습 내용/ })
+    .fill("타입");
+  await page
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
+    .click();
+  const tabs = page.getByRole("tablist", {
+    name: "퀴즈 선택",
+  });
+  await expect(tabs.getByRole("tab")).toHaveCount(4);
+  await tabs
+    .getByRole("tab", { name: "퀴즈 1", exact: true })
+    .focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    tabs.getByRole("tab", { name: "퀴즈 2", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(
+    page.getByRole("button", { name: "직접 수정" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "더 보기" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "직접 수정" }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "직접 수정" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "더 보기" }),
+  ).toBeFocused();
 });
