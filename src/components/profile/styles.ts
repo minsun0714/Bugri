@@ -1,5 +1,5 @@
 export const profileStyles = {
-  sortSection: "min-w-0 rounded-3xl border p-4 sm:p-6",
+  sortRow: "min-w-0 rounded-xl border p-2",
   action:
     "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border-0 bg-transparent pl-2 pr-0 py-2 text-sm font-medium text-primary whitespace-nowrap [box-shadow:none] transition-colors hover:bg-primary/5 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary",
   actionButton:

@@ -1,10 +1,5 @@
 "use client";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type PointerEvent,
-} from "react";
+import { useRef, useState, type PointerEvent } from "react";
 import { ProfileSection } from "@/api/constants";
 import {
   defaultProfileOrder,
@@ -41,7 +36,6 @@ export function useProfileOrderEditor(
     to: ProfileSection;
   } | null>(null);
   const root = useRef<HTMLDivElement>(null);
-  const pointerY = useRef<number | null>(null);
   const editButton = useRef<HTMLButtonElement>(null);
   const handles = useRef<
     Partial<
@@ -49,9 +43,9 @@ export function useProfileOrderEditor(
     >
   >({});
   const editing = owner && draft !== null;
-  const order = editing
-    ? draft
-    : (profile.data?.order ?? defaultProfileOrder);
+  const savedOrder =
+    profile.data?.order ?? defaultProfileOrder;
+  const order = editing ? draft : savedOrder;
   const busy = update.isPending;
 
   function finish() {
@@ -75,54 +69,26 @@ export function useProfileOrderEditor(
     );
   }
 
-  const dragging = drag !== null;
-  useEffect(() => {
-    if (!dragging) return;
-    let frame = 0;
-    function tick() {
-      const y = pointerY.current;
-      if (y !== null) {
-        const edge = 80;
-        const delta =
-          y < edge
-            ? -12
-            : y > window.innerHeight - edge
-              ? 12
-              : 0;
-        if (delta)
-          window.scrollBy({
-            top: delta,
-            behavior: "instant",
-          });
-        const targets =
-          root.current?.querySelectorAll<HTMLElement>(
-            "[data-profile-section]",
-          );
-        for (const target of targets ?? []) {
-          const { top, bottom } =
-            target.getBoundingClientRect();
-          if (y >= top && y <= bottom) {
-            const to = target.dataset
-              .profileSection as ProfileSection;
-            setDrag((current) =>
-              current && current.to !== to
-                ? { ...current, to }
-                : current,
-            );
-            break;
-          }
-        }
-      }
-      frame = requestAnimationFrame(tick);
-    }
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [dragging]);
-
   function dragOver(
     event: PointerEvent<HTMLButtonElement>,
   ) {
-    pointerY.current = event.clientY;
+    if (!drag) return;
+    const targets =
+      root.current?.querySelectorAll<HTMLElement>(
+        "[data-order-row]",
+      );
+    for (const target of targets ?? []) {
+      const { top, bottom } =
+        target.getBoundingClientRect();
+      if (event.clientY >= top && event.clientY <= bottom) {
+        setDrag({
+          from: drag.from,
+          to: target.dataset.orderRow as ProfileSection,
+        });
+        return;
+      }
+    }
+    setDrag({ from: drag.from, to: drag.from });
   }
 
   function beginDrag(
@@ -130,7 +96,6 @@ export function useProfileOrderEditor(
     event: PointerEvent<HTMLButtonElement>,
   ) {
     if (event.button !== 0 || busy) return;
-    pointerY.current = event.clientY;
     event.currentTarget.setPointerCapture(event.pointerId);
     setDrag({ from: id, to: id });
   }
@@ -165,6 +130,7 @@ export function useProfileOrderEditor(
     handles,
     editing,
     order,
+    savedOrder,
     busy,
     finish,
     move,

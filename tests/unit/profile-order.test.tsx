@@ -34,7 +34,20 @@ function order() {
     ...document.querySelectorAll("[data-profile-section]"),
   ].map((el) => el.getAttribute("data-profile-section"));
 }
-beforeEach(() => save.mockReset());
+beforeEach(() => {
+  save.mockReset();
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+});
+function draftOrder() {
+  return [
+    ...document.querySelectorAll("[data-order-row]"),
+  ].map((el) => el.getAttribute("data-order-row"));
+}
 test("move, cancel, keyboard alternative and save", async () => {
   save.mockResolvedValue({
     order: ["QUIZZES", "DESK", "ACTIVITY"],
@@ -53,7 +66,18 @@ test("move, cancel, keyboard alternative and save", async () => {
       name: "최신 공개 퀴즈 위로 이동",
     }),
   );
-  expect(order()).toEqual(["QUIZZES", "DESK", "ACTIVITY"]);
+  expect(draftOrder()).toEqual([
+    "QUIZZES",
+    "DESK",
+    "ACTIVITY",
+  ]);
+  expect(order()).toEqual(["DESK", "QUIZZES", "ACTIVITY"]);
+  expect(
+    screen.getByRole("dialog", { name: "순서 편집" }),
+  ).toBeVisible();
+  expect(screen.getByRole("dialog")).not.toHaveTextContent(
+    "desk content",
+  );
   fireEvent.click(
     screen.getByRole("button", { name: "취소" }),
   );
@@ -101,7 +125,18 @@ test("failed save preserves draft with retry and visitor has no controls", async
     }),
   );
   await screen.findByRole("alert");
-  expect(order()).toEqual(["QUIZZES", "DESK", "ACTIVITY"]);
+  expect(draftOrder()).toEqual([
+    "QUIZZES",
+    "DESK",
+    "ACTIVITY",
+  ]);
+  expect(order()).toEqual(["DESK", "QUIZZES", "ACTIVITY"]);
+  expect(
+    screen.getByRole("dialog", { name: "순서 편집" }),
+  ).toBeVisible();
+  expect(screen.getByRole("dialog")).not.toHaveTextContent(
+    "desk content",
+  );
   expect(
     screen.getByRole("button", { name: "다시 저장" }),
   ).toBeEnabled();
