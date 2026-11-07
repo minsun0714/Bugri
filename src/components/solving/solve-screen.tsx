@@ -119,6 +119,12 @@ function Session({
     );
   }
 
+  function exploreTags() {
+    router.push(
+      `/discover?user=${encodeURIComponent(userId)}`,
+    );
+  }
+
   return (
     <div className="space-y-6">
       {!direct && (
@@ -179,20 +185,8 @@ function Session({
           }
           action={
             <div className="flex flex-wrap justify-end gap-3">
-              {empty === LearningState.EXHAUSTED && (
-                <Button onClick={flow.replay}>
-                  다시 풀기
-                </Button>
-              )}
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  router.push(
-                    `/discover?user=${encodeURIComponent(userId)}`,
-                  )
-                }
-              >
-                다른 태그 선택
+              <Button onClick={exploreTags}>
+                태그 탐색
               </Button>
             </div>
           }
@@ -292,9 +286,15 @@ function Session({
                   )}
                   {!direct &&
                     (data.completedAt || !data.quiz) && (
-                      <Button onClick={flow.next}>
-                        다음 문제
-                      </Button>
+                      mode === LearningMode.REPLAY ? (
+                        <Button onClick={exploreTags}>
+                          태그 탐색
+                        </Button>
+                      ) : (
+                        <Button onClick={flow.next}>
+                          다음 문제
+                        </Button>
+                      )
                     )}
                 </div>
               ) : null}

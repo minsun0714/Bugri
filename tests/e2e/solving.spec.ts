@@ -92,7 +92,7 @@ test("home immediately shows a subscribed question without a list or start butto
   expect(attempts).toBe(1);
 });
 
-test("four formats, restoration, next, exhaustion and replay on home", async ({
+test("four formats, restoration, next, exhaustion and tag exploration on home", async ({
   page,
 }) => {
   await seed(page);
@@ -146,20 +146,22 @@ test("four formats, restoration, next, exhaustion and replay on home", async ({
       exact: true,
     }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "다시 풀기", exact: true })
-    .click();
+  await expect(
+    page.getByRole("button", { name: "다시 풀기", exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("button", {
-      name: "답 제출",
+      name: "태그 탐색",
       exact: true,
     }),
-  ).toBeDisabled();
-  await expect(
-    page.getByText("숫자 타입은 number입니다.", {
-      exact: true,
-    }),
-  ).toHaveCount(0);
+  ).toBeVisible();
+  const attempts = await page.evaluate(
+    () =>
+      JSON.parse(
+        localStorage.getItem("bugri:mock:v1:learner")!,
+      ).attempts.length,
+  );
+  expect(attempts).toBe(4);
 });
 
 test("tag filtering persists through next and reload without changing subscriptions", async ({
@@ -216,7 +218,7 @@ test("tag filtering persists through next and reload without changing subscripti
   ).toBeVisible();
   await page
     .getByRole("button", {
-      name: "다른 태그 선택",
+      name: "태그 탐색",
       exact: true,
     })
     .click();
@@ -325,6 +327,34 @@ test("replay creates a separate attempt and users cannot read each other's resul
   await page.goto(completed);
   await expect(
     page.getByText("정답입니다", { exact: true }),
+  ).toBeVisible();
+});
+
+test("replay results stop instead of cycling completed questions", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/");
+  await submit(page, ["number"]);
+  await page.goto("/?user=learner&mode=REPLAY");
+  await expect(
+    page.getByRole("heading", {
+      name: "타입 선언",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await submit(page, ["number"]);
+  await expect(
+    page.getByRole("button", {
+      name: "다음 문제",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", {
+      name: "태그 탐색",
+      exact: true,
+    }),
   ).toBeVisible();
 });
 
@@ -543,7 +573,7 @@ test("empty state opens discovery page with URL search and explicit subscription
   await page.goto("/?user=friend");
   await page
     .getByRole("button", {
-      name: "다른 태그 선택",
+      name: "태그 탐색",
       exact: true,
     })
     .click();
