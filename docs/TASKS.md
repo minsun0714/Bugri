@@ -1245,6 +1245,13 @@
 
 - 최종 Node v22.23.3 전체 verify2 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). 로그 `.bugri-hooks/verify-2.log`, 관련 Prettier/diff check 통과. 커밋하며 push하지 않는다.
 
+## DISCOVERY-SPLIT — 개발자·태그 탐색 분리
+
+- 상태: DONE. REQ-12/AC-12i·j. 페이지·헤더·모바일 메뉴 분리, 레거시 검색 URL 보존. API 계약 변경 없음.
+- Node v22.23.3 최종 `npm run verify` 통과: lint·TypeScript·Jest 216개·도구 테스트 3개·production build·E2E 131개. 로그 `/tmp/bugri-discovery-verify2.log`. 관련 Prettier·git diff --check 통과.
+- 최초 샌드박스 포트 바인딩 차단 후 권한 확장 실행. 빌드 Suspense 경계/반환 타입 및 변경된 화면 동선의 테스트 설정을 수정하고 재검증했다. 실패 검사를 생략하지 않았다.
+- 독립 UX/UI 실제 화면 리뷰 R0, 수정 0회. [관점별 근거·직접/간접 확인 한계](ux-reviews/DISCOVERY-SPLIT.md). 커밋하며 push·PR은 수행하지 않는다.
+
 ## PROFILE-PR-INTEGRATION — PR16 최신dev 충돌 통합
 
 - 상태: DONE(충돌 통합·검증). PR 생성 후 최신dev(6095945)와 문서3개·마이페이지 충돌 확인. dev의 BugCoin 내역·필터·페이지네이션·개인관리 데스크링크를 보존하고 이 브랜치의 마이페이지 빈 프로필편집 제거를 적용했다. API/작업기록의 양쪽 추가 내용을 보존하고 현재 페이지구조를 일치시켰다. 자동병합된 공통UI·Mock저장·상태도 프로필과코인 기능이 함께 남는지 확인한다. 충돌해결 재검증 동안 PR을 Draft로 전환했다.
@@ -1260,3 +1267,9 @@
 - 후속통합 관련 E2E8개·Jest21개 통과, 같은 UX/UI리뷰어 R1에서 홈 기간선택·프로필 링크종류메뉴의 PC/mobile선택·키보드·저장 및 코드옵션보존을 확인했다. 회귀0개. 최신전체검증은 동일한 순차verify명령으로 수행한다.
 
 - 후속통합 최종 Node v22.23.3 `npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest222개·도구3개·production build·E2E136개(5.3분). 로그 `.bugri-hooks/PROFILE-PR-INTEGRATION-streak-verify.log`. R1회귀0개, 수정Dropdown Prettier·diff check 통과. 최신dev78c86a4 통합까지 완료했다.
+
+## DISCOVERY-SPLIT-INTEGRATION — PR18 최신 dev 통합
+
+- 상태: DONE. origin/dev 0ea777b의 프로필 편집·마이페이지 변경을 보존하고 탐색 분리 문서와 양쪽 작업 기록을 통합했다. 자동병합된 프로필 화면의 개발자 탐색 링크와 내비게이션 테스트를 포함해 전체 재검증한다.
+
+- 통합 후 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest223개·도구3개·build·E2E138개. 로그 `/tmp/bugri-discovery-merge-verify.log`. 독립 정적 병합 리뷰에서 회귀 없음, 양쪽 문서·프로필 편집·탐색 링크 보존 확인. 리뷰어는 별도 브라우저 검증을 수행하지 않았다. `git diff --cached --check` 통과. PR18 브랜치에 충돌 해결 커밋을 반영하며 PR 병합은 하지 않는다.

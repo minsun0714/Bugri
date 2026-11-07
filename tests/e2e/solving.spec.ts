@@ -227,10 +227,17 @@ test("tag filtering persists through next and reload without changing subscripti
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "개발자·태그 탐색",
+      name: "태그 탐색",
       exact: true,
     }),
   ).toBeVisible();
+  await page
+    .getByRole("navigation", {
+      name: "주 메뉴",
+      exact: true,
+    })
+    .getByRole("link", { name: "개발자 탐색", exact: true })
+    .click();
   await page
     .getByRole("button", {
       name: "타입 개발자 학습하기",
@@ -607,7 +614,9 @@ test("empty state opens discovery page with URL search and explicit subscription
       exact: true,
     })
     .click();
-  await expect(page).toHaveURL(/\/discover\?user=friend/);
+  await expect(page).toHaveURL(
+    /\/discover\/tags\?user=friend/,
+  );
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(
     page.getByRole("link", {
@@ -623,27 +632,13 @@ test("empty state opens discovery page with URL search and explicit subscription
   ).toHaveCount(0);
   await expect(
     page.getByRole("heading", {
-      name: "개발자·태그 탐색",
+      name: "태그 탐색",
       exact: true,
     }),
   ).toBeVisible();
-  await expect(
-    page
-      .getByRole("region", { name: "개발자 검색 결과" })
-      .getByText("학습자", { exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("tab", { name: "개발자", exact: true })
-    .focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(
-    page.getByRole("tab", { name: "태그", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
-  await expect(
-    page.getByRole("tab", { name: "태그", exact: true }),
-  ).toBeFocused();
+  await expect(page.getByRole("tablist")).toHaveCount(0);
   const search = page.getByRole("searchbox", {
-    name: "개발자 또는 태그 검색",
+    name: "태그 검색",
   });
   await search.fill("JAVA");
   await page
@@ -663,8 +658,11 @@ test("empty state opens discovery page with URL search and explicit subscription
   await page.reload();
   await expect(search).toHaveValue("JAVA");
   await expect(
-    page.getByRole("tab", { name: "태그", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByRole("heading", {
+      name: "태그 탐색",
+      exact: true,
+    }),
+  ).toBeVisible();
   await search.fill("없는검색결과");
   await page
     .getByRole("button", { name: "검색", exact: true })
@@ -752,7 +750,9 @@ test("empty state opens discovery page with URL search and explicit subscription
   await expect(
     page.getByRole("menu", { name: "Web 구독 관리" }),
   ).toHaveCount(0);
-  await expect(page).toHaveURL(/\/discover\?.*query=Web/);
+  await expect(page).toHaveURL(
+    /\/discover\/tags\?.*query=Web/,
+  );
   await expect(search).toHaveValue("Web");
   await search.fill("Java");
   await search.press("Enter");

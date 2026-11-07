@@ -122,7 +122,7 @@ function Session({
 
   function exploreTags() {
     router.push(
-      `/discover?user=${encodeURIComponent(userId)}`,
+      `/discover/tags?user=${encodeURIComponent(userId)}`,
     );
   }
 

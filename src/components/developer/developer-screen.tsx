@@ -648,7 +648,7 @@ export function DeveloperScreen({
         {!profile && (
           <Link
             className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary focus-visible:text-primary"
-            href={`/discover?user=${encodeURIComponent(userId)}`}
+            href={`/discover/developers?user=${encodeURIComponent(userId)}`}
           >
             <span aria-hidden="true">←</span>
             탐색으로 돌아가기
