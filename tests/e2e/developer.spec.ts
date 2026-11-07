@@ -26,6 +26,12 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     .getByRole("link", { name: "타입 개발자", exact: true })
     .click();
   await expect(
+    page.getByRole("link", {
+      name: "탐색으로 돌아가기",
+      exact: true,
+    }),
+  ).toHaveAttribute("href", "/discover?user=friend");
+  await expect(
     page.getByRole("heading", {
       name: "타입 개발자의 퀴즈",
     }),
@@ -54,7 +60,8 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     exact: true,
   });
   const searchBounds = await tagSearch.boundingBox();
-  const searchButtonBounds = await searchButton.boundingBox();
+  const searchButtonBounds =
+    await searchButton.boundingBox();
 
   expect(searchBounds).not.toBeNull();
   expect(searchButtonBounds).not.toBeNull();
@@ -67,10 +74,13 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
       if (
         records.some(
           ({ attributeName, oldValue }) =>
-            attributeName === "disabled" && oldValue === null,
+            attributeName === "disabled" &&
+            oldValue === null,
         )
       ) {
-        Object.assign(window, { tagSearchWasDisabled: true });
+        Object.assign(window, {
+          tagSearchWasDisabled: true,
+        });
       }
     }).observe(element, {
       attributes: true,
@@ -137,7 +147,10 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   );
   const subscribedBackground = await typeScriptTag
     .locator("..")
-    .evaluate((element) => getComputedStyle(element).backgroundColor);
+    .evaluate(
+      (element) =>
+        getComputedStyle(element).backgroundColor,
+    );
   await expect(tags.getByText(/선택한 태그:/)).toHaveCount(
     0,
   );
@@ -155,7 +168,8 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     name: "TypeScript 구독 메뉴",
     exact: true,
   });
-  const triggerBounds = await subscriptionMenuTrigger.boundingBox();
+  const triggerBounds =
+    await subscriptionMenuTrigger.boundingBox();
   const dotsBounds = await subscriptionMenuTrigger
     .locator("svg")
     .boundingBox();
@@ -181,11 +195,9 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     .click();
   await expect(typeScriptMenu).toHaveCount(0);
   await expect(
-    page
-      .getByRole("status")
-      .filter({
-        hasText: "TypeScript 태그 구독을 취소했습니다.",
-      }),
+    page.getByRole("status").filter({
+      hasText: "TypeScript 태그 구독을 취소했습니다.",
+    }),
   ).toBeVisible();
   await expect(subscriptionMenuTrigger).toHaveCount(0);
   await expect(typeScriptTag.locator("..")).toHaveClass(
@@ -196,7 +208,8 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
       typeScriptTag
         .locator("..")
         .evaluate(
-          (element) => getComputedStyle(element).backgroundColor,
+          (element) =>
+            getComputedStyle(element).backgroundColor,
         ),
     )
     .not.toBe(subscribedBackground);
@@ -218,7 +231,9 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   await expect(
     page
       .getByRole("status")
-      .filter({ hasText: "TypeScript 태그를 구독했습니다." }),
+      .filter({
+        hasText: "TypeScript 태그를 구독했습니다.",
+      }),
   ).toBeVisible();
   await expect(
     tags.getByRole("button", {

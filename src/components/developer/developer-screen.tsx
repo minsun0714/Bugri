@@ -58,15 +58,23 @@ function TagSubscriptionMenu({
       if (event.key !== "Escape") return;
 
       setOpen(false);
-      root.current?.querySelector<HTMLButtonElement>("button")?.focus();
+      root.current
+        ?.querySelector<HTMLButtonElement>("button")
+        ?.focus();
     }
 
     document.addEventListener("pointerdown", closeOutside);
     document.addEventListener("keydown", closeWithKeyboard);
 
     return () => {
-      document.removeEventListener("pointerdown", closeOutside);
-      document.removeEventListener("keydown", closeWithKeyboard);
+      document.removeEventListener(
+        "pointerdown",
+        closeOutside,
+      );
+      document.removeEventListener(
+        "keydown",
+        closeWithKeyboard,
+      );
     };
   }, [open]);
 
@@ -515,10 +523,11 @@ export function DeveloperScreen() {
     <QueryClientProvider client={client}>
       <div className="space-y-6">
         <Link
-          className="text-primary underline"
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary focus-visible:text-primary"
           href={`/discover?user=${encodeURIComponent(userId)}`}
         >
-          개발자·태그 탐색
+          <span aria-hidden="true">←</span>
+          탐색으로 돌아가기
         </Link>
         <Catalog
           key={`${userId}:${publicId}`}
@@ -546,7 +555,10 @@ export function DeveloperScreen() {
           }}
         />
         {toast && (
-          <Toast message={toast} onClose={() => setToast(null)} />
+          <Toast
+            message={toast}
+            onClose={() => setToast(null)}
+          />
         )}
       </div>
     </QueryClientProvider>
