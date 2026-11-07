@@ -50,7 +50,15 @@ for (const width of [1100, 390]) {
       name: "선택 상품 회전",
       exact: true,
     });
+    await expect(
+      dialog.getByRole("button", {
+        name: "선택 상품 높이",
+        exact: true,
+      }),
+    ).toHaveCount(0);
     const box = (await handle.boundingBox())!;
+    expect(box.width).toBeLessThanOrEqual(28);
+    expect(box.height).toBeLessThanOrEqual(28);
     await page.mouse.move(
       box.x + box.width / 2,
       box.y + box.height / 2,

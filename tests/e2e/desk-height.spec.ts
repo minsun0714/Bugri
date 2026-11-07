@@ -27,7 +27,7 @@ async function visibleKeyboard(canvas: Locator) {
   });
 }
 
-test("height drag persists and the tabletop occludes a lowered keyboard", async ({
+test("height adjustment persists and the tabletop occludes a lowered keyboard", async ({
   page,
 }) => {
   await page.goto("/shop");
@@ -119,19 +119,16 @@ test("height drag persists and the tabletop occludes a lowered keyboard", async 
   await page
     .getByRole("button", { name: "45도 시점", exact: true })
     .click();
-  const handle = page.getByRole("button", {
-    name: "선택 상품 높이",
-    exact: true,
-  });
-  await handle.scrollIntoViewIfNeeded();
-  const box = await handle.boundingBox();
-  if (!box) throw new Error("Height handle missing");
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
-  await page.mouse.move(x, y);
-  await page.mouse.down();
-  await page.mouse.move(x, y + 50, { steps: 10 });
-  await page.mouse.up();
+  await expect(
+    page.getByRole("button", {
+      name: "선택 상품 높이",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page.getByLabel("높이 직접 입력").fill("0.7");
+  await page
+    .getByRole("button", { name: "배치 저장", exact: true })
+    .click();
   await expect(
     page.getByText("3D 배치를 저장했어요."),
   ).toBeVisible();

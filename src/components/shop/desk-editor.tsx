@@ -47,8 +47,8 @@ export function DeskEditor({
       />
       <p className="px-3 pt-3 text-xs leading-5 text-muted">
         상품을 클릭해 선택하고 드래그해 옮기세요. 선택
-        테두리 옆의 ↻ 핸들로 회전하고 ↕ 핸들로 높이를
-        조절하세요. 빈 공간을 드래그하면 시점이 회전합니다.
+        테두리 위의 작은 화살표를 드래그해 회전하세요. 빈
+        공간을 드래그하면 시점이 회전합니다.
       </p>
       <div className="flex flex-wrap gap-2 p-3">
         {editor.categories.map((category) => (
