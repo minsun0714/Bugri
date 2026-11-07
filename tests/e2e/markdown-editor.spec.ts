@@ -39,7 +39,10 @@ test("Markdown preview preserves code and safely ignores raw HTML", async ({
     element.setSelectionRange(2, 2),
   );
   await page
-    .getByRole("button", { name: "코드 블록", exact: true })
+    .getByRole("button", {
+      name: "+ 코드 블럭",
+      exact: true,
+    })
     .click();
   await page
     .getByLabel("삽입할 코드 언어")

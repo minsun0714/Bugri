@@ -47,13 +47,12 @@ export function MarkdownEditor({
       <div className={styles["editor-tools"]}>
         <Button
           size="sm"
-          variant="ghost"
+          variant="secondary"
           aria-expanded={picker}
           onClick={togglePicker}
         >
-          코드 블록
+          + 코드 블럭
         </Button>
-        <span>제목 # · 강조 ** · 목록 -</span>
       </div>
       {picker && (
         <div className={styles["editor-picker"]}>

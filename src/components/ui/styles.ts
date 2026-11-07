@@ -57,7 +57,7 @@ export const styles = {
   "markdown-editor":
     "markdown-editor [&_.tab-panel]:pt-0 [&_textarea]:block [&_textarea]:w-full [&_textarea]:min-h-[220px] [&_textarea]:resize-y [&_textarea]:border [&_textarea]:border-line [&_textarea]:rounded-[10px] [&_textarea]:bg-white [&_textarea]:p-3.5 [&_textarea]:text-foreground [&_textarea]:[font:12px/1.9_monospace] [&_textarea]:[tab-size:2] [&_.error-text]:text-[#af3158] [&_.error-text]:text-[11px] [&_.error-text]:mt-1.75",
   "editor-tools":
-    "editor-tools flex items-center justify-between flex-wrap gap-2 py-2.5 px-0 [&_>_span]:text-[10px] [&_>_span]:text-muted",
+    "editor-tools flex items-center justify-end flex-wrap gap-2 py-2.5 px-0",
   "editor-picker":
     "editor-picker flex gap-2.5 items-center flex-wrap bg-[#f4f1f9] p-3 rounded-[8px] mb-2.5 text-[11px] [&_select]:p-1.75 [&_select]:border [&_select]:border-line [&_select]:rounded-[6px] [&_select]:bg-white [&_select]:text-foreground",
   "editor-footer":
