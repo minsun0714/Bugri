@@ -172,14 +172,6 @@ export function Generation(props: GenerationProps) {
         )}
       </div>
 
-      {editing && (
-        <p
-          role="status"
-          className="mb-3 text-xs text-muted"
-        >
-          직접 수정한 내용이 아직 반영되지 않았습니다.
-        </p>
-      )}
       <form
         className="flex shrink-0 flex-wrap items-end justify-end gap-3 border-t border-line bg-surface px-2 pt-4 pb-2"
         onSubmit={(event) => {
@@ -192,7 +184,7 @@ export function Generation(props: GenerationProps) {
             label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
             placeholder="예시를 추가해줘"
             value={prompt}
-            disabled={busy || !!editing}
+            disabled={busy}
             rows={2}
             limit={Number.POSITIVE_INFINITY}
             showCount={false}
@@ -204,7 +196,7 @@ export function Generation(props: GenerationProps) {
           size="sm"
           type="submit"
           loading={busy}
-          disabled={!prompt.trim() || !!editing}
+          disabled={!prompt.trim()}
         >
           요청 보내기
         </Button>
@@ -324,15 +316,6 @@ export function Generation(props: GenerationProps) {
                       </div>
                     )}
                   </div>
-                  {editing && mode !== "직접 수정" && (
-                    <p
-                      role="status"
-                      className="text-xs text-muted"
-                    >
-                      직접 수정한 내용이 아직 반영되지
-                      않았습니다.
-                    </p>
-                  )}
                   {mode !== "직접 수정" && (
                     <ContentPreview
                       content={candidate.content}

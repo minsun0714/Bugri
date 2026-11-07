@@ -669,7 +669,21 @@ test("unconfirmed direct edits survive mode and quiz tab changes", async ({
     .click();
   await expect(
     page.getByLabel("퀴즈 1에 추가 요청"),
-  ).toBeVisible();
+  ).toBeEnabled();
+  await expect(
+    page.getByText(
+      "직접 수정한 내용이 아직 반영되지 않았습니다.",
+    ),
+  ).toHaveCount(0);
+  await page
+    .getByLabel("퀴즈 1에 추가 요청")
+    .fill("LLM으로도 수정");
+  await page
+    .getByRole("button", { name: "요청 보내기" })
+    .click();
+  await expect(
+    page.getByRole("list", { name: "추가 요청 기록" }),
+  ).toContainText("LLM으로도 수정");
   await page
     .getByRole("button", { name: "퀴즈로 돌아가기" })
     .click();

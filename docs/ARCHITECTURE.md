@@ -33,6 +33,8 @@ Modal 자체는 `overflow-hidden`을 유지한다. 작성 작업 본문도 외�
 
 직접 수정 mode에서는 `ContentPreview`를 렌더링하지 않고 후보별 `ContentFields`만 렌더링한다. 초안 반영·취소와 mode 전환 상태는 기존 `useGeneration` 경계를 유지한다.
 
+`useGeneration`은 후보별 직접 수정 초안과 LLM 요청 초안을 별도 map으로 유지한다. 직접 수정 초안이 있어도 `refineCandidate`를 호출할 수 있고, 성공한 LLM 결과 뒤에도 직접 수정 초안을 보존한다. 이후 `editCandidate`를 반영하면 최신 candidateId를 사용해 그 내용을 현재 후보로 교체하므로 마지막으로 성공한 반영 결과가 유효하다.
+
 ### UI 스타일링
 
 Tailwind CSS v4를 `@tailwindcss/postcss`로 Next.js 빌드에 연결한다. `src/app/globals.css`의 `@theme`에서 색상·폰트·애니메이션 토큰을 정의하고, 컴포넌트는 Tailwind 유틸리티로 레이아웃·상태·반응형을 표현한다. 긴 클래스 조합은 해당 디렉터리의 `styles.ts`에 완성된 문자열로 둔다. 이는 빌드 시 추출되는 클래스 목록이며 CSS-in-JS 런타임이 아니다.

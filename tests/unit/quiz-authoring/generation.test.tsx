@@ -144,32 +144,10 @@ test("starts with quizzes only and publishes the current candidate on explicit r
   expect(list[0].status).toBe("PUBLIC");
 });
 
-test("switches the workspace to chat and preserves drafts when returning to the quiz", async () => {
+test("keeps direct and LLM edits independent and applies the last confirmed change", async () => {
   await setup();
   expect(
     screen.queryByRole("tablist", { name: "수정 방식" }),
-  ).not.toBeInTheDocument();
-  fireEvent.click(
-    screen.getByRole("button", { name: "LLM으로 수정" }),
-  );
-  expect(
-    screen.getByRole("region", { name: "버그리와 대화" }),
-  ).toBeVisible();
-  expect(
-    screen.queryByRole("tablist", { name: "퀴즈 선택" }),
-  ).not.toBeInTheDocument();
-  expect(
-    screen.queryByRole("list", { name: "선택지" }),
-  ).not.toBeInTheDocument();
-  fireEvent.change(
-    screen.getByLabelText("퀴즈 1에 추가 요청"),
-    { target: { value: "예시 추가" } },
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "퀴즈로 돌아가기" }),
-  );
-  expect(
-    screen.queryByLabelText("퀴즈 1에 추가 요청"),
   ).not.toBeInTheDocument();
   fireEvent.click(
     screen.getByRole("button", { name: "직접 수정" }),
@@ -185,7 +163,27 @@ test("switches the workspace to chat and preserves drafts when returning to the 
     { target: { value: "임시 제목" } },
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "직접 수정" }),
+    screen.getByRole("button", { name: "LLM으로 수정" }),
+  );
+  expect(
+    screen.queryByText(
+      "직접 수정한 내용이 아직 반영되지 않았습니다.",
+    ),
+  ).not.toBeInTheDocument();
+  const prompt =
+    screen.getByLabelText("퀴즈 1에 추가 요청");
+  expect(prompt).toBeEnabled();
+  fireEvent.change(prompt, {
+    target: { value: "LLM으로도 수정" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "요청 보내기" }),
+  );
+  await screen.findByRole("list", {
+    name: "추가 요청 기록",
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "퀴즈로 돌아가기" }),
   );
   fireEvent.click(
     screen.getByRole("button", { name: "직접 수정" }),
@@ -194,14 +192,13 @@ test("switches the workspace to chat and preserves drafts when returning to the 
     screen.getByRole("textbox", { name: "제목" }),
   ).toHaveValue("임시 제목");
   fireEvent.click(
-    screen.getByRole("button", { name: "수정 취소" }),
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "LLM으로 수정" }),
+    screen.getByRole("button", { name: "수정 반영" }),
   );
   expect(
-    screen.getByLabelText("퀴즈 1에 추가 요청"),
-  ).toHaveValue("예시 추가");
+    await screen.findByRole("heading", {
+      name: "임시 제목",
+    }),
+  ).toBeVisible();
 });
 
 test("keeps separate unconfirmed edits across quiz tabs and only clears the applied draft", async () => {
