@@ -19,6 +19,10 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
   await page
     .getByRole("link", { name: "Bugri 홈", exact: true })
     .click();
+  await expect(page).toHaveURL(
+    (url) => url.pathname === "/",
+  );
+  await page.goto("/ui-preview");
   await page.screenshot({
     path: testInfo.outputPath("desktop.png"),
     fullPage: true,
@@ -102,4 +106,22 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
         window.innerWidth,
     ),
   ).toBe(true);
+});
+
+test("header logo returns to home from learning and discovery pages", async ({
+  page,
+}) => {
+  for (const path of [
+    "/discover",
+    "/solve?quiz=seed-quiz-1",
+    "/developers/bugri-author/quizzes",
+  ]) {
+    await page.goto(path);
+    await page
+      .getByRole("link", { name: "Bugri 홈", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      (url) => url.pathname === "/",
+    );
+  }
 });
