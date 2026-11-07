@@ -18,6 +18,7 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { useDemoSession } from "@/components/navigation/demo-session";
+import { profileStyles } from "@/components/profile/styles";
 import { ProfileAbout } from "@/components/profile/profile-about";
 import { ApiClientError } from "@/api/client";
 import {
@@ -230,7 +231,7 @@ function Catalog({
   filters: Filters;
   navigating: boolean;
   onChange: (filters: Filters) => void;
-  onNotice: (message: string) => void;
+  onNotice: (message: string, duration?: number) => void;
 }) {
   const { signedIn, signIn } = useDemoSession();
   const { page, tagPage, tagQuery, hashtagId } = filters;
@@ -272,82 +273,96 @@ function Catalog({
     );
   if (!data) return null;
 
+  const identity = profile ? (
+    <h1 className="break-all text-base font-medium text-muted">
+      @{data.user.publicId}
+    </h1>
+  ) : (
+    <div>
+      <h1 className="text-3xl">
+        {data.user.displayName}의 퀴즈
+      </h1>
+      <p className="mt-2 text-muted">
+        @{data.user.publicId}
+      </p>
+    </div>
+  );
+  const subscription = (profile || !data.subscribed) && (
+    <Button
+      className="ml-auto"
+      variant="secondary"
+      disabled={busy}
+      onClick={() => {
+        if (profile && !signedIn) {
+          signIn();
+          onNotice(
+            data.user.userId === userId
+              ? "내 프로필로 로그인했어요."
+              : "데모 로그인했어요. 구독 버튼을 눌러 구독을 완료하세요.",
+          );
+          return;
+        }
+        void subscribe
+          .mutateAsync({
+            target: {
+              type: "PERSON",
+              authorUserId: data.user.userId,
+            },
+            subscribed: profile ? data.subscribed : false,
+          })
+          .then(() =>
+            onNotice(
+              profile && data.subscribed
+                ? `${data.user.displayName}님 구독을 취소했습니다.`
+                : `${data.user.displayName}님을 구독했습니다.`,
+            ),
+          )
+          .catch(() => undefined);
+      }}
+    >
+      {profile && !signedIn
+        ? "로그인하고 구독하기"
+        : profile && data.subscribed
+          ? "개발자 구독 해제"
+          : "개발자 구독하기"}
+    </Button>
+  );
+
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl">
-            {profile
-              ? data.user.displayName
-              : `${data.user.displayName}의 퀴즈`}
-          </h1>
-          <p className="mt-2 text-muted">
-            @{data.user.publicId}
-          </p>
-        </div>
-        {profile &&
-        signedIn &&
-        data.user.userId === userId ? (
-          <Link
-            href={`/my/desk?user=${encodeURIComponent(userId)}`}
-            className="rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
-          >
-            데스크 편집
-          </Link>
-        ) : (
-          (profile || !data.subscribed) && (
-            <Button
-              className="ml-auto"
-              variant="secondary"
-              disabled={busy}
-              onClick={() => {
-                if (profile && !signedIn) {
-                  signIn();
-                  onNotice(
-                    data.user.userId === userId
-                      ? "내 프로필로 로그인했어요."
-                      : "데모 로그인했어요. 구독 버튼을 눌러 구독을 완료하세요.",
-                  );
-                  return;
-                }
-                void subscribe
-                  .mutateAsync({
-                    target: {
-                      type: "PERSON",
-                      authorUserId: data.user.userId,
-                    },
-                    subscribed: profile
-                      ? data.subscribed
-                      : false,
-                  })
-                  .then(() =>
-                    onNotice(
-                      profile && data.subscribed
-                        ? `${data.user.displayName}님 구독을 취소했습니다.`
-                        : `${data.user.displayName}님을 구독했습니다.`,
-                    ),
-                  )
-                  .catch(() => undefined);
-              }}
-            >
-              {profile && !signedIn
-                ? "로그인하고 구독하기"
-                : profile && data.subscribed
-                  ? "개발자 구독 해제"
-                  : "개발자 구독하기"}
-            </Button>
-          )
-        )}
-      </header>
-      {profile && (
+      {profile ? (
         <ProfileAbout
           key={`${userId}:${publicId}:${signedIn}`}
           userId={userId}
           publicId={publicId}
           owner={signedIn && data.user.userId === userId}
+          identity={identity}
+          visitorAction={subscription}
+          onNotice={onNotice}
         />
+      ) : (
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          {identity}
+          {subscription}
+        </header>
       )}
-      {afterHeader}
+      {afterHeader && (
+        <div className="space-y-2">
+          {profile &&
+            signedIn &&
+            data.user.userId === userId && (
+              <div className="flex justify-end">
+                <Link
+                  href={`/my/desk?user=${encodeURIComponent(userId)}`}
+                  className={profileStyles.action}
+                >
+                  데스크 편집
+                </Link>
+              </div>
+            )}
+          {afterHeader}
+        </div>
+      )}
       {subscribe.error && (
         <p role="alert">
           구독을 저장하지 못했습니다. 다시 시도해 주세요.
@@ -588,6 +603,28 @@ export function DeveloperScreen({
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
   const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  useEffect(
+    () => () => {
+      if (toastTimer.current)
+        clearTimeout(toastTimer.current);
+    },
+    [],
+  );
+
+  function showNotice(message: string, duration?: number) {
+    if (toastTimer.current)
+      clearTimeout(toastTimer.current);
+    setToast(message);
+    if (duration)
+      toastTimer.current = setTimeout(
+        () => setToast(null),
+        duration,
+      );
+  }
+
   const [client] = useState(() => new QueryClient());
   const userId = params.get("user") ?? "learner";
   const positive = (value: string | null) => {
@@ -623,7 +660,7 @@ export function DeveloperScreen({
           publicId={publicId}
           filters={filters}
           navigating={navigating}
-          onNotice={setToast}
+          onNotice={showNotice}
           onChange={(next) => {
             const query = new URLSearchParams({
               user: userId,

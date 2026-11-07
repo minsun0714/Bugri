@@ -173,3 +173,5 @@ PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따
 ### 공개 프로필 자기소개·링크
 
 `DeveloperScreen`의 공개 프로필 모드에서 `ProfileAbout`을 사용자 정보와 데스크 사이에 배치한다. 본인 편집은 `ProfileAboutForm` → 폼 상태 훅 → Query API 훅 → typed client → Mock 서비스로 연결한다. `UserState.profileAbout`은 선택 필드여서 기존 v1 저장과 호환된다. 공개 조회는 자기소개·링크만 반환하며 다른 개인 상태는 포함하지 않는다. Markdown 렌더링은 원시 HTML을 실행하지 않는다. 공통 MarkdownEditor에 문맥별 placeholder prop을 추가해 기존 학습 입력을 유지한다.
+
+`ProfileAbout`은 공개 프로필 정보 묶음의 공개 ID와 방문자 구독 동작을 ReactNode로 받아 소개와 함께 조립한다. 편집 상태·조회 오류·포커스 복귀는 같은 경계에 두며 사용자/로그인 상태 key로 초기화한다. 본인 편집 동작은 같은 styles.ts의 보조 액션 스타일, 외부 링크는 ProfileLinkIcon과 별도 링크 스타일을 사용한다. API·저장 데이터 계약은 바꾸지 않는다.

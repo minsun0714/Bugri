@@ -96,6 +96,15 @@ for (const width of [1280, 390]) {
     await expect(
       page.getByText("프로필을 저장했습니다."),
     ).toBeVisible();
+    const savedToast = page
+      .getByRole("status")
+      .filter({ hasText: "프로필을 저장했습니다." });
+    await expect(savedToast).toHaveCSS("position", "fixed");
+    await expect(
+      page
+        .getByRole("region", { name: "공개 프로필 정보" })
+        .getByText("프로필을 저장했습니다."),
+    ).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "만드는 사람" }),
     ).toBeVisible();
@@ -106,9 +115,12 @@ for (const width of [1280, 390]) {
       path: testInfo.outputPath(`saved-${width}.png`),
       fullPage: true,
     });
+    await expect(savedToast).toBeHidden({ timeout: 6000 });
     await page.reload();
     await expect(
-      page.getByRole("link", { name: "발표 자료 (새 탭)" }),
+      page.getByRole("link", {
+        name: /발표 자료.*example\.com.*새 탭/,
+      }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
@@ -127,7 +139,9 @@ for (const width of [1280, 390]) {
       }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("link", { name: "발표 자료 (새 탭)" }),
+      page.getByRole("link", {
+        name: /발표 자료.*example\.com.*새 탭/,
+      }),
     ).toBeVisible();
     await page.goto("/users/bugri-author?user=author");
     await page
@@ -152,7 +166,9 @@ for (const width of [1280, 390]) {
       page.getByRole("link", { name: "GitHub (새 탭)" }),
     ).toHaveAttribute("href", "https://github.com/updated");
     await expect(
-      page.getByRole("link", { name: "발표 자료 (새 탭)" }),
+      page.getByRole("link", {
+        name: /발표 자료.*example\.com.*새 탭/,
+      }),
     ).toHaveCount(0);
     await page
       .getByRole("button", {

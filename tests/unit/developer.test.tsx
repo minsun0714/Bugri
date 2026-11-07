@@ -97,7 +97,7 @@ test("public profile previews quizzes without filters and requires login before 
   );
   expect(
     await screen.findByRole("heading", {
-      name: "타입 개발자",
+      name: "@bugri-author",
     }),
   ).toBeVisible();
   expect(

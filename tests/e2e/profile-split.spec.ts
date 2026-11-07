@@ -53,7 +53,7 @@ test("private management leads to a public profile without personal data", async
   );
   await expect(
     page.getByRole("heading", {
-      name: "타입 개발자",
+      name: "@bugri-author",
       exact: true,
     }),
   ).toBeVisible();
@@ -72,7 +72,7 @@ test("private management leads to a public profile without personal data", async
   await page.reload();
   await expect(
     page.getByRole("heading", {
-      name: "타입 개발자",
+      name: "@bugri-author",
       exact: true,
     }),
   ).toBeVisible();
