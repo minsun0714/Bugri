@@ -330,11 +330,20 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .getByRole("button", { name: "승인", exact: true })
     .click();
   await review
+    .getByRole("button", {
+      name: "추가 프롬프트로 재생성",
+    })
+    .click();
+  const regenerate = page.getByRole("dialog", {
+    name: "추가 프롬프트로 재생성",
+  });
+  await regenerate
     .getByLabel("추가 프롬프트")
     .fill("예시 추가");
-  await review
+  await regenerate
     .getByRole("button", { name: "수정본 재생성" })
     .click();
+  await expect(regenerate).not.toBeVisible();
   await expect(review.getByRole("status")).toHaveText(
     "수정본을 생성했습니다. 내용을 검토하세요.",
   );

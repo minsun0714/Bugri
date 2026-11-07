@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { ReviewEditor } from "@/features/quiz-authoring/review-editor";
 import { createApiClient } from "@/api/client";
@@ -20,7 +21,15 @@ jest.mock("rehype-highlight", () => ({
   default: () => {},
 }));
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+});
 
 async function setup(index = 0) {
   const api = createApiClient(
@@ -59,6 +68,20 @@ function openEditor() {
 
 test("preview-first approval reviews in one action and approved edits preserve the active revision", async () => {
   const { api, quiz } = await setup();
+  const editActions = screen.getByRole("group", {
+    name: "퀴즈 수정 방식",
+  });
+
+  expect(
+    within(editActions).getByRole("button", {
+      name: "직접 수정",
+    }),
+  ).toBeVisible();
+  expect(
+    within(editActions).getByRole("button", {
+      name: "추가 프롬프트로 재생성",
+    }),
+  ).toBeVisible();
   expect(
     screen.queryByLabelText("제목"),
   ).not.toBeInTheDocument();
@@ -205,6 +228,19 @@ test("stale update preserves edits and reports conflict", async () => {
 
 test("regeneration failure preserves prompt and saved content; retry creates an unreviewed revision", async () => {
   const { api } = await setup();
+  expect(
+    screen.queryByLabelText("추가 프롬프트"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "추가 프롬프트로 재생성",
+    }),
+  );
+  expect(
+    screen.getByRole("dialog", {
+      name: "추가 프롬프트로 재생성",
+    }),
+  ).toBeVisible();
   fireEvent.change(screen.getByLabelText("추가 프롬프트"), {
     target: { value: "예시 추가" },
   });
@@ -228,6 +264,11 @@ test("regeneration failure preserves prompt and saved content; retry creates an 
   await screen.findByText(
     "수정본을 생성했습니다. 내용을 검토하세요.",
   );
+  expect(
+    screen.queryByRole("dialog", {
+      name: "추가 프롬프트로 재생성",
+    }),
+  ).not.toBeInTheDocument();
   expect(
     screen.getByRole("button", {
       name: "승인",

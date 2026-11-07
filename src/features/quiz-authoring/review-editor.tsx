@@ -2,7 +2,6 @@
 
 import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
 import { Dropdown } from "@/components/ui/dropdown";
-import { Tooltip } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import {
@@ -11,7 +10,12 @@ import {
   type ReviewQuiz,
   type Visibility,
 } from "@/api/contracts";
-import { Button, Card, TextField } from "@/components/ui";
+import {
+  Button,
+  Card,
+  Modal,
+  TextArea,
+} from "@/components/ui";
 import { ContentFields } from "@/features/quiz-authoring/content-fields";
 import { ContentPreview } from "@/features/quiz-authoring/content-preview";
 import { RequestError } from "@/features/quiz-authoring/feedback";
@@ -54,6 +58,8 @@ export function ReviewEditor({
   const [prompt, setPrompt] = useState("");
   const [sentPrompt, setSentPrompt] = useState("");
   const [editing, setEditing] = useState(false);
+  const [regenerateOpen, setRegenerateOpen] =
+    useState(false);
   const [visibility, setVisibility] = useState<
     Visibility | ""
   >(
@@ -201,7 +207,7 @@ export function ReviewEditor({
           {statusLabel}
         </span>
       </div>
-      <RequestError error={error} />
+      <RequestError error={regenerateOpen ? null : error} />
       {message && (
         <p role="status" className="text-primary">
           {message}
@@ -270,13 +276,29 @@ export function ReviewEditor({
         <Card className={styles.stack}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-xl">{saved.title}</h3>
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => setEditing(true)}
+            <div
+              role="group"
+              aria-label="퀴즈 수정 방식"
+              className="ml-auto flex flex-wrap justify-end gap-2"
             >
-              직접 수정
-            </Button>
+              <Button
+                variant="secondary"
+                disabled={busy}
+                onClick={() => setEditing(true)}
+              >
+                직접 수정
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={busy}
+                onClick={() => {
+                  setError(null);
+                  setRegenerateOpen(true);
+                }}
+              >
+                추가 프롬프트로 재생성
+              </Button>
+            </div>
           </div>
           <details>
             <summary className="cursor-pointer text-primary">
@@ -322,47 +344,63 @@ export function ReviewEditor({
           )}
         </Card>
       )}
-      {!editing && (
-        <Card className={styles.stack}>
-          <div className="flex flex-wrap items-center gap-3">
-            <h3 className="text-xl">
-              추가 프롬프트로 재생성
-            </h3>
-            <Tooltip label="재생성 도움말">
-              저장된 내용으로 수정본을 만듭니다. 검토 후
-              승인해야 반영됩니다.
-            </Tooltip>
-          </div>
-          <TextField
-            label="추가 프롬프트"
-            value={prompt}
-            disabled={busy}
-            onChange={(event) =>
-              setPrompt(event.target.value)
-            }
-          />
-          <div className={styles.actions}>
-            <Button
-              disabled={busy || edited || !prompt.trim()}
-              onClick={() =>
-                void run(async () => {
-                  accept(
-                    await api.request("regenerate", {
-                      ...version,
-                      prompt,
-                    }),
-                  );
-                  setSentPrompt(prompt);
-                  setMessage(
-                    "수정본을 생성했습니다. 내용을 검토하세요.",
-                  );
-                })
-              }
-            >
-              수정본 재생성
-            </Button>
-          </div>
-        </Card>
+      {regenerateOpen && (
+        <Modal
+          open
+          onClose={() => setRegenerateOpen(false)}
+          title="추가 프롬프트로 재생성"
+        >
+          <form
+            className="grid gap-5"
+            onSubmit={(event) => {
+              event.preventDefault();
+
+              void run(async () => {
+                accept(
+                  await api.request("regenerate", {
+                    ...version,
+                    prompt,
+                  }),
+                );
+                setPrompt("");
+                setSentPrompt("");
+                setRegenerateOpen(false);
+                setMessage(
+                  "수정본을 생성했습니다. 내용을 검토하세요.",
+                );
+              });
+            }}
+          >
+            <RequestError error={error} />
+            <TextArea
+              label="추가 프롬프트"
+              value={prompt}
+              disabled={busy}
+              rows={4}
+              limit={Number.POSITIVE_INFINITY}
+              showCount={false}
+              placeholder="바꾸고 싶은 내용을 입력하세요"
+              onChange={setPrompt}
+            />
+            <div className={styles.actions}>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={busy}
+                onClick={() => setRegenerateOpen(false)}
+              >
+                취소
+              </Button>
+              <Button
+                type="submit"
+                disabled={busy || edited || !prompt.trim()}
+                loading={busy}
+              >
+                수정본 재생성
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
       {!editing && quiz.active && !quiz.pending && (
         <Card className={styles.stack}>
