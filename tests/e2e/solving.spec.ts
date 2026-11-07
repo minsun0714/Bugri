@@ -723,6 +723,8 @@ test("empty state opens discovery page with URL search and explicit subscription
   await expect(
     page.getByRole("img", { name: "응원하는 버그리" }),
   ).toBeVisible();
+  // The result replaces the submitted form beneath the mouse; leave its hover edge before clicking.
+  await page.mouse.move(0, 0);
   await page
     .getByRole("button", { name: "완료 확인", exact: true })
     .click();

@@ -199,14 +199,23 @@ export function Switch({
 
 export function Checkbox({
   label,
+  variant = "inline",
+  checked,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & {
   label: string;
+  variant?: "inline" | "choice";
 }) {
   return (
-    <label className={styles["ui-check"]}>
-      <input {...props} type="checkbox" />
-      {label}
+    <label
+      className={
+        variant === "choice"
+          ? `${styles["ui-choice"]} ${checked ? "selected" : ""}`
+          : styles["ui-check"]
+      }
+    >
+      <input {...props} checked={checked} type="checkbox" />
+      <span className="min-w-0 break-words">{label}</span>
     </label>
   );
 }

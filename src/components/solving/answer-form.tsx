@@ -37,7 +37,9 @@ export function AnswerForm({
     >
       <fieldset disabled={pending} className="space-y-3">
         <legend className="mb-3 font-bold">
-          답안 선택
+          {question.type === "MULTIPLE_CHOICE"
+            ? "정답을 모두 선택하세요"
+            : "답안 선택"}
         </legend>
         {question.type === "SINGLE_CHOICE" &&
           question.choices.map(({ id, text }) => (
@@ -60,12 +62,10 @@ export function AnswerForm({
           ))}
         {question.type === "MULTIPLE_CHOICE" && (
           <>
-            <p className="text-sm text-muted">
-              해당하는 답을 모두 선택하세요.
-            </p>
             {question.choices.map(({ id, text }) => (
               <Checkbox
                 key={id}
+                variant="choice"
                 label={text}
                 checked={
                   answer?.type === "MULTIPLE_CHOICE" &&
