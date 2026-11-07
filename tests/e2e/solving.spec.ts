@@ -552,8 +552,15 @@ test("empty state opens discovery page with URL search and explicit subscription
       .getByText("학습자", { exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "태그", exact: true })
-    .click();
+    .getByRole("tab", { name: "개발자", exact: true })
+    .focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    page.getByRole("tab", { name: "태그", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(
+    page.getByRole("tab", { name: "태그", exact: true }),
+  ).toBeFocused();
   const search = page.getByRole("searchbox", {
     name: "개발자 또는 태그 검색",
   });
@@ -575,8 +582,8 @@ test("empty state opens discovery page with URL search and explicit subscription
   await page.reload();
   await expect(search).toHaveValue("JAVA");
   await expect(
-    page.getByRole("button", { name: "태그", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+    page.getByRole("tab", { name: "태그", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
   await search.fill("없는검색결과");
   await page
     .getByRole("button", { name: "검색", exact: true })

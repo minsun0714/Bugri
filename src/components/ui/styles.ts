@@ -31,7 +31,7 @@ export const styles = {
   "ui-code":
     "ui-code bg-[#302443] rounded-[9px] text-[#dcf3a6] overflow-hidden text-[12px] [&_>_div]:flex [&_>_div]:justify-between [&_>_div]:py-3 [&_>_div]:px-4.25 [&_>_div]:border-b [&_>_div]:border-b-[#ffffff16] [&_>_div]:text-[#c4afd9] [&_>_div]:[font:10px_monospace] [&_pre]:p-4.75 [&_pre]:overflow-auto [&_pre]:leading-[1.9] [&_pre]:text-[12px] [&_pre]:[tab-size:2] [&_.hljs-keyword]:text-[#d5acff] [&_.hljs-selector-tag]:text-[#d5acff] [&_.hljs-literal]:text-[#d5acff] [&_.hljs-string]:text-[#cef097] [&_.hljs-attr]:text-[#cef097] [&_.hljs-number]:text-[#ffc38e] [&_.hljs-built_in]:text-[#ffc38e] [&_.hljs-comment]:text-[#aaa0bc] [&_.hljs-title]:text-[#9cd9f3] [&_.hljs-function]:text-[#9cd9f3]",
   "ui-tabs":
-    "ui-tabs flex border-b border-b-line gap-5.5 [&_button]:[border:0] [&_button]:bg-transparent [&_button]:py-3 [&_button]:px-0 [&_button]:text-[12px] [&_button]:text-muted [&_button]:cursor-pointer [&_button]:border-b-2 [&_button]:border-b-transparent [&_button[aria-selected='true']]:text-primary [&_button[aria-selected='true']]:border-primary [&_button[aria-selected='true']]:font-bold",
+    "ui-tabs flex border-b border-b-line gap-5.5 [&_button]:bg-transparent [&_button]:py-3 [&_button]:px-0 [&_button]:text-[12px] [&_button]:text-muted [&_button]:cursor-pointer [&_button]:border-b-2 [&_button]:border-b-transparent [&_button[aria-selected='true']]:text-primary [&_button[aria-selected='true']]:border-primary [&_button[aria-selected='true']]:font-bold",
   "tab-panel":
     "tab-panel pt-5.5 px-0 pb-0 text-[13px] text-muted",
   "ui-modal":

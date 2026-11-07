@@ -39,7 +39,6 @@ function Harness({
   return (
     <QueryClientProvider client={client}>
       <DiscoverySearch
-        key={JSON.stringify(request)}
         userId="friend"
         request={request}
         onSearch={setRequest}
@@ -61,7 +60,7 @@ it("finds developers and all registered tags without subscribing on search", asy
   const learn = jest.fn();
   render(<Harness onLearn={learn} />);
   fireEvent.click(
-    screen.getByRole("button", {
+    screen.getByRole("tab", {
       name: "태그",
     }),
   );
@@ -81,7 +80,7 @@ it("finds developers and all registered tags without subscribing on search", asy
     [],
   );
   fireEvent.click(
-    screen.getByRole("button", {
+    screen.getByRole("tab", {
       name: "개발자",
     }),
   );
@@ -168,7 +167,7 @@ it("adds multiple tags without navigating or losing the current search", async (
   const learn = jest.fn();
   render(<Harness onLearn={learn} />);
   fireEvent.click(
-    screen.getByRole("button", { name: "태그" }),
+    screen.getByRole("tab", { name: "태그" }),
   );
   fireEvent.change(screen.getByRole("searchbox"), {
     target: { value: "Java" },
@@ -209,4 +208,20 @@ it("adds multiple tags without navigating or losing the current search", async (
   expect(
     await api.request("subscriptions", {}),
   ).toHaveLength(2);
+});
+
+it("switches discovery tabs with arrow keys and preserves focus", async () => {
+  render(<Harness onLearn={jest.fn()} />);
+  const users = screen.getByRole("tab", { name: "개발자" });
+  users.focus();
+  fireEvent.keyDown(users, { key: "ArrowRight" });
+  const tags = screen.getByRole("tab", { name: "태그" });
+  expect(tags).toHaveAttribute("aria-selected", "true");
+  expect(tags).toHaveFocus();
+  expect(
+    await screen.findByRole("tabpanel", { name: "태그" }),
+  ).toBeVisible();
+  fireEvent.keyDown(tags, { key: "Home" });
+  expect(users).toHaveAttribute("aria-selected", "true");
+  expect(users).toHaveFocus();
 });

@@ -328,11 +328,17 @@ export function Tabs({
   value,
   onChange,
   children,
+  label = "컴포넌트 미리보기",
+  disabled = false,
+  panelClassName = styles["tab-panel"],
 }: {
   items: string[];
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
+  label?: string;
+  disabled?: boolean;
+  panelClassName?: string;
 }) {
   const id = useId();
   const index = items.indexOf(value);
@@ -342,7 +348,7 @@ export function Tabs({
       <div
         className={styles["ui-tabs"]}
         role="tablist"
-        aria-label="컴포넌트 미리보기"
+        aria-label={label}
       >
         {items.map((item, i) => (
           <button
@@ -352,9 +358,13 @@ export function Tabs({
             id={`${id}-${i}`}
             aria-controls={`${id}-panel`}
             aria-selected={item === value}
+            aria-disabled={disabled}
             tabIndex={item === value ? 0 : -1}
-            onClick={() => onChange(item)}
+            onClick={() => {
+              if (!disabled) onChange(item);
+            }}
             onKeyDown={(event) => {
+              if (disabled) return;
               let next = i;
 
               if (event.key === "ArrowRight")
@@ -382,7 +392,7 @@ export function Tabs({
         id={`${id}-panel`}
         aria-labelledby={`${id}-${index}`}
         tabIndex={0}
-        className={styles["tab-panel"]}
+        className={panelClassName}
       >
         {children}
       </div>

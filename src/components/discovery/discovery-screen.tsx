@@ -40,7 +40,7 @@ export function DiscoveryScreen() {
       <div className="space-y-6">
         <h1 className="text-3xl">개발자·태그 탐색</h1>
         <DiscoverySearch
-          key={`${userId}:${JSON.stringify(request)}`}
+          key={userId}
           userId={userId}
           navigating={navigating}
           request={request}

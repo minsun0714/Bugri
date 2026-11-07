@@ -10,22 +10,60 @@ import {
   Button,
   Skeleton,
   TextField,
+  Tabs,
 } from "@/components/ui";
 import { useDiscovery } from "@/components/discovery/queries";
 
-export function DiscoverySearch({
-  userId,
-  request,
-  onSearch,
-  onLearn,
-  navigating = false,
-}: {
+interface DiscoverySearchProps {
   userId: string;
   navigating?: boolean;
   request: DiscoveryQuery;
   onSearch: (request: DiscoveryQuery) => void;
   onLearn: (hashtagId: string | null) => void;
-}) {
+}
+
+export function DiscoverySearch(
+  props: DiscoverySearchProps,
+) {
+  const { request, onSearch, navigating = false } = props;
+
+  return (
+    <Tabs
+      items={["개발자", "태그"]}
+      value={
+        request.kind === DiscoveryKind.USER
+          ? "개발자"
+          : "태그"
+      }
+      label="검색 대상"
+      disabled={navigating}
+      panelClassName="pt-6"
+      onChange={(value) =>
+        onSearch({
+          ...request,
+          kind:
+            value === "개발자"
+              ? DiscoveryKind.USER
+              : DiscoveryKind.HASHTAG,
+          page: 1,
+        })
+      }
+    >
+      <DiscoveryResults
+        key={JSON.stringify(request)}
+        {...props}
+      />
+    </Tabs>
+  );
+}
+
+function DiscoveryResults({
+  userId,
+  request,
+  onSearch,
+  onLearn,
+  navigating = false,
+}: DiscoverySearchProps) {
   const [input, setInput] = useState(request.query);
   const { discovery, subscribe } = useDiscovery(
     userId,
@@ -72,32 +110,6 @@ export function DiscoverySearch({
 
   return (
     <div className="space-y-6">
-      <div
-        role="group"
-        aria-label="검색 대상"
-        className="flex gap-3"
-      >
-        {[
-          { kind: DiscoveryKind.USER, label: "개발자" },
-          { kind: DiscoveryKind.HASHTAG, label: "태그" },
-        ].map(({ kind, label }) => (
-          <Button
-            key={kind}
-            variant={
-              request.kind === kind
-                ? "primary"
-                : "secondary"
-            }
-            aria-pressed={request.kind === kind}
-            disabled={busy}
-            onClick={() =>
-              onSearch({ ...request, kind, page: 1 })
-            }
-          >
-            {label}
-          </Button>
-        ))}
-      </div>
       <form
         className="flex flex-wrap items-end gap-3"
         onSubmit={(event) => {
