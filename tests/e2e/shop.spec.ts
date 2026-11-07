@@ -37,7 +37,7 @@ test("keeps the desk editor available without a shop entry link", async ({
     page.getByRole("link", { name: "내 데스크 꾸미기" }),
   ).toHaveCount(0);
 
-  await page.goto("/my");
+  await page.goto("/my/desk");
 
   await expect(
     page.getByRole("region", { name: "내 데스크 편집" }),
@@ -93,7 +93,7 @@ test("purchase, equip, restore, switch users and view a public desk", async ({
   await expect(
     keyboard.getByRole("button", { name: "장착해 보기" }),
   ).toHaveCount(0);
-  await page.goto("/my");
+  await page.goto("/my/desk");
   await page
     .getByRole("button", { name: "장착하기", exact: true })
     .click();

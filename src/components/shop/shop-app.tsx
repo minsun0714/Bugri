@@ -615,7 +615,7 @@ export function ShopApp({
               window.history.replaceState(
                 null,
                 "",
-                `${editing ? "/my" : "/shop"}?user=${event.target.value}`,
+                `${editing ? "/my/desk" : "/shop"}?user=${event.target.value}`,
               );
             }}
           />

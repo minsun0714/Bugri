@@ -40,7 +40,7 @@ for (const width of [1100, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
-    for (const path of ["/my", "/users/bugri-learner"]) {
+    for (const path of ["/my/desk", "/users/bugri-learner"]) {
       await page.goto(path);
       await page
         .getByRole("button", { name: "정면", exact: true })

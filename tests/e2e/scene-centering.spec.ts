@@ -6,7 +6,7 @@ for (const width of [1100, 390]) {
   }) => {
     await page.setViewportSize({ width, height: 1000 });
     for (const path of [
-      "/my",
+      "/my/desk",
       "/shop",
       "/users/bugri-learner",
     ]) {

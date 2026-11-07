@@ -170,7 +170,7 @@ for (const width of [1100, 390]) {
         .getByRole("button", { name: "닫기", exact: true })
         .click();
     }
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await expect(
       page.getByRole("group", {
         name: "내 데스크 · 새싹 키보드",

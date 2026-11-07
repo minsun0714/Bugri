@@ -9,7 +9,7 @@ for (const width of [1100, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/my");
+    await page.goto("/my/desk");
     const canvas = page.locator(
       '[data-renderer="canvas"] canvas',
     );
@@ -138,7 +138,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "닫기", exact: true })
       .click();
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await page
       .getByRole("button", {
         name: "버그리 선택",

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useDemoSession } from "@/components/navigation/demo-session";
 import { withDemoUser } from "@/components/navigation/routes";
 import { Button, Skeleton } from "@/components/ui";
 import { ProductLayout } from "@/components/navigation/product-layout";
@@ -13,6 +14,7 @@ import { usePublicDesk } from "@/components/shop/use-shop";
 import { errorMessage } from "@/components/shop/errors";
 
 function Profile({ publicId }: { publicId: string }) {
+  const { signedIn } = useDemoSession();
   const searchParams = useSearchParams();
   const viewer = searchParams.get("user");
   const profile = usePublicDesk(publicId);
@@ -36,6 +38,18 @@ function Profile({ publicId }: { publicId: string }) {
       <h1 className="text-3xl">
         {user.displayName}의 데스크
       </h1>
+      {signedIn &&
+        user.userId === (viewer ?? "learner") && (
+          <Link
+            href={withDemoUser(
+              "/my/desk",
+              viewer ?? "learner",
+            )}
+            className="mt-4 inline-block rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            데스크 편집
+          </Link>
+        )}
       <div className="my-7 rounded-3xl border border-line bg-surface p-3">
         <ThreeView
           readOnly

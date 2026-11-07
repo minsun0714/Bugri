@@ -10,7 +10,7 @@ for (const width of [1100, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/my");
+    await page.goto("/my/desk");
     const ownCanvas = page.locator(
       '[data-renderer="canvas"] canvas',
     );
@@ -94,7 +94,7 @@ for (const width of [1100, 390]) {
         exact: true,
       }),
     ).toBeFocused();
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await page
       .getByRole("button", { name: "새싹 키보드 선택" })
       .click();
@@ -151,7 +151,7 @@ for (const width of [1100, 390]) {
     await selectTrialProduct(dialog, "라벤더 키보드");
     await rotateTo(dialog, "라벤더 키보드", 180);
     await page.keyboard.press("Escape");
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await page
       .getByRole("button", { name: "새싹 키보드 선택" })
       .click();

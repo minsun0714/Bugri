@@ -1,4 +1,9 @@
 import { render, screen } from "@testing-library/react";
+import { fireEvent } from "@testing-library/react";
+import {
+  DemoSessionProvider,
+  useDemoSession,
+} from "@/components/navigation/demo-session";
 import { PublicDesk } from "@/components/shop/public-desk";
 
 jest.mock("next/navigation", () => ({
@@ -21,6 +26,7 @@ jest.mock("@/components/shop/use-shop", () => ({
     isPending: false,
     data: {
       user: {
+        userId: "author",
         publicId: "public-author",
         displayName: "개발자",
       },
@@ -57,4 +63,27 @@ test("public profile links to public quizzes without exposing personal managemen
       screen.queryByLabelText(name),
     ).not.toBeInTheDocument();
   }
+});
+
+function Login() {
+  const { signIn } = useDemoSession();
+  return <button onClick={signIn}>로그인</button>;
+}
+
+test("only signed-in owner sees desk edit entry", () => {
+  render(
+    <DemoSessionProvider>
+      <Login />
+      <PublicDesk publicId="public-author" />
+    </DemoSessionProvider>,
+  );
+  expect(
+    screen.queryByRole("link", { name: "데스크 편집" }),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "로그인" }),
+  );
+  expect(
+    screen.getByRole("link", { name: "데스크 편집" }),
+  ).toHaveAttribute("href", "/my/desk?user=author");
 });

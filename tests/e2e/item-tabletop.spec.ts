@@ -126,7 +126,7 @@ for (const width of [1100, 390]) {
             exact: true,
           })
           .click();
-        await page.goto("/my");
+        await page.goto("/my/desk");
         await page
           .getByRole("button", {
             name: `${name} 선택`,
@@ -163,7 +163,7 @@ for (const width of [1100, 390]) {
             exact: true,
           })
           .click();
-        await page.goto("/my");
+        await page.goto("/my/desk");
         await expect(
           page.getByLabel("3D 배치 정보"),
         ).not.toContainText(name);
