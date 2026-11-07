@@ -159,6 +159,19 @@ test("deletes a candidate and soft-deletes its saved quiz", async () => {
     await api.request("quizzes", { scope: QuizScope.OWN }),
   ).toHaveLength(0);
 
+  for (const { candidateId } of result.candidates) {
+    await api.request("deleteCandidate", {
+      batchId: batch.batchId,
+      candidateId,
+    });
+  }
+
+  const restored = await make().request("generationBatch", {
+    batchId: batch.batchId,
+  });
+
+  expect(restored.candidates).toHaveLength(0);
+
   await expect(
     api.request("deleteCandidate", {
       batchId: batch.batchId,

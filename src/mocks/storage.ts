@@ -248,7 +248,6 @@ function validateState(
     requireValue(
       typeof b.batchId === "string" &&
         Array.isArray(b.candidates) &&
-        b.candidates.length >= 1 &&
         b.candidates.length <= 5,
       "생성 묶음이 손상되었습니다.",
     );

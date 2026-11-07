@@ -207,6 +207,31 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
       .getByRole("region", { name: "내 퀴즈 목록" })
       .getByRole("article"),
   ).toHaveCount(3);
+  for (let remaining = 2; remaining >= 0; remaining -= 1) {
+    page.once("dialog", (dialog) => dialog.accept());
+    await candidates
+      .getByRole("button", { name: "퀴즈 삭제" })
+      .click();
+    await expect(candidates.getByRole("tab")).toHaveCount(
+      remaining,
+    );
+  }
+  await expect(
+    page.getByText("남은 퀴즈가 없습니다"),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByText("남은 퀴즈가 없습니다"),
+  ).toBeVisible();
+  await expect(
+    page.getByText("오류 코드: STORAGE_CORRUPT"),
+  ).toHaveCount(0);
+  await management.reload();
+  await expect(
+    management
+      .getByRole("region", { name: "내 퀴즈 목록" })
+      .getByRole("article"),
+  ).toHaveCount(0);
 });
 
 test("quiz tabs stay visible while only the candidate body scrolls", async ({
