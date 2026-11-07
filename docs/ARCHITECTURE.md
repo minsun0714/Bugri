@@ -184,7 +184,7 @@ PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따
 
 ### 공개 프로필 스트릭
 
-공개 프로필은 홈 StreakSummary와 ActivityPeriods를 재사용한다. publicId가 주어지면 publicLearningDay typed API와 publicId별 TanStack Query 캐시로 주인의 공개 집계만 조회한다. 개인 learningDay와 같은 서비스 계산을 사용하며 공개 조회에서는 Mock 시간대 초기화·마이그레이션·저장을 하지 않는다. 시간대 미설정은 오류 상태로 유지한다. 공개 화면은 행동 촉구 대신 주인의 현재 학습 상태를 설명한다.
+공개 프로필은 홈 StreakSummary와 ActivityPeriods를 재사용한다. publicId가 주어지면 publicLearningDay typed API와 publicId별 TanStack Query 캐시로 주인의 공개 집계만 조회한다. 개인 learningDay와 같은 서비스 계산을 사용하며 공개 조회에서는 Mock 시간대 초기화·마이그레이션·저장을 하지 않는다. 저장 시간대가 없는 데모 사용자는 공개 학습 예시 시간대(Asia/Seoul)로 조회하며 저장 설정이 있으면 우선한다. 예시 값은 제품 기본 시간대와 구분하고 조회 중 저장하지 않는다. 공개 화면은 행동 촉구 대신 주인의 현재 학습 상태를 설명한다.
 
 
 ### 내 데스크와 장착 미리보기 공통 조작

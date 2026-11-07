@@ -1581,6 +1581,22 @@
 
 ## ERROR-CUTE — 전체 오류 화면 버그리 연출
 
-- 상태: IN_PROGRESS. 사용자 후속 요청으로 404와 전체 렌더/global 오류 화면만 깜찍한 버그리 장면으로 바꾼다. 404는 접힌 지도, 전체 오류는 컴퓨터·작은 공구를 배치하고 제목을 부드럽게 변경한다. 부분 Query 오류·API·복구 동작은 유지한다.
+- 상태: DONE(독립리뷰·전체통합검증). 사용자 후속 요청으로 404와 전체 렌더/global 오류 화면만 깜찍한 버그리 장면으로 바꾼다. 404는 접힌 지도, 전체 오류는 컴퓨터·작은 공구를 배치하고 제목을 부드럽게 변경한다. 부분 Query 오류·API·복구 동작은 유지한다.
 - 기존 Bugri·Button·토큰을 재사용하며 장면은 aria-hidden 정적 HTML/SVG로 구현한다. 새 이미지·provider·애니메이션 의존성을 추가하지 않는다. 독립 UI 설계 후 PC/375/320px 캡처·기존 복구 테스트·독립 UX/UI 리뷰, PR 갱신 전 전체검증을 수행한다. 시각·문구 변경이라 새 TDD는 강제하지 않고 기존 동작 검증을 유지한다.
 - 관련검증: Node22.23.3 단위4개·전체타입·scoped lint/format·production오류E2E7개 통과. 초기320px min-content넘침1건을 min-w-0로해결했다. 사용자피드백으로404의미소를o입,전체오류는일자입으로수정하고7개E2E재검증통과. [독립UX/UI기록](ux-reviews/ERROR-CUTE.md).
+
+## PROFILE-STREAK-DEMO-TIMEZONE — 미선택 데모 사용자 학습 활동
+
+- 상태: DONE. REQ-09 공개 학습 집계의 미선택 사용자 시간대 오류 수정. Mock 공개 조회에만 사용자별 예시 시간대를 적용하고 저장 설정·기록·읽기 전용 조회를 보존한다. 기존 PROFILE-STREAK의 데모 시간대 미설정 오류 정책은 이번 사용자 요청으로 대체한다. 개인 학습의 시간대 감지/fallback 정책은 유지한다.
+- Node v22.23.3: 회귀 테스트 최초 2개 의도한 실패 확인 후 공개 학습 테스트 5개 통과. 최종 `npm run verify` exit 0: lint·타입·Jest 54 suites/276개·도구 3개·production build·E2E 171개 통과. 변경 코드 Prettier 검사 및 `git diff --check` 통과. 로그 `/tmp/bugri-profile-timezone-verify.log`.
+- 검증 중 새 테스트 빈 줄 lint 1건 수정, 신규 워크트리의 Next.js 생성 타입 부재로 인한 LayoutProps 오류는 `npx next typegen` 후 타입 검사와 전체 검증으로 해결했다(수정/재검증 2회). 테스트 제외·완화 없음. 최종 검증 후 변경은 문서 기록뿐이다.
+- 독립 코드 리뷰에서 결함 없음. 리뷰어가 공개 학습·기존 API 규칙 테스트 34개 직접 통과 확인. UI 파일 변경 없는 Mock 데이터/서비스 수정이므로 별도 UX/UI 설계 루프는 적용하지 않았으며, E2E에서 1280/390px·방문자/본인/타인·미선택 사용자·기존 시간대 null 상태를 확인했다. 최신 origin/dev와 분기 차이 없이 시작했고 충돌 없음. 최종 병합은 사용자 판단.
+
+
+## ERROR-CUTE-DEV — 전체 오류 연출과 최신 dev 통합
+
+- 상태: DONE(독립리뷰·전체통합검증). PR29 충돌해결 요청을 유지하여 오류연출31ff6d7에 최신dev21eef94(미선택사용자 공개학습활동 수정)를 통합한다. 유일충돌TASKS양쪽기록을보존하고 API/ARCHITECTURE문서는자동병합했다. 기존오류범위·공개학습집계·읽기전용정책을유지한다.
+- 독립통합리뷰와 최종전체검증 후 PR29를갱신한다. 버그리UI는ERROR-CUTE독립UX/UI근거를유지한다.
+
+- 독립통합리뷰: 양쪽TASKS·API/아키텍처기록 보존, upstream Mock/서비스/PRD/공개학습테스트와origin/dev일치, 미해결충돌없음 확인. UI는ERROR-CUTE R0최신표정근거유지.
+- 최종 Node22.23.3 `npm run verify -- -- --workers=2` exit0: lint·전체타입·Jest57 suites/290개·도구3개·production build·E2E178개 통과. 로그 `/tmp/bugri-error-cute-verify.log`. 검증대상31ff6d7+dev21eef94 통합코드이며 이후변경은결과기록뿐이다. 원격dev도21eef94임을확인했다. PR29에push/본문갱신하며 최종병합은사용자판단이다.
