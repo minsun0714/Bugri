@@ -1,3 +1,5 @@
+import { demoCoinHistory } from "@/mocks/coin-history";
+import { initialBugCoin } from "@/mocks/shop-items";
 import type {
   ApiTransport,
   AuthoringMessage,
@@ -164,6 +166,20 @@ export function createMockTransport(
           }
 
           state.learningDemoVersion = 1;
+        }
+
+        if (state.coinHistoryDemoVersion === undefined) {
+          state.ledger = state.ledger.flatMap((entry) =>
+            entry.id === `seed-balance-${userId}` &&
+            entry.reason === "SEED" &&
+            entry.reference === userId &&
+            entry.amount === initialBugCoin &&
+            entry.createdAt === "2026-01-01T00:00:00.000Z"
+              ? demoCoinHistory(userId)
+              : [entry],
+          );
+
+          state.coinHistoryDemoVersion = 1;
         }
 
         const data = execute(

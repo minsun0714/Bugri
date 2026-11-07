@@ -171,3 +171,108 @@ test("legacy seed save failure keeps the original snapshot and retries safely", 
     await api().request("subscriptions", {}),
   ).toHaveLength(3);
 });
+
+test("coin demo history spans pages without changing balance or saved purchases", async () => {
+  const state = initialState("learner");
+
+  expect(state.ledger.length).toBeGreaterThan(20);
+
+  expect(
+    state.ledger.reduce(
+      (sum, entry) => sum + entry.amount,
+      0,
+    ),
+  ).toBe(100);
+
+  const legacy = {
+    ...state,
+    coinHistoryDemoVersion: undefined,
+    ledger: [
+      {
+        id: "seed-balance-learner",
+        amount: 100,
+        reason: "SEED",
+        reference: "learner",
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+  };
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify(legacy),
+  );
+
+  const client = api();
+  const [product] = await client.request("products", {});
+
+  await client.request("purchase", {
+    productId: product.productId,
+    requestKey: "demo-preserve",
+  });
+
+  const wallet = await client.request("wallet", {});
+
+  expect(wallet.balance).toBe(100 - product.price);
+
+  expect(
+    wallet.ledger.filter(
+      ({ reason }) => reason === "PURCHASE",
+    ),
+  ).toHaveLength(1);
+
+  expect(wallet.ledger).toHaveLength(26);
+  expect(await api().request("wallet", {})).toEqual(wallet);
+
+  expect(
+    localStorage.getItem(storageKey("friend")),
+  ).toBeNull();
+});
+
+test("coin history migration preserves custom ledgers and failed writes", async () => {
+  const state = initialState("learner");
+
+  delete state.coinHistoryDemoVersion;
+
+  state.ledger = [
+    {
+      id: "custom",
+      amount: 7,
+      reason: "SEED",
+      reference: "custom",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+  ];
+
+  const raw = JSON.stringify(state);
+
+  localStorage.setItem(storageKey("learner"), raw);
+
+  const blocked = createApiClient(
+    createMockTransport({
+      userId: "learner",
+      storage: {
+        getItem: (key) => localStorage.getItem(key),
+        setItem: () => {
+          throw new Error("quota");
+        },
+      },
+      detectTimeZone: () => "Asia/Seoul",
+    }),
+  );
+
+  await expect(
+    blocked.request("wallet", {}),
+  ).rejects.toMatchObject({
+    detail: { code: "STORAGE_UNAVAILABLE" },
+  });
+
+  expect(localStorage.getItem(storageKey("learner"))).toBe(
+    raw,
+  );
+
+  expect(await api().request("wallet", {})).toEqual({
+    balance: 7,
+    ledger: state.ledger,
+  });
+});

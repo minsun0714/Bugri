@@ -1009,6 +1009,27 @@
 - 상태: DONE. Node v22.23.3 최종 `npm run verify` 전체 통과(lint·TypeScript·Jest188개·도구3개·build·E2E117개). 로그인한 본인의 링크 이름과 `/my/desk?user=author` 연결을 기존 프로필 E2E에 추가해 확인했다. diff check 통과.
 - 독립 UX 검토: 코드 및 해당 E2E 결과 기반 필수 수정 사항 없음(수정0회). 소유자 상태의 별도 실제 화면 캡처·리뷰어 직접 조작은 미실행.
 
+## P08-COIN-HISTORY — BugCoin 잔액·내역 (2026-11-07)
+
+- 상태: DONE(이번 잔액·내역 구현 범위, P08 전체 완료를 뜻하지 않음). REQ-09/AC-09a,b,d. `/my`의 빈 BugCoin 영역을 기존 wallet API 기반 잔액·최신순 지급/사용 내역으로 연결한다. 사용자별 캐시, 로딩·빈 상태·오류 재시도를 제공하고 상점/학습의 wallet 캐시 키를 일치시킨다.
+- 지급량·초기 fixture·원장/구매 규칙은 유지한다. 실제 결제·DB·인증·데스크 디자인은 제외한다.
+- 검증 계획: 컴포넌트의 내역 순서·금액·사용자 격리·실패 복구, 구매 후 내역/새로고침 E2E, 독립 UX 리뷰와 마지막 전체 verify. Hook을 arm했으며 로드 신뢰가 확인되지 않아 직접 실행한다.
+- 초기 환경: Node v22.23.3. 의존성이 없어 Jest 실행이 `jest: command not found`로 차단되어 `npm ci`로 lockfile 기준 복원한다. 이 실패는 TDD 실패로 계산하지 않는다. 설치 전 Next 로컬 가이드 경로도 부재하여 공식 서버/클라이언트 문서를 확인했다.
+- 의존성 복원 후 로컬 Next 서버/클라이언트 가이드를 읽었다. 신규 컴포넌트가 없는 의도한 Jest 실패를 확인한 뒤 구현했다. 관련 Jest 18개 및 PC 1280px/모바일 390px 구매→잔액70/사용-30→새로고침→friend100 격리 E2E 2개 통과.
+- 독립 UX 최초 리뷰: PC/모바일 최신 캡처 검토 및 별도 Chromium 390px context에서 저장소 접근 실패→키보드 포커스→Enter 재시도→잔액/내역 복구 직접 확인. 중대 문제 없음, 수정 0회. 로딩/빈 상태는 컴포넌트 테스트·코드 검토이며 리뷰어의 실제 화면 재현은 미실행. 범위 내 코드 리뷰도 중대 문제 없음.
+- 첫 전체 verify: lint·타입·Jest 41 suites/193 tests·도구 3 tests·build 통과, E2E 118/119 통과. profile-split은 Next의 이전 경로 숨김 보관으로 마이페이지/데스크의 `내 잔액` 두 요소를 찾는 strict locator 오류였다. 현재 main의 잔액 표시 및 공개 이동 후 모든 보관된 잔액의 숨김·현재 main의 부재를 검증하도록 선택자를 수정했다(수정·재실행 1회). 개인 정보 비노출 검증은 유지했다. 새 테스트 2개의 Prettier 후속 줄바꿈도 정리했다.
+
+- 최종 검증: 마지막 테스트 변경 후 Node v22.23.3에서 Hook을 직접 실행하여 `npm run verify` 전체 통과(lint·TypeScript·Jest 41 suites/193 tests·도구 3 tests·production build·Playwright 119 tests). 로그 `.bugri-hooks/verify-2.log`; Hook 성공 비활성화 확인. 관련 파일 Prettier 및 `git diff --check` 통과. 범위 내 독립 UX/코드 리뷰 완료, 최종 병합 판단은 사용자에게 남긴다. push·PR·merge 없음.
+
+## P08-COIN-PAGINATION — BugCoin 내역 페이지네이션
+
+- 상태: DONE. 사용자 요청, REQ-09/AC-09a. 최신순 10개씩 표시하고 공통 Pagination에 compact 표시를 추가해 이전/다음·현재/전체 페이지를 제공한다. 사용자 전환 시 첫 페이지, 데이터 감소 시 유효 범위로 보정하며 잔액은 전체 원장 잔액을 유지한다. 기존 wallet 전체 조회 계약은 유지하는 클라이언트 페이지네이션이다.
+- 검증: 다중 페이지 경계·정렬·사용자 전환·빈/단일 페이지 단위 검사, PC/모바일 키보드 이동 E2E, 독립 UX 리뷰, 마지막 전체 verify. 기존 implement-feature·ux-designer·ux-review-loop 적용.
+- TDD: 21개 내역이 그대로 표시되어 10개 기대 테스트가 실패한 것을 확인한 뒤 구현. PC/390px 구매 회귀·21개 내역 10/10/1 분할·키보드 Enter 이동·잔액 유지·새로고침 첫 페이지 E2E 4개 통과. 데이터 감소 단위 테스트에서 act import 누락을 수정(재시도 1회).
+- 관련 단위 7개 통과(페이지 분할·경계·사용자 변경·내역 감소 보정 포함). 독립 UX 최초 리뷰에서 별도 Chromium 1280px/390px의 10/10/1 분할, 이전/다음 비활성화, Enter·Shift+Tab·포커스 유지, 잔액 유지와 가로 넘침 없음 직접 확인. 필수 문제 없음, 수정 0회. 사용자 변경/감소는 리뷰어 코드 검토와 메인 단위 테스트 범위이며 스크린리더 음성은 미검증. 캡처 `/tmp/coin-review-pagination-390.png`, `/tmp/coin-review-pagination-1280.png`.
+
+- 마지막 코드 변경 후 Node v22.23.3 전체 `npm run verify` 통과: lint·TypeScript·Jest 41 suites/195 tests·도구 3 tests·production build·Playwright 121 tests. Hook 직접 실행 로그 `.bugri-hooks/verify-1.log`, 성공 비활성화 확인. 관련 Prettier·git diff --check 통과. 독립 UX/범위 코드 리뷰 완료. 커밋하며 이번 변경은 push·PR·merge하지 않는다.
+
 ## UX-REVIEW-02 — 사용자 목표 중심 UX 리뷰
 
 - 상태: IN_PROGRESS. 새 브랜치 chore/strengthen-ux-review에서 스킬 문서만 변경한다. 10년 차 UX 디자이너 역할은 유지하고 사용자 페르소나/목적을 별도로 정의한다.
@@ -1016,3 +1037,63 @@
 - 최초 리뷰 후 수정·재검증 최대3회, 문제 없음의 근거 요구, 핵심 상태 미확인 시 검증 미완료 처리를 명시했다. 자동 Hook 또는 모델 변경은 없으며 앱 기능은 수정하지 않는다.
 - 상태: DONE(스킬 문서 개선 범위). 새 컨텍스트 독립 sub-agent로 실제 공개 프로필을 평가했고, 사용자 목표별 관찰·구독 문구/동작 불일치·선택적 개선·미검증 구분을 확인했다. [실행 평가 기록](ux-reviews/UX-REVIEW-02.md)에 근거와 한계를 남겼다. 이 결과는 앱 UX 완료나 성능 향상률 측정이 아니다.
 - 검증: git diff --check 및 js-yaml 기반 frontmatter/이름/설명/scaffold/참조 경로 검사 통과. 번들 quick_validate.py는 PyYAML 누락으로 실행 실패하여 대체 구조 검사를 사용했다. 문서 전용 예외에 따라 앱 verify/Hook은 실행하지 않았다. 이번 작업에서 확인한 앱 개선 제안은 구현하지 않았다.
+
+## dev 로컬 병합 — BugCoin 브랜치
+
+- `origin/dev` 672f375를 `feat/bug-coin`에 병합. TASKS 끝의 추가 기록 충돌은 BugCoin 내역·페이지네이션 기록과 UX-REVIEW-02 기록을 모두 원문 보존하여 해결했다. dev의 스킬/UX 리뷰 문서를 반영하고 앱 코드는 변경하지 않았다.
+- 최초 전체 검증은 E2E 초반 중단되어 성공으로 간주하지 않았다. 재실행한 Node v22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 41 suites/195 tests·도구 3 tests·build·Playwright 121 tests. 로그 `/tmp/bugri-dev-merge-verify-final.log`. 충돌 표시 부재·양쪽 기록 보존·staged diff check 확인. 사용자 요청에 따라 로컬 머지 커밋만 생성하며 push·PR은 하지 않는다.
+
+## P08-COIN-DEMO — 화면용 예시 내역
+
+- 상태: DONE. 사용자 요청에 따라 테스트 내부 fixture만 있던 한계를 수정한다. 기본 100 BugCoin을 25개 날짜별 데모 지급(+4)으로 나눠 실제 `/my`에서 10/10/5 페이지를 표시한다. 보상 정책이나 학습 완료 기록을 꾸며 넣지 않고 `SEED` 사유/데모 지급 문구를 사용한다. 실제 더미 구매는 기존 PURCHASE 원장으로 표시된다.
+- 기존 원장의 원본 seed-balance 항목만 동일 합계로 한 번 변환하고 나머지 원장·구매·보관함·잔액은 보존한다. 해당 seed가 없는 사용자 기록에는 임의 내역을 넣지 않는다. 사용자별 marker와 단일 저장 경계를 사용한다.
+- TDD: 기본 원장 1개가 20개 초과 기대를 만족하지 못하는 실패 확인. 단위·실제 기본 내역 E2E·새 컨텍스트 독립 UX 리뷰·최종 verify 예정.
+- 관련 단위 8개 및 E2E4개 통과. 독립 UX 리뷰는 새 컨텍스트로 기본 내역/페이지 이동/키보드/모바일 구매→차감을 직접 확인했고 필수 문제 없음, 수정0회. [리뷰 기록](ux-reviews/P08-COIN-DEMO.md)에 관점별 근거와 미확인 상태를 기록했다.
+- 첫 전체 verify는 새 테스트의 줄 간격 lint3건으로 실패해 scoped ESLint/Prettier 후 재검증했다(수정·재실행1회). 기능 기대값 변경 없음.
+
+- 최종 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest41 suites/197 tests·도구3 tests·build·Playwright121 tests. 로그 `.bugri-hooks/verify-2.log`. diff check/관련 Prettier 통과. 미리보기 전용 서버3149에서 실제 화면 확인 가능. 커밋하며 push·PR은 하지 않는다.
+
+## P08-COIN-FILTER — 지급·사용 필터
+
+- 상태: DONE. 사용자 요청/REQ09 AC09a. 전체·지급(+)·사용(-) 탭으로 원장 금액 부호를 필터링한 뒤 최신순10개 페이지네이션한다. 필터 변경은 첫 페이지, 사용자 변경은 전체/첫 페이지. 잔액은 전체 잔액 유지. 0금액은 전체에서만 표시. 선택 결과 없음을 안내한다.
+- 기존 공통 Tabs를 재사용하며 API/원장/지급량은 변경하지 않는다. 단위 테스트에서 탭 부재로 실패한 뒤 구현했다. 정상·빈·혼합 부호·페이지/사용자 초기화와 PC/모바일 키보드 E2E, 독립 UX 및 마지막 전체 verify로 검증한다.
+- 관련 단위9개·PC/모바일 E2E6개 통과. 새 컨텍스트 독립 UX 리뷰에서 사용빈→구매→사용-30/잔액70, 지급/전체복귀·페이지 초기화·방향키·모바일 직접 확인. 필수 문제0개, 수정0회. [관점별 리뷰 및 한계](ux-reviews/P08-COIN-FILTER.md).
+
+- Node v22.23.3 최종 `npm run verify` 통과: lint·TypeScript·Jest41 suites/199 tests·도구3 tests·build·Playwright123 tests. 로그 `.bugri-hooks/verify-1.log`, 관련 Prettier/diff check 통과. 커밋하며 push·PR은 하지 않는다.
+
+## P08-COIN-REFINE — 내역 시각 개선·5개 페이지
+
+- 상태: DONE. 사용자가 승인한 UI 문제(카드 중첩·잔액/텍스트 위계·PC너비·탭 강조·여백·페이지 조작)를 개선하고 페이지당5개로 변경한다. `/my`를 max-w-3xl로 제한하고 BugCoin을 먼저 배치, 나머지 미구현 영역은 제목 중심의 compact 형태로 유지한다. 기능/데이터 계약은 유지한다.
+- 기존 Coin/Tabs/Pagination 재사용, 해당 영역에서만 스타일을 적용한다. 잔액 숫자를 확대하고 거래 사유/금액을 강조, 날짜는 짧게 표시하며 시각·시간대는 접근성 이름으로 보존한다. 지급 양수는 primary색과 부호를 함께 사용한다.
+- TDD: 5개 기대 테스트3건 실패 확인 후 구현. 관련 단위·PC/모바일 E2E·독립 UX/실제 화면·마지막 전체 verify로 검증한다.
+- 관련 단위9개·PC/모바일 코인/프로필 E2E8개 통과. 독립 UX R0에서 화면 위계·768px너비·모바일5행·필터/페이지·키보드·구매후70/-30 직접 확인. 필수/일반 문제0개, 수정0회. 모바일 이동기의 소폭 스크롤은 선택적 개선으로 보류(가독성 유지). [리뷰/한계](ux-reviews/P08-COIN-REFINE.md).
+
+- 최종 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest41 suites/199 tests·도구3 tests·build·Playwright123 tests. 로그 `.bugri-hooks/verify-1.log`, 관련 Prettier/diff check 통과. UI리뷰 수정0회, push·PR 없음.
+
+## P08-MY-VERTICAL — 마이페이지 섹션 세로 복구
+
+- 상태: DONE. 사용자 지적에 따라 프로필 편집·풀이 기록·학습 시간대 설정의 임의 PC 가로 배치를 제거하고 모든 너비에서 세로 배치한다. BugCoin의 5개 페이지·필터·시각 개선은 유지한다. 단순 레이아웃 수정으로 TDD 생략, 관련 화면 검증과 전체 verify 수행.
+- 관련 프로필 E2E2개 및 독립 PC1280/390 실제 화면 리뷰 통과(수정0회). [리뷰 근거](ux-reviews/P08-MY-VERTICAL.md).
+- 최초 전체 verify는 E2E122/123 통과, room-theme-bugri PC 배경 새로고침 색상 poll5초 시간초과로 실패했다. 이번 변경은 /my의 grid 클래스 제거뿐이며 /my/desk/Canvas 코드는 동일하다. 코드/기대값 변경 없이 해당 파일4개 재실행은 통과하여 비결정적 실패로 기록하고 전체 재검증1회 수행한다.
+- 추가 사용자 요청: 헤더와 본문 너비가 달라 보이는 문제를 수정한다. /my 내부 max-w-3xl을 제거하여 공통 ProductLayout의 헤더와 동일한1220px/좌우패딩에 맞춘다. 세로 배치·5개 페이지 유지. 요청 도착 전 시작한 verify2는 최종 변경 이후 검증으로 간주하지 않고 최신 코드 전체 검증을 다시 수행한다.
+- verify2는 새 너비 요청을 반영한 최종 검증으로 오인하지 않도록 해당 작업의 프로세스 그룹만 종료했고, 최신 코드로 verify3을 시작했다. 사용자 실행 중인 동일 워크트리 dev서버3000은 유지한다. 별도3153 dev 시작은 Next의 중복서버 감지로 종료되어 독립 화면 확인은 같은 워크트리3000의 격리 브라우저 context로 진행한다.
+
+- 최종 최신 변경 후 Node v22.23.3 전체 verify3 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). `.bugri-hooks/verify-3.log`. 독립 R1에서3154 production PC/모바일 헤더와 본문 양끝 정렬, 세로3항목/코인5개 보존 확인. 기존3000 dev의 로딩 지속은 원인 미확정으로 리뷰 문서에 기록. 최종 증거는production과E2E다. diff check통과, 커밋하며push하지 않는다.
+
+## P08-MY-ACTION — 데스크 이동 보조 버튼
+
+- 상태: DONE. 사용자 승인에 따라 데스크 편집·보유 상품 링크를 마이페이지 제목 오른쪽 보조 버튼으로 배치한다. flex-wrap으로 공간 부족 시 다음 줄에 오른쪽 정렬한다. 링크 semantics·더미 user 쿼리·공통 버튼 스타일 유지. 다른 영역 변경 없음.
+- 단순 배치/스타일 변경으로 TDD 생략. 관련 프로필 이동 E2E, 별도 UX/UI 실제 PC/모바일 리뷰와 전체 verify로 검증한다.
+- 관련 프로필 E2E2개 통과. 별도 새 컨텍스트 UX/UI 리뷰어가1280/390/320 실제 화면·줄바꿈·정렬·포커스·Enter/사용자쿼리 이동을 확인했다. 두 역할 문제0개/수정0회. [역할별 근거와 한계](ux-reviews/P08-MY-ACTION.md).
+
+- 최종 Node v22.23.3 전체 verify 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). 로그 `.bugri-hooks/verify-1.log`. 관련 Prettier/diff check 통과, 커밋하며 push하지 않는다.
+
+## P08-MY-DESK-ENTRY — 데스크 꾸미기 관리 항목
+
+- 상태: DONE. 사용자 승인대로 긴 이름을 ‘데스크 꾸미기’로 줄이고 제목 옆 액션을 제거한다. BugCoin 아래 개인 관리 영역의 세로 링크 항목으로 프로필 편집·풀이 기록·시간대 설정과 묶는다. 다른 기능/원장/5개페이지 유지.
+- 단순 링크 문구·배치 수정으로 TDD 생략. 개인 관리 영역 내 링크/user보존 E2E와 독립 UX/UI 실제 화면, 마지막 전체 verify로 검증한다.
+- 관련 프로필 이동 E2E2개 통과. 별도 UX/UI 새 컨텍스트 리뷰에서 PC/모바일 관리영역 정렬·키보드/클릭 user보존 이동·중복버튼 제거 확인, 필수문제0개/수정0회. [관점별근거/한계](ux-reviews/P08-MY-DESK-ENTRY.md).
+- 사용자 후속 선택 요청에 따라 삭제보다 마이페이지의 데스크 진입 경로를 보존하는 편을 선택해 최종 명칭을 ‘데스크 꾸미기 바로가기’로 변경한다. 다른 화면으로 이동하는 링크임을 명확히 하고 같은 관리영역 위치는 유지한다. 코드/테스트 문구 변경 후 최신 기준 재검증한다.
+- 후속 명칭 변경으로 기존 진행중 verify1은 해당 작업 프로세스만 중단하고 최신 코드로 verify2를 시작했다. R1 UX/UI에서 최종명칭 한 줄·61px행·화살표·개인관리그룹·키보드·author유지 이동을 확인했다. 사용자 명칭 수정1회/리뷰 회귀0개.
+
+- 최종 Node v22.23.3 전체 verify2 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). 로그 `.bugri-hooks/verify-2.log`, 관련 Prettier/diff check 통과. 커밋하며 push하지 않는다.

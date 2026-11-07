@@ -20,7 +20,7 @@ import {
   attempts,
   learningDays,
 } from "@/mocks/learning-history";
-import { initialBugCoin } from "@/mocks/shop-items";
+import { demoCoinHistory } from "@/mocks/coin-history";
 import type { UserState } from "@/services/state";
 import {
   object,
@@ -48,6 +48,7 @@ export function initialState(userId: string): UserState {
   return clone({
     schemaVersion: 1,
     learningDemoVersion: 1,
+    coinHistoryDemoVersion: 1,
     userId,
     quizzes: quizzes
       .filter((q) => q.ownerUserId === userId)
@@ -75,15 +76,7 @@ export function initialState(userId: string): UserState {
     positions: {},
     transforms: {},
     order: [],
-    ledger: [
-      {
-        id: `seed-balance-${userId}`,
-        amount: initialBugCoin,
-        reason: "SEED",
-        reference: userId,
-        createdAt: "2026-01-01T00:00:00.000Z",
-      },
-    ],
+    ledger: demoCoinHistory(userId),
   });
 }
 
@@ -103,6 +96,12 @@ function validateState(
     value.learningDemoVersion === undefined ||
       value.learningDemoVersion === 1,
     "학습 예시 데이터 버전이 호환되지 않습니다.",
+  );
+
+  requireValue(
+    value.coinHistoryDemoVersion === undefined ||
+      value.coinHistoryDemoVersion === 1,
+    "코인 예시 데이터 버전이 호환되지 않습니다.",
   );
 
   for (const key of [
