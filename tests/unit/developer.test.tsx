@@ -147,7 +147,7 @@ test("public profile requires explicit demo selection and a separate subscriptio
   ).not.toBeInTheDocument();
   expect(
     await screen.findByRole("link", {
-      name: "전체 보기 →",
+      name: "전체 보기",
     }),
   ).toHaveAttribute(
     "href",

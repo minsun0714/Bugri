@@ -1,5 +1,7 @@
 "use client";
 
+import { viewAllAction } from "@/components/ui/styles";
+
 import { createQueryClient } from "@/api/query-client";
 
 import {
@@ -271,9 +273,9 @@ function Catalog({
         {profile && (
           <Link
             href={`/developers/${encodeURIComponent(publicId)}/quizzes?user=${encodeURIComponent(userId)}`}
-            className="rounded text-sm font-semibold text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
+            className={viewAllAction}
           >
-            전체 보기 →
+            전체 보기
           </Link>
         )}
         {!profile && hashtagIds.length > 0 && (

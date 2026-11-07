@@ -267,7 +267,7 @@ for (const width of [1280, 390, 320]) {
       }),
     ).toBeVisible();
     await expect(
-      quizzes.getByRole("link", { name: "전체 보기 →" }),
+      quizzes.getByRole("link", { name: "전체 보기" }),
     ).toBeVisible();
     await expect
       .poll(() =>
