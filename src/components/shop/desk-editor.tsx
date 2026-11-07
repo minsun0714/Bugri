@@ -1,109 +1,162 @@
 import type {
   Equipment,
-  DeskPositions,
+  DeskTransforms,
   Request,
 } from "@/api/contracts";
+import { DeskTool } from "@/api/constants";
 import { Button } from "@/components/ui";
-import {
-  artworkNames,
-  DeskScene,
-} from "@/components/shop/artwork";
-import { useDeskDrag } from "@/components/shop/use-desk-drag";
-import { deskBounds } from "@/lib/desk-layout";
+import { artworkNames } from "@/components/shop/artwork";
+import { ThreeView } from "@/components/shop/three-view";
+import { useSpatialEditor } from "@/components/shop/use-spatial-editor";
 
 export function DeskEditor({
   equipment,
-  positions,
+  transforms,
   save,
   disabled,
 }: {
   equipment: Equipment;
-  positions: DeskPositions;
+  transforms: DeskTransforms;
   save: (
-    request: Request<"moveEquipment">,
+    request: Request<"transformEquipment">,
   ) => Promise<unknown>;
   disabled: boolean;
 }) {
-  const drag = useDeskDrag({ positions, save, disabled });
+  const editor = useSpatialEditor({
+    equipment,
+    transforms,
+    save,
+    disabled,
+  });
   return (
     <div>
-      <DeskScene
+      <div
+        className="mb-3 flex flex-wrap gap-2 px-2"
+        aria-label="데스크 도구"
+      >
+        {[
+          [DeskTool.CAMERA, "시점 회전"],
+          [DeskTool.MOVE, "상품 이동"],
+          [DeskTool.ROTATE, "상품 회전"],
+        ].map(([tool, label]) => (
+          <Button
+            key={tool}
+            size="sm"
+            variant={
+              editor.tool === tool ? "primary" : "secondary"
+            }
+            aria-pressed={editor.tool === tool}
+            disabled={editor.blocked}
+            onClick={() => editor.setTool(tool as DeskTool)}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+      <ThreeView
         equipment={equipment}
-        positions={positions}
-        renderItem={(category, productId, children) => {
-          const { x, y } = drag.position(category);
-          const bounds = deskBounds[category];
-          return (
-            <g
-              key={category}
-              data-product-id={productId}
-              role="button"
-              aria-label={`${artworkNames[productId]} 이동`}
-              aria-disabled={drag.blocked}
-              tabIndex={drag.blocked ? -1 : 0}
-              transform={`translate(${x} ${y})`}
-              className="group touch-none cursor-grab select-none focus:outline-none active:cursor-grabbing"
-              onPointerDown={(event) =>
-                drag.start(event, category, productId)
-              }
-              onPointerMove={drag.update}
-              onPointerUp={drag.finish}
-              onPointerCancel={drag.cancelPointer}
-              onLostPointerCapture={drag.cancelPointer}
-              onKeyDown={(event) =>
-                drag.keyDown(event, category, productId)
-              }
-            >
-              {children}
-              <rect
-                x={bounds.x}
-                y={bounds.y}
-                width={bounds.width}
-                height={bounds.height}
-                rx="8"
-                fill="transparent"
-                className="stroke-transparent group-hover:stroke-primary/40 group-focus-visible:stroke-primary"
-                strokeWidth="2"
-              />
-            </g>
-          );
-        }}
+        transforms={editor.effective}
+        selected={editor.selected}
+        tool={editor.tool}
+        disabled={editor.blocked}
+        readOnly={false}
+        onSelect={editor.select}
+        onPreview={editor.preview}
+        onCommit={editor.commit}
+        onCancel={editor.cancel}
       />
-      <p className="px-3 text-center text-xs leading-5 text-muted">
-        장착한 상품을 끌어 놓으세요. 키보드 방향키로 이동 ·
-        Enter 저장 · Esc 취소. 배경은 고정됩니다.
+      <p className="px-3 pt-3 text-xs leading-5 text-muted">
+        시점 회전은 빈 공간을 드래그하세요. 상품을 선택해
+        이동하거나 원형 회전 핸들을 끌어보세요.
       </p>
+      <div className="flex flex-wrap gap-2 p-3">
+        {editor.categories.map((category) => (
+          <Button
+            key={category}
+            size="sm"
+            variant={
+              editor.selected === category
+                ? "primary"
+                : "ghost"
+            }
+            aria-pressed={editor.selected === category}
+            disabled={editor.blocked || editor.error}
+            onClick={() => {
+              editor.select(category);
+              if (editor.tool === DeskTool.CAMERA)
+                editor.setTool(DeskTool.MOVE);
+            }}
+            onKeyDown={editor.keyDown}
+          >
+            {artworkNames[equipment[category]!]} 선택
+          </Button>
+        ))}
+      </div>
+      {editor.selected && editor.current && (
+        <div className="space-y-3 rounded-2xl bg-canvas p-3">
+          <label className="flex items-center gap-3 text-xs">
+            아이템 회전
+            <input
+              aria-label="아이템 회전"
+              type="range"
+              min="0"
+              max="359"
+              step="1"
+              value={editor.current.rotationY}
+              disabled={editor.blocked}
+              className="min-w-0 flex-1 accent-primary"
+              onChange={(event) =>
+                editor.preview(editor.selected!, {
+                  ...editor.current!,
+                  rotationY: Number(event.target.value),
+                })
+              }
+            />
+            <span>{editor.current.rotationY}°</span>
+          </label>
+          <output
+            aria-label="선택 상품 배치"
+            className="block text-xs text-muted"
+          >
+            X {editor.current.x.toFixed(2)} · Y{" "}
+            {editor.current.y.toFixed(2)} · Z{" "}
+            {editor.current.z.toFixed(2)} · 회전{" "}
+            {editor.current.rotationY}°
+          </output>
+          <p className="text-xs text-muted">
+            선택 버튼에서 방향키로 이동/회전 · Enter 저장 ·
+            Esc 취소
+          </p>
+        </div>
+      )}
       <div
         role="status"
-        className="px-3 pt-2 text-center text-xs text-primary"
+        className="p-2 text-center text-xs text-primary"
       >
-        {drag.saving ? "배치 저장 중…" : drag.message}
+        {editor.saving ? "배치 저장 중…" : editor.message}
       </div>
-      {drag.error && (
-        <p
-          role="alert"
-          className="px-3 pt-2 text-sm text-coral"
-        >
-          배치를 저장하지 못했어요. 이동한 위치는
-          유지됩니다. 다시 저장해 주세요.
+      {editor.error && (
+        <p role="alert" className="p-2 text-sm text-coral">
+          3D 배치를 저장하지 못했어요. 변경한 위치와 회전은
+          유지됩니다.
         </p>
       )}
-      {drag.draft && (
-        <div className="flex justify-center gap-2 p-3">
+      {editor.draft && (
+        <div className="flex justify-center gap-2 p-2">
           <Button
             size="sm"
-            disabled={drag.blocked}
-            onClick={() => void drag.commit()}
+            disabled={editor.blocked}
+            onClick={() => void editor.commit()}
           >
-            {drag.error ? "배치 다시 저장" : "배치 저장"}
+            {editor.error ? "배치 다시 저장" : "배치 저장"}
           </Button>
           <Button
-            size="sm"
             variant="ghost"
-            disabled={drag.blocked}
-            onClick={drag.cancel}
+            size="sm"
+            disabled={editor.blocked}
+            onClick={editor.cancel}
           >
-            이동 취소
+            변경 취소
           </Button>
         </div>
       )}

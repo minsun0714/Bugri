@@ -120,4 +120,4 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 - 확정: 1단계 Next.js·TypeScript·Mock API·더미 사용자·Jest·Playwright·Vercel, DB·실제 인증 제외. 2단계 Spring Boot·Java 21·MySQL 8.4·Spring Data JPA·Google OAuth2·JWT·실제 REST API.
 - 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부·시간대 변경 전후 일일 보상 중복 판정 세부 기준, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, BugCoin 지급량, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
 
-데스크 드래그 배치(P08D)는 UI Pointer Events → 타입 moveEquipment API → Mock 서비스 검증 → 사용자별 저장 순서다. 배치 좌표는 Inventory와 공개 프로필에 포함하며 상품 그림의 공통 경계·좌표 제한은 순수 모듈에서 재사용한다. 자세한 계약과 v1 호환 처리는 API.md의 데스크 배치 절을 따른다.
+3D 데스크(P08-3D)는 React 편집 UI → Three.js 렌더러/OrbitControls/TransformControls → 타입 transformEquipment API → Mock 서비스 검증 → 사용자별 저장 순서다. 렌더러는 카메라·모델 표시·입력 좌표 변환을 담당하고, 배치 제약은 순수 `desk-spatial.ts`를 UI와 서비스에서 공유한다. 키보드·모니터·소품은 상판의 자식 좌표이며 책상 이동·회전 시 함께 변환된다. 기존 2D 배치는 읽기 시 호환 변환하고 구매 기록을 유지한다. 상세 계약은 API.md의 3D 데스크 배치 절을 따른다.

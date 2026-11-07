@@ -201,5 +201,6 @@ test("public desk exposes only the user and equipment, never wallet or inventory
       [product.category]: product.productId,
     },
     positions: {},
+    transforms: {},
   });
 });

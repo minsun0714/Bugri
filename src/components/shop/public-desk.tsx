@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Button, Skeleton } from "@/components/ui";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
-import { DeskScene } from "@/components/shop/artwork";
+import { ThreeView } from "@/components/shop/three-view";
+import { DeskTool } from "@/api/constants";
 import { ShopProvider } from "@/components/shop/provider";
 import { usePublicDesk } from "@/components/shop/use-shop";
 import { errorMessage } from "@/components/shop/shop-app";
@@ -21,7 +22,7 @@ function Profile({ publicId }: { publicId: string }) {
         </Button>
       </div>
     );
-  const { user, equipment, positions } = profile.data;
+  const { user, equipment, transforms } = profile.data;
   return (
     <>
       <p className="mb-3 text-xs font-bold tracking-[.2em] text-primary">
@@ -31,9 +32,13 @@ function Profile({ publicId }: { publicId: string }) {
         {user.displayName}의 데스크
       </h1>
       <div className="my-7 rounded-3xl border border-line bg-surface p-3">
-        <DeskScene
+        <ThreeView
+          readOnly
+          disabled={false}
+          selected={null}
+          tool={DeskTool.CAMERA}
           equipment={equipment}
-          positions={positions}
+          transforms={transforms}
           label={`${user.displayName}의 데스크`}
         />
       </div>

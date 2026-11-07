@@ -45,3 +45,21 @@ export const Category = {
 
 export type Category =
   (typeof Category)[keyof typeof Category];
+
+export const DeskTool = {
+  CAMERA: "camera",
+  MOVE: "move",
+  ROTATE: "rotate",
+} as const;
+
+export type DeskTool =
+  (typeof DeskTool)[keyof typeof DeskTool];
+
+export const DeskView = {
+  ANGLED: "angled",
+  FRONT: "front",
+  TOP: "top",
+} as const;
+
+export type DeskView =
+  (typeof DeskView)[keyof typeof DeskView];

@@ -1,4 +1,8 @@
 import {
+  migratePosition,
+  validTransform,
+} from "@/lib/desk-spatial";
+import {
   isMovable,
   validPosition,
 } from "@/lib/desk-layout";
@@ -57,6 +61,7 @@ export function initialState(userId: string): UserState {
     purchases: [],
     equipment: {},
     positions: {},
+    transforms: {},
     ledger: [
       {
         id: `seed-balance-${userId}`,
@@ -119,6 +124,33 @@ function validateState(
         validPosition(category, position) &&
         typeof equipment[category] === "string",
       "배치 정보가 손상되었습니다.",
+    );
+  }
+
+  if (value.transforms === undefined) {
+    value.transforms = Object.fromEntries(
+      Object.entries(value.positions).map(
+        ([category, position]) => [
+          category,
+          migratePosition(
+            category as import("@/lib/desk-layout").MovableCategory,
+            position as import("@/api/contracts").DeskPosition,
+          ),
+        ],
+      ),
+    );
+  }
+
+  object(value.transforms);
+
+  for (const [category, transform] of Object.entries(
+    value.transforms,
+  )) {
+    requireValue(
+      isMovable(category) &&
+        validTransform(category, transform) &&
+        typeof equipment[category] === "string",
+      "3D 배치 정보가 손상되었습니다.",
     );
   }
 

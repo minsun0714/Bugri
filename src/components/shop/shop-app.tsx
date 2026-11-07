@@ -17,7 +17,7 @@ import {
 } from "@/components/ui";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
-import { ProductArtwork } from "@/components/shop/artwork";
+import { ProductPreview } from "@/components/shop/product-preview";
 import { ShopProvider } from "@/components/shop/provider";
 import { useShop } from "@/components/shop/use-shop";
 
@@ -182,7 +182,7 @@ function ShopContent({ userId }: { userId: string }) {
                 inventory.data?.equipment ?? {},
               )}
               equipment={inventory.data?.equipment ?? {}}
-              positions={inventory.data?.positions ?? {}}
+              transforms={inventory.data?.transforms ?? {}}
               save={move.mutateAsync}
               disabled={pending}
             />
@@ -306,7 +306,7 @@ function ShopContent({ userId }: { userId: string }) {
                     <span className="absolute left-5 top-4 text-[10px] font-bold tracking-[.14em] text-muted">
                       {categories[category]}
                     </span>
-                    <ProductArtwork
+                    <ProductPreview
                       productId={productId}
                       name={name}
                     />

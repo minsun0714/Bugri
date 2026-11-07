@@ -2,6 +2,7 @@ import type {
   Answer,
   Equipment,
   DeskPositions,
+  DeskTransforms,
   GenerationBatch,
   LedgerEntry,
   LearningQuery,
@@ -49,4 +50,5 @@ export interface UserState {
   purchases: Purchase[];
   equipment: Equipment;
   positions: DeskPositions;
+  transforms: DeskTransforms;
 }

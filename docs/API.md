@@ -86,7 +86,7 @@ BugCoin 지급량은 미결정이므로 자동 보상 기본값은 0이고 fixtu
 
 ## 상점·저장소
 
-상품은 관리자 입력을 가정한 5개 카테고리·10종의 고정 데이터다. 1단계 시각 자산은 `src/components/shop/artwork.tsx`에 직접 제작한 SVG로 관리하며 상품 ID로 연결한다. 동일한 그림을 카드와 장착 데스크에서 재사용하고 공개 프로필은 장착 ID와 배치 좌표를 전달한다. 가격은 Mock fixture이며 실결제가 아니다. `purchase`에는 productId와 requestKey가 필수다. 같은 키·상품은 최초 구매를 반환하고 같은 키·다른 상품은 IDEMPOTENCY_CONFLICT, 이미 보유한 상품은 ALREADY_OWNED, 잔액 부족은 INSUFFICIENT_BALANCE다. 보관함과 같은 카테고리의 상품만 장착하며 productId null로 해제한다. 공개 프로필은 표시 사용자와 장착 상태만 반환하고 잔액·원장·보관함은 노출하지 않는다.
+상품은 관리자 입력을 가정한 5개 카테고리·10종의 고정 데이터다. 1단계 시각 자산은 `src/components/shop/three/models.ts`의 자체 제작 3D 모델이며 상품 ID로 연결한다. 카드 미리보기와 3D 데스크에서 동일한 모델을 사용한다. 공개 프로필은 장착 ID와 공간 배치를 전달한다. 가격은 Mock fixture이며 실결제가 아니다. `purchase`에는 productId와 requestKey가 필수다. 같은 키·상품은 최초 구매를 반환하고 같은 키·다른 상품은 IDEMPOTENCY_CONFLICT, 이미 보유한 상품은 ALREADY_OWNED, 잔액 부족은 INSUFFICIENT_BALANCE다. 보관함과 같은 카테고리의 상품만 장착하며 productId null로 해제한다. 공개 프로필은 표시 사용자와 장착 상태만 반환하고 잔액·원장·보관함은 노출하지 않는다.
 
 localStorage 키는 `bugri:mock:v1:{userId}`다. 각 사용자의 작성 퀴즈·후보·구독·풀이·날짜·원장·구매·장착·시간대를 한 스냅샷으로 저장한다. 모든 요청은 최신 저장소를 다시 읽어 다른 더미 사용자의 공개 범위·삭제·장착을 반영하고 요청자 자신의 키만 변경한다. 변경된 스냅샷은 단일 setItem으로 저장한 후 성공을 반환한다. 손상/버전 불일치는 STORAGE_CORRUPT, 접근/용량 오류는 STORAGE_UNAVAILABLE이며 기존 데이터를 자동 초기화하지 않는다.
 
@@ -102,10 +102,14 @@ Jest는 계약·생성 검증·리비전·권한 UX·구독/태그/재도전·�
 
 import 별칭, `as const`, 구조 분해 할당, 빈 줄·객체 줄바꿈 및 범위 제한 자동 수정 명령은 [코딩 규칙](CODING_CONVENTIONS.md)을 따른다. API 의미와 직렬화 계약은 이 문서와 `src/api/contracts.ts`를 기준으로 유지한다.
 
-## 데스크 배치 (P08D)
+## 3D 데스크 배치 (P08-3D)
 
-`moveEquipment`는 `PUT /me/desk/position`에 `{ category, productId, position: { x, y } }`를 전달하고 카테고리별 `DeskPositions`를 반환한다. 좌표는 600×380 SVG 기준 기본 위치로부터의 정수 이동량이다. 배경은 고정되며 다른 상품은 그림 경계가 화면 안에 남도록 `src/lib/desk-layout.ts`의 공통 경계로 제한한다. 포인터는 화면 크기를 SVG 좌표로 변환한다.
+`transformEquipment`는 `PUT /me/desk/transform`에 `{ category, productId, transform: { x, y, z, rotationY } }`를 보내고 카테고리별 `DeskTransforms`를 반환한다. Y는 높이, rotationY는 수직축 회전 각도(0~359도)다. 책상 폭은 4, 깊이는 2.4, 상판 높이는 1.55이며 상품 좌표는 책상 로컬 좌표다. 책상 자체는 바닥 Y=0에 놓고 방 안에서 이동/회전한다. 책상을 움직이면 자식 상품이 함께 움직인다.
 
-API는 현재 장착된 구매 상품과 productId 일치를 검사한다(불일치 403 FORBIDDEN). 범위 밖·비정수·비유한 좌표·배경 이동은 400 VALIDATION_ERROR다. 교체·해제 시 해당 카테고리 위치를 지우며 같은 상품의 재장착 요청은 위치를 유지한다. 위치 이동 성공 후 보관함·공개 프로필 캐시를 갱신한다.
+공통 `src/lib/desk-spatial.ts`는 상품의 회전된 외곽 폭·깊이로 상판 경계를 계산한다. UI는 0.001 단위로 위치를 맞추고 API는 비유한·범위 밖·공중/지하 좌표와 잘못된 회전을 거부한다(400 VALIDATION_ERROR). 현재 구매·장착한 productId가 아니면 403 FORBIDDEN이다. 같은 상품의 재장착 요청은 배치를 유지하며 교체·해제는 해당 카테고리의 배치만 제거한다. 아이템 간 충돌/쌓기는 이 작업에서 구현하지 않는다.
 
-Inventory/PublicProfile 응답에 `positions`를 추가한다. 공개 프로필에는 사용자·장착 ID·배치 좌표만 있고 잔액·원장·구매·보관함은 없다. 기존 v1 저장 데이터에 positions가 없으면 빈 좌표로 읽어 기존 구매·장착 데이터를 보존한다. 손상된 좌표는 STORAGE_CORRUPT로 거부한다. 저장 실패 시 이전 저장 위치를 유지하며 UI는 이동 초안을 재시도할 수 있다.
+Inventory/PublicProfile에 `transforms`를 추가했다. 공개 프로필은 사용자·장착 ID·배치만 제공하고 잔액·원장·구매·보관함은 포함하지 않는다. 변경 성공 시 보관함·공개 프로필 캐시를 갱신한다. 저장 실패는 이전 저장 상태를 유지하고 UI는 이동·회전 초안을 유지해 재시도할 수 있다.
+
+기존 v1의 구매·장착과 2D `positions`는 삭제하지 않는다. `transforms`가 없는 스냅샷을 읽을 때 기존 2D x/y 이동량을 1/100 단위로 기본 3D x/z에 더하고 상판 범위에 맞춘다. 회전은 0도, 높이는 상판/바닥으로 설정한다. 변환되지 않는 손상된 저장 데이터는 STORAGE_CORRUPT로 거부하며 초기화하지 않는다. 기존 `moveEquipment`/`PUT /me/desk/position`은 호환 목적으로 유지하고 성공 시 해당 3D 배치도 변환한다. 신규 화면은 transformEquipment만 호출한다.
+
+카메라 시점은 뷰어 상태이고 상품 배치 API에 저장하지 않는다. 공개 데스크도 시점 회전은 가능하며 편집 도구/배치 API는 제공하지 않는다. Three.js의 OrbitControls와 TransformControls를 사용하고, React 컴포넌트가 언마운트되면 WebGL 렌더러·컨트롤·기하·재질 자원을 정리한다. 카드 이미지는 화면에 들어올 때만 같은 3D 모델로 생성한다.

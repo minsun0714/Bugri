@@ -56,8 +56,10 @@ export function useShop(userId: string) {
     retry: false,
   });
   const move = useMutation({
-    mutationFn: async (request: Request<"moveEquipment">) =>
-      (await api()).request("moveEquipment", request),
+    mutationFn: async (
+      request: Request<"transformEquipment">,
+    ) =>
+      (await api()).request("transformEquipment", request),
     onSuccess: refresh,
     retry: false,
   });

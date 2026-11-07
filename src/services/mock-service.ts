@@ -1,4 +1,8 @@
 import {
+  migratePosition,
+  validTransform,
+} from "@/lib/desk-spatial";
+import {
   isMovable,
   validPosition,
 } from "@/lib/desk-layout";
@@ -106,6 +110,11 @@ const allowed: Record<Operation, string[]> = {
   inventory: [],
   equip: ["category", "productId"],
   moveEquipment: ["category", "productId", "position"],
+  transformEquipment: [
+    "category",
+    "productId",
+    "transform",
+  ],
   publicProfile: ["publicId"],
 };
 
@@ -1028,6 +1037,7 @@ export function execute<K extends Operation>(
         ),
         equipment: s.equipment,
         positions: s.positions,
+        transforms: s.transforms,
       };
 
     case "equip": {
@@ -1042,6 +1052,7 @@ export function execute<K extends Operation>(
       if (r.productId === null) {
         delete s.equipment[category];
         delete s.positions[category];
+        delete s.transforms[category];
       } else {
         text(r.productId);
 
@@ -1065,8 +1076,10 @@ export function execute<K extends Operation>(
             403,
           );
 
-        if (s.equipment[category] !== r.productId)
+        if (s.equipment[category] !== r.productId) {
           delete s.positions[category];
+          delete s.transforms[category];
+        }
 
         s.equipment[category] = r.productId;
       }
@@ -1104,7 +1117,44 @@ export function execute<K extends Operation>(
 
       s.positions[category] = r.position;
 
+      s.transforms[category] = migratePosition(
+        category,
+        r.position,
+      );
+
       return s.positions;
+    }
+
+    case "transformEquipment": {
+      requireValue(
+        isMovable(r.category),
+        "이 상품은 배치할 수 없습니다.",
+      );
+
+      const { category } = r;
+
+      text(r.productId);
+
+      requireValue(
+        validTransform(category, r.transform),
+        "상판 위 위치와 회전값을 확인하세요.",
+      );
+
+      if (
+        s.equipment[category] !== r.productId ||
+        !s.purchases.some(
+          (p) => p.productId === r.productId,
+        )
+      )
+        throw new ServiceError(
+          "FORBIDDEN",
+          "현재 장착한 내 상품만 배치할 수 있습니다.",
+          403,
+        );
+
+      s.transforms[category] = r.transform;
+
+      return s.transforms;
     }
 
     case "publicProfile": {
@@ -1126,6 +1176,9 @@ export function execute<K extends Operation>(
         equipment: allStates.find(
           (state) => state.userId === user.userId,
         )!.equipment,
+        transforms: allStates.find(
+          (state) => state.userId === user.userId,
+        )!.transforms,
         positions: allStates.find(
           (state) => state.userId === user.userId,
         )!.positions,

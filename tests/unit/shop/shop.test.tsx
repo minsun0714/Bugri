@@ -1,3 +1,4 @@
+import "./mock-three";
 import {
   fireEvent,
   render,

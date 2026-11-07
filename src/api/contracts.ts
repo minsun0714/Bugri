@@ -176,6 +176,17 @@ export type DeskPositions = Partial<
   Record<Category, DeskPosition>
 >;
 
+export interface DeskTransform {
+  x: number;
+  y: number;
+  z: number;
+  rotationY: number;
+}
+
+export type DeskTransforms = Partial<
+  Record<Category, DeskTransform>
+>;
+
 export interface LedgerEntry {
   id: string;
   amount: number;
@@ -201,12 +212,14 @@ export interface Inventory {
   products: Product[];
   equipment: Equipment;
   positions: DeskPositions;
+  transforms: DeskTransforms;
 }
 
 export interface PublicProfile {
   user: User;
   equipment: Equipment;
   positions: DeskPositions;
+  transforms: DeskTransforms;
 }
 
 export interface VersionRequest {
@@ -357,6 +370,14 @@ export interface ApiOperations {
       position: DeskPosition;
     };
     response: DeskPositions;
+  };
+  transformEquipment: {
+    request: {
+      category: Category;
+      productId: string;
+      transform: DeskTransform;
+    };
+    response: DeskTransforms;
   };
   publicProfile: {
     request: { publicId: string };
