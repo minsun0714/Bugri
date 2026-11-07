@@ -21,33 +21,24 @@ test("purchase, equip, restore, switch users and view a public desk", async ({
   await expect(
     keyboard.getByRole("button", { name: "보유 중" }),
   ).toBeDisabled();
-  await keyboard
-    .getByRole("button", { name: "장착해 보기" })
-    .click();
-  await page
-    .getByRole("dialog")
-    .getByRole("button", {
-      name: "내 데스크에 장착",
-      exact: true,
-    })
-    .click();
   await expect(
-    page
-      .getByRole("dialog")
-      .getByText("장착과 배치를 저장했어요.", {
-        exact: true,
-      }),
-  ).toBeVisible();
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "닫기", exact: true })
-    .click();
+    keyboard.getByRole("button", { name: "장착해 보기" }),
+  ).toHaveCount(0);
   await page
     .getByRole("link", {
       name: "내 데스크 꾸미기",
       exact: true,
     })
     .click();
+  await page
+    .getByRole("button", { name: "장착하기", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: "장착 해제",
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(
     page.getByRole("group", {
       name: "내 데스크 · 새싹 키보드",

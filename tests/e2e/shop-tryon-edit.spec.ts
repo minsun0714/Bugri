@@ -19,6 +19,27 @@ for (const width of [1100, 390]) {
         exact: true,
       }),
     });
+    await expect(card).toBeVisible();
+    const originalCard = (await card.boundingBox())!;
+    const buyButton = (await card
+      .getByRole("button", {
+        name: "구매하기",
+        exact: true,
+      })
+      .boundingBox())!;
+    const trialButton = (await card
+      .getByRole("button", { name: "장착해 보기" })
+      .boundingBox())!;
+    const coin = (await card
+      .getByText("BugCoin", { exact: true })
+      .boundingBox())!;
+    expect(
+      Math.abs(trialButton.y - buyButton.y),
+    ).toBeLessThanOrEqual(1);
+    expect(trialButton.x + trialButton.width).toBeLessThan(
+      buyButton.x,
+    );
+    expect(coin.y + coin.height).toBeLessThan(buyButton.y);
     await card
       .getByRole("button", { name: "장착해 보기" })
       .click();
@@ -63,6 +84,12 @@ for (const width of [1100, 390]) {
       }),
     ).toBeVisible();
     await page.keyboard.press("Escape");
+    await expect(
+      page.getByRole("link", {
+        name: "내 데스크 꾸미기",
+        exact: true,
+      }),
+    ).toBeFocused();
     await page.goto("/my");
     await page
       .getByRole("button", { name: "새싹 키보드 선택" })
@@ -78,13 +105,49 @@ for (const width of [1100, 390]) {
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(placed!);
     await page.goto("/shop");
-    await card
+    await expect(
+      card.getByRole("button", { name: "보유 중" }),
+    ).toBeDisabled();
+    await expect(
+      card.getByRole("button", { name: "장착해 보기" }),
+    ).toHaveCount(0);
+    const ownedCard = (await card.boundingBox())!;
+    const ownedButton = (await card
+      .getByRole("button", { name: "보유 중" })
+      .boundingBox())!;
+    const ownedCoin = (await card
+      .getByText("BugCoin", { exact: true })
+      .boundingBox())!;
+    expect(
+      Math.abs(
+        ownedButton.y -
+          ownedCard.y -
+          (buyButton.y - originalCard.y),
+      ),
+    ).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(
+        ownedCoin.y -
+          ownedCard.y -
+          (coin.y - originalCard.y),
+      ),
+    ).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(ownedCard.height - originalCard.height),
+    ).toBeLessThanOrEqual(1);
+    const unownedCard = page.getByRole("article").filter({
+      has: page.getByRole("heading", {
+        name: "라벤더 키보드",
+        exact: true,
+      }),
+    });
+    await unownedCard
       .getByRole("button", { name: "장착해 보기" })
       .click();
     await dialog
-      .getByRole("button", { name: "새싹 키보드 선택" })
+      .getByRole("button", { name: "라벤더 키보드 선택" })
       .click();
-    await rotateTo(dialog, "새싹 키보드", 180);
+    await rotateTo(dialog, "라벤더 키보드", 180);
     await page.keyboard.press("Escape");
     await page.goto("/my");
     await page

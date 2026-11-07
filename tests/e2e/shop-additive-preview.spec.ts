@@ -38,22 +38,21 @@ for (const width of [1100, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/shop");
     const card = (name: string) =>
-      page
-        .getByRole("article")
-        .filter({
-          has: page.getByRole("heading", {
-            name,
-            exact: true,
-          }),
-        });
+      page.getByRole("article").filter({
+        has: page.getByRole("heading", {
+          name,
+          exact: true,
+        }),
+      });
     await card("새싹 키보드")
+      .getByRole("button", { name: "장착해 보기" })
+      .click();
+    await page
+      .getByRole("dialog")
       .getByRole("button", {
         name: "구매하기",
         exact: true,
       })
-      .click();
-    await card("새싹 키보드")
-      .getByRole("button", { name: "장착해 보기" })
       .click();
     const dialog = page.getByRole("dialog");
     await dialog

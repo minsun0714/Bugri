@@ -15,6 +15,11 @@ it("purchases once, updates balance, equips and unequips an owned product", asyn
     name: "새싹 키보드",
   });
   const card = title.closest("article")!;
+  expect(
+    within(card).getByRole("button", {
+      name: "장착해 보기",
+    }),
+  ).toBeInTheDocument();
   fireEvent.click(
     within(card).getByRole("button", { name: "구매하기" }),
   );
@@ -29,6 +34,11 @@ it("purchases once, updates balance, equips and unequips an owned product", asyn
   expect(
     within(card).getByRole("button", { name: "보유 중" }),
   ).toBeDisabled();
+  expect(
+    within(card).queryByRole("button", {
+      name: "장착해 보기",
+    }),
+  ).not.toBeInTheDocument();
   shop.unmount();
   render(<ShopApp editing />);
   fireEvent.click(

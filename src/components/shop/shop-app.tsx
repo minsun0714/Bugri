@@ -53,6 +53,7 @@ function ShopContent({
   const trialTrigger = useRef<HTMLButtonElement | null>(
     null,
   );
+  const deskLink = useRef<HTMLAnchorElement | null>(null);
   const [trial, setTrial] = useState<Product | null>(null);
   const [message, setMessage] = useState("");
   const [actionError, setActionError] =
@@ -141,6 +142,7 @@ function ShopContent({
         </div>
         {!editing && (
           <Link
+            ref={deskLink}
             href={`/my?user=${userId}`}
             className="text-sm font-bold text-primary underline underline-offset-4"
           >
@@ -307,43 +309,53 @@ function ShopContent({
                     <p className="mt-2 min-h-10 text-xs leading-5 text-muted">
                       {description}
                     </p>
-                    {!editing && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="mt-4 w-full"
-                        onClick={(event) => {
-                          trialTrigger.current =
-                            event.currentTarget;
-                          setTrial(product);
-                          setActionError(null);
-                          setMessage("");
-                        }}
-                      >
-                        장착해 보기
-                      </Button>
-                    )}
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <div
+                      className={
+                        editing
+                          ? "mt-4 flex flex-wrap items-center justify-between gap-3"
+                          : "mt-4 flex flex-col items-stretch gap-3"
+                      }
+                    >
                       <Coin amount={price} />
                       {!editing ? (
-                        <Button
-                          size="sm"
-                          variant={
-                            owned.has(productId)
-                              ? "secondary"
-                              : "primary"
-                          }
-                          disabled={
-                            pending || owned.has(productId)
-                          }
-                          onClick={() =>
-                            void buy(productId)
-                          }
-                        >
-                          {owned.has(productId)
-                            ? "보유 중"
-                            : "구매하기"}
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          {!owned.has(productId) && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="w-full"
+                              onClick={(event) => {
+                                trialTrigger.current =
+                                  event.currentTarget;
+                                setTrial(product);
+                                setActionError(null);
+                                setMessage("");
+                              }}
+                            >
+                              장착해 보기
+                            </Button>
+                          )}
+                          <Button
+                            className="col-start-2 w-full"
+                            size="sm"
+                            variant={
+                              owned.has(productId)
+                                ? "secondary"
+                                : "primary"
+                            }
+                            disabled={
+                              pending ||
+                              owned.has(productId)
+                            }
+                            onClick={() =>
+                              void buy(productId)
+                            }
+                          >
+                            {owned.has(productId)
+                              ? "보유 중"
+                              : "구매하기"}
+                          </Button>
+                        </div>
                       ) : (
                         <Button
                           size="sm"
@@ -379,9 +391,11 @@ function ShopContent({
           size="room"
           onClose={() => {
             setTrial(null);
-            requestAnimationFrame(() =>
-              trialTrigger.current?.focus(),
-            );
+            requestAnimationFrame(() => {
+              if (trialTrigger.current?.isConnected)
+                trialTrigger.current.focus();
+              else deskLink.current?.focus();
+            });
           }}
           title={`${trial.name} 장착해 보기`}
         >
