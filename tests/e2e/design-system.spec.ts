@@ -11,6 +11,20 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
     }),
   ).toBeVisible();
   await expect(page.getByRole("banner")).toBeVisible();
+  const nonPointerControls = await page
+    .locator(
+      "a[href], button:not(:disabled), select:not(:disabled), summary, input[type='checkbox']:not(:disabled), input[type='radio']:not(:disabled), label:has(input[type='checkbox']:not(:disabled)), label:has(input[type='radio']:not(:disabled))",
+    )
+    .evaluateAll((elements) =>
+      elements
+        .filter((element) => element.getClientRects().length > 0)
+        .filter(
+          (element) => getComputedStyle(element).cursor !== "pointer",
+        )
+        .map((element) => element.outerHTML.slice(0, 120)),
+    );
+
+  expect(nonPointerControls).toEqual([]);
   await page
     .getByRole("navigation", { name: "컴포넌트 섹션" })
     .getByRole("link", { name: "03 입력과 폼" })
