@@ -7,9 +7,16 @@ test("private management leads to a public profile without personal data", async
   await page.goto("/my?user=author");
   await expect(
     page.getByRole("link", {
-      name: "데스크 편집·보유 상품",
+      name: "데스크 꾸미기 바로가기",
     }),
   ).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "개인 관리" })
+      .getByRole("link", {
+        name: "데스크 꾸미기 바로가기",
+      }),
+  ).toHaveAttribute("href", "/my/desk?user=author");
   await expect(page.getByRole("banner")).toBeVisible();
   await expect(
     page.getByLabel("내 데스크 편집"),
@@ -33,7 +40,7 @@ test("private management leads to a public profile without personal data", async
     }),
   ).toBeVisible();
   await page
-    .getByRole("link", { name: "데스크 편집·보유 상품" })
+    .getByRole("link", { name: "데스크 꾸미기 바로가기" })
     .click();
   await expect(page).toHaveURL(/\/my\/desk\?user=author$/);
   await expect(

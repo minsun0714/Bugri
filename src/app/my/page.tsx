@@ -1,4 +1,3 @@
-import { styles } from "@/components/ui/styles";
 import { ProductLayout } from "@/components/navigation/product-layout";
 import { Suspense } from "react";
 import Link from "next/link";
@@ -17,20 +16,17 @@ async function Content({ searchParams }: Props) {
       : "learner";
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <h1 className="text-3xl font-semibold">
-          마이페이지
-        </h1>
-        <Link
-          href={withDemoUser("/my/desk", initialUser)}
-          className={`${styles["ui-button"]} secondary md ml-auto no-underline`}
-        >
-          데스크 편집·보유 상품
-        </Link>
-      </div>
+      <h1 className="text-3xl font-semibold">마이페이지</h1>
       <div className="mt-6">
         <CoinHistory userId={initialUser} />
-        <div className="mt-8">
+        <section aria-label="개인 관리" className="mt-8">
+          <Link
+            href={withDemoUser("/my/desk", initialUser)}
+            className="flex items-center justify-between gap-4 border-t border-line py-5 text-sm font-semibold text-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            데스크 꾸미기 바로가기
+            <span aria-hidden="true">→</span>
+          </Link>
           <FeatureSectionShell
             compact
             id="profile"
@@ -46,7 +42,7 @@ async function Content({ searchParams }: Props) {
             id="learning-timezone"
             title="학습 시간대 설정"
           />
-        </div>
+        </section>
       </div>
     </>
   );
