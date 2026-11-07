@@ -72,6 +72,10 @@ function Profile({ publicId }: { publicId: string }) {
           id="public-profile"
           title="프로필"
         />
+        <FeatureSectionShell
+          id="learning-activity"
+          title="학습 활동"
+        />
         <section
           aria-labelledby="public-quizzes-heading"
           className="rounded-3xl border border-line bg-surface p-6 sm:p-8"

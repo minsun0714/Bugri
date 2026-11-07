@@ -81,7 +81,7 @@ test("private management leads to a public profile without personal data", async
   for (const name of [
     "보유 상품",
     "프로필 편집",
-    "학습 기록",
+    "풀이 기록",
     "BugCoin 내역",
     "학습 시간대 설정",
   ]) {

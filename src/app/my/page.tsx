@@ -44,7 +44,7 @@ export default function Page(props: Props) {
         />
         <FeatureSectionShell
           id="learning-history"
-          title="학습 기록"
+          title="풀이 기록"
         />
         <FeatureSectionShell
           id="bugcoin-history"

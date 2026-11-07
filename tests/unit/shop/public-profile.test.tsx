@@ -52,7 +52,7 @@ test("public profile links to public quizzes without exposing personal managemen
     "내 잔액",
     "내 데스크 편집",
     "보유 상품",
-    "학습 기록",
+    "풀이 기록",
     "BugCoin 내역",
     "학습 시간대 설정",
   ]) {
