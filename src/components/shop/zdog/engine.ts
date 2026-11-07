@@ -52,6 +52,8 @@ export function createDeskEngine(
   let previewAnchor: Zdog.Anchor | null = null;
   let rotationHandle: Zdog.Anchor | null = null;
   let framingHeight = 300;
+  let framingRadius = 3.7;
+  let framingKey = "";
   let framingCenter = { x: 0, z: 0 };
   const anchors = new Map<SpatialTarget, Zdog.Anchor>();
   let equipmentKey = "";
@@ -257,7 +259,16 @@ export function createDeskEngine(
     }
     const { width, height } = host.getBoundingClientRect();
     illustration.setSize(width || 600, height || 420);
-    if (!drag || drag.tool === DeskTool.CAMERA) {
+    const nextFramingKey = JSON.stringify([
+      state.equipment.DESK ?? "default",
+      state.equipment.KEYBOARD,
+      state.equipment.MONITOR,
+      state.equipment.ACCESSORY,
+      state.preview?.productId,
+    ]);
+    // Placement edits must not change the user's framing after a drop or save.
+    // Fit a new composition once; resizing, orbit and wheel use that same extent.
+    if (nextFramingKey !== framingKey) {
       const desk =
         state.transforms.DESK ?? defaultTransforms.DESK;
       let radius = 3.7;
@@ -343,6 +354,11 @@ export function createDeskEngine(
           );
         }
       }
+      framingRadius = radius;
+      framingKey = nextFramingKey;
+    }
+    if (!drag || drag.tool === DeskTool.CAMERA) {
+      const radius = framingRadius;
       const spanX = Math.max(850, radius * 200 + 80);
       const spanY = Math.max(
         570,
