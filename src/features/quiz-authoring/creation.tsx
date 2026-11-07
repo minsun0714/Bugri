@@ -10,6 +10,9 @@ import { Generation } from "@/features/quiz-authoring/generation";
 import { RequestError } from "@/features/quiz-authoring/feedback";
 import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
 
+const closeWarning =
+  "모달을 닫으면 임시저장하거나 공개하지 않은 퀴즈는 사라집니다. 계속할까요?";
+
 export function Creation({
   api: client,
   userId,
@@ -33,6 +36,20 @@ export function Creation({
   const [error, setError] = useState<unknown>(null);
   const [editing, setEditing] = useState(false);
   const locked = useRef(false);
+
+  function closeModal() {
+    const hasUnhandledCandidates = batch?.candidates.some(
+      ({ savedQuizId }) => !savedQuizId,
+    );
+
+    if (
+      hasUnhandledCandidates &&
+      !window.confirm(closeWarning)
+    )
+      return;
+
+    setOpen(false);
+  }
 
   async function generate() {
     if (locked.current) return;
@@ -103,7 +120,7 @@ export function Creation({
       {!open && <RequestError error={error} />}
       <Modal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={closeModal}
         title="버그리와 퀴즈 다듬기"
         layout="conversation"
       >

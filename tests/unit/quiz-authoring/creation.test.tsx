@@ -76,9 +76,18 @@ test("outside input generates an editable candidate in the same modal", async ()
   expect(screen.getByRole("article")).toHaveTextContent(
     "수정한 문제",
   );
+  const confirm = jest
+    .spyOn(window, "confirm")
+    .mockReturnValue(true);
+
   fireEvent.click(
     screen.getByRole("button", { name: "닫기" }),
   );
+  expect(confirm).toHaveBeenCalledWith(
+    "모달을 닫으면 임시저장하거나 공개하지 않은 퀴즈는 사라집니다. 계속할까요?",
+  );
+  confirm.mockRestore();
+
   expect(
     screen.queryByRole("button", { name: "작업 이어가기" }),
   ).not.toBeInTheDocument();
@@ -90,6 +99,69 @@ test("outside input generates an editable candidate in the same modal", async ()
   expect(screen.getByRole("article")).not.toHaveTextContent(
     "수정한 문제",
   );
+});
+test("warns before closing with unhandled candidates and keeps the modal when cancelled", async () => {
+  setup();
+  const confirm = jest
+    .spyOn(window, "confirm")
+    .mockReturnValue(false);
+
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "닫기 경고" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "퀴즈 만들기" }),
+  );
+  await screen.findByRole("button", { name: "직접 수정" });
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "닫기" }),
+  );
+
+  expect(confirm).toHaveBeenCalledWith(
+    "모달을 닫으면 임시저장하거나 공개하지 않은 퀴즈는 사라집니다. 계속할까요?",
+  );
+  expect(screen.getByRole("dialog")).toBeVisible();
+
+  confirm.mockRestore();
+});
+test("closes without a warning after every candidate is handled", async () => {
+  setup();
+  const confirm = jest.spyOn(window, "confirm");
+
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "모두 저장" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "퀴즈 만들기" }),
+  );
+  await screen.findByRole("button", { name: "임시저장" });
+
+  for (let index = 1; index <= 4; index += 1) {
+    if (index > 1)
+      fireEvent.click(
+        screen.getByRole("tab", {
+          name: `퀴즈 ${index}`,
+        }),
+      );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "임시저장" }),
+    );
+    await screen.findByRole("tab", {
+      name: `퀴즈 ${index} · 임시저장됨`,
+    });
+  }
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "닫기" }),
+  );
+
+  expect(confirm).not.toHaveBeenCalled();
+  expect(
+    screen.queryByRole("dialog"),
+  ).not.toBeInTheDocument();
+  confirm.mockRestore();
 });
 test("failed generation keeps outside input and offers retry inside the modal", async () => {
   setup(true);

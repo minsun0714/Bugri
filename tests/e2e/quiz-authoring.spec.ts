@@ -113,6 +113,7 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   await expect(
     candidates.getByRole("article"),
   ).toContainText("직접 다듬은 퀴즈");
+  page.once("dialog", (dialog) => dialog.accept());
   await page
     .getByRole("button", { name: "닫기", exact: true })
     .click();
@@ -607,6 +608,10 @@ test("new generation discards previous pending requests on mobile", async ({
   await page
     .getByLabel("퀴즈 1에 추가 요청")
     .fill("더 어렵게");
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
+  page.once("dialog", (dialog) => dialog.accept());
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
   await page

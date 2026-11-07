@@ -471,9 +471,9 @@ export function Modal({
           : styles["ui-modal"]
       }
       aria-labelledby={id}
-      onCancel={onClose}
-      onClose={({ currentTarget }) => {
-        if (!currentTarget.open) onClose();
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
       }}
     >
       <div className={styles["modal-header"]}>
