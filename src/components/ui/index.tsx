@@ -441,7 +441,9 @@ export function Modal({
       }
       aria-labelledby={id}
       onCancel={onClose}
-      onClose={onClose}
+      onClose={({ currentTarget }) => {
+        if (!currentTarget.open) onClose();
+      }}
     >
       <div className={styles["modal-header"]}>
         <h2 id={id}>{title}</h2>
