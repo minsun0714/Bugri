@@ -603,7 +603,9 @@ export function Pagination({
   page,
   total,
   onChange,
+  compact = false,
 }: {
+  compact?: boolean;
   page: number;
   total: number;
   onChange: (page: number) => void;
@@ -621,17 +623,28 @@ export function Pagination({
       >
         ←
       </Button>
-      {Array.from({ length: total }, (_, i) => (
-        <button
-          type="button"
-          key={i}
-          aria-label={`${i + 1}페이지`}
-          aria-current={page === i + 1 ? "page" : undefined}
-          onClick={() => onChange(i + 1)}
+      {compact ? (
+        <span
+          role="status"
+          className="px-2 text-sm tabular-nums"
         >
-          {i + 1}
-        </button>
-      ))}
+          {page} / {total} 페이지
+        </span>
+      ) : (
+        Array.from({ length: total }, (_, i) => (
+          <button
+            type="button"
+            key={i}
+            aria-label={`${i + 1}페이지`}
+            aria-current={
+              page === i + 1 ? "page" : undefined
+            }
+            onClick={() => onChange(i + 1)}
+          >
+            {i + 1}
+          </button>
+        ))
+      )}
       <Button
         variant="ghost"
         disabled={page === total}

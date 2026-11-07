@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import type { LedgerEntry } from "@/api/contracts";
 import { useWallet } from "@/components/coins/queries";
 import { ShopProvider } from "@/components/shop/provider";
 import { errorMessage } from "@/components/shop/errors";
-import { Button, Coin } from "@/components/ui";
+import { Button, Coin, Pagination } from "@/components/ui";
 
 const reasons: Record<LedgerEntry["reason"], string> = {
   SEED: "데모 시작 지급",
@@ -17,6 +18,10 @@ export function CoinHistoryContent({
 }: {
   userId: string;
 }) {
+  const [selection, setSelection] = useState({
+    userId,
+    page: 1,
+  });
   const { data, error, isPending, isFetching, refetch } =
     useWallet(userId);
   const entries = data
@@ -26,6 +31,25 @@ export function CoinHistoryContent({
           b.createdAt.localeCompare(a.createdAt),
         )
     : [];
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(entries.length / 10),
+  );
+  const page = Math.min(
+    selection.userId === userId ? selection.page : 1,
+    totalPages,
+  );
+  if (
+    selection.userId !== userId ||
+    selection.page !== page
+  ) {
+    setSelection({ userId, page });
+  }
+  const visibleEntries = entries.slice(
+    (page - 1) * 10,
+    page * 10,
+  );
 
   return (
     <section
@@ -74,7 +98,7 @@ export function CoinHistoryContent({
               aria-label="지급·사용 내역"
               className="divide-y divide-line"
             >
-              {entries.map(
+              {visibleEntries.map(
                 ({ id, amount, reason, createdAt }) => (
                   <li
                     key={id}
@@ -112,6 +136,18 @@ export function CoinHistoryContent({
                 ),
               )}
             </ul>
+          )}
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-end">
+              <Pagination
+                compact
+                page={page}
+                total={totalPages}
+                onChange={(nextPage) =>
+                  setSelection({ userId, page: nextPage })
+                }
+              />
+            </div>
           )}
         </>
       )}
