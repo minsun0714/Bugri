@@ -1029,3 +1029,16 @@
 - 관련 단위 7개 통과(페이지 분할·경계·사용자 변경·내역 감소 보정 포함). 독립 UX 최초 리뷰에서 별도 Chromium 1280px/390px의 10/10/1 분할, 이전/다음 비활성화, Enter·Shift+Tab·포커스 유지, 잔액 유지와 가로 넘침 없음 직접 확인. 필수 문제 없음, 수정 0회. 사용자 변경/감소는 리뷰어 코드 검토와 메인 단위 테스트 범위이며 스크린리더 음성은 미검증. 캡처 `/tmp/coin-review-pagination-390.png`, `/tmp/coin-review-pagination-1280.png`.
 
 - 마지막 코드 변경 후 Node v22.23.3 전체 `npm run verify` 통과: lint·TypeScript·Jest 41 suites/195 tests·도구 3 tests·production build·Playwright 121 tests. Hook 직접 실행 로그 `.bugri-hooks/verify-1.log`, 성공 비활성화 확인. 관련 Prettier·git diff --check 통과. 독립 UX/범위 코드 리뷰 완료. 커밋하며 이번 변경은 push·PR·merge하지 않는다.
+
+## UX-REVIEW-02 — 사용자 목표 중심 UX 리뷰
+
+- 상태: IN_PROGRESS. 새 브랜치 chore/strengthen-ux-review에서 스킬 문서만 변경한다. 10년 차 UX 디자이너 역할은 유지하고 사용자 페르소나/목적을 별도로 정의한다.
+- 새 작업은 새 컨텍스트 리뷰어에게 목표·화면·확정 제약부터 제공하고, 같은 작업의 재검증은 동일 리뷰어를 사용한다. 관점별 평가·문제 목록·메인의 처리 이유·회차별 재검증을 docs/ux-reviews/<TASK_ID>.md에 기록하도록 연결한다.
+- 최초 리뷰 후 수정·재검증 최대3회, 문제 없음의 근거 요구, 핵심 상태 미확인 시 검증 미완료 처리를 명시했다. 자동 Hook 또는 모델 변경은 없으며 앱 기능은 수정하지 않는다.
+- 상태: DONE(스킬 문서 개선 범위). 새 컨텍스트 독립 sub-agent로 실제 공개 프로필을 평가했고, 사용자 목표별 관찰·구독 문구/동작 불일치·선택적 개선·미검증 구분을 확인했다. [실행 평가 기록](ux-reviews/UX-REVIEW-02.md)에 근거와 한계를 남겼다. 이 결과는 앱 UX 완료나 성능 향상률 측정이 아니다.
+- 검증: git diff --check 및 js-yaml 기반 frontmatter/이름/설명/scaffold/참조 경로 검사 통과. 번들 quick_validate.py는 PyYAML 누락으로 실행 실패하여 대체 구조 검사를 사용했다. 문서 전용 예외에 따라 앱 verify/Hook은 실행하지 않았다. 이번 작업에서 확인한 앱 개선 제안은 구현하지 않았다.
+
+## dev 로컬 병합 — BugCoin 브랜치
+
+- `origin/dev` 672f375를 `feat/bug-coin`에 병합. TASKS 끝의 추가 기록 충돌은 BugCoin 내역·페이지네이션 기록과 UX-REVIEW-02 기록을 모두 원문 보존하여 해결했다. dev의 스킬/UX 리뷰 문서를 반영하고 앱 코드는 변경하지 않았다.
+- 최초 전체 검증은 E2E 초반 중단되어 성공으로 간주하지 않았다. 재실행한 Node v22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 41 suites/195 tests·도구 3 tests·build·Playwright 121 tests. 로그 `/tmp/bugri-dev-merge-verify-final.log`. 충돌 표시 부재·양쪽 기록 보존·staged diff check 확인. 사용자 요청에 따라 로컬 머지 커밋만 생성하며 push·PR은 하지 않는다.
