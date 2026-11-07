@@ -40,18 +40,24 @@ for (const width of [1100, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
-    for (const path of ["/my/desk", "/users/bugri-learner"]) {
+    for (const path of [
+      "/my/desk",
+      "/users/bugri-learner",
+    ]) {
       await page.goto(path);
-      await page
-        .getByRole("button", { name: "정면", exact: true })
-        .click();
+      if (path === "/my/desk") {
+        await page
+          .getByRole("button", {
+            name: "정면",
+            exact: true,
+          })
+          .click();
+      }
       const canvas = page.locator(
         '[data-renderer="canvas"] canvas',
       );
-      const start = await visibleCenter(
-        canvas,
-        [197, 237, 102],
-      );
+      await expect(canvas).toBeVisible();
+      await canvas.scrollIntoViewIfNeeded();
       const box = (await canvas.boundingBox())!;
       const drag = async (dx: number) => {
         await page.mouse.move(box.x + 100, box.y + 10);
@@ -63,6 +69,14 @@ for (const width of [1100, 390]) {
         );
         await page.mouse.up();
       };
+      if (path.startsWith("/users/")) await drag(90);
+      await expect(
+        page.getByLabel("카메라 방위각"),
+      ).toHaveText("0°");
+      const start = await visibleCenter(
+        canvas,
+        [197, 237, 102],
+      );
       await drag(-40);
       expect(
         (await visibleCenter(canvas, [197, 237, 102])).x,

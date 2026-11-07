@@ -626,6 +626,7 @@ export function execute<K extends Operation>(
           reviewed: true,
         },
         pending: null,
+        publishedAt: timestamp,
         updatedAt: timestamp,
         deletedAt: null,
       };
@@ -883,6 +884,12 @@ export function execute<K extends Operation>(
           ? q.status
           : visibility();
 
+      if (
+        next === QuizStatus.PUBLIC &&
+        q.status !== QuizStatus.PUBLIC
+      )
+        q.publishedAt = timestamp;
+
       q.active = q.pending;
       q.pending = null;
       q.status = next;
@@ -901,7 +908,15 @@ export function execute<K extends Operation>(
         "승인된 퀴즈만 공개 범위를 변경할 수 있습니다.",
       );
 
-      q.status = visibility();
+      const next = visibility();
+
+      if (
+        next === QuizStatus.PUBLIC &&
+        q.status !== QuizStatus.PUBLIC
+      )
+        q.publishedAt = timestamp;
+
+      q.status = next;
       touch(q);
 
       return quizReview(q);

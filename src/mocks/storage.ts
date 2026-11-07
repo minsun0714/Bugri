@@ -304,6 +304,9 @@ function validateState(
         q.version > 0 &&
         Object.values(QuizStatus).includes(q.status) &&
         typeof q.updatedAt === "string" &&
+        (q.publishedAt === undefined ||
+          (typeof q.publishedAt === "string" &&
+            Number.isFinite(Date.parse(q.publishedAt)))) &&
         (q.deletedAt === null ||
           typeof q.deletedAt === "string"),
       "퀴즈가 손상되었습니다.",

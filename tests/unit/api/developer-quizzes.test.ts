@@ -175,3 +175,103 @@ test("large author catalogs are paged before returning quiz metadata", async () 
     }),
   ).rejects.toMatchObject({ status: 404 });
 });
+
+test("latest public quizzes sort before slicing four items, independent of edits", async () => {
+  const state = initialState("author");
+
+  const {
+    quizzes: [base],
+  } = state;
+
+  state.quizzes = Array.from({ length: 6 }, (_, index) => ({
+    ...base,
+    quizId: `recent-${index}`,
+    publishedAt: `2026-01-0${index + 1}T00:00:00.000Z`,
+    updatedAt:
+      index === 0
+        ? "2027-01-01T00:00:00.000Z"
+        : base.updatedAt,
+  }));
+
+  localStorage.setItem(
+    storageKey("author"),
+    JSON.stringify(state),
+  );
+
+  const result = await api().request("developerQuizzes", {
+    ...query,
+    pageSize: 4,
+  });
+
+  expect(result.total).toBe(6);
+
+  expect(result.items.map(({ quizId }) => quizId)).toEqual([
+    "recent-5",
+    "recent-4",
+    "recent-3",
+    "recent-2",
+  ]);
+});
+
+test("public content approval keeps publication time; private-to-public sets a new time", async () => {
+  const state = initialState("author");
+
+  const {
+    quizzes: [quiz],
+  } = state;
+
+  quiz.publishedAt = "2026-01-01T00:00:00.000Z";
+
+  quiz.pending = {
+    ...quiz.active!,
+    revisionId: "edited",
+    reviewed: true,
+  };
+
+  localStorage.setItem(
+    storageKey("author"),
+    JSON.stringify(state),
+  );
+
+  const owner = createApiClient(
+    createMockTransport({
+      userId: "author",
+      storage: localStorage,
+      now: () => new Date("2026-11-07T00:00:00.000Z"),
+    }),
+  );
+
+  const approved = await owner.request("approve", {
+    quizId: quiz.quizId,
+    expectedVersion: quiz.version,
+    visibility: QuizStatus.PUBLIC,
+  });
+
+  const stored = () =>
+    JSON.parse(
+      localStorage.getItem(storageKey("author"))!,
+    ).quizzes.find(
+      (item: { quizId: string }) =>
+        item.quizId === quiz.quizId,
+    );
+
+  expect(stored().publishedAt).toBe(
+    "2026-01-01T00:00:00.000Z",
+  );
+
+  const hidden = await owner.request("visibility", {
+    quizId: quiz.quizId,
+    expectedVersion: approved.version,
+    visibility: QuizStatus.PRIVATE,
+  });
+
+  await owner.request("visibility", {
+    quizId: quiz.quizId,
+    expectedVersion: hidden.version,
+    visibility: QuizStatus.PUBLIC,
+  });
+
+  expect(stored().publishedAt).toBe(
+    "2026-11-07T00:00:00.000Z",
+  );
+});

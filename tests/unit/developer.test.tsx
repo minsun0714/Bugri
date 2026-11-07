@@ -74,7 +74,7 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
   );
 });
 
-test("public profile filters without subscribing and requires login before subscription", async () => {
+test("public profile previews quizzes without filters and requires login before subscription", async () => {
   const api = await createBrowserApi({
     mode: "mock",
     userId: "friend",
@@ -90,17 +90,14 @@ test("public profile filters without subscribing and requires login before subsc
       name: "타입 개발자",
     }),
   ).toBeVisible();
-  fireEvent.click(
-    await screen.findByRole("button", {
-      name: "TypeScript (1)",
-    }),
-  );
-  expect(push).toHaveBeenCalledWith(
-    "/users/bugri-author?user=friend&page=1&tagPage=1&tag=typescript",
-    { scroll: false },
-  );
-  expect(await api.request("subscriptions", {})).toEqual(
-    before,
+  expect(
+    screen.queryByRole("searchbox"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "전체 보기 →" }),
+  ).toHaveAttribute(
+    "href",
+    "/developers/bugri-author/quizzes?user=friend",
   );
   fireEvent.click(
     screen.getByRole("button", {

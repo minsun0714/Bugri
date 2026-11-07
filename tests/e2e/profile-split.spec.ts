@@ -1,3 +1,4 @@
+import { initialState } from "@/mocks/storage";
 import { test, expect } from "@playwright/test";
 
 test("private management leads to a public profile without personal data", async ({
@@ -60,12 +61,6 @@ test("private management leads to a public profile without personal data", async
   await expect(
     page.getByRole("navigation", { name: "현재 위치" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("link", {
-      name: "데스크 편집",
-      exact: true,
-    }),
-  ).toHaveAttribute("href", "/my/desk?user=author");
   // Next.js retains the previous route hidden during client navigation.
   await expect(page.getByLabel("내 잔액")).toBeHidden();
   await page.reload();
@@ -114,9 +109,8 @@ test("private management leads to a public profile without personal data", async
   const activity = page.getByRole("heading", {
     name: "학습 활동",
   });
-  const desk = page.getByRole("heading", {
-    name: "데스크",
-    exact: true,
+  const desk = page.getByRole("region", {
+    name: "공개 데스크",
   });
   await expect(
     quizzes.getByRole("link").first(),
@@ -125,9 +119,90 @@ test("private management leads to a public profile without personal data", async
   const activityBox = await activity.boundingBox();
   const deskBox = await desk.boundingBox();
   expect(quizBox!.y).toBeLessThan(activityBox!.y);
-  expect(activityBox!.y).toBeLessThan(deskBox!.y);
-  await quizzes.getByRole("link").first().click();
+  expect(deskBox!.y).toBeLessThan(quizBox!.y);
+  await expect(page.getByRole("searchbox")).toHaveCount(0);
+  for (const name of ["45도 시점", "정면", "위에서"]) {
+    await expect(
+      page.getByRole("button", { name, exact: true }),
+    ).toHaveCount(0);
+  }
+  await expect(
+    page.getByRole("button", {
+      name: "크게 보기",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", {
+      name: "데스크 편집",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", {
+      name: "데스크",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await quizzes
+    .getByRole("list")
+    .getByRole("link")
+    .first()
+    .click();
   await expect(page).toHaveURL(
     /\/solve\?user=author&attempt=/,
   );
+});
+
+test("profile previews latest four and links to the full catalog", async ({
+  page,
+}) => {
+  const state = initialState("author");
+  const [base] = state.quizzes;
+  state.quizzes = Array.from({ length: 6 }, (_, index) => ({
+    ...base,
+    quizId: `preview-${index}`,
+    publishedAt: `2026-01-0${index + 1}T00:00:00.000Z`,
+    active: {
+      ...base.active!,
+      title: `최신 퀴즈 ${index}`,
+    },
+  }));
+  await page.addInitScript(
+    (value) =>
+      localStorage.setItem(
+        "bugri:mock:v1:author",
+        JSON.stringify(value),
+      ),
+    state,
+  );
+  await page.goto(
+    "/users/bugri-author?user=friend&page=99&tag=missing",
+  );
+  const quizzes = page.getByRole("region", {
+    name: "개발자의 공개 퀴즈",
+  });
+  await expect(quizzes.getByRole("listitem")).toHaveCount(
+    4,
+  );
+  await expect(
+    quizzes.getByRole("list").getByRole("link"),
+  ).toHaveText([
+    "최신 퀴즈 5",
+    "최신 퀴즈 4",
+    "최신 퀴즈 3",
+    "최신 퀴즈 2",
+  ]);
+  await quizzes
+    .getByRole("link", { name: "전체 보기 →" })
+    .click();
+  await expect(page).toHaveURL(
+    /\/developers\/bugri-author\/quizzes\?user=friend$/,
+  );
+  await expect(page.getByRole("searchbox")).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "개발자의 공개 퀴즈" })
+      .getByRole("listitem"),
+  ).toHaveCount(6);
 });
