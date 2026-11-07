@@ -306,24 +306,7 @@ function Catalog({
           aria-label="개발자의 태그"
           className="min-w-0 rounded-2xl border border-line bg-surface p-3 sm:p-4"
         >
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg">태그</h2>
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-pressed={!hashtagId}
-              disabled={busy}
-              onClick={() =>
-                onChange({
-                  ...filters,
-                  hashtagId: null,
-                  page: 1,
-                })
-              }
-            >
-              전체 퀴즈
-            </Button>
-          </div>
+          <h2 className="mb-2 text-lg">태그</h2>
           <TagSearch
             key={tagQuery}
             value={tagQuery}
@@ -443,12 +426,30 @@ function Catalog({
           aria-label="개발자의 공개 퀴즈"
           className="min-w-0"
         >
-          <h2 className="mb-4 text-lg">
-            공개 퀴즈{" "}
-            <span className="text-muted">
-              {data.total}개
-            </span>
-          </h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg">
+              공개 퀴즈{" "}
+              <span className="text-muted">
+                {data.total}개
+              </span>
+            </h2>
+            {hashtagId && (
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={busy}
+                onClick={() =>
+                  onChange({
+                    ...filters,
+                    hashtagId: null,
+                    page: 1,
+                  })
+                }
+              >
+                전체 퀴즈
+              </Button>
+            )}
+          </div>
           {data.items.length ? (
             <ul className="space-y-4">
               {data.items.map(

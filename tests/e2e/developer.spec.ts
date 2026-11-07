@@ -110,6 +110,12 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   expect(new Set(itemBounds.map(({ y }) => y)).size).toBe(
     1,
   );
+  await expect(
+    page.getByRole("button", {
+      name: "전체 퀴즈",
+      exact: true,
+    }),
+  ).toHaveCount(0);
   await expect(quizzes.getByRole("link")).toHaveCount(2);
   const typeScriptTag = tags.getByRole("button", {
     name: "TypeScript (1)",
@@ -142,6 +148,18 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     "aria-pressed",
     "true",
   );
+  await expect(
+    tags.getByRole("button", {
+      name: "전체 퀴즈",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    quizzes.getByRole("button", {
+      name: "전체 퀴즈",
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(typeScriptTag.locator("..")).toHaveClass(
     /ring-primary\/50/,
   );
@@ -163,6 +181,21 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   await expect(
     quizzes.getByRole("link", { name: "타입 선언" }),
   ).toBeVisible();
+  await quizzes
+    .getByRole("button", {
+      name: "전체 퀴즈",
+      exact: true,
+    })
+    .click();
+  await expect(quizzes.getByRole("link")).toHaveCount(2);
+  await expect(
+    quizzes.getByRole("button", {
+      name: "전체 퀴즈",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await typeScriptTag.click();
+  await expect(quizzes.getByRole("link")).toHaveCount(1);
   const url = page.url();
   const subscriptionMenuTrigger = tags.getByRole("button", {
     name: "TypeScript 구독 메뉴",
@@ -229,11 +262,9 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     })
     .click();
   await expect(
-    page
-      .getByRole("status")
-      .filter({
-        hasText: "TypeScript 태그를 구독했습니다.",
-      }),
+    page.getByRole("status").filter({
+      hasText: "TypeScript 태그를 구독했습니다.",
+    }),
   ).toBeVisible();
   await expect(
     tags.getByRole("button", {
