@@ -1,7 +1,11 @@
 import { tabletopDrop } from "@/lib/desk-surface";
 import { normalizeOrder } from "@/lib/desk-order";
 import { paintLayers } from "@/components/shop/zdog/layers";
-import { lightRoomObjects } from "@/components/shop/zdog/room";
+import { roomTheme } from "@/components/shop/room-theme";
+import {
+  room,
+  lightRoomObjects,
+} from "@/components/shop/zdog/room";
 import * as Zdog from "zdog";
 import { bugri } from "@/components/shop/zdog/bugri";
 import {
@@ -44,7 +48,17 @@ export function createDeskEngine(
   const illustration = new Zdog.Illustration({
     element: canvas,
   });
+  const backdrop = new Zdog.Rect({
+    addTo: illustration,
+    width: 1,
+    height: 1,
+    translate: { z: -10000000 },
+    fill: true,
+    stroke: false,
+    visible: false,
+  });
   const scene = new Zdog.Anchor({ addTo: illustration });
+  let fitRoom: ReturnType<typeof room> | null = null;
   const picker = createPicker();
   const owners = new Map<Zdog.Anchor, SceneTarget | null>();
   let content: Zdog.Anchor | null = null;
@@ -89,8 +103,15 @@ export function createDeskEngine(
     owners.clear();
     previewAnchor = null;
     const { equipment } = state;
-    if (equipment.BACKGROUND)
-      model(content, equipment.BACKGROUND);
+    fitRoom = equipment.BACKGROUND
+      ? room(
+          new Zdog.Group({
+            addTo: content,
+            updateSort: false,
+          }),
+          equipment.BACKGROUND,
+        )
+      : null;
     // Keep the room behind the furnishings at every camera angle.
     const furnishings = new Zdog.Group({
       addTo: content,
@@ -387,6 +408,23 @@ export function createDeskEngine(
     );
     illustration.translate.y =
       (framingHeight / 2) * Math.cos(radians(pitch)) * zoom;
+    backdrop.visible = Boolean(state.equipment.BACKGROUND);
+    if (backdrop.visible) {
+      backdrop.color = roomTheme(
+        state.equipment.BACKGROUND,
+      ).floor;
+      backdrop.width = (width || 600) / zoom + 4;
+      backdrop.height = (height || 420) / zoom + 4;
+      backdrop.translate.y = -illustration.translate.y;
+      backdrop.updatePath();
+      fitRoom?.(
+        Math.hypot(width || 600, height || 420) / zoom +
+          Math.hypot(framingCenter.x, framingCenter.z) *
+            100 +
+          framingHeight +
+          1800,
+      );
+    }
     anchors.forEach((anchor, category) => {
       const value =
         state.transforms[category] ??

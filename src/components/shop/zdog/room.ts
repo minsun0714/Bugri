@@ -10,7 +10,7 @@ export function room(
 ) {
   const theme = roomTheme(productId);
   const night = productId === "background-2";
-  new Zdog.Rect({
+  const floor = new Zdog.Rect({
     addTo: parent,
     width: 1800,
     height: 1800,
@@ -21,27 +21,30 @@ export function room(
     color: theme.floor,
     backface: false,
   });
-  new Zdog.Rect({
-    addTo: parent,
-    width: 1800,
-    height: 700,
-    translate: { y: -350, z: -420 },
-    fill: true,
-    stroke: false,
-    color: theme.wall,
-    backface: false,
-  });
-  new Zdog.Rect({
-    addTo: parent,
-    width: 1400,
-    height: 700,
-    rotate: { y: Math.PI / 2 },
-    translate: { x: -900, y: -350 },
-    fill: true,
-    stroke: false,
-    color: theme.side,
-    backface: false,
-  });
+  const walls = [
+    { x: 0, z: -420, angle: 0, color: theme.wall },
+    {
+      x: -900,
+      z: 0,
+      angle: -Math.PI / 2,
+      color: theme.side,
+    },
+    { x: 0, z: 900, angle: Math.PI, color: theme.wall },
+    { x: 900, z: 0, angle: Math.PI / 2, color: theme.side },
+  ].map(
+    ({ x, z, angle, color }) =>
+      new Zdog.Rect({
+        addTo: parent,
+        width: 1800,
+        height: 700,
+        rotate: { y: angle },
+        translate: { x, y: -350, z },
+        fill: true,
+        stroke: false,
+        color,
+        backface: false,
+      }),
+  );
   new Zdog.RoundedRect({
     addTo: parent,
     width: 650,
@@ -151,6 +154,19 @@ export function room(
     color: theme.glow,
     backface: false,
   });
+  let extent = 0;
+  return (required: number) => {
+    const next = Math.max(1800, Math.ceil(required));
+    if (next === extent) return;
+    extent = next;
+    floor.width = floor.height = extent * 2;
+    floor.updatePath();
+    for (const wall of walls) {
+      wall.width = wall.height = extent * 2;
+      wall.translate.y = 2 - extent;
+      wall.updatePath();
+    }
+  };
 }
 
 export function lightRoomObjects(
