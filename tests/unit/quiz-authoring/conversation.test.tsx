@@ -20,7 +20,15 @@ jest.mock("rehype-highlight", () => ({
   default: () => {},
 }));
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute("open");
+  };
+});
 
 async function setup() {
   const api = createApiClient(
@@ -136,4 +144,32 @@ test("reply and generation failures keep input and conversation and do not navig
   expect(screen.getByRole("textbox")).toHaveValue("미전송");
   expect(screen.getByText("HTTP 설명해줘")).toBeVisible();
   expect(onGenerated).not.toHaveBeenCalled();
+});
+
+test("closing and reopening the conversation preserves the unsent draft", async () => {
+  await setup();
+  expect(
+    screen.getByRole("dialog", {
+      name: "버그리와 퀴즈 만들기",
+    }),
+  ).toBeVisible();
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "아직 보내지 않은 질문" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "닫기",
+    }),
+  );
+  expect(
+    screen.queryByRole("dialog"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "버그리와 대화하기",
+    }),
+  );
+  expect(screen.getByRole("textbox")).toHaveValue(
+    "아직 보내지 않은 질문",
+  );
 });

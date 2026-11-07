@@ -36,6 +36,8 @@ export const styles = {
     "tab-panel pt-5.5 px-0 pb-0 text-[13px] text-muted",
   "ui-modal":
     "ui-modal m-auto border border-line rounded-[22px] p-6.25 [width:min(440px,_calc(100%_-_32px))] bg-surface text-foreground [box-shadow:0_8px_0_#503a8533] [&::backdrop]:bg-[#18291e66] [&::backdrop]:[backdrop-filter:blur(3px)] [&_p]:text-[14px] [&_p]:text-muted [&_p]:leading-[1.8] [&_p]:mb-6.25",
+  "conversation-modal":
+    "m-auto h-dvh max-h-dvh w-full max-w-none overflow-hidden border border-line bg-surface p-4 text-foreground open:flex open:flex-col sm:h-[min(850px,90dvh)] sm:w-[min(840px,calc(100%-48px))] sm:rounded-3xl sm:p-6 [&::backdrop]:bg-foreground/40 [&::backdrop]:backdrop-blur-sm",
   "modal-header":
     "modal-header flex items-center justify-between mb-3.75 [&_h2]:text-[20px]",
   "ui-toast":

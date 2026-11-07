@@ -37,7 +37,10 @@ export function Tooltip({
     }
 
     function escape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+      }
     }
 
     document.addEventListener("pointerdown", dismiss);

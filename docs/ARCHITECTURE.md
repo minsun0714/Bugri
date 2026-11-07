@@ -27,7 +27,7 @@ UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID�
 
 ### 퀴즈 작성 화면
 
-`/quizzes/authoring`은 학습 대화와 명시적 생성 버튼을 제공한다. 생성 성공 시 `/quizzes/authoring/results?batch={id}` 상세로 이동해 후보별 추가 요청·저장을 수행하고, `/quizzes/authoring/manage`는 목록·검토·승인·공개 범위·삭제를 담당한다. 더미 사용자 식별은 Mock 조립 경계에 유지하고 생성 화면에는 전환 UI를 두지 않는다. 생성 전후의 후보·추가 요청 기록은 타입 API로 저장·복원하며 명시적 저장 전에는 내 퀴즈 목록에 포함하지 않는다.
+`/quizzes/authoring`은 공통 Modal의 conversation 레이아웃 안에서 학습 대화와 명시적 생성 버튼을 제공한다. 모달 표시 상태와 대화 상태를 분리해 닫기·재열기 시 입력을 유지한다. 생성 성공 시 `/quizzes/authoring/results?batch={id}` 상세로 이동해 후보별 추가 요청·저장을 수행하고, `/quizzes/authoring/manage`는 목록·검토·승인·공개 범위·삭제를 담당한다. 더미 사용자 식별은 Mock 조립 경계에 유지하고 생성 화면에는 전환 UI를 두지 않는다. 생성 전후의 후보·추가 요청 기록은 타입 API로 저장·복원하며 명시적 저장 전에는 내 퀴즈 목록에 포함하지 않는다.
 
 ### UI 스타일링
 

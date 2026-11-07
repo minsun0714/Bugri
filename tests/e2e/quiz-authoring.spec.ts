@@ -338,7 +338,7 @@ test("supplementary help opens on hover, focus and mobile tap", async ({
   );
   await page
     .getByRole("heading", {
-      name: "퀴즈 만들기",
+      name: "버그리와 퀴즈 만들기",
       exact: true,
     })
     .click();
@@ -378,4 +378,43 @@ test("management dropdown retains keyboard and mobile dismissal", async ({
     })
     .click();
   await expect(page.getByRole("listbox")).toHaveCount(0);
+});
+
+test("conversation modal retains drafts on Escape and fills the mobile viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/quizzes/authoring");
+  const dialog = page.getByRole("dialog", {
+    name: "버그리와 퀴즈 만들기",
+  });
+  await expect(dialog).toBeVisible();
+  await page
+    .getByRole("textbox", { name: /학습 내용/ })
+    .fill("남겨둔 질문");
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await page
+    .getByRole("button", { name: "버그리와 대화하기" })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: /학습 내용/ }),
+  ).toHaveValue("남겨둔 질문");
+  const bounds = await dialog.boundingBox();
+  expect(bounds?.width).toBe(390);
+  expect(bounds?.height).toBe(844);
+  await expect(
+    dialog.getByRole("button", {
+      name: "이 대화로 퀴즈 만들기",
+    }),
+  ).toBeInViewport();
+  await page
+    .getByRole("button", { name: "보내기", exact: true })
+    .click();
+  await expect(
+    page.getByRole("list", { name: "대화 기록" }),
+  ).toContainText("남겨둔 질문");
+  await expect(
+    dialog.getByRole("textbox"),
+  ).toBeInViewport();
 });

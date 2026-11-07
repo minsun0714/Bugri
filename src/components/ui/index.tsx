@@ -411,7 +411,9 @@ export function Modal({
   onClose,
   title,
   children,
+  layout = "default",
 }: {
+  layout?: "default" | "conversation";
   open: boolean;
   onClose: () => void;
   title: string;
@@ -425,12 +427,18 @@ export function Modal({
 
     if (open) dialog?.showModal();
     else dialog?.close();
+
+    return () => dialog?.close();
   }, [open]);
 
   return (
     <dialog
       ref={ref}
-      className={styles["ui-modal"]}
+      className={
+        layout === "conversation"
+          ? styles["conversation-modal"]
+          : styles["ui-modal"]
+      }
       aria-labelledby={id}
       onCancel={onClose}
       onClose={onClose}
