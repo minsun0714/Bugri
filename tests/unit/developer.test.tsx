@@ -56,6 +56,16 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
       name: "TypeScript (1)",
     }),
   );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", {
+        name: "TypeScript 구독 메뉴",
+      }),
+    ).toBeEnabled(),
+  );
+  expect(
+    screen.getByText("TypeScript 태그를 구독했습니다."),
+  ).toBeVisible();
   expect(push).toHaveBeenCalledWith(
     "/developers/bugri-author/quizzes?user=friend&page=1&tagPage=1&tag=typescript",
     { scroll: false },

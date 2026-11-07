@@ -209,6 +209,23 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
       exact: true,
     }),
   ).toHaveCount(0);
+  await tags
+    .getByRole("button", {
+      name: "TypeScript (1)",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "TypeScript 태그를 구독했습니다." }),
+  ).toBeVisible();
+  await expect(
+    tags.getByRole("button", {
+      name: "TypeScript 구독 메뉴",
+      exact: true,
+    }),
+  ).toBeEnabled();
   await tags.getByRole("searchbox").fill("web");
   await tags.getByRole("searchbox").press("Enter");
   await expect(
@@ -235,7 +252,13 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
         localStorage.getItem("bugri:mock:v1:friend")!,
       ).subscriptions,
   );
-  expect(subscriptions).toEqual([]);
+  expect(subscriptions).toEqual([
+    expect.objectContaining({
+      type: "PERSON_HASHTAG",
+      authorUserId: "author",
+      hashtagId: "typescript",
+    }),
+  ]);
   await quizzes
     .getByRole("link", { name: "타입 선언" })
     .click();

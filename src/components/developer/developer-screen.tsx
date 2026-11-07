@@ -353,13 +353,32 @@ function Catalog({
                         disabled={busy}
                         aria-pressed={hashtagId === id}
                         className="min-w-0 break-all text-left font-medium text-primary"
-                        onClick={() =>
+                        onClick={() => {
+                          if (!subscribed) {
+                            void subscribe
+                              .mutateAsync({
+                                target: {
+                                  type: "PERSON_HASHTAG",
+                                  authorUserId:
+                                    data.user.userId,
+                                  hashtagId: id,
+                                },
+                                subscribed: false,
+                              })
+                              .then(() =>
+                                onNotice(
+                                  `${name} 태그를 구독했습니다.`,
+                                ),
+                              )
+                              .catch(() => undefined);
+                          }
+
                           onChange({
                             ...filters,
                             hashtagId: id,
                             page: 1,
-                          })
-                        }
+                          });
+                        }}
                       >
                         {name}{" "}
                         <span className="text-muted">
