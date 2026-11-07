@@ -1,3 +1,4 @@
+import { sceneKeyDown } from "@/components/shop/scene-keyboard";
 import {
   deskItems,
   normalizeOrder,
@@ -157,29 +158,16 @@ export function useProductTrial({
     })),
   ];
   function keyDown(event: KeyboardEvent) {
-    if (editor.blocked) return;
-    if (
-      ["Home", "PageDown", "PageUp"].includes(event.key)
-    ) {
-      event.preventDefault();
-      const index = targets.findIndex(
-        (target) =>
-          target.category === editor.selected &&
-          target.preview === previewSelected,
-      );
-      const next =
-        event.key === "Home"
-          ? 0
-          : (index +
-              (event.key === "PageUp" ? -1 : 1) +
-              targets.length) %
-            targets.length;
-      const target = targets[next];
-      if (target) select(target.category, target.preview);
-      return;
-    }
-    editor.keyDown(event);
+    sceneKeyDown(event, {
+      blocked: editor.blocked,
+      selected: editor.selected,
+      previewSelected,
+      targets,
+      select,
+      keyDown: editor.keyDown,
+    });
   }
+
   function reset() {
     if (
       pending ||

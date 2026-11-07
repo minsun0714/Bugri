@@ -1,3 +1,4 @@
+import { selectSceneProduct } from "./helpers/desk";
 import { expect, test } from "@playwright/test";
 import { productPoint, rotationOf } from "./helpers/desk";
 
@@ -122,9 +123,7 @@ for (const width of [1100, 390]) {
     ).toBeVisible();
     await page.keyboard.press("Escape");
     await page.goto("/my/desk");
-    await page
-      .getByRole("button", { name: "새싹 키보드 선택" })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(placed!);
@@ -145,9 +144,7 @@ for (const width of [1100, 390]) {
     await expect(
       page.getByLabel("선택 테두리"),
     ).toHaveCount(0);
-    await page
-      .getByRole("button", { name: "새싹 키보드 선택" })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(placed!);

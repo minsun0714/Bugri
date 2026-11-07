@@ -156,9 +156,10 @@ test("purchase, equip, restore, switch users and view a public desk", async ({
   await expect(
     page.getByText("아직 보관한 상품이 없어요"),
   ).toBeVisible();
-  await page
-    .getByRole("link", { name: "학습자의 데스크 ↗" })
-    .click();
+  await expect(
+    page.getByRole("heading", { name: "이웃의 데스크" }),
+  ).toHaveCount(0);
+  await page.goto("/users/bugri-learner?user=friend");
   await expect(
     page.getByRole("group", {
       name: "학습자의 데스크 · 새싹 키보드",

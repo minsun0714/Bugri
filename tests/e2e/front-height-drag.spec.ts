@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 for (const width of [1100, 390]) {
@@ -59,9 +59,9 @@ for (const width of [1100, 390]) {
             dialog.getByLabel("카메라 높낮이 각도"),
           ).toHaveText("0°");
         }
-        await selectTrialProduct(dialog, name);
+        await selectSceneProduct(dialog, name);
         if (name === "버그리") {
-          const surface = await selectTrialProduct(
+          const surface = await selectSceneProduct(
             dialog,
             name,
           );
@@ -110,7 +110,7 @@ for (const width of [1100, 390]) {
           steps: 10,
         });
         await page.mouse.up();
-        await selectTrialProduct(dialog, name);
+        await selectSceneProduct(dialog, name);
         await expect(placement).toHaveText(floor);
       });
     }

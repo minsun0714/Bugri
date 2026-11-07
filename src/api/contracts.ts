@@ -565,6 +565,13 @@ export interface ApiOperations {
     request: { order: DeskOrder };
     response: DeskOrder;
   };
+  transformDesk: {
+    request: {
+      productId: string | null;
+      transform: DeskTransform;
+    };
+    response: DeskTransforms;
+  };
   transformBugri: {
     request: { transform: DeskTransform };
     response: DeskTransforms;

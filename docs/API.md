@@ -237,3 +237,10 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - 모든 작성자의 활성 PUBLIC 퀴즈 중 태그에 해당하는 항목을 최근 공개 시각 내림차순·동률 quizId 오름차순으로 정렬한다. PRIVATE/PENDING/삭제/비활성은 제외한다. 정답·해설·문제 본문·원문은 반환하지 않는다.
 - `subscribed`는 현재 더미 사용자의 직접 HASHTAG 구독이다. 방문자 UI는 이 값을 개인 상태로 표시하지 않는다. 목록 조회는 구독을 변경하지 않는다. 기존 subscribe/unsubscribe 성공 시 `tagQuizzes` 사용자별 캐시도 무효화한다.
 - 화면 `/tags/[hashtagId]/quizzes`는 탐색의 query/discoveryPage/subscribed 조건을 보존해 돌아간다. 목록 page와 탐색 discoveryPage는 분리한다. URL user가 없으면 링크·검색으로 임의 사용자를 추가하지 않는다.
+
+
+### 내 데스크 독립 책상 이동
+
+- `transformDesk`: `PUT /me/desk/table`, 요청 `{ productId: string | null, transform: DeskTransform }`, 응답 `DeskTransforms`. 기본 책상은 `productId: null`, 장착 책상은 현재 상품 ID다. 현재 장착 상태와 다르면 403, 바닥 높이/유한 좌표/회전 범위가 잘못되면 400이다. 다른 사용자 ID는 받지 않는다.
+- 책상 위치·회전과 다른 장착 아이템/버그리의 새 책상 기준 상대 좌표를 같은 상태 쓰기로 저장한다. 다른 아이템의 실제 위치·높이·방향은 유지한다. 기존 책상 상대 저장 좌표 형식과 공개 응답을 유지하며, 기본 책상도 DESK transform을 보존할 수 있다. 구매/장착 권한을 부여하는 요청은 아니다.
+- 저장 실패(503)는 전체 상태를 보존한다. UI는 초안을 유지하고 재시도·취소를 표시한다. Mock 사용자별 localStorage에 한 번 쓰는 범위이며 실제 서버 트랜잭션 보장은 2단계다. 기존 `transformEquipment`는 장착 상품 검증과 장착 미리보기 적용용 계약을 유지한다.

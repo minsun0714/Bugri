@@ -73,6 +73,7 @@ function ShopContent({
     equip,
     move,
     moveBugri,
+    moveDesk,
     reorder,
   } = useShop(userId);
   const currentUser = users.data?.find(
@@ -241,14 +242,11 @@ function ShopContent({
             transforms={inventory.data?.transforms ?? {}}
             save={move.mutateAsync}
             saveBugri={moveBugri.mutateAsync}
+            saveDesk={moveDesk.mutateAsync}
             order={inventory.data?.order ?? []}
             saveOrder={reorder.mutateAsync}
             disabled={pending || loading || Boolean(error)}
           />
-          <p className="pb-3 text-center text-xs text-muted">
-            보관함에서 상품을 장착하고 원하는 위치로
-            옮겨보세요.
-          </p>
         </section>
       )}
       <section id="collection" aria-label="상품 컬렉션">
@@ -529,35 +527,6 @@ function ShopContent({
           ) : null}
         </Modal>
       )}
-      {editing && (
-        <section
-          id="neighbors"
-          className="mt-12 rounded-3xl border border-line bg-surface p-6"
-        >
-          <h2 className="text-lg">이웃의 데스크</h2>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {users.data
-              ?.filter((user) => user.userId !== userId)
-              .map((user) => (
-                <Link
-                  key={user.publicId}
-                  href={`/users/${user.publicId}`}
-                  className="rounded-xl bg-canvas px-5 py-3 text-sm text-primary hover:bg-primary/10"
-                >
-                  {user.displayName}의 데스크 ↗
-                </Link>
-              ))}
-            {users.error && (
-              <Button
-                variant="ghost"
-                onClick={() => void users.refetch()}
-              >
-                이웃 다시 불러오기
-              </Button>
-            )}
-          </div>
-        </section>
-      )}
     </>
   );
 }
@@ -591,12 +560,6 @@ export function ShopApp({
                 ][])
               : []),
             ["collection", "컬렉션"],
-            ...(editing
-              ? ([["neighbors", "이웃"]] as [
-                  string,
-                  string,
-                ][])
-              : []),
           ]}
         />
       )}

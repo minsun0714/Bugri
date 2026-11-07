@@ -1,3 +1,5 @@
+import { selectSceneProduct } from "./helpers/desk";
+import { orbitTo } from "./helpers/desk";
 import { rotateTo, productPoint } from "./helpers/desk";
 import {
   expect,
@@ -72,12 +74,7 @@ for (const width of [1100, 390]) {
       .getByRole("button", { name: "닫기", exact: true })
       .click();
     await page.goto("/my/desk");
-    await page
-      .getByRole("button", {
-        name: "새싹 키보드 선택",
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     const canvas = page
       .getByRole("main")
       .locator('[data-renderer="canvas"] canvas');
@@ -124,35 +121,28 @@ for (const width of [1100, 390]) {
     await page.mouse.up();
     await expect(
       page.getByText("3D 배치를 저장했어요."),
-    ).toBeVisible();
+    ).toHaveCount(1);
     await page.reload();
     await expect
       .poll(() => keyboardPixels(canvas))
       .toBeGreaterThan(50);
     for (const name of ["정면", "위에서", "45도 시점"]) {
-      await page
-        .getByRole("button", { name, exact: true })
-        .click();
+      await orbitTo(page, name);
       await expect
         .poll(() => keyboardPixels(canvas))
         .toBeGreaterThan(50);
     }
-    await page
-      .getByRole("button", {
-        name: "새싹 키보드 선택",
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     await rotateTo(page, "새싹 키보드", 90);
     await page
-      .getByRole("button", {
-        name: "배치 저장",
+      .getByRole("img", {
+        name: "3D 데스크 캔버스",
         exact: true,
       })
-      .click();
+      .press("Enter");
     await expect(
       page.getByText("3D 배치를 저장했어요."),
-    ).toBeVisible();
+    ).toHaveCount(1);
     await canvas.scrollIntoViewIfNeeded();
     const orbitBox = await canvas.boundingBox();
     if (!orbitBox) throw new Error("Canvas not visible");
