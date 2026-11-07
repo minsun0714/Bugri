@@ -29,6 +29,7 @@ import {
   TextField,
   Toast,
 } from "@/components/ui";
+import { tagCatalogStyles } from "@/components/tag-catalog/styles";
 import { useDeveloper } from "@/components/developer/queries";
 
 interface Filters {
@@ -543,13 +544,68 @@ function Catalog({
                 ({ quizId, title, hashtagIds }) => (
                   <li
                     key={quizId}
-                    className="rounded-2xl border border-line bg-surface p-5"
+                    className={
+                      profile
+                        ? tagCatalogStyles.card
+                        : "rounded-2xl border border-line bg-surface p-5"
+                    }
                   >
                     <Link
-                      className="text-lg font-bold text-primary underline-offset-4 hover:underline"
+                      className={
+                        profile
+                          ? tagCatalogStyles.title
+                          : "text-lg font-bold text-primary underline-offset-4 hover:underline"
+                      }
                       href={`/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`}
                     >
-                      {title}
+                      {profile ? (
+                        <>
+                          <span
+                            aria-hidden="true"
+                            className={
+                              tagCatalogStyles.notebook
+                            }
+                          >
+                            <svg
+                              viewBox="0 0 28 28"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="size-7"
+                            >
+                              <rect
+                                x="6"
+                                y="4"
+                                width="17"
+                                height="21"
+                                rx="4"
+                                className="fill-surface"
+                              />
+                              <path d="M4 9h4m-4 6h4m-4 6h4M12 10h6m-6 5h6m-6 5h3" />
+                              <path
+                                d="m22 2 .7 2.3L25 5l-2.3.7L22 8l-.7-2.3L19 5l2.3-.7Z"
+                                className="fill-lime stroke-primary"
+                                strokeWidth="1.2"
+                              />
+                            </svg>
+                          </span>
+                          <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+                            {title}
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            className={
+                              tagCatalogStyles.arrow
+                            }
+                          >
+                            →
+                          </span>
+                        </>
+                      ) : (
+                        title
+                      )}
                     </Link>
                     <p className="mt-3 break-words text-sm text-muted">
                       {hashtagIds
