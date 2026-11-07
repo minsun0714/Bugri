@@ -33,6 +33,7 @@ function PageControls({
   total,
   pageSize,
   busy,
+  hideSinglePage = false,
   onPage,
 }: {
   label: string;
@@ -40,14 +41,17 @@ function PageControls({
   total: number;
   pageSize: number;
   busy: boolean;
+  hideSinglePage?: boolean;
   onPage: (page: number) => void;
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
+  if (hideSinglePage && pages <= 1) return null;
+
   return (
     <nav
       aria-label={`${label} 페이지`}
-      className="mt-5 flex flex-wrap items-center justify-end gap-3"
+      className="mt-3 flex flex-wrap items-center justify-end gap-2"
     >
       <Button
         size="sm"
@@ -87,7 +91,7 @@ function TagSearch({
 
   return (
     <form
-      className="mb-4 flex items-end gap-2"
+      className="mb-2 flex items-end gap-2"
       onSubmit={(event) => {
         event.preventDefault();
         onSearch(query.trim());
@@ -191,11 +195,12 @@ function Catalog({
       <div className="space-y-8">
         <section
           aria-label="개발자의 태그"
-          className="min-w-0 rounded-2xl border border-line bg-surface p-5"
+          className="min-w-0 rounded-2xl border border-line bg-surface p-3 sm:p-4"
         >
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg">태그</h2>
             <Button
+              size="sm"
               variant="ghost"
               aria-pressed={!hashtagId}
               disabled={busy}
@@ -223,7 +228,7 @@ function Catalog({
             }
           />
           {hashtagId && (
-            <p className="mb-3 text-sm text-muted">
+            <p className="mb-2 text-sm text-muted">
               선택한 태그: {hashtagId}
             </p>
           )}
@@ -240,12 +245,12 @@ function Catalog({
           )}
           {tags.data && (
             <>
-              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {tags.data.items.map(
                   ({ id, name, quizCount, subscribed }) => (
                     <li
                       key={id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-canvas/40 p-3"
+                      className="flex flex-wrap items-center justify-between gap-1 rounded-xl border border-line bg-canvas/40 p-2"
                     >
                       <button
                         type="button"
@@ -298,6 +303,7 @@ function Catalog({
                 total={tags.data.total}
                 pageSize={10}
                 busy={busy}
+                hideSinglePage
                 onPage={(next) =>
                   onChange({ ...filters, tagPage: next })
                 }
