@@ -57,10 +57,7 @@ test("outside input generates an editable candidate in the same modal", async ()
   fireEvent.click(
     screen.getByRole("button", { name: "퀴즈 만들기" }),
   );
-  await screen.findByRole("button", { name: "더 보기" });
-  fireEvent.click(
-    screen.getByRole("button", { name: "더 보기" }),
-  );
+  await screen.findByRole("button", { name: "직접 수정" });
   fireEvent.click(
     screen.getByRole("button", { name: "직접 수정" }),
   );
@@ -89,7 +86,7 @@ test("outside input generates an editable candidate in the same modal", async ()
   fireEvent.click(
     screen.getByRole("button", { name: "퀴즈 만들기" }),
   );
-  await screen.findByRole("button", { name: "더 보기" });
+  await screen.findByRole("button", { name: "직접 수정" });
   expect(screen.getByRole("article")).not.toHaveTextContent(
     "수정한 문제",
   );

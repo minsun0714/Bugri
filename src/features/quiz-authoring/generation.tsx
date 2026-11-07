@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ContentFields } from "@/features/quiz-authoring/content-fields";
 import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring-api";
-import { ActionMenu } from "@/components/ui/action-menu";
 import {
   Button,
   Card,
@@ -186,12 +185,32 @@ export function Generation(props: GenerationProps) {
               </div>
               <div className="min-w-0">
                 <Card
-                  className="grid gap-4"
+                  className="grid gap-6 text-foreground"
                   aria-label="버그리 응답"
                 >
-                  <h2 className="text-lg">
-                    {candidate.content.title}
-                  </h2>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="mb-1 text-xs text-muted">
+                        문제 {selectedIndex + 1} /{" "}
+                        {batch.candidates.length}
+                      </p>
+                      <h2 className="text-lg font-semibold">
+                        {candidate.content.title}
+                      </h2>
+                    </div>
+                    {!candidate.savedQuizId && !editing && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={busy}
+                        onClick={() =>
+                          edit(candidate.content)
+                        }
+                      >
+                        직접 수정
+                      </Button>
+                    )}
+                  </div>
                   {editing ? (
                     <fieldset
                       disabled={busy}
@@ -270,42 +289,58 @@ export function Generation(props: GenerationProps) {
                       ) : (
                         <span />
                       )}
-                      <ActionMenu
-                        disabled={busy}
-                        items={[
-                          {
-                            label: "직접 수정",
-                            disabled:
-                              !!candidate.savedQuizId,
-                            onSelect: () =>
-                              edit(candidate.content),
-                          },
-                          {
-                            label: "개별 저장",
-                            disabled:
-                              !!candidate.savedQuizId ||
-                              !!prompt.trim(),
-                            onSelect: () =>
-                              save(candidate.candidateId),
-                          },
-                          {
-                            label: "남은 후보 모두 저장",
-                            disabled:
-                              hasDrafts ||
-                              batch.candidates.every(
-                                ({ savedQuizId }) =>
-                                  !!savedQuizId,
-                              ),
-                            onSelect: () => save(),
-                          },
-                        ]}
-                      />
+                      {!candidate.savedQuizId && (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={
+                              busy || !!prompt.trim()
+                            }
+                            onClick={() =>
+                              save(candidate.candidateId)
+                            }
+                          >
+                            개별 저장
+                          </Button>
+                          <Tooltip label="저장 도움말">
+                            공개하지 않고 검토할 퀴즈로
+                            저장합니다.
+                          </Tooltip>
+                        </div>
+                      )}
                     </div>
                   )}
                 </Card>
               </div>
             </div>
           </Tabs>
+          {!editing && (
+            <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-muted">
+              <span>
+                {
+                  batch.candidates.filter(
+                    ({ savedQuizId }) => savedQuizId,
+                  ).length
+                }{" "}
+                / {batch.candidates.length}개 저장됨
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={
+                  busy ||
+                  hasDrafts ||
+                  batch.candidates.every(
+                    ({ savedQuizId }) => !!savedQuizId,
+                  )
+                }
+                onClick={() => save()}
+              >
+                남은 후보 모두 저장
+              </Button>
+            </div>
+          )}
         </section>
       )}
     </section>

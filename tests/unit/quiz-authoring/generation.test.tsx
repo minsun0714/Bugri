@@ -56,16 +56,10 @@ test("detail saves one then all without duplicates or automatic approval", async
     "/quizzes/authoring?user=learner",
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "더 보기" }),
-  );
-  fireEvent.click(
     screen.getByRole("button", { name: "개별 저장" }),
   );
   await waitFor(() =>
     expect(onSaved).toHaveBeenCalledTimes(1),
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "더 보기" }),
   );
   fireEvent.click(
     screen.getByRole("button", {

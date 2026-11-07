@@ -26,31 +26,56 @@ export function ContentPreview({
               .join(", ")
           : "";
 
+  const format = {
+    SINGLE_CHOICE: "객관식 · 하나 선택",
+    MULTIPLE_CHOICE: "객관식 · 모두 선택",
+    TRUE_FALSE: "OX 문제",
+    SHORT_ANSWER: "단답형",
+  } as const;
+
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-5 text-foreground">
       <p className="text-xs text-muted">
-        {question.type} ·{" "}
+        {format[question.type]}
+        {hashtagIds.length > 0 ? " · " : ""}{" "}
         {hashtagIds.map((id) => `#${id}`).join(" ")}
       </p>
       <MarkdownContent>{question.prompt}</MarkdownContent>
       {"choices" in question && (
-        <ul className="grid gap-2 pl-5">
-          {question.choices.map(({ id, text }) => (
+        <ol aria-label="선택지" className="grid gap-2">
+          {question.choices.map(({ id, text }, index) => (
             <li
               key={id}
-              className="list-disc whitespace-pre-wrap break-words"
+              className="flex items-start gap-3 rounded-xl border border-line px-4 py-3 text-sm leading-6"
             >
-              {text}
+              <span
+                aria-hidden="true"
+                className="shrink-0 font-semibold text-muted"
+              >
+                {index + 1}.
+              </span>
+              <span className="whitespace-pre-wrap break-words">
+                {text}
+              </span>
             </li>
           ))}
-        </ul>
+        </ol>
       )}
-      <p className="whitespace-pre-wrap break-words">
-        <strong>정답:</strong> {answerText}
-      </p>
-      <div>
-        <h3>해설</h3>
-        <MarkdownContent>{explanation}</MarkdownContent>
+      <div className="grid gap-4 rounded-xl bg-canvas p-4">
+        <div>
+          <h3 className="mb-1 text-xs font-semibold text-muted">
+            정답
+          </h3>
+          <p className="whitespace-pre-wrap break-words text-sm font-semibold">
+            {answerText}
+          </p>
+        </div>
+        <div>
+          <h3 className="mb-1 text-xs font-semibold text-muted">
+            해설
+          </h3>
+          <MarkdownContent>{explanation}</MarkdownContent>
+        </div>
       </div>
     </div>
   );
