@@ -4,6 +4,8 @@ import Link from "next/link";
 import { withDemoUser } from "@/components/navigation/routes";
 import { FeatureSectionShell } from "@/components/navigation/feature-section-shell";
 
+import { CoinHistory } from "@/components/coins/coin-history";
+
 type Props = { searchParams: Promise<{ user?: string }> };
 
 async function Content({ searchParams }: Props) {
@@ -13,12 +15,29 @@ async function Content({ searchParams }: Props) {
       ? user
       : "learner";
   return (
-    <Link
-      href={withDemoUser("/my/desk", initialUser)}
-      className="inline-block rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
-    >
-      데스크 편집·보유 상품
-    </Link>
+    <>
+      <Link
+        href={withDemoUser("/my/desk", initialUser)}
+        className="inline-block rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
+      >
+        데스크 편집·보유 상품
+      </Link>
+      <div className="mt-10 grid gap-5">
+        <FeatureSectionShell
+          id="profile"
+          title="프로필 편집"
+        />
+        <FeatureSectionShell
+          id="learning-history"
+          title="풀이 기록"
+        />
+        <CoinHistory userId={initialUser} />
+        <FeatureSectionShell
+          id="learning-timezone"
+          title="학습 시간대 설정"
+        />
+      </div>
+    </>
   );
 }
 
@@ -37,24 +56,6 @@ export default function Page(props: Props) {
       >
         <Content {...props} />
       </Suspense>
-      <div className="mt-10 grid gap-5">
-        <FeatureSectionShell
-          id="profile"
-          title="프로필 편집"
-        />
-        <FeatureSectionShell
-          id="learning-history"
-          title="풀이 기록"
-        />
-        <FeatureSectionShell
-          id="bugcoin-history"
-          title="BugCoin 내역"
-        />
-        <FeatureSectionShell
-          id="learning-timezone"
-          title="학습 시간대 설정"
-        />
-      </div>
     </ProductLayout>
   );
 }

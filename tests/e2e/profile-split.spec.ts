@@ -36,7 +36,9 @@ test("private management leads to a public profile without personal data", async
     .getByRole("link", { name: "데스크 편집·보유 상품" })
     .click();
   await expect(page).toHaveURL(/\/my\/desk\?user=author$/);
-  await expect(page.getByLabel("내 잔액")).toBeVisible();
+  await expect(
+    page.getByRole("main").getByLabel("내 잔액"),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Google 로그인 (데모)" })
     .click();
@@ -68,7 +70,14 @@ test("private management leads to a public profile without personal data", async
     }),
   ).toHaveAttribute("href", "/my/desk?user=author");
   // Next.js retains the previous route hidden during client navigation.
-  await expect(page.getByLabel("내 잔액")).toBeHidden();
+  for (const balance of await page
+    .getByLabel("내 잔액")
+    .all()) {
+    await expect(balance).toBeHidden();
+  }
+  await expect(
+    page.getByRole("main").getByLabel("내 잔액"),
+  ).toHaveCount(0);
   await page.reload();
   await expect(
     page.getByRole("heading", {
