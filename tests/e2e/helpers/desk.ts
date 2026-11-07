@@ -60,7 +60,7 @@ export async function selectTrialProduct(
     exact: true,
   });
   await surface.press("Home");
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     if (
       (await scope
         .getByLabel("선택 상품", { exact: true })

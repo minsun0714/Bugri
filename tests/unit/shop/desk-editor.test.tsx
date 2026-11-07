@@ -167,6 +167,7 @@ test("successful height stays visible until refreshed props arrive, then accepts
       equipment={equipment}
       transforms={transforms}
       save={save}
+      saveBugri={jest.fn()}
       disabled={false}
     />,
   );
@@ -194,6 +195,7 @@ test("successful height stays visible until refreshed props arrive, then accepts
       equipment={equipment}
       transforms={{ KEYBOARD: { ...initial, y: 0.3 } }}
       save={save}
+      saveBugri={jest.fn()}
       disabled={false}
     />,
   );

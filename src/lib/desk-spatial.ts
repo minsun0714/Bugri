@@ -1,15 +1,21 @@
-import { Category } from "@/api/constants";
+import { Category, DeskObject } from "@/api/constants";
 import type {
   DeskTransform,
   DeskPosition,
 } from "@/api/contracts";
 import type { MovableCategory } from "@/lib/desk-layout";
 
+export type SpatialTarget = MovableCategory | DeskObject;
+export type SpatialEquipment = Partial<
+  Record<SpatialTarget, string>
+>;
+
 export const tableHeight = 1.55;
 export const defaultTransforms: Record<
-  MovableCategory,
+  SpatialTarget,
   DeskTransform
 > = {
+  BUGRI: { x: -2.3, y: 0, z: 1.8, rotationY: 0 },
   KEYBOARD: {
     x: -0.45,
     y: tableHeight,
@@ -27,7 +33,7 @@ export const defaultTransforms: Record<
 };
 
 export function constrainTransform(
-  category: MovableCategory,
+  category: SpatialTarget,
   input: DeskTransform,
 ): DeskTransform {
   const rotationY =
@@ -46,7 +52,7 @@ export function constrainTransform(
 }
 
 export function validTransform(
-  category: MovableCategory,
+  category: SpatialTarget,
   input: unknown,
 ): input is DeskTransform {
   if (!input || typeof input !== "object") return false;

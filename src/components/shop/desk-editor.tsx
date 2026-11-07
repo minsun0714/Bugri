@@ -4,7 +4,11 @@ import type {
   Request,
 } from "@/api/contracts";
 import { tableHeight } from "@/lib/desk-spatial";
-import { Category, DeskTool } from "@/api/constants";
+import {
+  Category,
+  DeskTool,
+  DeskObject,
+} from "@/api/constants";
 import { Button } from "@/components/ui";
 import { artworkNames } from "@/components/shop/artwork";
 import { ThreeView } from "@/components/shop/three-view";
@@ -14,6 +18,7 @@ export function DeskEditor({
   equipment,
   transforms,
   save,
+  saveBugri,
   disabled,
 }: {
   equipment: Equipment;
@@ -21,12 +26,18 @@ export function DeskEditor({
   save: (
     request: Request<"transformEquipment">,
   ) => Promise<unknown>;
+  saveBugri: (
+    request: Request<"transformBugri">,
+  ) => Promise<unknown>;
   disabled: boolean;
 }) {
   const editor = useSpatialEditor({
-    equipment,
+    equipment: { ...equipment, BUGRI: "bugri" },
     transforms,
-    save,
+    save: ({ category, productId, transform }) =>
+      category === DeskObject.BUGRI
+        ? saveBugri({ transform })
+        : save({ category, productId, transform }),
     disabled,
   });
   return (
@@ -65,7 +76,10 @@ export function DeskEditor({
             }}
             onKeyDown={editor.keyDown}
           >
-            {artworkNames[equipment[category]!]} 선택
+            {category === DeskObject.BUGRI
+              ? "버그리"
+              : artworkNames[equipment[category]!]}{" "}
+            선택
           </Button>
         ))}
       </div>

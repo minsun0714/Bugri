@@ -1,5 +1,5 @@
 import * as Zdog from "zdog";
-import { Category } from "@/api/constants";
+import { Category, DeskObject } from "@/api/constants";
 import {
   SceneObject,
   type SceneTarget,
@@ -8,6 +8,7 @@ import type { SelectionBounds } from "@/components/shop/zdog/scene-state";
 
 const colors: Record<SceneTarget, string> = {
   PREVIEW: "#ff00ff",
+  BUGRI: "#00ffff",
   KEYBOARD: "#ff0000",
   MONITOR: "#00ff00",
   ACCESSORY: "#0000ff",
@@ -22,6 +23,8 @@ function categoryAt(
   const r = data[offset];
   const g = data[offset + 1];
   const b = data[offset + 2];
+  if (r === 0 && g === 255 && b === 255)
+    return DeskObject.BUGRI;
   if (r === 255 && g === 0 && b === 255)
     return SceneObject.PREVIEW;
   if (r === 255 && g === 0 && b === 0)

@@ -1,10 +1,11 @@
+import type { SpatialTarget } from "@/lib/desk-spatial";
 import type { DeskTransform } from "@/api/contracts";
 import type { SceneState } from "@/components/shop/three/engine";
 import type { MovableCategory } from "@/lib/desk-layout";
 
 export const SceneObject = { PREVIEW: "PREVIEW" } as const;
 export type SceneTarget =
-  MovableCategory | typeof SceneObject.PREVIEW;
+  SpatialTarget | typeof SceneObject.PREVIEW;
 
 export interface SelectionBounds {
   category: SceneTarget;
@@ -16,22 +17,26 @@ export interface SelectionBounds {
   viewportHeight: number;
 }
 
-export interface DeskSceneState extends SceneState {
+export interface DeskSceneState extends Omit<
+  SceneState,
+  "selected" | "onSelect" | "onPreview" | "onCommit"
+> {
+  selected: SpatialTarget | null;
   /** Frozen item coordinate frame while the trial desk moves independently. */
   itemFrame?: DeskTransform;
   previewSelected?: boolean;
   allowDefaultDesk?: boolean;
   onSelect?: (
-    category: MovableCategory,
+    category: SpatialTarget,
     preview?: boolean,
   ) => void;
   onPreview?: (
-    category: MovableCategory,
+    category: SpatialTarget,
     transform: DeskTransform,
     preview?: boolean,
   ) => void;
   onCommit?: (
-    category: MovableCategory,
+    category: SpatialTarget,
     transform: DeskTransform,
     preview?: boolean,
   ) => void;
@@ -41,7 +46,7 @@ export interface DeskSceneState extends SceneState {
     transform: DeskTransform;
   };
   directManipulation?: boolean;
-  editableCategories?: MovableCategory[];
+  editableCategories?: SpatialTarget[];
   onDeselect?: () => void;
   onSelectionBounds?: (
     bounds: SelectionBounds | null,

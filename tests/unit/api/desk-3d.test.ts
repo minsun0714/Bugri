@@ -228,3 +228,57 @@ test("persists floor, intermediate and raised heights without resetting x/z or r
     ).toEqual(transform);
   }
 });
+
+test("moves the resident Bugri without a purchase and restores only that user's placement", async () => {
+  const api = make();
+  const transform = { x: -1, y: 0, z: 2, rotationY: 90 };
+
+  await api.request("transformBugri", { transform });
+
+  expect(
+    (await make().request("inventory", {})).transforms,
+  ).toMatchObject({ BUGRI: transform });
+
+  expect(
+    (await make("friend").request("inventory", {}))
+      .transforms,
+  ).toEqual({});
+
+  expect(
+    (
+      await make("friend").request("publicProfile", {
+        publicId: "bugri-learner",
+      })
+    ).transforms,
+  ).toMatchObject({ BUGRI: transform });
+
+  expect((await api.request("wallet", {})).balance).toBe(
+    100,
+  );
+
+  expect(
+    (await api.request("inventory", {})).products,
+  ).toEqual([]);
+});
+
+test("rejects invalid Bugri transforms without losing its saved placement", async () => {
+  const api = make();
+  const transform = { x: -1, y: 0, z: 2, rotationY: 90 };
+
+  await api.request("transformBugri", { transform });
+
+  for (const invalid of [
+    { ...transform, y: -1 },
+    { ...transform, x: Infinity },
+    { ...transform, rotationY: 360 },
+  ]) {
+    await expect(
+      api.request("transformBugri", { transform: invalid }),
+    ).rejects.toMatchObject({ status: 400 });
+  }
+
+  expect(
+    (await make().request("inventory", {})).transforms
+      .BUGRI,
+  ).toEqual(transform);
+});

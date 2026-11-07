@@ -55,6 +55,13 @@ export function useShop(userId: string) {
     onError: refresh,
     retry: false,
   });
+  const moveBugri = useMutation({
+    mutationFn: async (
+      request: Request<"transformBugri">,
+    ) => (await api()).request("transformBugri", request),
+    onSuccess: refresh,
+    retry: false,
+  });
   const move = useMutation({
     mutationFn: async (
       request: Request<"transformEquipment">,
@@ -64,6 +71,7 @@ export function useShop(userId: string) {
     retry: false,
   });
   return {
+    moveBugri,
     move,
     products,
     wallet,

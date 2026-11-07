@@ -1,3 +1,4 @@
+import { room } from "@/components/shop/zdog/room";
 import * as Zdog from "zdog";
 import { monitorScreen } from "@/components/shop/monitor-screen";
 
@@ -31,7 +32,9 @@ export function model(parent: Zdog.Anchor, id: string) {
   // Keep each object's parts together when sorting neighbouring objects.
   const root = new Zdog.Group({
     addTo: parent,
-    updateSort: !id.startsWith("keyboard"),
+    updateSort:
+      !id.startsWith("keyboard") &&
+      !id.startsWith("background"),
   });
   const second = id.endsWith("2");
   if (id.startsWith("keyboard")) {
@@ -155,32 +158,7 @@ export function model(parent: Zdog.Anchor, id: string) {
         });
     }
   } else if (id.startsWith("background")) {
-    box(
-      root,
-      [760, 4, 650],
-      [0, 2, 0],
-      second ? "#cbc3df" : "#e4ead7",
-    );
-    box(
-      root,
-      [760, 360, 5],
-      [0, -180, -320],
-      second ? "#77738d" : "#e4dccb",
-    );
-    box(
-      root,
-      [170, 150, 6],
-      [180, -210, -315],
-      second ? "#343149" : "#b9d9cd",
-    );
-    new Zdog.Ellipse({
-      addTo: root,
-      diameter: 55,
-      fill: true,
-      stroke: false,
-      translate: { x: 200, y: -235, z: -310 },
-      color: second ? "#fff1b9" : "#fff5d9",
-    });
+    room(root, id);
   } else {
     deskParts(root, root, id);
   }
@@ -219,7 +197,7 @@ export function productPreview(productId: string) {
   const illustration = new Zdog.Illustration({
     element: canvas,
     zoom: productId.startsWith("background")
-      ? 0.5
+      ? 0.24
       : productId.startsWith("desk")
         ? 0.85
         : 2,

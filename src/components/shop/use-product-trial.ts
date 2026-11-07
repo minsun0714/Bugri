@@ -4,9 +4,12 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { Category } from "@/api/constants";
+import { Category, DeskObject } from "@/api/constants";
 import { initialPreviewTransform } from "@/components/shop/preview-placement";
-import { defaultTransforms } from "@/lib/desk-spatial";
+import {
+  defaultTransforms,
+  type SpatialTarget,
+} from "@/lib/desk-spatial";
 import type {
   DeskTransform,
   DeskTransforms,
@@ -14,10 +17,7 @@ import type {
   Product,
   Request,
 } from "@/api/contracts";
-import {
-  isMovable,
-  type MovableCategory,
-} from "@/lib/desk-layout";
+import { isMovable } from "@/lib/desk-layout";
 import { errorMessage } from "@/components/shop/errors";
 import { useSpatialEditor } from "@/components/shop/use-spatial-editor";
 
@@ -80,7 +80,11 @@ export function useProductTrial({
     },
   });
   const spaceEditor = useSpatialEditor({
-    equipment: { DESK: "default", ...space.equipment },
+    equipment: {
+      DESK: "default",
+      BUGRI: "bugri",
+      ...space.equipment,
+    },
     transforms: spaceLocal,
     disabled: pending || applying,
     save: async ({ category, transform }) => {
@@ -94,7 +98,7 @@ export function useProductTrial({
     ? previewEditor
     : spaceEditor;
   function select(
-    category: MovableCategory,
+    category: SpatialTarget,
     preview = false,
   ) {
     setPreviewSelected(preview);
@@ -103,7 +107,7 @@ export function useProductTrial({
     );
   }
   function previewTransform(
-    category: MovableCategory,
+    category: SpatialTarget,
     transform: DeskTransform,
     preview = false,
   ) {
@@ -113,7 +117,7 @@ export function useProductTrial({
     );
   }
   function commitTransform(
-    category: MovableCategory,
+    category: SpatialTarget,
     transform: DeskTransform,
     preview = false,
   ) {
@@ -186,9 +190,11 @@ export function useProductTrial({
   const selectedName = editor.selected
     ? previewSelected
       ? product.name
-      : (artworkNames[
-          space.equipment[editor.selected] ?? ""
-        ] ?? "기본 데스크")
+      : editor.selected === DeskObject.BUGRI
+        ? "버그리"
+        : (artworkNames[
+            space.equipment[editor.selected] ?? ""
+          ] ?? "기본 데스크")
     : "";
   const current = movable
     ? (previewEditor.effective[movable] ??

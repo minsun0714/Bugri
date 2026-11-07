@@ -64,3 +64,9 @@ export const DeskView = {
 
 export type DeskView =
   (typeof DeskView)[keyof typeof DeskView];
+
+/** Resident scene objects are not purchasable product categories. */
+export const DeskObject = { BUGRI: "BUGRI" } as const;
+
+export type DeskObject =
+  (typeof DeskObject)[keyof typeof DeskObject];

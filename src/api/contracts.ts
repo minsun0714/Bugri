@@ -1,6 +1,7 @@
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 import {
   Category,
+  type DeskObject,
   QuizStatus,
   type LearningMode,
   type LearningState,
@@ -184,7 +185,7 @@ export interface DeskTransform {
 }
 
 export type DeskTransforms = Partial<
-  Record<Category, DeskTransform>
+  Record<Category | DeskObject, DeskTransform>
 >;
 
 export interface LedgerEntry {
@@ -370,6 +371,10 @@ export interface ApiOperations {
       position: DeskPosition;
     };
     response: DeskPositions;
+  };
+  transformBugri: {
+    request: { transform: DeskTransform };
+    response: DeskTransforms;
   };
   transformEquipment: {
     request: {

@@ -46,6 +46,7 @@ function ShopContent({
     purchase,
     equip,
     move,
+    moveBugri,
   } = useShop(userId);
   const [category, setCategory] = useState<Category | null>(
     null,
@@ -173,6 +174,7 @@ function ShopContent({
             equipment={inventory.data?.equipment ?? {}}
             transforms={inventory.data?.transforms ?? {}}
             save={move.mutateAsync}
+            saveBugri={moveBugri.mutateAsync}
             disabled={pending || loading || Boolean(error)}
           />
           <p className="pb-3 text-center text-xs text-muted">

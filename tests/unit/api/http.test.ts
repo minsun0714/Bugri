@@ -145,7 +145,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(32);
+  expect(Object.keys(endpoints)).toHaveLength(33);
 });
 
 // Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.
@@ -190,6 +190,30 @@ test("desk placement sends coordinates to the typed HTTP endpoint", async () => 
     expect.objectContaining({
       method: "PUT",
       body: JSON.stringify(request),
+    }),
+  );
+});
+
+test("Bugri placement uses its own typed endpoint without a product or purchase", async () => {
+  const transform = { x: -1, y: 0, z: 2, rotationY: 90 };
+
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(
+      response({ data: { BUGRI: transform } }),
+    );
+
+  const api = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await api.request("transformBugri", { transform });
+
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/me/desk/bugri",
+    expect.objectContaining({
+      method: "PUT",
+      body: JSON.stringify({ transform }),
     }),
   );
 });

@@ -1,7 +1,9 @@
+import { lightRoomObjects } from "@/components/shop/zdog/room";
 import * as Zdog from "zdog";
 import { bugri } from "@/components/shop/zdog/bugri";
 import {
   Category,
+  DeskObject,
   DeskTool,
   DeskView,
 } from "@/api/constants";
@@ -17,11 +19,11 @@ import {
   model,
 } from "@/components/shop/zdog/models";
 import {
+  type SpatialTarget,
   constrainTransform,
   defaultTransforms,
   tableHeight,
 } from "@/lib/desk-spatial";
-import { type MovableCategory } from "@/lib/desk-layout";
 
 const radians = (value: number) => (value * Math.PI) / 180;
 
@@ -47,7 +49,7 @@ export function createDeskEngine(
   let rotationHandle: Zdog.Anchor | null = null;
   let framingHeight = 300;
   let framingCenter = { x: 0, z: 0 };
-  const anchors = new Map<MovableCategory, Zdog.Anchor>();
+  const anchors = new Map<SpatialTarget, Zdog.Anchor>();
   let equipmentKey = "";
   let yaw = 45;
   let pitch = 30;
@@ -59,7 +61,7 @@ export function createDeskEngine(
     yaw: number;
     pitch: number;
     zoom: number;
-    category: MovableCategory | null;
+    category: SpatialTarget | null;
     preview: boolean;
     transform: DeskTransform | null;
     next: DeskTransform | null;
@@ -70,15 +72,23 @@ export function createDeskEngine(
 
   function rebuild() {
     content?.remove();
-    content = new Zdog.Anchor({ addTo: scene });
+    content = new Zdog.Group({
+      addTo: scene,
+      updateSort: false,
+    });
     anchors.clear();
     owners.clear();
     previewAnchor = null;
     const { equipment } = state;
     if (equipment.BACKGROUND)
       model(content, equipment.BACKGROUND);
+    // Keep the room behind the furnishings at every camera angle.
+    const furnishings = new Zdog.Group({
+      addTo: content,
+      updateSort: true,
+    });
     // Draw lower objects with the legs, then the tabletop, then raised objects.
-    const desk = new Zdog.Group({ addTo: content });
+    const desk = new Zdog.Group({ addTo: furnishings });
     const lower = new Zdog.Group({
       addTo: desk,
       updateSort: true,
@@ -95,7 +105,15 @@ export function createDeskEngine(
     const lowerItems = new Zdog.Anchor({ addTo: lower });
     const upperItems = new Zdog.Anchor({ addTo: upper });
     itemLayers = [lowerItems, upperItems];
-    owners.set(bugri(lowerItems), null);
+    anchors.set(
+      DeskObject.BUGRI,
+      bugri(
+        (state.transforms.BUGRI ?? defaultTransforms.BUGRI)
+          .y >= tableHeight
+          ? upperItems
+          : lowerItems,
+      ),
+    );
     anchors.set(Category.DESK, desk);
     for (const category of [
       Category.KEYBOARD,
@@ -125,7 +143,7 @@ export function createDeskEngine(
         state.preview;
       previewAnchor = model(
         category === Category.DESK
-          ? content
+          ? furnishings
           : transform.y >= tableHeight
             ? upperItems
             : lowerItems,
@@ -134,6 +152,12 @@ export function createDeskEngine(
       owners.set(previewAnchor, SceneObject.PREVIEW);
     }
     createHandle();
+    lightRoomObjects(desk, equipment.BACKGROUND);
+    if (
+      previewAnchor &&
+      state.preview?.category === Category.DESK
+    )
+      lightRoomObjects(previewAnchor, equipment.BACKGROUND);
   }
 
   function createHandle() {
@@ -209,6 +233,7 @@ export function createDeskEngine(
         Category.KEYBOARD,
         Category.MONITOR,
         Category.ACCESSORY,
+        DeskObject.BUGRI,
       ].map(
         (category) =>
           (
@@ -238,14 +263,17 @@ export function createDeskEngine(
             ? 138
             : category === Category.ACCESSORY
               ? 85
-              : 12;
+              : category === DeskObject.BUGRI
+                ? 110
+                : 12;
         framingHeight = Math.max(
           framingHeight,
           value.y * 100 + objectHeight,
         );
         radius = Math.max(
           radius,
-          Math.hypot(value.x, value.z) + 1,
+          Math.hypot(value.x, value.z) +
+            (category === DeskObject.BUGRI ? 0.7 : 1),
         );
       }
       const itemFrame = state.itemFrame ?? desk;
@@ -293,11 +321,6 @@ export function createDeskEngine(
           new Zdog.Vector({ x, z })
             .rotate({ y: -radians(itemFrame.rotationY) })
             .add({ x: itemFrame.x, z: itemFrame.z });
-        const mascot = world(-2.3, 1.8);
-        radius = Math.max(
-          radius,
-          distance(mascot.x, mascot.z) + 0.7,
-        );
         for (const category of anchors.keys()) {
           if (category === Category.DESK) continue;
           const value =
@@ -306,7 +329,8 @@ export function createDeskEngine(
           const point = world(value.x, value.z);
           radius = Math.max(
             radius,
-            distance(point.x, point.z) + 1,
+            distance(point.x, point.z) +
+              (category === DeskObject.BUGRI ? 0.7 : 1),
           );
         }
       }
@@ -424,6 +448,7 @@ export function createDeskEngine(
           hitCategory &&
           hitCategory !== SceneObject.PREVIEW &&
           (preview ||
+            hitCategory === DeskObject.BUGRI ||
             state.equipment[hitCategory] ||
             (hitCategory === Category.DESK &&
               state.allowDefaultDesk)) &&
@@ -497,6 +522,7 @@ export function createDeskEngine(
       !transform ||
       !(
         (preview && state.preview?.category === category) ||
+        category === DeskObject.BUGRI ||
         state.equipment[category] ||
         (category === Category.DESK &&
           state.allowDefaultDesk)

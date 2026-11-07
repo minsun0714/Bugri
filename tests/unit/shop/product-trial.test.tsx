@@ -13,7 +13,7 @@ function selectProduct(name: string) {
     name: "3D 데스크 캔버스",
   });
   fireEvent.keyDown(surface, { key: "Home" });
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     if (
       screen.getByLabelText("선택 상품", { exact: true })
         .textContent === name

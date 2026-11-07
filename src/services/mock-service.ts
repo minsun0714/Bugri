@@ -7,6 +7,7 @@ import {
   validPosition,
 } from "@/lib/desk-layout";
 import {
+  DeskObject,
   QuizStatus,
   LearningMode,
   LearningState,
@@ -110,6 +111,7 @@ const allowed: Record<Operation, string[]> = {
   inventory: [],
   equip: ["category", "productId"],
   moveEquipment: ["category", "productId", "position"],
+  transformBugri: ["transform"],
   transformEquipment: [
     "category",
     "productId",
@@ -1123,6 +1125,17 @@ export function execute<K extends Operation>(
       );
 
       return s.positions;
+    }
+
+    case "transformBugri": {
+      requireValue(
+        validTransform(DeskObject.BUGRI, r.transform),
+        "버그리의 위치, 높이와 회전값을 확인하세요.",
+      );
+
+      s.transforms.BUGRI = r.transform;
+
+      return s.transforms;
     }
 
     case "transformEquipment": {

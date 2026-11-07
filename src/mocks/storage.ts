@@ -6,7 +6,11 @@ import {
   isMovable,
   validPosition,
 } from "@/lib/desk-layout";
-import { QuizStatus, LearningMode } from "@/api/constants";
+import {
+  QuizStatus,
+  LearningMode,
+  DeskObject,
+} from "@/api/constants";
 import { users, hashtags } from "@/mocks/users";
 import { quizzes } from "@/mocks/quizzes";
 import { subscriptions } from "@/mocks/subscriptions";
@@ -147,9 +151,11 @@ function validateState(
     value.transforms,
   )) {
     requireValue(
-      isMovable(category) &&
-        validTransform(category, transform) &&
-        typeof equipment[category] === "string",
+      (category === DeskObject.BUGRI &&
+        validTransform(category, transform)) ||
+        (isMovable(category) &&
+          validTransform(category, transform) &&
+          typeof equipment[category] === "string"),
       "3D 배치 정보가 손상되었습니다.",
     );
   }

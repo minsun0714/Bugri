@@ -1,5 +1,7 @@
 "use client";
 
+import { roomTheme } from "@/components/shop/room-theme";
+
 import { defaultTransforms } from "@/lib/desk-spatial";
 import { isMovable } from "@/lib/desk-layout";
 
@@ -9,6 +11,7 @@ import {
   useRef,
   useState,
   type KeyboardEventHandler,
+  type CSSProperties,
 } from "react";
 import {
   SceneObject,
@@ -167,6 +170,13 @@ export function ThreeView(props: Props) {
       <div className="relative">
         <div
           ref={host}
+          style={
+            {
+              "--room-backdrop": roomTheme(
+                props.equipment.BACKGROUND,
+              ).backdrop,
+            } as CSSProperties
+          }
           tabIndex={props.onKeyDown ? 0 : undefined}
           onKeyDown={props.onKeyDown}
           onPointerDown={
@@ -180,7 +190,7 @@ export function ThreeView(props: Props) {
           data-renderer={
             ready && !failed ? "canvas" : "unavailable"
           }
-          className="relative h-[320px] overflow-hidden rounded-2xl bg-canvas sm:h-[420px]"
+          className="relative h-[320px] overflow-hidden rounded-2xl bg-[image:var(--room-backdrop)] sm:h-[420px]"
         />
         {selection &&
           (props.previewSelected
@@ -227,6 +237,31 @@ export function ThreeView(props: Props) {
             );
           },
         )}
+        <li>
+          버그리: X{" "}
+          {(
+            props.transforms.BUGRI ??
+            defaultTransforms.BUGRI
+          ).x.toFixed(2)}
+          , 높이{" "}
+          {(
+            props.transforms.BUGRI ??
+            defaultTransforms.BUGRI
+          ).y.toFixed(2)}
+          , Z{" "}
+          {(
+            props.transforms.BUGRI ??
+            defaultTransforms.BUGRI
+          ).z.toFixed(2)}
+          , 회전{" "}
+          {
+            (
+              props.transforms.BUGRI ??
+              defaultTransforms.BUGRI
+            ).rotationY
+          }
+          °
+        </li>
       </ul>
       {!ready && !failed && (
         <p role="status" className="p-3 text-xs text-muted">

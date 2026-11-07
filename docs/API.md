@@ -110,6 +110,10 @@ import 별칭, `as const`, 구조 분해 할당, 빈 줄·객체 줄바꿈 및 �
 
 Inventory/PublicProfile에 `transforms`를 추가했다. 공개 프로필은 사용자·장착 ID·배치만 제공하고 잔액·원장·구매·보관함은 포함하지 않는다. 변경 성공 시 보관함·공개 프로필 캐시를 갱신한다. 저장 실패는 이전 저장 상태를 유지하고 UI는 이동·회전 초안을 유지해 재시도할 수 있다.
 
-기존 v1의 구매·장착과 2D `positions`는 삭제하지 않는다. `transforms`가 없는 스냅샷을 읽을 때 기존 2D x/y 이동량을 1/100 단위로 기본 3D x/z에 더하고 0.001 단위로 맞춘다. 회전은 0도, 높이는 상판/바닥으로 설정한다. 변환되지 않는 손상된 저장 데이터는 STORAGE_CORRUPT로 거부하며 초기화하지 않는다. 기존 `moveEquipment`/`PUT /me/desk/position`은 호환 목적으로 유지하고 성공 시 해당 3D 배치도 변환한다. 신규 화면은 transformEquipment만 호출한다.
+기존 v1의 구매·장착과 2D `positions`는 삭제하지 않는다. `transforms`가 없는 스냅샷을 읽을 때 기존 2D x/y 이동량을 1/100 단위로 기본 3D x/z에 더하고 0.001 단위로 맞춘다. 회전은 0도, 높이는 상판/바닥으로 설정한다. 변환되지 않는 손상된 저장 데이터는 STORAGE_CORRUPT로 거부하며 초기화하지 않는다. 기존 `moveEquipment`/`PUT /me/desk/position`은 호환 목적으로 유지하고 성공 시 해당 3D 배치도 변환한다. 상품 배치 화면은 transformEquipment를 호출한다.
 
 카메라 시점은 뷰어 상태이고 상품 배치 API에 저장하지 않는다. 공개 데스크도 시점 회전은 가능하며 편집 도구/배치 API는 제공하지 않는다. Three.js의 OrbitControls와 TransformControls를 사용하고, React 컴포넌트가 언마운트되면 WebGL 렌더러·컨트롤·기하·재질 자원을 정리한다. 카드 이미지는 화면에 들어올 때만 같은 3D 모델로 생성한다.
+
+### 버그리 배치
+
+`transformBugri`는 `PUT /me/desk/bugri`에 `{ transform: { x, y, z, rotationY } }`를 보내고 `DeskTransforms`를 반환한다. 상품 구매/장착과 별개인 기본 캐릭터이므로 productId·category·대상 사용자 필드를 받지 않는다. 현재 더미 사용자의 `transforms.BUGRI`만 갱신하며 잔액·구매 내역·equipment는 바꾸지 않는다. 유한 좌표·Y>=0·0~359도 회전·0.001 위치 정밀도를 검증한다. 실패 시 기존 저장값은 유지한다. `inventory`와 `publicProfile`에 같은 배치를 반환한다. 저장되지 않은 기존 스냅샷은 기본 좌표 `{ x: -2.3, y: 0, z: 1.8, rotationY: 0 }`로 렌더한다. 신규 DB/인증은 도입하지 않는다. 장착해보기의 버그리 이동은 로컬 초안이며 API를 호출하지 않는다.

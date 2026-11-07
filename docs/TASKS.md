@@ -340,3 +340,12 @@
 - 실패 분석: 모바일에서 회전 후 임의의 중간 색상 픽셀을 고르는 측정값이 2px 달라졌다. 실제 외곽선은 1px 이내였으며 역회전의 안티앨리어싱으로 픽셀 집합이 달라진 것이었다. 위치 측정을 네 외곽선 비교로 바로잡고 1px 허용치는 유지했다.
 - 검증: 상점 단위 7개, 관련 기존 E2E 5개와 최종 독립 이동 E2E 2개 통과. Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/77 tests·도구 3 tests·build·Playwright 27 tests). 로그 `.bugri-hooks/shop-desk-selection-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
+
+## P08-ROOM-THEME-BUGRI 공간 전체 테마와 버그리 배치
+
+- 상태: IN_PROGRESS. 정원/달빛 배경을 캔버스 전체 분위기·입체 공간·상품 조명에 적용한다. 버그리는 별도 구매 없이 선택·이동·회전할 수 있게 하고 내 공간에서는 사용자별 저장/공개 복원, 장착해보기에서는 임시 편집/초기화를 제공한다. 기존 구매/상품 배치는 유지한다.
+- 구현: 전체 Canvas 그라데이션·확장된 입체 방/아치 창/러그·가구/버그리 조명을 테마별로 적용했다. 방은 가구 뒤 레이어에 유지하고 회전 시 벽의 뒷면을 숨긴다. 버그리는 상품과 구분한 SpatialTarget으로 픽셀 선택·이동·회전·높이 조절하며 `transformBugri`/`PUT /me/desk/bugri`로 현재 사용자 `transforms.BUGRI`를 저장한다. 미리보기는 로컬 초안만 바꾸고 초기화/닫기에서 복원한다. 기존 스냅샷은 기본 버그리 좌표로 호환한다.
+- 실패 분석: 버그리 저장 API 미구현 단위 실패 확인 후 구현. 공간 선택 대상 타입을 확장하는 과정의 타입 불일치를 수정했다. 새 API 추가로 기존 endpoint 개수 기대값을 32→33으로 갱신했다. 테마 복원 E2E는 로딩 중 교체되는 요소를 즉시 읽어 빈 스타일을 받았으므로 실제 테마 복원까지 기다리도록 수정했다. 첫 전체 verify의 API 코드/테스트 빈 줄 lint 오류를 수정했으며 검사를 약화하지 않았다.
+- 검증: 관련 단위 31개·E2E 7개 통과. 버그리 구매 없이 저장, 사용자 격리/공개 복원, 잘못된 변환 거부 및 저장값 보존, HTTP 계약, 미리보기 미저장/초기화, 테마별 전체 색감/시점 회전/장착/새로고침/공개 복원 확인. PC·모바일 실제 테마 화면 확인.
+- 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/80 tests·도구 3 tests·build·Playwright 31 tests). 로그 `.bugri-hooks/room-bugri-verify-final.log`, `git diff --check` 통과.
+- 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.

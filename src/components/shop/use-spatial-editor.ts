@@ -3,20 +3,27 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { Category, DeskTool } from "@/api/constants";
+import {
+  Category,
+  DeskTool,
+  DeskObject,
+} from "@/api/constants";
 import type {
   DeskTransform,
   DeskTransforms,
-  Equipment,
-  Request,
 } from "@/api/contracts";
 import {
+  type SpatialTarget,
+  type SpatialEquipment,
   constrainTransform,
   defaultTransforms,
 } from "@/lib/desk-spatial";
-import { type MovableCategory } from "@/lib/desk-layout";
 
-type Draft = Request<"transformEquipment">;
+type Draft = {
+  category: SpatialTarget;
+  productId: string;
+  transform: DeskTransform;
+};
 export function useSpatialEditor({
   equipment,
   transforms,
@@ -25,15 +32,15 @@ export function useSpatialEditor({
   initialSelected = null,
   initialTool = DeskTool.CAMERA,
 }: {
-  equipment: Equipment;
+  equipment: SpatialEquipment;
   transforms: DeskTransforms;
   save: (request: Draft) => Promise<unknown>;
   disabled: boolean;
-  initialSelected?: MovableCategory | null;
+  initialSelected?: SpatialTarget | null;
   initialTool?: DeskTool;
 }) {
   const [selected, setSelected] =
-    useState<MovableCategory | null>(initialSelected);
+    useState<SpatialTarget | null>(initialSelected);
   const [tool, setTool] = useState<DeskTool>(initialTool);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [confirmed, setConfirmed] = useState<{
@@ -63,13 +70,13 @@ export function useSpatialEditor({
     ? (effective[selected] ?? defaultTransforms[selected])
     : null;
 
-  function select(category: MovableCategory) {
+  function select(category: SpatialTarget) {
     if (blocked || error) return;
     setSelected(category);
     setTool(DeskTool.MOVE);
   }
   function preview(
-    category: MovableCategory,
+    category: SpatialTarget,
     transform: DeskTransform,
   ) {
     if (blocked || lock.current || !equipment[category])
@@ -85,7 +92,7 @@ export function useSpatialEditor({
     setError(false);
   }
   async function commit(
-    category?: MovableCategory,
+    category?: SpatialTarget,
     transform?: DeskTransform,
   ) {
     if (blocked || lock.current) return;
@@ -201,6 +208,7 @@ export function useSpatialEditor({
     Category.MONITOR,
     Category.ACCESSORY,
     Category.DESK,
+    DeskObject.BUGRI,
   ].filter((category) => equipment[category]);
   return {
     selected,
