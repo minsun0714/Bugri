@@ -256,7 +256,7 @@ function Catalog({
                         type="button"
                         disabled={busy}
                         aria-pressed={hashtagId === id}
-                        className="min-w-0 break-all text-left font-medium text-primary underline-offset-4 hover:underline aria-pressed:underline"
+                        className="min-w-0 break-all text-left font-medium text-primary underline-offset-4 aria-pressed:underline"
                         onClick={() =>
                           onChange({
                             ...filters,
@@ -271,7 +271,7 @@ function Catalog({
                         </span>
                       </button>
                       <Button
-                        className="!min-h-0 !rounded-full !border-0 !px-2 !py-1 !shadow-none"
+                        className={`!min-h-0 !rounded-full !border-0 !px-2 !py-1 !shadow-none ${subscribed ? "disabled:!opacity-100" : ""}`}
                         size="sm"
                         variant="ghost"
                         disabled={busy || subscribed}
@@ -284,9 +284,22 @@ function Catalog({
                           })
                         }
                       >
-                        {subscribed
-                          ? "구독 중"
-                          : "태그 구독"}
+                        {subscribed ? (
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="size-4"
+                          >
+                            <path d="m5 12 4 4L19 6" />
+                          </svg>
+                        ) : (
+                          "태그 구독"
+                        )}
                       </Button>
                     </li>
                   ),

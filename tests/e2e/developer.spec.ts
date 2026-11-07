@@ -53,12 +53,21 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     1,
   );
   await expect(quizzes.getByRole("link")).toHaveCount(2);
-  await tags
-    .getByRole("button", {
-      name: "TypeScript (1)",
-      exact: true,
-    })
-    .click();
+  const typeScriptTag = tags.getByRole("button", {
+    name: "TypeScript (1)",
+    exact: true,
+  });
+
+  await typeScriptTag.hover();
+  await expect
+    .poll(() =>
+      typeScriptTag.evaluate(
+        (element) =>
+          getComputedStyle(element).textDecorationLine,
+      ),
+    )
+    .not.toContain("underline");
+  await typeScriptTag.click();
   await expect(quizzes.getByRole("link")).toHaveCount(1);
   await expect(
     quizzes.getByRole("link", { name: "타입 선언" }),
@@ -70,12 +79,13 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
       exact: true,
     })
     .click();
-  await expect(
-    tags.getByRole("button", {
-      name: "타입 개발자의 TypeScript 구독 중",
-      exact: true,
-    }),
-  ).toBeDisabled();
+  const subscribedTypeScript = tags.getByRole("button", {
+    name: "타입 개발자의 TypeScript 구독 중",
+    exact: true,
+  });
+
+  await expect(subscribedTypeScript).toBeDisabled();
+  await expect(subscribedTypeScript).toHaveText("");
   await expect(page).toHaveURL(url);
   await page.reload();
   await expect(quizzes.getByRole("link")).toHaveCount(1);
