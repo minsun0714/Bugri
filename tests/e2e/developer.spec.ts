@@ -30,6 +30,36 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     Math.abs(tagBounds!.width - quizBounds!.width),
   ).toBeLessThan(2);
   expect(tagBounds!.height).toBeLessThan(260);
+  const tagSearch = tags.getByRole("searchbox");
+  const searchButton = tags.getByRole("button", {
+    name: "검색",
+    exact: true,
+  });
+  const searchBounds = await tagSearch.boundingBox();
+  const searchButtonBounds = await searchButton.boundingBox();
+
+  expect(searchBounds).not.toBeNull();
+  expect(searchButtonBounds).not.toBeNull();
+  expect(
+    Math.abs(searchBounds!.y - searchButtonBounds!.y),
+  ).toBeLessThan(1);
+  await tagSearch.evaluate((element) => {
+    element.setAttribute("data-was-disabled", "false");
+    new MutationObserver((records) => {
+      if (
+        records.some(
+          ({ attributeName, oldValue }) =>
+            attributeName === "disabled" && oldValue === null,
+        )
+      ) {
+        element.setAttribute("data-was-disabled", "true");
+      }
+    }).observe(element, {
+      attributes: true,
+      attributeOldValue: true,
+      attributeFilter: ["disabled"],
+    });
+  });
   await expect(
     tags.getByRole("navigation", { name: "태그 페이지" }),
   ).toHaveCount(0);
@@ -68,6 +98,10 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     )
     .not.toContain("underline");
   await typeScriptTag.click();
+  await expect(tagSearch).toHaveAttribute(
+    "data-was-disabled",
+    "false",
+  );
   await expect(typeScriptTag).toHaveAttribute(
     "aria-pressed",
     "true",

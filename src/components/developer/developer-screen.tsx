@@ -196,7 +196,7 @@ function TagSearch({
           onChange={(event) => setQuery(event.target.value)}
         />
       </div>
-      <Button type="submit" size="sm" disabled={busy}>
+      <Button type="submit" disabled={busy}>
         검색
       </Button>
     </form>
@@ -228,7 +228,8 @@ function Catalog({
     },
   );
   const { data } = quizzes;
-  const busy = navigating || subscribe.isPending;
+  const subscriptionBusy = subscribe.isPending;
+  const busy = navigating || subscriptionBusy;
 
   if (quizzes.isPending) return <Skeleton />;
   if (quizzes.error)
@@ -310,7 +311,7 @@ function Catalog({
           <TagSearch
             key={tagQuery}
             value={tagQuery}
-            busy={busy}
+            busy={subscriptionBusy}
             onSearch={(query) =>
               onChange({
                 ...filters,
