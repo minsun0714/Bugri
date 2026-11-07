@@ -20,6 +20,7 @@ description: Bugri의 명시적으로 요청된 기능 구현·수정에 사용�
 
 ## 디자인 시스템 사용
 
+- 화면 구조·사용자 흐름·인터랙션을 설계하거나 변경할 때는 [ux-designer](../ux-designer/SKILL.md)의 역할과 판단 기준을 적용한다. 이 참조가 별도 설계 승인이나 요청하지 않은 화면 재설계를 요구하지는 않는다.
 - UI 구현 전 [공통 UI](../../../src/components/ui/)의 실제 props·상태를 확인하고 먼저 재사용한다. 기본 요소는 `index.tsx`, 태그 입력은 `tag-input.tsx`, Markdown 입력은 `markdown-editor.tsx`, 코드 표시는 `code-block.tsx`, 푸터는 `footer.tsx`를 사용한다. 동일한 역할의 컴포넌트를 기능 폴더에 복제하지 않는다.
 - 색상·폰트·애니메이션은 [globals.css](../../../src/app/globals.css)의 `@theme` 토큰을 기준으로 삼는다. Tailwind와 [공통 클래스 조합](../../../src/components/ui/styles.ts)을 사용하고, 화면마다 별도 색상 체계·전역 CSS·CSS-in-JS를 만들지 않는다.
 - 필요한 상태가 없으면 기존 컴포넌트의 variant나 props로 확장한다. 기존 사용처에 맞지 않는 책임까지 억지로 합치지는 않으며, 새 공통 요소가 필요한 경우 `src/components/ui`에 추가한다. 공통 변경은 기존 화면과 관련 테스트에서도 확인한다.
