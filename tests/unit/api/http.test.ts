@@ -83,6 +83,7 @@ test("GET query has no body and omits All hashtag; no mock user or auth headers"
     "https://api.example.test/api/v1/learning/quiz?mode=UNSOLVED",
     {
       method: "GET",
+      signal: expect.any(AbortSignal),
       headers: {
         Accept: "application/json",
       },
