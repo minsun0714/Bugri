@@ -19,7 +19,7 @@ import {
   Tag,
   TextField,
 } from "@/components/ui";
-import { Header } from "@/components/ui/header";
+import { ShowcaseHeader } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { ProductPreview } from "@/components/shop/product-preview";
 import { ShopProvider } from "@/components/shop/provider";
@@ -544,36 +544,45 @@ function ShopContent({
 
 export function ShopApp({
   editing = false,
+  embedded = false,
   initialUser = "learner",
 }: {
   editing?: boolean;
+  embedded?: boolean;
   initialUser?: string;
 }) {
   const [userId, setUserId] = useState(initialUser);
+  const ContentContainer = embedded ? "div" : "main";
   return (
     <ShopProvider>
-      <Header
-        preview={false}
-        sections={[
-          ["top", editing ? "내 공간" : "상점"],
-          ...(editing
-            ? ([["desk", "내 데스크"]] as [
-                string,
-                string,
-              ][])
-            : []),
-          ["collection", "컬렉션"],
-          ...(editing
-            ? ([["neighbors", "이웃"]] as [
-                string,
-                string,
-              ][])
-            : []),
-        ]}
-      />
-      <main
-        id="top"
-        className="mx-auto max-w-[1220px] px-5 py-7 md:px-12"
+      {!embedded && (
+        <ShowcaseHeader
+          preview={false}
+          sections={[
+            ["top", editing ? "내 공간" : "상점"],
+            ...(editing
+              ? ([["desk", "내 데스크"]] as [
+                  string,
+                  string,
+                ][])
+              : []),
+            ["collection", "컬렉션"],
+            ...(editing
+              ? ([["neighbors", "이웃"]] as [
+                  string,
+                  string,
+                ][])
+              : []),
+          ]}
+        />
+      )}
+      <ContentContainer
+        id={embedded ? undefined : "top"}
+        className={
+          embedded
+            ? undefined
+            : "mx-auto max-w-[1220px] px-5 py-7 md:px-12"
+        }
       >
         <div className="mb-7 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
           <Link href="/">← Bugri 홈</Link>
@@ -597,8 +606,10 @@ export function ShopApp({
           userId={userId}
           editing={editing}
         />
-      </main>
-      <Footer note="Bugri objects · 작은 공간, 쌓이는 배움" />
+      </ContentContainer>
+      {!embedded && (
+        <Footer note="Bugri objects · 작은 공간, 쌓이는 배움" />
+      )}
     </ShopProvider>
   );
 }

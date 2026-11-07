@@ -1,20 +1,29 @@
 "use client";
 
+import Link from "next/link";
+import { useId } from "react";
 import { useMobileNavigation } from "@/components/ui/hooks/use-mobile-navigation";
 
 export function MobileNavigation({
   sections,
+  activePath,
+  product = false,
 }: {
   sections: string[][];
+  activePath?: string;
+  product?: boolean;
 }) {
   const {
     open,
     setOpen,
-    active,
+    active: hashActive,
     root,
     trigger,
     selectSection,
   } = useMobileNavigation();
+
+  const active = activePath ?? hashActive;
+  const navigationId = useId();
 
   return (
     <div
@@ -34,7 +43,7 @@ export function MobileNavigation({
         type="button"
         aria-label={open ? "메뉴 닫기" : "메뉴 열기"}
         aria-expanded={open}
-        aria-controls="mobile-navigation"
+        aria-controls={navigationId}
         onClick={() => setOpen(!open)}
         className={`grid size-11 place-items-center rounded-2xl border transition-colors ${open ? "border-primary/20 bg-primary/10 text-primary" : "border-line bg-white text-foreground hover:bg-canvas"}`}
       >
@@ -59,8 +68,12 @@ export function MobileNavigation({
       </button>
       {open && (
         <nav
-          id="mobile-navigation"
-          aria-label="모바일 컴포넌트 섹션"
+          id={navigationId}
+          aria-label={
+            product
+              ? "모바일 주 메뉴"
+              : "모바일 컴포넌트 섹션"
+          }
           className="absolute inset-x-3 top-[calc(100%+8px)] max-h-[calc(100dvh-100px)] overflow-y-auto rounded-3xl border border-line bg-white p-3 shadow-[0_16px_45px_-12px_#34204b40]"
         >
           <div className="flex items-center justify-between px-3 pb-3 pt-2">
@@ -68,16 +81,20 @@ export function MobileNavigation({
               EXPLORE BUGRI
             </span>
             <span className="rounded-full bg-lime/50 px-2 py-1 text-[9px] font-semibold text-foreground">
-              UI COLLECTION
+              {product ? "메뉴" : "UI COLLECTION"}
             </span>
           </div>
           <div className="grid gap-1">
             {sections.map(([id, label], i) => (
-              <a
+              <Link
                 key={id}
                 href={id.startsWith("/") ? id : `#${id}`}
                 aria-current={
-                  active === id ? "location" : undefined
+                  active === id
+                    ? product
+                      ? "page"
+                      : "location"
+                    : undefined
                 }
                 onClick={() => selectSection(id)}
                 className={`group flex min-h-14 items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-colors ${active === id ? "bg-primary/10 text-primary" : "text-foreground hover:bg-canvas"}`}
@@ -94,7 +111,7 @@ export function MobileNavigation({
                 >
                   {active === id ? "•" : "↗"}
                 </span>
-              </a>
+              </Link>
             ))}
           </div>
           <div className="mx-3 mt-3 border-t border-line pb-1 pt-3 text-[11px] text-muted">

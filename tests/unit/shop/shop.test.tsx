@@ -287,3 +287,24 @@ it("shows the catalog directly without shop or inventory tabs", async () => {
     screen.queryByRole("link", { name: /이웃/ }),
   ).not.toBeInTheDocument();
 });
+
+it("keeps the personal desk inside its parent layout without duplicate page landmarks", async () => {
+  render(
+    <main>
+      <ShopApp editing embedded initialUser="friend" />
+    </main>,
+  );
+  expect(
+    await screen.findByText("아직 보관한 상품이 없어요"),
+  ).toBeInTheDocument();
+  expect(screen.getAllByRole("main")).toHaveLength(1);
+  expect(
+    screen.queryByRole("banner"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("contentinfo"),
+  ).not.toBeInTheDocument();
+  expect(screen.getByLabelText("더미 사용자")).toHaveValue(
+    "friend",
+  );
+});

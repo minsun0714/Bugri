@@ -1,5 +1,14 @@
 # Bugri 개발 단계와 작업 계획
 
+### NAV-01 — 공통 헤더·브레드크럼
+
+- 상태: DONE(요청한 헤더 통합 범위). 공통 ProductLayout에 제품 헤더·현재 메뉴·모바일 메뉴·브레드크럼을 연결했다. UI 전시의 섹션 헤더는 유지한다. 관련: PAGE_STRUCTURE, REQ-04·05·08 및 접근성 기준.
+- 사용자 요청에 따라 홈 메뉴는 제거하고 로고로 이동한다. 현재 존재하는 탐색·내 퀴즈 경로만 연결하며 상점·마이페이지는 후속 통합에서 추가한다. 브레드크럼은 홈 링크를 유지하고 동적 ID를 노출하지 않는다.
+- `Google 로그인 (데모)` 클릭으로 헤더 상태를 전환한다. 로그인 표시 상태에서는 내 퀴즈·로그아웃을 제공한다. 상태는 브라우저 메모리에서 페이지 이동 중 유지되고 새로고침 시 초기화한다. 기존 본문과 API의 더미 사용자·기록·권한을 변경하지 않는 헤더 전용 데모이며 실제 인증·방문자 랜덤 풀이 구현이 아니다.
+- Node v22.23.3에서 `PLAYWRIGHT_PORT=3296 npm run verify` 전체 통과: lint·TypeScript·Jest 28 suites/129 tests·production build·Chromium E2E 38 tests. 내비게이션 단위 6개와 브라우저 4개를 추가했다. 로고·메뉴·현재 위치·사용자 인자 보존·직접 진입/새로고침/뒤로가기·데모 전환·키보드·Escape/바깥 클릭·모바일 크기 변경을 확인했다.
+- 초기 검사에서는 설치 누락과 Turbopack 포트 제한/오류 캐시로 막혔다. 남아 있던 설치 프로세스는 종료 상태를 확인했고 기존 npm 캐시와 lockfile로 의존성을 복구했다. 생성 산출물은 `/tmp`로 분리 후 권한을 허용한 검증으로 해결했다. package 파일 변경 없음. 브라우저 테스트의 가려진 클릭 대상·화면 전환 대기를 바로잡고 모바일 breakpoint 이벤트 처리를 수정한 후 전체 검증을 통과했다.
+- 독립 UX sub-agent가 최신 데스크톱·모바일·방문자 캡처와 코드를 검토했다. 최초 검토 후 수정·재검토 1회, 필수 미해결 문제 없음. 조작 검증은 메인이 실행한 E2E 근거이며 리뷰어의 직접 브라우저 테스트로 주장하지 않는다. 최종 병합은 사용자 결정이다.
+
 ### FAVICON-BUGRI — 버그리 파비콘
 
 - 상태: IN_PROGRESS. 공통 버그리 캐릭터의 보라색 외곽·연두색 몸·안테나·얼굴을 작은 크기에 맞게 단순화한 벡터 파비콘으로 기존 기본 아이콘을 교체한다.
@@ -928,3 +937,17 @@
 - HTTP 검사는 양쪽 9개 테스트를 모두 유지했고 엔드포인트 계약 합집합 44개를 확인했다. 통합 검증의 첫 lint에서 상수 사이 빈 줄 누락을 수정했다.
 - Node v22.23.3 npm run verify 전체 통과: lint·TypeScript·Jest 36 suites/175 tests·도구 3 tests·build·Playwright 109 tests. 로그 .bugri-hooks/merge-verify-2.log. 충돌 표식과 git diff --check 확인.
 - ux-review-loop 독립 리뷰는 Chromium 1440px/390px 홈 풀이·상점·내 공간·선택 정렬·모달 Esc/포커스 복귀를 확인했으며 병합 회귀 없이 수정 0회로 종료했다. fresh dummy 정상 흐름 중심이며 구매와 모든 배치 제스처를 독립 리뷰에서 확인한 것은 아니다. 캡처 .bugri-hooks/previews/merge-*.png. 사용자 요청에 따라 병합 커밋을 푸시하고 Draft PR #10을 갱신한다.
+
+
+## P08-NAV-MERGE 공통 내비게이션 후속 병합
+
+- 상태: IN_PROGRESS. 최신 dev(cad12b1)의 내비게이션과 기존 편집 기능을 파일별로 통합한다.
+- 첫 파일 `/my`: ProductLayout 안에 기존 ShopApp 편집기를 삽입하고 사용자 쿼리·Suspense·보관함·배치 편집을 보존한다. embedded 모드에서는 자체 헤더·푸터·main을 중복 출력하지 않는다.
+- 관련 상점 단위 테스트 통과. 함께 실행한 navigation 테스트 2개는 새 dev의 메뉴 구성/이름과 기대값 불일치로 실패(내 퀴즈, 탐색). 기대값을 변경하지 않았으며 후속 통합 검증에서 처리해야 한다.
+- 홈과 상점 route 충돌이 남아 있어 전체 verify 및 브라우저/독립 UX 검증은 아직 미실행. 전체 병합 완료 및 검증 후 커밋·push 예정. PR Draft 유지.
+
+- 두 번째 파일 `/`: ProductLayout으로 공통 헤더·푸터·내비게이션을 적용하고 기존 SolveScreen의 Suspense와 상점 진입 링크를 보존했다. Node v22.23.3에서 해당 파일 ESLint 및 풀이 단위 테스트 4개 통과. `/shop` 충돌과 기존 내비게이션 테스트 실패 2개는 남아 있으며 전체 검증·독립 UX 검토는 통합 후 진행한다.
+
+- 세 번째 파일 `/shop`: 공통 ProductLayout 안에 기존 상품·구매·장착 미리보기와 사용자 쿼리/Suspense를 보존했다. 관련 상점 단위 테스트 9개와 route ESLint 통과. 모든 Git 충돌 표시 해소.
+- 후속 전체 검증 1차는 공개 데스크의 Header preview prop 타입 오류로 중단. 공통 Header가 기존 preview를 ShowcaseHeader로 전달하도록 복구하고 TypeScript 통과.
+- 전체 검증 2차(`.bugri-hooks/navigation-merge-verify-2.log`): lint·TypeScript 통과, Jest 180개 통과/2개 실패. 실패는 dev 내비게이션의 최신 프로필 드롭다운/‘개발자·태그 탐색’과 기존 테스트의 상단 ‘내 퀴즈’/‘탐색’ 기대 불일치다. 메뉴 유지 방향을 사용자에게 확인하며 기대값은 아직 수정하지 않았다. build·E2E 및 독립 UX 검증 미실행. 커밋/push 전 검증 대기, Draft 유지.
