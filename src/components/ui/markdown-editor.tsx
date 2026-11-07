@@ -13,6 +13,7 @@ export function MarkdownEditor({
   onChange,
   limit = 10000,
   label = "학습 내용",
+  placeholder,
   preserveOverflow = false,
   layout = "tabs",
   className = "",
@@ -23,6 +24,7 @@ export function MarkdownEditor({
   onChange: (value: string) => void;
   limit?: number;
   label?: string;
+  placeholder?: string;
   preserveOverflow?: boolean;
   className?: string;
   onKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
@@ -99,6 +101,7 @@ export function MarkdownEditor({
         }
         rows={9}
         placeholder={
+          placeholder ??
           "오늘 배운 내용을 Markdown으로 적어보세요.\n\n# 제목\n- 배운 점\n\n코드는 코드 블록 버튼으로 추가할 수 있어요."
         }
       />

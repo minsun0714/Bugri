@@ -8,6 +8,16 @@ import {
 } from "@testing-library/react";
 import { DeveloperScreen } from "@/components/developer/developer-screen";
 
+jest.mock("react-markdown", () => ({
+  __esModule: true,
+  default: ({ children }: { children: string }) => (
+    <div>{children}</div>
+  ),
+}));
+jest.mock("rehype-highlight", () => ({
+  __esModule: true,
+  default: () => {},
+}));
 const push = jest.fn();
 jest.mock("next/navigation", () => ({
   useParams: () => ({ publicId: "bugri-author" }),

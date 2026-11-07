@@ -31,7 +31,7 @@ test("private management leads to a public profile without personal data", async
       name: "프로필 편집",
       exact: true,
     }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await page
     .getByRole("link", { name: "데스크 편집·보유 상품" })
     .click();

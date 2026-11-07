@@ -18,6 +18,7 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { useDemoSession } from "@/components/navigation/demo-session";
+import { ProfileAbout } from "@/components/profile/profile-about";
 import { ApiClientError } from "@/api/client";
 import {
   Button,
@@ -338,6 +339,14 @@ function Catalog({
           )
         )}
       </header>
+      {profile && (
+        <ProfileAbout
+          key={`${userId}:${publicId}:${signedIn}`}
+          userId={userId}
+          publicId={publicId}
+          owner={signedIn && data.user.userId === userId}
+        />
+      )}
       {afterHeader}
       {subscribe.error && (
         <p role="alert">

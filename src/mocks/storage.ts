@@ -1,3 +1,4 @@
+import { validateProfileAbout } from "@/lib/profile-about";
 import { deskItems, validOrder } from "@/lib/desk-order";
 import {
   migratePosition,
@@ -93,6 +94,13 @@ function validateState(
   userId: string,
 ): asserts value is UserState {
   object(value);
+
+  if (value.profileAbout !== undefined)
+    requireValue(
+      Object.keys(validateProfileAbout(value.profileAbout))
+        .length === 0,
+      "저장된 프로필이 올바르지 않습니다.",
+    );
 
   requireValue(
     value.schemaVersion === 1 && value.userId === userId,
