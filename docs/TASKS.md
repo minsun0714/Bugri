@@ -1348,3 +1348,9 @@
 - API 목록·구매/장착·사용자격리·저장복원과 새상품미리보기·공개데스크를 검증하고 독립 UX/UI 화면리뷰 및 최종전체verify 수행. 기존 사용자 데이터 초기화 없음.
 
 - Node v22.23.3 최종 `PLAYWRIGHT_PORT=3426 npm run verify -- -- --workers=2` 통과: lint·TypeScript·Jest50 suites/244개·도구3개·production build·E2E147개. `.bugri-hooks/shop-extra-verify-final.log`. [독립 UX/UI R0](ux-reviews/SHOP-EXTRA-ITEMS.md) 필수문제0·수정0회. 검증 실패 수정3회 기록, 변경파일 Prettier·diff check 통과. 검증 후 변경은 결과 문서뿐이며 커밋, push/PR/merge 없음.
+
+## HEADER-SHOP-LABEL — 상점 메뉴 한글화
+
+- 상태: DONE. 사용자 요청으로 공통 헤더 메뉴 Shop을 상점으로 변경한다. PC/모바일 공통 목록을 사용하고 링크·동작은 유지한다. 단순 문구 수정으로 전체verify/UX루프 대신 변경파일 정적검사·관련 navigation 테스트·PC/모바일 확인을 수행한다.
+
+- Node v22.23.3 변경파일 ESLint/Prettier·navigation 단위8개·E2E6개 통과. PC1280/mobile390 캡처에서 상점 표시와 정렬 확인. 독립 리뷰어가 diff/공통 호출부 확인(문제0, 실제 화면은 구현자 확인). 단순 문구 변경으로 전체verify 미실행. `git diff --check` 통과.

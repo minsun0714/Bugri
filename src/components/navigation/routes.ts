@@ -30,7 +30,7 @@ export function getNavigationItems(
       activePaths: ["/discover/tags"],
     },
     {
-      label: "Shop",
+      label: "상점",
       href: withDemoUser("/shop", userId),
       activePaths: ["/shop"],
     },
