@@ -107,7 +107,11 @@ export function Creation({
         title="버그리와 퀴즈 다듬기"
         layout="conversation"
       >
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          role="region"
+          aria-label="퀴즈 작업 본문"
+        >
           <div className="mb-3 flex items-center gap-2">
             <span className="text-xs text-muted">Mock</span>
             <Tooltip label="작업 공간 도움말">

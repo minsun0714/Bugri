@@ -44,6 +44,12 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   });
   await expect(chat).toBeVisible();
   await expect(
+    page.getByRole("region", { name: "퀴즈 작업 본문" }),
+  ).toHaveCSS("overflow-y", "hidden");
+  await expect(
+    chat.getByRole("log", { name: "대화 내용" }),
+  ).toHaveCSS("overflow-y", "auto");
+  await expect(
     page.getByRole("tablist", { name: "퀴즈 선택" }),
   ).toHaveCount(0);
   await page

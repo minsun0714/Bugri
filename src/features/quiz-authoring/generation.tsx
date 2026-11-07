@@ -91,7 +91,7 @@ export function Generation(props: GenerationProps) {
     }));
   const chatWorkspace = candidate ? (
     <section
-      className="flex h-[calc(100dvh-145px)] min-h-0 flex-col sm:h-[calc(90dvh-145px)]"
+      className="flex min-h-0 flex-1 flex-col"
       aria-label="버그리와 대화"
     >
       <header className="flex shrink-0 items-center justify-between gap-4 border-b border-line pb-4">
@@ -114,7 +114,11 @@ export function Generation(props: GenerationProps) {
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto py-5">
+      <div
+        className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto py-5"
+        role="log"
+        aria-label="대화 내용"
+      >
         <div
           aria-label="첫 사용자 메시지"
           className="max-w-[90%] justify-self-end rounded-2xl bg-primary/10 px-5 py-4"
@@ -209,7 +213,11 @@ export function Generation(props: GenerationProps) {
   return (
     <section
       id="generate"
-      className={styles.stack}
+      className={
+        props.embedded
+          ? "flex min-h-0 flex-1 flex-col gap-6"
+          : styles.stack
+      }
       aria-label="생성 결과 상세"
     >
       {!props.embedded && (
@@ -246,7 +254,7 @@ export function Generation(props: GenerationProps) {
       {batch && candidate && chatOpen && chatWorkspace}
       {batch && candidate && !chatOpen && (
         <section
-          className={styles.stack}
+          className={`${styles.stack} ${props.embedded ? "min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1" : ""}`}
           aria-label="생성 후보"
         >
           <Tabs
