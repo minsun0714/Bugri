@@ -84,7 +84,7 @@ function DiscoveryResults({
     subscribed: boolean,
   ) {
     return (
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         <Button
           size="sm"
           variant="secondary"
@@ -112,7 +112,7 @@ function DiscoveryResults({
   return (
     <div className="space-y-6">
       <form
-        className="flex flex-wrap items-end gap-3"
+        className="flex flex-wrap items-end justify-end gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           onSearch({
@@ -147,9 +147,13 @@ function DiscoveryResults({
       {discovery.error && (
         <div role="alert">
           <p>검색 결과를 불러오지 못했습니다.</p>
-          <Button onClick={() => void discovery.refetch()}>
-            다시 불러오기
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => void discovery.refetch()}
+            >
+              다시 불러오기
+            </Button>
+          </div>
         </div>
       )}
       {subscribe.error && (
@@ -243,7 +247,7 @@ function DiscoveryResults({
           )}
           <nav
             aria-label="검색 결과 페이지"
-            className="flex flex-wrap items-center justify-center gap-4"
+            className="flex flex-wrap items-center justify-end gap-4"
           >
             <Button
               variant="secondary"

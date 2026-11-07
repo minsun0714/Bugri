@@ -121,13 +121,15 @@ export function AnswerForm({
           />
         )}
       </fieldset>
-      <Button
-        type="submit"
-        disabled={!valid}
-        loading={pending}
-      >
-        답 제출
-      </Button>
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          disabled={!valid}
+          loading={pending}
+        >
+          답 제출
+        </Button>
+      </div>
     </form>
   );
 }

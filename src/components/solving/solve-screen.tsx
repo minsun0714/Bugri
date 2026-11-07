@@ -135,15 +135,19 @@ function Session({
       {tags.error && (
         <>
           <ErrorNotice error={tags.error} />
-          <Button onClick={() => void tags.refetch()}>
-            태그 다시 불러오기
-          </Button>
+          <div className="flex justify-end">
+            <Button onClick={() => void tags.refetch()}>
+              태그 다시 불러오기
+            </Button>
+          </div>
         </>
       )}
       {flow.error && (
         <>
           <ErrorNotice error={flow.error} />
-          <Button onClick={flow.retry}>다시 시도</Button>
+          <div className="flex justify-end">
+            <Button onClick={flow.retry}>다시 시도</Button>
+          </div>
         </>
       )}
       {submit.error && <ErrorNotice error={submit.error} />}
@@ -164,7 +168,7 @@ function Session({
               : "다른 태그를 선택해 학습을 이어가세요."
           }
           action={
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-end gap-3">
               {empty === LearningState.EXHAUSTED && (
                 <Button onClick={flow.replay}>
                   다시 풀기
@@ -189,11 +193,13 @@ function Session({
           {attempt.error && (
             <>
               <ErrorNotice error={attempt.error} />
-              <Button
-                onClick={() => void attempt.refetch()}
-              >
-                다시 불러오기
-              </Button>
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => void attempt.refetch()}
+                >
+                  다시 불러오기
+                </Button>
+              </div>
             </>
           )}
           {data && (
@@ -225,12 +231,14 @@ function Session({
                     </p>
                   </div>
                   {!celebrate && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setCelebrate(true)}
-                    >
-                      완료 확인
-                    </Button>
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setCelebrate(true)}
+                      >
+                        완료 확인
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}
@@ -287,7 +295,7 @@ function Session({
               {(data.quiz && data.result) ||
               (!direct &&
                 (data.completedAt || !data.quiz)) ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-end gap-3">
                   {data.quiz && data.result && (
                     <Button onClick={flow.restart}>
                       다시 풀기

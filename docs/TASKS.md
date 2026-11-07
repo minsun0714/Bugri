@@ -151,3 +151,7 @@
 ### P05-RESULT-ACTIONS — 결과 버튼 가로 배치
 - 상태: IN_PROGRESS. 다시 풀기·다음 문제를 같은 flex 행에 배치한다. 직접 풀이 및 이용 불가 퀴즈의 기존 버튼 표시 조건은 유지한다. 기존 재도전·다음 문제 E2E와 전체 verify로 검증한다.
 - 구현·필수 검증 완료, 독립 리뷰 대기. Node v22.23.3에서 PLAYWRIGHT_PORT=3125 npm run verify 통과(lint·TypeScript·Jest 76개·build·Playwright 19개). 3002의 390px 모바일에서 두 버튼 y=890 동일 행 배치를 실제 브라우저로 확인했다. 근거: /tmp/bugri-result-actions-verify.log.
+
+### UI-ACTIONS-RIGHT — 제품 화면 동작 버튼 오른쪽 정렬
+- 상태: IN_PROGRESS. 3002의 풀이 제출·결과·오류/빈 상태, 탐색 구독·학습·페이지 이동, 개발자 페이지 구독·오류·페이지 이동 버튼을 오른쪽 정렬한다. 답안 선택지·필터·탭 같은 입력 요소 및 UI 전시는 범위 밖이다. 기존 동작 테스트와 모바일 배치를 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. Node v22.23.3에서 PLAYWRIGHT_PORT=3125 npm run verify 종료 코드 0(lint·TypeScript·Jest 76개·build·Playwright 19개). 3002의 390px 모바일에서 제출 및 다음 문제 버튼 오른쪽 끝 x=351 일치·가로 넘침 없음을 확인했다.

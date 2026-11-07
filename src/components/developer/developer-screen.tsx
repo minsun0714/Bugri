@@ -47,7 +47,7 @@ function PageControls({
   return (
     <nav
       aria-label={`${label} 페이지`}
-      className="mt-5 flex flex-wrap items-center justify-center gap-3"
+      className="mt-5 flex flex-wrap items-center justify-end gap-3"
     >
       <Button
         size="sm"
@@ -147,9 +147,11 @@ function Catalog({
             ? "개발자를 찾을 수 없습니다"
             : "공개 퀴즈를 불러오지 못했습니다"}
         </h1>
-        <Button onClick={() => void quizzes.refetch()}>
-          다시 불러오기
-        </Button>
+        <div className="flex justify-end">
+          <Button onClick={() => void quizzes.refetch()}>
+            다시 불러오기
+          </Button>
+        </div>
       </div>
     );
   if (!data) return null;
@@ -166,6 +168,7 @@ function Catalog({
           </p>
         </div>
         <Button
+          className="ml-auto"
           variant="secondary"
           disabled={busy || data.subscribed}
           onClick={() =>
@@ -226,9 +229,11 @@ function Catalog({
           {tags.error && (
             <div role="alert">
               <p>태그를 불러오지 못했습니다.</p>
-              <Button onClick={() => void tags.refetch()}>
-                태그 다시 불러오기
-              </Button>
+              <div className="flex justify-end">
+                <Button onClick={() => void tags.refetch()}>
+                  태그 다시 불러오기
+                </Button>
+              </div>
             </div>
           )}
           {tags.data && (
@@ -259,6 +264,7 @@ function Catalog({
                         </span>
                       </button>
                       <Button
+                        className="ml-auto"
                         size="sm"
                         variant="ghost"
                         disabled={busy || subscribed}
