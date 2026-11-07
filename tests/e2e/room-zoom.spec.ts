@@ -99,6 +99,63 @@ for (const width of [1100, 390]) {
         await expect.poll(uncovered).toBe(0);
         await checkCorner();
       }
+      const wallPixels = () =>
+        canvas.evaluate((element) => {
+          const c = element as HTMLCanvasElement;
+          return Array.from(
+            c
+              .getContext("2d")!
+              .getImageData(
+                0,
+                Math.floor(c.height * 0.04),
+                c.width,
+                1,
+              ).data,
+          );
+        });
+      for (const dx of [70, 40, -110]) {
+        const previousWalls = await wallPixels();
+        await page.mouse.move(box.x + 160, box.y + 10);
+        await page.mouse.down();
+        await page.mouse.move(
+          box.x + 160 + dx,
+          box.y + 10,
+          { steps: 8 },
+        );
+        await page.mouse.up();
+        expect(await wallPixels()).not.toEqual(
+          previousWalls,
+        );
+        const floorCenter = await canvas.evaluate(
+          (element, night) => {
+            const c = element as HTMLCanvasElement;
+            const y = Math.floor(c.height * 0.8);
+            const { data } = c
+              .getContext("2d")!
+              .getImageData(0, y, c.width, 1);
+            const rgb = night
+              ? [104, 102, 135]
+              : [215, 223, 191];
+            const xs: number[] = [];
+            for (let x = 0; x < c.width; x++)
+              if (
+                rgb.every(
+                  (v, channel) =>
+                    data[x * 4 + channel] === v,
+                )
+              )
+                xs.push(x);
+            return (
+              Math.abs(
+                (Math.min(...xs) + Math.max(...xs)) / 2 -
+                  c.width / 2,
+              ) / c.width
+            );
+          },
+          name === "달빛 작업실",
+        );
+        expect(floorCenter).toBeLessThan(0.05);
+      }
       for (const [start, end] of [
         [290, 10],
         [10, 290],

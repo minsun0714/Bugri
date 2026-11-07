@@ -1,11 +1,9 @@
+import { createRoomEnvironment } from "@/components/shop/zdog/room-perspective";
 import { tabletopDrop } from "@/lib/desk-surface";
 import { normalizeOrder } from "@/lib/desk-order";
 import { paintLayers } from "@/components/shop/zdog/layers";
 import { roomTheme } from "@/components/shop/room-theme";
-import {
-  room,
-  lightRoomObjects,
-} from "@/components/shop/zdog/room";
+import { lightRoomObjects } from "@/components/shop/zdog/room";
 import * as Zdog from "zdog";
 import { bugri } from "@/components/shop/zdog/bugri";
 import {
@@ -48,18 +46,10 @@ export function createDeskEngine(
   const illustration = new Zdog.Illustration({
     element: canvas,
   });
-  const backdrop = new Zdog.Rect({
-    addTo: illustration,
-    width: 1,
-    height: 1,
-    translate: { z: -10000000 },
-    fill: true,
-    stroke: false,
-    visible: false,
-  });
   const scene = new Zdog.Anchor({ addTo: illustration });
-  let fitRoom: ReturnType<typeof room> | null = null;
+  let rug: Zdog.Anchor | null = null;
   const picker = createPicker();
+  const paintRoom = createRoomEnvironment();
   const owners = new Map<Zdog.Anchor, SceneTarget | null>();
   let content: Zdog.Anchor | null = null;
   let itemLayers: Zdog.Anchor[] = [];
@@ -105,15 +95,18 @@ export function createDeskEngine(
     owners.clear();
     previewAnchor = null;
     const { equipment } = state;
-    fitRoom = equipment.BACKGROUND
-      ? room(
-          new Zdog.Group({
-            addTo: content,
-            updateSort: false,
-          }),
-          equipment.BACKGROUND,
-          true,
-        )
+    rug = equipment.BACKGROUND
+      ? new Zdog.RoundedRect({
+          addTo: content,
+          width: 650,
+          height: 460,
+          cornerRadius: 75,
+          rotate: { x: Math.PI / 2 },
+          fill: true,
+          stroke: false,
+          color: roomTheme(equipment.BACKGROUND).rug,
+          backface: false,
+        })
       : null;
     // Keep the room behind the furnishings at every camera angle.
     const furnishings = new Zdog.Group({
@@ -406,27 +399,9 @@ export function createDeskEngine(
     );
     illustration.translate.y =
       (framingHeight / 2) * Math.cos(radians(pitch)) * zoom;
-    backdrop.visible = Boolean(state.equipment.BACKGROUND);
-    if (backdrop.visible) {
-      backdrop.color = roomTheme(
-        state.equipment.BACKGROUND,
-      ).floor;
-      backdrop.width = (width || 600) / zoom + 4;
-      backdrop.height = (height || 420) / zoom + 4;
-      backdrop.translate.y = -illustration.translate.y;
-      backdrop.updatePath();
-      fitRoom?.(
-        Math.hypot(width || 600, height || 420) / zoom +
-          Math.hypot(framingCenter.x, framingCenter.z) *
-            100 +
-          framingHeight +
-          1800,
-        yaw,
-        {
-          x: framingCenter.x * 100,
-          z: framingCenter.z * 100,
-        },
-      );
+    if (rug) {
+      rug.translate.x = framingCenter.x * 100;
+      rug.translate.z = framingCenter.z * 100;
     }
     anchors.forEach((anchor, category) => {
       const value =
@@ -493,6 +468,18 @@ export function createDeskEngine(
       paintLayers(illustration, context, owners, order);
       context.restore();
     } else illustration.updateRenderGraph();
+    if (state.equipment.BACKGROUND) {
+      const pixelZoom =
+        (zoom * canvas.width) / (width || 600);
+      paintRoom(
+        canvas.getContext("2d")!,
+        state.equipment.BACKGROUND,
+        yaw,
+        pitch,
+        pixelZoom,
+        illustration.translate.y * pixelZoom,
+      );
+    }
     if (state.directManipulation && !state.readOnly) {
       const bounds = picker.render(
         illustration,
