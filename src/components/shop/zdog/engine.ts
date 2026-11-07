@@ -76,6 +76,7 @@ export function createDeskEngine(
     moved: boolean;
     handle: boolean;
     baseOffset: { x: number; y: number } | null;
+    vertical: boolean | null;
   } | null = null;
 
   function rebuild() {
@@ -539,6 +540,10 @@ export function createDeskEngine(
       moved: false,
       handle: Boolean(handleTool),
       baseOffset: null,
+      vertical:
+        category !== Category.DESK && Math.abs(pitch) <= 20
+          ? true
+          : null,
     };
     if (
       category &&
@@ -612,6 +617,15 @@ export function createDeskEngine(
       )
     )
       return;
+    if (
+      drag.tool === DeskTool.MOVE &&
+      drag.moved &&
+      drag.vertical === null
+    )
+      drag.vertical =
+        category !== Category.DESK &&
+        Math.abs(drag.pitch) <= 45 &&
+        Math.abs(dy) > Math.abs(dx);
     let next = { ...transform };
     if (drag.tool === DeskTool.ROTATE)
       // Rendering negates the stored angle, so rightward drag subtracts it.
@@ -627,11 +641,9 @@ export function createDeskEngine(
       const cameraAngle = radians(drag.yaw);
       const screenX = dx / drag.zoom / 100;
       const sine = Math.sin(radians(drag.pitch));
-      // Near the horizon, a ground-plane inverse amplifies tiny drags.
-      // Use a vertical plane at the grabbed depth for movable objects instead.
-      const vertical =
-        category !== Category.DESK &&
-        Math.abs(drag.pitch) <= 20;
+      // Lock the drag plane from the opening gesture so direction changes
+      // cannot switch planes and teleport the object mid-drag.
+      const vertical = drag.vertical;
       if (vertical)
         next.y -=
           dy /
@@ -691,7 +703,10 @@ export function createDeskEngine(
       !drag ||
       !drag.category ||
       drag.category === Category.DESK ||
-      Math.abs(drag.pitch) <= 20
+      Math.abs(drag.pitch) <= 20 ||
+      (drag.vertical &&
+        (event.clientY >= drag.y ||
+          (drag.transform?.y ?? 0) >= tableHeight))
     )
       return null;
     const { category } = drag;

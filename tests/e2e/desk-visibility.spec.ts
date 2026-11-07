@@ -96,6 +96,11 @@ for (const width of [1100, 390]) {
     const center = await productPoint(canvas);
     await page.mouse.move(center.x, center.y);
     await page.mouse.down();
+    // Start horizontally to choose surface placement, then keep that plane
+    // while visiting corners (a vertical start now deliberately changes height).
+    await page.mouse.move(center.x + 6, center.y, {
+      steps: 3,
+    });
     // Visit the same tabletop corners explicitly: free placement no longer clamps drags.
     const zoom = Math.min(
       box.width / 850,
