@@ -1,4 +1,47 @@
-import { test, expect } from "@playwright/test";
+import {
+  test,
+  expect,
+  type Locator,
+  type Page,
+} from "@playwright/test";
+
+async function showYear(summary: Locator) {
+  const heading = summary.getByRole("button", {
+    name: /월별 학습량 보기$/,
+  });
+  if (await heading.count()) await heading.click();
+}
+
+async function showCurrentMonth(summary: Locator) {
+  const current = summary.getByRole("button", {
+    name: "현재 기간",
+  });
+  if (await current.isEnabled()) await current.click();
+}
+
+async function seedHistory(
+  page: Page,
+  learningDate: string,
+) {
+  await page
+    .getByRole("heading", {
+      name: "타입 선언",
+      exact: true,
+    })
+    .waitFor();
+  await page.evaluate((date) => {
+    const key = "bugri:mock:v1:learner";
+    const state = JSON.parse(localStorage.getItem(key)!);
+    state.timeZone = "Asia/Seoul";
+    state.days.push({
+      learningDate: date,
+      timeZone: "Asia/Seoul",
+      completedAt: `${date}T00:00:00Z`,
+    });
+    localStorage.setItem(key, JSON.stringify(state));
+  }, learningDate);
+  await page.reload();
+}
 
 test("home streak updates after submission, survives reload and isolates users", async ({
   page,
@@ -16,7 +59,7 @@ test("home streak updates after submission, survives reload and isolates users",
     summary.getByText("오늘부터 시작"),
   ).toBeVisible();
   await expect(summary.getByRole("table")).toBeVisible();
-  await expect(summary.getByRole("tab")).toHaveCount(2);
+  await expect(summary.getByRole("tab")).toHaveCount(0);
   await page.screenshot({
     path: testInfo.outputPath("streak-empty-desktop.png"),
   });
@@ -155,10 +198,11 @@ test("a returning learner restarts without losing earlier completed days", async
   );
 });
 
-test("period tabs navigate monthly and yearly learning while preserving today's streak", async ({
+test("date heading navigates monthly and yearly learning while preserving today's streak", async ({
   page,
 }, testInfo) => {
   await page.goto("/");
+  await seedHistory(page, "2024-02-29");
   await page
     .getByRole("button", { name: "Google 로그인 (데모)" })
     .click();
@@ -171,9 +215,7 @@ test("period tabs navigate monthly and yearly learning while preserving today's 
     .getByRole("button", { name: "답 제출", exact: true })
     .click();
   await expect(summary.getByText("1일 연속")).toBeVisible();
-  await summary
-    .getByRole("tab", { name: "월", exact: true })
-    .click();
+  await showCurrentMonth(summary);
   await expect(summary.getByRole("table")).toBeVisible();
   await expect(
     summary.getByText("총 1개", { exact: true }),
@@ -193,9 +235,7 @@ test("period tabs navigate monthly and yearly learning while preserving today's 
     path: testInfo.outputPath("period-month-mobile.png"),
     fullPage: true,
   });
-  await summary
-    .getByRole("tab", { name: "년", exact: true })
-    .click();
+  await showYear(summary);
   await expect(
     summary.getByText("총 1개", { exact: true }),
   ).toBeVisible();
@@ -207,13 +247,41 @@ test("period tabs navigate monthly and yearly learning while preserving today's 
     .getByRole("button", { name: /, 1개, 월별 보기$/ })
     .click();
   await expect(
-    summary.getByRole("tab", { name: "월", exact: true }),
+    summary.getByRole("button", {
+      name: /월별 학습량 보기$/,
+    }),
   ).toBeFocused();
   await expect(summary.getByRole("table")).toBeVisible();
-  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Enter");
   await expect(
-    summary.getByRole("tab", { name: "년", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    summary.getByRole("combobox", { name: /연도 선택$/ }),
+  ).toBeVisible();
+  await summary
+    .getByRole("combobox", { name: /연도 선택$/ })
+    .click();
+  await summary
+    .getByRole("option", { name: "2024년" })
+    .click();
+  await expect(
+    summary.getByRole("combobox", {
+      name: "2024년, 연도 선택",
+    }),
+  ).toBeFocused();
+  await summary
+    .getByRole("button", {
+      name: "2024년 2월, 0개, 월별 보기",
+    })
+    .click();
+  await expect(
+    summary.getByRole("table", {
+      name: "2024년 2월 학습 달력",
+    }),
+  ).toBeVisible();
+  await expect(
+    summary.getByRole("button", { name: "이전 기간" }),
+  ).toBeDisabled();
+  await showCurrentMonth(summary);
+
   expect(
     await page.evaluate(
       () =>
@@ -225,15 +293,18 @@ test("period tabs navigate monthly and yearly learning while preserving today's 
       exact: true,
     })
     .click();
+  await showYear(summary);
   await summary
-    .getByRole("tab", { name: "년", exact: true })
+    .getByRole("combobox", { name: /연도 선택$/ })
     .click();
   await page
     .getByLabel("더미 사용자", { exact: true })
     .selectOption("friend");
   await expect(
-    summary.getByRole("tab", { name: "월", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    summary.getByRole("button", {
+      name: /월별 학습량 보기$/,
+    }),
+  ).toBeVisible();
   await expect(
     summary.getByText("총 0개", { exact: true }),
   ).toBeVisible();
@@ -247,6 +318,7 @@ test("learning cards keep their height across empty data and four, five and six 
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
+  await seedHistory(page, "2024-02-29");
   await page
     .getByRole("button", { name: "Google 로그인 (데모)" })
     .click();
@@ -272,9 +344,7 @@ test("learning cards keep their height across empty data and four, five and six 
   ).toBeLessThanOrEqual(1);
   for (const width of [390, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
-    await summary
-      .getByRole("tab", { name: "월", exact: true })
-      .click();
+    await showCurrentMonth(summary);
     await expect(
       summary.getByRole("table", {
         name: "2026년 3월 학습 달력",
@@ -308,9 +378,8 @@ test("learning cards keep their height across empty data and four, five and six 
         (await summary.boundingBox())!.height - fiveWeeks,
       ),
     ).toBeLessThanOrEqual(1);
-    await summary
-      .getByRole("tab", { name: "년", exact: true })
-      .click();
+    await showCurrentMonth(summary);
+    await showYear(summary);
     const populatedYear = (await summary.boundingBox())!
       .height;
     const months = summary.getByRole("button", {
@@ -333,16 +402,30 @@ test("learning cards keep their height across empty data and four, five and six 
       Math.abs(populatedYear - fiveWeeks),
     ).toBeLessThanOrEqual(1);
     await summary
-      .getByRole("tab", { name: "월", exact: true })
+      .getByRole("combobox", { name: /연도 선택$/ })
       .click();
     expect(
       Math.abs(
         (await summary.boundingBox())!.height - fiveWeeks,
       ),
     ).toBeLessThanOrEqual(1);
-    await summary
-      .getByRole("tab", { name: "년", exact: true })
-      .click();
+    await expect(
+      summary.getByRole("combobox", {
+        name: "2026년, 연도 선택",
+      }),
+    ).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(
+      summary.getByRole("combobox", { name: /연도 선택$/ }),
+    ).toBeFocused();
+
+    await showCurrentMonth(summary);
+    expect(
+      Math.abs(
+        (await summary.boundingBox())!.height - fiveWeeks,
+      ),
+    ).toBeLessThanOrEqual(1);
+    await showYear(summary);
     await summary
       .getByRole("button", { name: "이전 기간" })
       .click();
@@ -355,5 +438,132 @@ test("learning cards keep their height across empty data and four, five and six 
           populatedYear,
       ),
     ).toBeLessThanOrEqual(1);
+  }
+});
+
+test("history navigation stops at the first learning month and resets for an empty user", async ({
+  page,
+}) => {
+  await page.clock.install({
+    time: new Date("2026-06-15T03:00:00Z"),
+  });
+  await page.goto("/");
+  await seedHistory(page, "2025-11-15");
+  await page
+    .getByRole("button", { name: "Google 로그인 (데모)" })
+    .click();
+  const summary = page.getByRole("region", {
+    name: "연속 학습",
+    exact: true,
+  });
+  await showYear(summary);
+  await summary
+    .getByRole("button", { name: "이전 기간" })
+    .click();
+  await expect(
+    summary.getByRole("button", { name: "이전 기간" }),
+  ).toBeDisabled();
+  await expect(
+    summary.getByRole("button", {
+      name: "2025년 10월, 0개",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await summary
+    .getByRole("button", {
+      name: "2025년 11월, 0개, 월별 보기",
+    })
+    .click();
+  await expect(
+    summary.getByRole("table", {
+      name: "2025년 11월 학습 달력",
+    }),
+  ).toBeVisible();
+  await expect(
+    summary.getByRole("button", { name: "이전 기간" }),
+  ).toBeDisabled();
+  await summary
+    .getByRole("button", { name: "다음 기간" })
+    .click();
+  await expect(
+    summary.getByRole("button", { name: "이전 기간" }),
+  ).toBeEnabled();
+  await page
+    .getByText("프로토타입 안내 · 사용자 전환", {
+      exact: true,
+    })
+    .click();
+  await page
+    .getByLabel("더미 사용자", { exact: true })
+    .selectOption("friend");
+  await expect(
+    summary.getByRole("table", {
+      name: "2026년 6월 학습 달력",
+    }),
+  ).toBeVisible();
+  await expect(
+    summary.getByRole("button", { name: "이전 기간" }),
+  ).toBeDisabled();
+  await showYear(summary);
+  await expect(
+    summary.getByRole("button", { name: "이전 기간" }),
+  ).toBeDisabled();
+  await expect(
+    summary.getByRole("button", {
+      name: "2026년 5월, 0개",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(
+    summary.getByRole("button", {
+      name: "2026년 6월, 0개, 월별 보기",
+    }),
+  ).toBeEnabled();
+});
+
+test("single-year menu stays compact while the two-column month list remains visible", async ({
+  page,
+}) => {
+  await page.clock.install({
+    time: new Date("2026-11-07T03:00:00Z"),
+  });
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Google 로그인 (데모)" })
+    .click();
+  const summary = page.getByRole("region", {
+    name: "연속 학습",
+    exact: true,
+  });
+  for (const width of [390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await showYear(summary);
+    const height = (await summary.boundingBox())!.height;
+    await summary
+      .getByRole("combobox", { name: "2026년, 연도 선택" })
+      .click();
+    const menu = summary.getByRole("listbox");
+    await expect(menu.getByRole("option")).toHaveCount(1);
+    expect((await menu.boundingBox())!.height).toBeLessThan(
+      100,
+    );
+    await expect(
+      summary.getByRole("button", {
+        name: "2026년 11월, 0개, 월별 보기",
+      }),
+    ).toBeVisible();
+    await expect(
+      summary.getByText("총 0개", { exact: true }),
+    ).toBeVisible();
+    expect(
+      Math.abs(
+        (await summary.boundingBox())!.height - height,
+      ),
+    ).toBeLessThanOrEqual(1);
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(
+      summary.getByRole("combobox"),
+    ).toBeFocused();
   }
 });

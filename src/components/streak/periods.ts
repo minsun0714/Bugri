@@ -88,3 +88,20 @@ export function sumCounts(
     0,
   );
 }
+
+export function firstLearningDate({
+  learningDate: today,
+  completedDates,
+  dailyCounts,
+}: LearningDay): string {
+  return [
+    ...completedDates,
+    ...dailyCounts
+      .filter(({ count }) => count > 0)
+      .map(({ learningDate }) => learningDate),
+  ].reduce(
+    (first, date) =>
+      date <= today && date < first ? date : first,
+    today,
+  );
+}
