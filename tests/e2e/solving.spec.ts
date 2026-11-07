@@ -314,7 +314,7 @@ test("replay creates a separate attempt and users cannot read each other's resul
     }),
   ).toBeDisabled();
   await page
-    .getByRole("button", { name: /데모: 학습자/ })
+    .getByRole("button", { name: "데모 사용자 선택" })
     .click();
   await page
     .getByRole("combobox", { name: "더미 사용자" })

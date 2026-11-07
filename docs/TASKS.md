@@ -1513,7 +1513,7 @@
 
 ## ERROR-PAGES — Next.js 공통 오류 복구
 
-- 상태: IN_PROGRESS. 사용자 요청으로 404, 렌더링 예외, 루트 오류 화면을 구현한다. 관련 기존 요구사항은 REQ-02/05/09의 오류 복구·입력 보존이며 API 실패는 후속 ERROR-TRANSPORT/ERROR-QUERY에서 별도 처리한다.
+- 상태: DONE(기능 구현·통합 전 전체검증 완료). 사용자 요청으로 404, 렌더링 예외, 루트 오류 화면을 구현한다. 관련 기존 요구사항은 REQ-02/05/09의 오류 복구·입력 보존이며 API 실패는 후속 ERROR-TRANSPORT/ERROR-QUERY에서 별도 처리한다.
 - 범위: app 오류 파일, 독립 ErrorPage, preview 빌드 전용 재현 화면, 단위/E2E. 기존 사용자 데이터·정답·에러 원문은 표시하지 않는다.
 - TDD: 미구현 not-found 모듈 때문에 새 단위 테스트 실패 확인. 관련 검사와 독립 UX/UI 리뷰 후 기능 커밋, 공통 코드 전체 검증은 마지막 통합 상태에서 수행한다.
 
@@ -1521,13 +1521,13 @@
 
 ## ERROR-TRANSPORT — HTTP 상태·연결 실패·시간 초과 구분
 
-- 상태: IN_PROGRESS. 기존 API 계약을 유지하면서 비JSON 404/5xx의 status를 보존하고, NETWORK_ERROR/REQUEST_TIMEOUT/INVALID_RESPONSE를 구분한다. 기본15초 요청·본문 제한, abort·timer 정리, 자동재전송 없음.
+- 상태: DONE(기능 구현·통합 전 전체검증 완료). 기존 API 계약을 유지하면서 비JSON 404/5xx의 status를 보존하고, NETWORK_ERROR/REQUEST_TIMEOUT/INVALID_RESPONSE를 구분한다. 기본15초 요청·본문 제한, abort·timer 정리, 자동재전송 없음.
 - TDD: HTML404/500/502/503 상태유실4개와 미구현timeout1개 실패 확인 후 구현. 관련 HTTP 테스트·타입·정적검사·독립 코드리뷰 후 기능 커밋하며 전체검증은 최종통합 시점에 수행한다.
 - Node22.23.3 관련 HTTP17개·전체타입 통과, 변경lint/format 통과(Prettier 줄바꿈 후 공백lint를 정리). 독립 코드리뷰에서 상태보존·본문까지timeout·finally 정리·계약보존 확인, 확정결함 없음. timeout은 표준 fetch의 AbortSignal 준수에 의존하며 헤더전timeout은 별도 테스트 미실행. 전체검증 대기 상태로 기능 커밋한다.
 
 ## ERROR-QUERY — Query·지역 Error Boundary 복구
 
-- 상태: IN_PROGRESS. 기존 기능별 QueryClient 수명/키를 유지하며 공통 실패기록·자동재전송금지, 안전한 메시지, 공개데스크 지역경계+Query reset/수동재조회 연결. 작성·풀이·프로필 입력과 기존 구매 계약 유지. 실제 백엔드/모니터링 도입 없음.
+- 상태: DONE(기능 구현·통합 전 전체검증 완료). 기존 기능별 QueryClient 수명/키를 유지하며 공통 실패기록·자동재전송금지, 안전한 메시지, 공개데스크 지역경계+Query reset/수동재조회 연결. 작성·풀이·프로필 입력과 기존 구매 계약 유지. 실제 백엔드/모니터링 도입 없음.
 - TDD: 미구현 QueryClient/Boundary 모듈 실패 후 구현. Query 재시도/주변화면유지/404·배경갱신분류/mutation입력유지·단일전송 테스트 추가.
 - 관련검사에서 타입 추론·Playwright matcher 오류 및 안전한 메시지 전환으로 로컬 입력검증 안내가 사라지는 회귀를 발견했다. 타입/정확한 matcher를 수정하고 InputValidationError로 앱 내부 검증을 구별했다. 오류 원문·기술코드 UI 기대는 안전한 안내+원문부재로 바꾸고 입력보존·재시도 기대는 유지했다.
 - 현재 관련 단위48개·오류/프로필 production E2E6개 통과. 마지막 입력검증 수정 뒤 전체검증을 실행한다. 독립 UX/UI의 preview 캡처 리뷰와 실제 통합 장애화면 미확인 한계를 분리한다.
@@ -1535,3 +1535,46 @@
 - 최종 기능검증: Node22.23.3 `npm run verify -- -- --workers=2` exit0. lint·전체타입·Jest57 suites/285개·도구3개·production build·E2E173개 통과. 로그 `/tmp/bugri-error-handling-verify.log`. E2E 시작 전 기존 '오류 코드: STORAGE_CORRUPT' 부재 검사를 새 안전한 안내 부재 검사로 일치시키고 해당파일 lint/format도 확인했다. 이후 변경은 검증 기록뿐이다.
 - ERROR-PAGES/ERROR-TRANSPORT/ERROR-QUERY 상태: DONE(기능구현·전체검증). [Query 독립 UX/UI·통합근거](ux-reviews/ERROR-QUERY.md): 필수문제0·시각수정0회, 선택적 모바일문장 줄바꿈1건 보류. global 실제root장애·실HTTP503/네트워크주입은 미확인, 정적문서/HTTP단위/Query통합근거와 구분한다.
 - 사용자 후속 요청으로 PR 게시와 최신dev충돌해결을 수행한다. 최신dev b08085b의 코인전용화면·헤더사용자선택통합을 이어서 검증하며, 위 결과는 통합 전 코드의 검증이다.
+
+## DEMO-SELECTOR-CLEANUP — 중복 데모 전환 UI 제거
+
+- 상태: DONE. 헤더 우측 데모 사용자 선택을 유지하고 로그인 상태에도 노출한다. 헤더 하단 배너·상점 프로필 전환 항목·개발자 탐색 오류의 별도 선택 모달을 제거한다. 사용자별 저장과 기능 진입 시 사용자 선택은 유지한다. 관련 기준: PRD AC-13a 및 1단계 더미 사용자 규칙.
+- Node v22.23.3 최종 `npm run verify -- -- --workers=2` exit 0: lint·전체 타입·Jest 54 suites/273개·도구 3개·production build·E2E 167개 통과. 로그 `/tmp/demo-final-verify.log`. 변경 코드 Prettier·git diff --check 통과. 생성 타입 부재, 중간 시간 초과, 전역 선택 버튼 검사 실패는 [리뷰·검증 기록](ux-reviews/DEMO-SELECTOR-CLEANUP.md)에 보존했다. 최종 코드는 기대값 완화 없이 재검증했다.
+- 독립 UX/UI R0→C1/R1 수정 1회: 320px 헤더 레이블 줄바꿈 해결. UX가 모바일 전환·키보드 열기/닫기·방문자 복귀 직접 확인, UI가 1280/390/320px 캡처 확인. 필수 미해결 문제 없음. 오류 모바일·스크린리더·작성자/타인 상태의 독립 직접 조작은 미확인. 구현자 외 코드 리뷰 완료.
+
+### COIN-ROUTE — 코인 내역 전용 페이지
+
+- 상태: DONE(로컬 검증). 사용자 요청에 따라 `/my`를 `/coin-history`로 변경하고 풀이 기록·학습 시간대 설정 자리표시자를 제거한다. REQ-09의 잔액·거래 내역 규칙은 유지한다.
+- 범위: 페이지·프로필 메뉴·브레드크럼·관련 문서/테스트. 기존 `/my`는 사용자 쿼리를 보존해 새 경로로 연결한다. `/my/desk`는 유지한다.
+- 검증: 페이지 이동 변경으로 scoped lint/format, 전체 타입 검사, 관련 Jest와 navigation/profile/coin E2E 및 독립 UX/UI 화면 리뷰.
+
+- 결과: Node v22.23.3 scoped ESLint/Prettier·전체 TypeScript·Jest 4 suites/19개·production build·관련 E2E 16개 통과. 최초 타입 오류 수정 1회 후 통과. 전체 verify는 미실행(페이지 이동 변경의 로컬 완료 범위).
+- 독립 UX/UI R0와 코드 리뷰 완료, 필수 문제 없음·UI 수정 0회. [리뷰 및 검증 근거](ux-reviews/COIN-ROUTE.md). 화면은 PC/모바일 캡처, 조작은 E2E 근거로 확인. 로딩·오류·게스트 시각 상태는 이번 리뷰에서 미확인.
+
+### COIN-SOFT — 홈과 맞춘 소폭 시각 조정
+
+- 상태: DONE(로컬 검증). 사용자 요청: sub-agent 도움으로 코인 내역을 홈과 맞추고 살짝 귀엽게 조정한다. 기능·배치·제품 규칙은 유지하며 기존 공통 토큰과 코인 표시를 활용한다.
+- 검증: 변경 파일 lint/format, 관련 코인 테스트와 PC/모바일 화면, 독립 UX/UI 리뷰. 시각 전용 변경으로 전체 검증은 요구하지 않는다.
+
+- 결과: 작은 금색 코인·홈과 같은 카드/필터 곡률·연보라 선택색 적용. Node v22.23.3 scoped lint/format·Jest 9개·production build와 1280/390px 필터/키보드/넘침 확인 통과. 독립 UX/UI R0 및 코드 리뷰 필수 문제 없음, 수정 0회. [근거·미확인 범위](ux-reviews/COIN-SOFT.md).
+
+### COIN-PR — 게시 전 최종 검증
+
+- 상태: DONE(게시 전 검증). 사용자 커밋·푸시·PR 요청. 대상 `dev`, 검증 코드 `f25c6f2eb4dd48f31f07570db9aa18623df1d7b3`, Node v22.23.3.
+- `npm run verify`: lint·전체 TypeScript·Jest 54 suites/272개·도구 3개·production build 통과. E2E 최초 4 workers에서 159개 통과/10개 실패로 exit 1. 실패는 로딩/조작 시간 초과, WebGL canvas unavailable·미표시이며 실행 중 시스템 부하가 높았다. 환경 영향 가능성이 있으나 최초 실패를 성공으로 기록하지 않는다.
+- 코드·테스트·타임아웃 변경 없이 `npm run test:e2e -- --last-failed --workers=1` 재검증: 실패한 10개 전부 통과(exit 0). 동일 코드에서 전체 169개 E2E의 성공 결과 확보. 최초 로그 `/tmp/bugri-coin-pr-verify.log`, 재검증 로그 `/tmp/bugri-coin-pr-retry.log`.
+- 독립 UX/UI 및 코드 리뷰는 COIN-ROUTE/COIN-SOFT 기록을 재사용한다. 검증 후 변경은 이 문서뿐이다. `feat/coin-history`를 푸시하고 dev 대상 PR을 생성하며 병합은 수행하지 않는다.
+
+## PR27-DEV-INTEGRATION — 데모 선택 정리와 최신 dev 통합
+
+- 상태: DONE(충돌 해결·전체 통합 검증). PR #27 충돌 해결 요청으로 origin/dev a9045c8을 통합한다. TASKS의 데모 선택 정리·코인 내역 기록을 모두 보존하고, 헤더의 상시 데모 사용자 선택과 코인 내역 메뉴를 함께 유지한다.
+- 독립 통합 코드 리뷰에서 양쪽 기능·경로·테스트·문서 보존과 미해결 충돌 없음 확인. 새 UI 변경 없이 기존 UX/UI 리뷰를 유지한다.
+- Node v22.23.3 `npm run verify -- -- --workers=2` exit 0: lint·전체 타입·Jest 54 suites/274개·도구 3개·production build·E2E 169개 모두 통과. 로그 `/tmp/pr27-integration-verify.log`. 검증 대상은 5d03d14 + dev a9045c8 통합 코드이며 이후 변경은 이 기록뿐이다. PR #27 브랜치를 갱신하며 dev로의 최종 병합은 수행하지 않는다.
+
+## ERROR-DEV-INTEGRATION — 오류 처리와 최신 dev 통합
+
+- 상태: DONE(충돌 해결·전체 통합 검증). 사용자 PR·충돌해결 요청으로 기능완료0365b72에 origin/dev b08085b를 통합한다. TASKS 양쪽기록을 보존하고 개발자탐색의 공통 QueryClient 적용과 중복데모모달 제거를 함께 유지한다. 코인전용경로·헤더사용자선택·관련테스트는 최신dev대로 유지한다.
+- 새 기능/시각 재설계 없이 기존 독립UX/UI 근거를 유지하며 독립 통합코드리뷰와 전체검증을 수행한다.
+
+- 독립 통합 코드리뷰: 양쪽 TASKS 기록 보존(기능상태3줄은 검증결과에 맞춰DONE 정리), 중복제목·충돌마커·미해결인덱스 없음. 개발자QueryClient와중복모달제거·코인경로·헤더선택·테스트 보존 확인. 기존UX/UI 근거와 미확인한계 유지.
+- 최종 Node22.23.3 `npm run verify -- -- --workers=2` exit0: lint·전체타입·Jest57 suites/288개·도구3개·production build·E2E175개 통과. 로그 `/tmp/bugri-error-integration-verify.log`. 검증대상0365b72+dev b08085b 통합코드이며 이후변경은본기록뿐이다. origin/dev가 b08085b로유지됨을확인했고 통합커밋·push·dev대상PR생성까지수행한다. PR병합은수행하지않는다.

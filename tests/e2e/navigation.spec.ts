@@ -195,7 +195,7 @@ for (const width of [1280, 390]) {
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/my?user=author");
+    await page.goto("/coin-history?user=author");
     const trigger = page.getByRole("button", {
       name: "내 프로필",
       exact: true,
