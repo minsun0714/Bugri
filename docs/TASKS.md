@@ -1519,3 +1519,10 @@
 
 - 결과: Node v22.23.3 scoped ESLint/Prettier·전체 TypeScript·Jest 4 suites/19개·production build·관련 E2E 16개 통과. 최초 타입 오류 수정 1회 후 통과. 전체 verify는 미실행(페이지 이동 변경의 로컬 완료 범위).
 - 독립 UX/UI R0와 코드 리뷰 완료, 필수 문제 없음·UI 수정 0회. [리뷰 및 검증 근거](ux-reviews/COIN-ROUTE.md). 화면은 PC/모바일 캡처, 조작은 E2E 근거로 확인. 로딩·오류·게스트 시각 상태는 이번 리뷰에서 미확인.
+
+### COIN-SOFT — 홈과 맞춘 소폭 시각 조정
+
+- 상태: DONE(로컬 검증). 사용자 요청: sub-agent 도움으로 코인 내역을 홈과 맞추고 살짝 귀엽게 조정한다. 기능·배치·제품 규칙은 유지하며 기존 공통 토큰과 코인 표시를 활용한다.
+- 검증: 변경 파일 lint/format, 관련 코인 테스트와 PC/모바일 화면, 독립 UX/UI 리뷰. 시각 전용 변경으로 전체 검증은 요구하지 않는다.
+
+- 결과: 작은 금색 코인·홈과 같은 카드/필터 곡률·연보라 선택색 적용. Node v22.23.3 scoped lint/format·Jest 9개·production build와 1280/390px 필터/키보드/넘침 확인 통과. 독립 UX/UI R0 및 코드 리뷰 필수 문제 없음, 수정 0회. [근거·미확인 범위](ux-reviews/COIN-SOFT.md).

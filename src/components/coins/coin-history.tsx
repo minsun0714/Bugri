@@ -86,7 +86,7 @@ export function CoinHistoryContent({
   return (
     <section
       aria-labelledby="bugcoin-history-heading"
-      className="rounded-2xl border border-line bg-surface px-5 py-6 sm:px-8 sm:py-8"
+      className="rounded-3xl border border-line bg-surface px-5 py-6 sm:px-8 sm:py-8"
     >
       <h2
         id="bugcoin-history-heading"
@@ -121,14 +121,14 @@ export function CoinHistoryContent({
             </span>
             <span
               aria-label="내 잔액"
-              className="mt-2 block [&_.ui-coin]:text-4xl [&_.ui-coin]:tracking-tight [&_.ui-coin]:tabular-nums [&_.ui-coin_>_span]:hidden [&_.ui-coin_small]:ml-1 [&_.ui-coin_small]:text-sm"
+              className="mt-2 block [&_.ui-coin]:text-4xl [&_.ui-coin]:tracking-tight [&_.ui-coin]:tabular-nums [&_.ui-coin]:gap-2.5 [&_.ui-coin_>_span]:-rotate-6 [&_.ui-coin_small]:ml-1 [&_.ui-coin_small]:text-sm"
             >
               <Coin amount={data.balance} />
             </span>
           </div>
           <Tabs
             label="BugCoin 내역 필터"
-            className="[&_[role=tablist]]:gap-1 [&_[role=tablist]]:border-0 [&_[role=tablist]]:overflow-visible [&_[role=tablist]_button]:min-h-10 [&_[role=tablist]_button]:rounded-lg [&_[role=tablist]_button]:border-0 [&_[role=tablist]_button]:px-4 [&_[role=tablist]_button]:py-2 [&_[role=tablist]_button]:text-sm [&_[role=tablist]_button[aria-selected=true]]:bg-primary [&_[role=tablist]_button[aria-selected=true]]:text-white"
+            className="[&_[role=tablist]]:gap-1 [&_[role=tablist]]:border-0 [&_[role=tablist]]:overflow-visible [&_[role=tablist]_button]:min-h-10 [&_[role=tablist]_button]:rounded-xl [&_[role=tablist]_button]:border-0 [&_[role=tablist]_button]:px-4 [&_[role=tablist]_button]:py-2 [&_[role=tablist]_button]:text-sm [&_[role=tablist]_button[aria-selected=true]]:bg-primary/10 [&_[role=tablist]_button[aria-selected=true]]:text-primary"
             panelClassName="pt-3! text-foreground!"
             items={Object.values(HistoryFilter)}
             value={filter}
