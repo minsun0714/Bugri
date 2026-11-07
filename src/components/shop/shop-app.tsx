@@ -523,11 +523,6 @@ export function ShopApp({
           userId={userId}
           editing={editing}
         />
-        <p className="mt-8 text-xs leading-6 text-muted">
-          프로토타입의 더미 BugCoin을 사용합니다. 구매·장착
-          기록은 이 브라우저에 저장되며 브라우저 데이터를
-          지우면 초기화됩니다.
-        </p>
       </main>
       <Footer note="Bugri objects · 작은 공간, 쌓이는 배움" />
     </ShopProvider>
