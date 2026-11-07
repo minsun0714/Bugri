@@ -9,7 +9,6 @@ import {
   TextField,
   Tabs,
 } from "@/components/ui";
-import { Tooltip } from "@/components/ui/tooltip";
 import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
 import { ContentPreview } from "@/features/quiz-authoring/content-preview";
 import { RequestError } from "@/features/quiz-authoring/feedback";
@@ -349,12 +348,6 @@ export function Generation(props: GenerationProps) {
                           >
                             바로 공개
                           </Button>
-                          <Tooltip label="바로 공개 도움말">
-                            현재 퀴즈의
-                            문제·정답·해설·태그를 확인했다는
-                            뜻으로, 이 퀴즈 한 개를 저장하고
-                            모두에게 공개합니다.
-                          </Tooltip>
                         </div>
                         <div className="flex items-center gap-1">
                           <Button
@@ -368,10 +361,6 @@ export function Generation(props: GenerationProps) {
                           >
                             임시저장
                           </Button>
-                          <Tooltip label="저장 도움말">
-                            공개하지 않고 검토할 퀴즈로
-                            저장합니다.
-                          </Tooltip>
                         </div>
                       </div>
                     ))}
