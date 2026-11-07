@@ -17,9 +17,12 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
     )
     .evaluateAll((elements) =>
       elements
-        .filter((element) => element.getClientRects().length > 0)
         .filter(
-          (element) => getComputedStyle(element).cursor !== "pointer",
+          (element) => element.getClientRects().length > 0,
+        )
+        .filter(
+          (element) =>
+            getComputedStyle(element).cursor !== "pointer",
         )
         .map((element) => element.outerHTML.slice(0, 120)),
     );
@@ -138,4 +141,16 @@ test("header logo returns to home from learning and discovery pages", async ({
       (url) => url.pathname === "/",
     );
   }
+});
+
+test("header logo returns from authoring to home", async ({
+  page,
+}) => {
+  await page.goto("/quizzes/authoring");
+  await page
+    .getByRole("link", { name: "Bugri 홈", exact: true })
+    .click();
+  await expect(page).toHaveURL(
+    (url) => url.pathname === "/",
+  );
 });

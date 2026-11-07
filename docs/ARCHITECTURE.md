@@ -25,6 +25,22 @@ UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID�
 
 채점·보상·구매 등 제품 규칙은 API 뒤 서비스가 결정한다. React 밖에서 사용할 수 있는 순수 입력 검증·텍스트 변환과, 상태·이벤트·비동기 흐름을 조율하는 훅을 구분한다. 작은 토글·표시용 계산은 컴포넌트에 두어도 된다. 사용자별 캐시 격리, mutation 이후 관련 데이터 갱신, 입력 보존·초기화 등 구체적인 구현 기준은 [implement-feature](../.agents/skills/implement-feature/SKILL.md#ui비즈니스-규칙api-상태-분리)를 따른다.
 
+### 퀴즈 작성 화면
+
+`/quizzes/authoring`은 바깥 학습 입력과 생성 버튼을 제공한다. 퀴즈 선택은 공통 Tabs의 키보드 탐색을 사용한다. 후보 카드에는 퀴즈와 직접 수정·LLM으로 수정 버튼을 표시한다. 직접 수정은 후보 카드 아래에 펼치고, LLM 수정은 Modal 본문 전체를 별도의 대화 화면으로 전환한다. 대화 화면에서 퀴즈로 돌아가도 후보별 로컬 초안과 미전송 요청을 보존하고 반영·취소는 해당 후보에만 적용한다. 미반영 초안이 포함된 일괄 저장은 막고 페이지 이탈 경고를 유지한다. 저장은 해당 콘텐츠 하단에 표시한다. 생성 후 공통 Modal에는 후보를 먼저 표시한다. 내장된 생성 결과는 Modal과 작업 공간의 overflow를 잠그고 공통 Tabs의 panel에만 세로 스크롤을 둬 헤더와 퀴즈 선택 탭을 고정한다. 바로 공개는 후보 한 개의 명시적 검토·PUBLIC 승인 요청이며 서비스의 publishCandidate에서 검증·저장을 한 번에 수행한다. batch 쿼리 파라미터로 반영된 작업을 새로고침 후 복원한다. 기존 `/quizzes/authoring/results?batch={id}` 직접 접근은 유지하되 생성 후 자동 이동하지 않는다. `/quizzes/authoring/manage`는 저장한 퀴즈의 검토·승인·관리를 담당한다. 검토 상세는 저장된 미리보기를 기본으로 표시하고 직접 수정할 때만 편집 폼으로 전환한다. 추가 프롬프트 재생성은 직접 수정과 나란한 버튼에서 공통 Modal을 열고, 실패하면 입력과 모달을 유지하며 성공하면 닫고 새 PENDING 미리보기로 돌아간다. 수정 저장 후 미리보기로 돌아가며, 화면의 승인 한 번이 `MARK_REVIEWED`와 `approve`를 최신 버전으로 순서대로 요청한다. 승인된 기존 버전은 PENDING 수정본이 있을 때 접힌 비교 영역으로만 제공한다. 후보의 직접 편집·추가 요청은 타입 API에서 검증하고 새 candidateId로 오래된 수정 충돌을 막는다. UI는 Mock·localStorage를 직접 접근하지 않는다. 미반영 편집·추가 요청은 모달 닫기 시 유지하며 페이지 이탈 경고를 적용한다.
+
+Modal 자체는 `overflow-hidden`을 유지한다. 작성 작업 본문도 외부 스크롤을 만들지 않으며, LLM 대화 화면의 메시지 컨테이너와 일반 후보 화면의 후보 컨테이너가 각각 내부 스크롤을 담당한다.
+
+LLM 대화 본문의 ref는 대화 mode 진입과 candidateId 변경을 감지해 `scrollTop`을 `scrollHeight`로 맞춘다. 화면을 다시 열거나 재생성 응답으로 후보가 교체될 때 최신 메시지를 표시한다.
+
+직접 수정 mode에서는 `ContentPreview`를 렌더링하지 않고 후보별 `ContentFields`만 렌더링한다. 초안 반영·취소와 mode 전환 상태는 기존 `useGeneration` 경계를 유지한다.
+
+`useGeneration`은 후보별 직접 수정 초안과 LLM 요청 초안을 별도 map으로 유지한다. 직접 수정 초안이 있어도 `refineCandidate`를 호출할 수 있고, 성공한 LLM 결과 뒤에도 직접 수정 초안을 보존한다. 이후 `editCandidate`를 반영하면 최신 candidateId를 사용해 그 내용을 현재 후보로 교체하므로 마지막으로 성공한 반영 결과가 유효하다.
+
+관리 상세는 목록 복귀·제목·상태를 하나의 sticky 헤더로 묶는다. `ContentFields`는 기본 정보·문제 구성·해설·분류 섹션을 제공하고, 원본은 접힌 상태로 두며, 추천 태그는 입력 아래의 칩으로 표시한다. 편집 중 변경 상태·취소·저장은 viewport 하단 고정 바가 담당하고, 재조회는 보조 아이콘, 삭제는 비편집 상태의 독립 위험 영역으로 분리한다.
+
+생성 후보별 검토·승인 링크는 두지 않는다. 남은 후보가 모두 저장 또는 공개되면 첫 번째 처리된 퀴즈로 이동하는 단일 검토·승인 진입을 상단에 표시한다. 후보 삭제는 타입 API로 묶음을 갱신하며, 이미 저장·공개된 후보의 연결 퀴즈는 기존 `deletedAt` soft delete 규칙을 적용한다. 모든 후보를 삭제한 `GenerationBatch`는 빈 배열을 정상 상태로 저장·복원한다. 생성 모달은 미처리 후보가 남은 경우에만 닫기를 확인하며, 공통 Modal은 cancel 이벤트의 기본 닫기를 막고 주입된 `onClose`가 승인한 상태 변경으로만 닫힘을 제어한다. UI는 Mock나 localStorage를 직접 변경하지 않는다.
+
 ### UI 스타일링
 
 Tailwind CSS v4를 `@tailwindcss/postcss`로 Next.js 빌드에 연결한다. `src/app/globals.css`의 `@theme`에서 색상·폰트·애니메이션 토큰을 정의하고, 컴포넌트는 Tailwind 유틸리티로 레이아웃·상태·반응형을 표현한다. 긴 클래스 조합은 해당 디렉터리의 `styles.ts`에 완성된 문자열로 둔다. 이는 빌드 시 추출되는 클래스 목록이며 CSS-in-JS 런타임이 아니다.
@@ -78,25 +94,25 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 
 REST 교체 시 기본 경로는 `/api/v1`이며 요청·응답 타입을 1단계부터 정의한다. 아래 경로는 계약이며 1단계 브라우저 어댑터에 실제 HTTP 호출을 강제하지 않는다. 성공은 `{ data: ... }`, 오류는 `{ error: { code, message, fieldErrors?, requestId } }` 형식을 쓴다. `sourceContent`는 언어 지정 코드 블록을 포함해 유니코드 코드 포인트 최대 10,000자이며 공백뿐이면 거부한다. UI는 `현재 / 10,000자`를 즉시 표시한다. Mock·실제 API 모두 출력 퀴즈 1~5개와 퀴즈당 태그 3개 상한을 검증한다.
 
-| 경로                                                                                                            | 1단계 Mock API 응답                                                              | 2단계 REST API                                    |
-| --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
-| POST /quizzes/generate, GET /generation-batches/{id}                                                            | 더미 퀴즈 후보 1~5개·저장 여부                                                   | 실제 생성 결과·영속 후보 조회                     |
-| POST /generation-batches/{id}/save                                                                              | SINGLE(candidateId) 또는 ALL; 독립 PENDING 퀴즈 반환                             | 중복 저장 방지·영속화                             |
-| GET /quizzes, GET /quizzes/{id}/review, PUT /quizzes/{id}/pending                                               | 더미 사용자별 목록·작성자 검토                                                   | JWT·내부 User ID 소유권 검사                      |
-| POST /quizzes/{id}/regenerate, POST /quizzes/{id}/approve, PATCH /quizzes/{id}/visibility, DELETE /quizzes/{id} | 수정본·승인·공개 범위·삭제 UX                                                    | 버전 검사·영속화·실제 권한 검사                   |
-| GET/POST/DELETE /subscriptions                                                                                  | 3종 구독 Mock 상태                                                               | 인증된 사용자 구독 영속화                         |
-| GET /discover/users, GET /discover/hashtags                                                                     | 더미 개발자·태그 탐색                                                            | 실제 공개 데이터 탐색                             |
-| GET /discover/search | kind·query·page·pageSize로 검색·페이지 조회, 결과별 구독 여부와 total 반환. 화면은 20개씩 표시 | 서버 검색·정렬·페이지 조회 |
-| GET /learning/tags                                                                                              | 구독 범위의 더미 기술 태그 선택지                                                | 실제 구독 조건에 맞는 PUBLIC 퀴즈의 태그          |
-| GET /learning/quiz                                                                                              | hashtagId?(전체면 생략), mode(UNSOLVED/REPLAY); 현재 문제 또는 빈 상태·소진 여부 | 구독·태그·완료 기록으로 후보 조회                 |
-| POST /learning/next                                                                                             | 현재 선택 hashtagId?, mode; 다음 문제에도 같은 태그 유지                         | 새 후보 조회·접근 검사                            |
-| GET /learning/day                                                                                               | 사용자 시간대·학습일·당일 완료 조건                                              | 서버 UTC 완료 기록과 사용자 시간대 기준 조회      |
-| GET/PATCH /me/learning-timezone                                                                                 | IANA 시간대 조회·변경·사용자별 localStorage 저장                                 | 인증된 사용자 설정 검증·저장; 과거 기록/보상 유지 |
-| POST /quizzes/{id}/attempts, GET /attempts/{id}, POST /attempts/{id}/answer                                     | 풀이·채점 UX, 미제출 정답 비노출                                                 | JWT·버전별 채점·풀이 영속화                       |
-| GET /shop/products, GET /me/bugcoin, POST /shop/purchases                                                       | 상품·더미 잔액·구매 결과와 부족/중복 오류                                        | 실제 BugCoin 잔액·원장·구매 트랜잭션              |
-| GET /me/inventory, PUT /me/desk/equipment, GET /users/{publicId}                                                | 보관함·장착·타인 데스크 UX                                                       | 소유권 검사·영속화                                |
-| POST /admin/shop/products                                                                                       | 1단계 필수 아님; 필요하면 더미 관리자 화면만                                     | 내부 User 관리자 권한으로 직접 상품 등록          |
-| GET /auth/google/start, GET /auth/google/callback, GET /auth/me, POST /auth/logout                              | 실제 인증 경로 없음; 더미 사용자 상태만 제공                                     | Google OAuth2·JWT 발급/검증·로그아웃              |
+| 경로                                                                                                            | 1단계 Mock API 응답                                                                            | 2단계 REST API                                    |
+| --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| POST /quizzes/generate, GET /generation-batches/{id}                                                            | 더미 퀴즈 후보 1~5개·저장 여부                                                                 | 실제 생성 결과·영속 후보 조회                     |
+| POST /generation-batches/{id}/save                                                                              | SINGLE(candidateId) 또는 ALL; 독립 PENDING 퀴즈 반환                                           | 중복 저장 방지·영속화                             |
+| GET /quizzes, GET /quizzes/{id}/review, PUT /quizzes/{id}/pending                                               | 더미 사용자별 목록·작성자 검토                                                                 | JWT·내부 User ID 소유권 검사                      |
+| POST /quizzes/{id}/regenerate, POST /quizzes/{id}/approve, PATCH /quizzes/{id}/visibility, DELETE /quizzes/{id} | 수정본·승인·공개 범위·삭제 UX                                                                  | 버전 검사·영속화·실제 권한 검사                   |
+| GET/POST/DELETE /subscriptions                                                                                  | 3종 구독 Mock 상태                                                                             | 인증된 사용자 구독 영속화                         |
+| GET /discover/users, GET /discover/hashtags                                                                     | 더미 개발자·태그 탐색                                                                          | 실제 공개 데이터 탐색                             |
+| GET /discover/search                                                                                            | kind·query·page·pageSize로 검색·페이지 조회, 결과별 구독 여부와 total 반환. 화면은 20개씩 표시 | 서버 검색·정렬·페이지 조회                        |
+| GET /learning/tags                                                                                              | 구독 범위의 더미 기술 태그 선택지                                                              | 실제 구독 조건에 맞는 PUBLIC 퀴즈의 태그          |
+| GET /learning/quiz                                                                                              | hashtagId?(전체면 생략), mode(UNSOLVED/REPLAY); 현재 문제 또는 빈 상태·소진 여부               | 구독·태그·완료 기록으로 후보 조회                 |
+| POST /learning/next                                                                                             | 현재 선택 hashtagId?, mode; 다음 문제에도 같은 태그 유지                                       | 새 후보 조회·접근 검사                            |
+| GET /learning/day                                                                                               | 사용자 시간대·학습일·당일 완료 조건                                                            | 서버 UTC 완료 기록과 사용자 시간대 기준 조회      |
+| GET/PATCH /me/learning-timezone                                                                                 | IANA 시간대 조회·변경·사용자별 localStorage 저장                                               | 인증된 사용자 설정 검증·저장; 과거 기록/보상 유지 |
+| POST /quizzes/{id}/attempts, GET /attempts/{id}, POST /attempts/{id}/answer                                     | 풀이·채점 UX, 미제출 정답 비노출                                                               | JWT·버전별 채점·풀이 영속화                       |
+| GET /shop/products, GET /me/bugcoin, POST /shop/purchases                                                       | 상품·더미 잔액·구매 결과와 부족/중복 오류                                                      | 실제 BugCoin 잔액·원장·구매 트랜잭션              |
+| GET /me/inventory, PUT /me/desk/equipment, GET /users/{publicId}                                                | 보관함·장착·타인 데스크 UX                                                                     | 소유권 검사·영속화                                |
+| POST /admin/shop/products                                                                                       | 1단계 필수 아님; 필요하면 더미 관리자 화면만                                                   | 내부 User 관리자 권한으로 직접 상품 등록          |
+| GET /auth/google/start, GET /auth/google/callback, GET /auth/me, POST /auth/logout                              | 실제 인증 경로 없음; 더미 사용자 상태만 제공                                                   | Google OAuth2·JWT 발급/검증·로그아웃              |
 
 `ReviewQuiz`와 생성 후보는 정답·해설을 포함하는 작성자용 DTO다. `AttemptView`·`LearningQuizView`·공개 목록에는 미제출 정답·해설·원본 학습 내용을 넣지 않는다. 제출 후 결과에만 정답·해설을 제공한다. PUBLIC은 다른 사용자가 풀 수 있고 PRIVATE는 작성자만 푸는 흐름을 1단계에서 모사하며, 실제 접근 통제는 2단계에서 보장한다. 홈 구독 피드 API는 두 단계의 현재 범위에 없다.
 
@@ -122,3 +138,9 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 - 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부·시간대 변경 전후 일일 보상 중복 판정 세부 기준, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, BugCoin 지급량, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
 
 - 개발자 공개 목록: `/developers/[publicId]/quizzes` → TanStack Query → typed API `developerQuizzes/developerTags` → 공개 목록 서비스. 브라우저 Mock은 사용자별 구독과 전체 작성자의 저장된 공개 상태를 읽으며, HTTP 전환은 GET `/developers/{publicId}/quizzes` 및 `/developers/{publicId}/tags` 계약을 사용한다. 작성자 CRUD·전체 프로필/데스크와 독립된 공개 퀴즈·태그 조회 화면이다.
+
+## 비로그인 홈 체험 — 문서 합의, 구현 별도
+
+PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따른다. 기존 구독 기반 학습·사용자별 Attempt·학습일·보상 설명은 로그인 사용자(1단계 더미 사용자) 대상이다. 비로그인 방문자는 전체 활성 PUBLIC 퀴즈의 랜덤 풀이·제출 후 해설·다음 문제만 체험하고 개인 기록·스트릭·보상을 남기지 않는다. 익명 소유권이나 더미 사용자 계정에 방문자 기록을 저장하지 않는다.
+
+기존 사용자 기반 API 계약이 이 방문자 기능을 이미 지원한다는 의미는 아니다. 구현 시 별도의 방문자 조회·채점 계약과 제출 전 정답 비노출, 제출 시 공개·삭제 상태 확인을 정의해야 한다. 이번 문서 변경에서는 DTO·엔드포인트·코드를 추가하지 않는다. 1단계 실제 인증·서버 영속성 제외 정책은 유지한다.

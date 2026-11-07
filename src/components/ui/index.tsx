@@ -8,6 +8,8 @@ import {
   useRef,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
+  type KeyboardEventHandler,
+  type SelectHTMLAttributes,
   type ReactNode,
 } from "react";
 
@@ -120,13 +122,28 @@ export function TextArea({
   value,
   onChange,
   limit = 10000,
+  showCount = true,
+  id: suppliedId,
+  placeholder = "오늘 배운 내용을 자유롭게 적어보세요. 코드도 좋아요.",
+  rows = 5,
+  disabled,
+  className,
+  onKeyDown,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   limit?: number;
+  showCount?: boolean;
+  id?: string;
+  placeholder?: string;
+  rows?: number;
+  disabled?: boolean;
+  className?: string;
+  onKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
 }) {
-  const id = useId();
+  const generated = useId();
+  const id = suppliedId ?? generated;
   const { length: count } = Array.from(value);
 
   return (
@@ -135,20 +152,30 @@ export function TextArea({
       <textarea
         id={id}
         value={value}
-        onChange={(event) =>
+        onChange={(event) => {
+          const characters = Array.from(event.target.value);
+
           onChange(
-            Array.from(event.target.value)
-              .slice(0, limit)
-              .join(""),
-          )
+            Number.isFinite(limit)
+              ? characters.slice(0, limit).join("")
+              : characters.join(""),
+          );
+        }}
+        aria-describedby={
+          showCount ? `${id}-count` : undefined
         }
-        aria-describedby={`${id}-count`}
-        placeholder="오늘 배운 내용을 자유롭게 적어보세요. 코드도 좋아요."
-        rows={5}
+        placeholder={placeholder}
+        rows={rows}
+        disabled={disabled}
+        className={className}
+        onKeyDown={onKeyDown}
       />
-      <small id={`${id}-count`} className={"counter"}>
-        {count.toLocaleString()} / {limit.toLocaleString()}
-      </small>
+      {showCount && (
+        <small id={`${id}-count`} className={"counter"}>
+          {count.toLocaleString()} /{" "}
+          {limit.toLocaleString()}
+        </small>
+      )}
     </div>
   );
 }
@@ -156,19 +183,34 @@ export function TextArea({
 export function Select({
   label,
   options,
-}: {
+  id,
+  ...props
+}: Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  "children"
+> & {
   label: string;
-  options: string[];
+  options: (string | { value: string; label: string })[];
 }) {
-  const id = useId();
+  const generated = useId();
+  const fieldId = id ?? generated;
 
   return (
     <div className={styles["ui-field"]}>
-      <label htmlFor={id}>{label}</label>
-      <select id={id}>
-        {options.map((option) => (
-          <option key={option}>{option}</option>
-        ))}
+      <label htmlFor={fieldId}>{label}</label>
+      <select {...props} id={fieldId}>
+        {options.map((option) => {
+          const { value, label: text } =
+            typeof option === "string"
+              ? { value: option, label: option }
+              : option;
+
+          return (
+            <option key={value} value={value}>
+              {text}
+            </option>
+          );
+        })}
       </select>
     </div>
   );
@@ -339,21 +381,31 @@ export function Tabs({
   children,
   label = "컴포넌트 미리보기",
   disabled = false,
-  panelClassName = styles["tab-panel"],
+  className = "",
+  panelClassName = "",
 }: {
+  label?: string;
+  disabled?: boolean;
   items: string[];
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
-  label?: string;
-  disabled?: boolean;
+  className?: string;
   panelClassName?: string;
 }) {
   const id = useId();
   const index = items.indexOf(value);
+  const pendingTabFocus = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (pendingTabFocus.current !== value) return;
+
+    document.getElementById(`${id}-${index}`)?.focus();
+    pendingTabFocus.current = null;
+  }, [id, index, value]);
 
   return (
-    <div>
+    <div className={`min-w-0 ${className}`}>
       <div
         className={styles["ui-tabs"]}
         role="tablist"
@@ -362,6 +414,7 @@ export function Tabs({
         {items.map((item, i) => (
           <button
             type="button"
+            disabled={disabled}
             key={item}
             role="tab"
             id={`${id}-${i}`}
@@ -386,6 +439,7 @@ export function Tabs({
                 next = items.length - 1;
               else return;
               event.preventDefault();
+              pendingTabFocus.current = items[next];
               onChange(items[next]);
               document
                 .getElementById(`${id}-${next}`)
@@ -401,7 +455,7 @@ export function Tabs({
         id={`${id}-panel`}
         aria-labelledby={`${id}-${index}`}
         tabIndex={0}
-        className={panelClassName}
+        className={`${styles["tab-panel"]} ${panelClassName}`}
       >
         {children}
       </div>
@@ -415,7 +469,9 @@ export function Modal({
   title,
   children,
   initialFocusSelector,
+  layout = "default",
 }: {
+  layout?: "default" | "conversation";
   open: boolean;
   onClose: () => void;
   title: string;
@@ -435,20 +491,22 @@ export function Modal({
           ?.querySelector<HTMLElement>(initialFocusSelector)
           ?.focus();
     } else dialog?.close();
+
+    return () => dialog?.close();
   }, [open, initialFocusSelector]);
 
   return (
     <dialog
       ref={ref}
-      className={styles["ui-modal"]}
+      className={
+        layout === "conversation"
+          ? styles["conversation-modal"]
+          : styles["ui-modal"]
+      }
       aria-labelledby={id}
-      onCancel={onClose}
-      onClose={onClose}
-      onKeyDown={(event) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          onClose();
-        }
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
       }}
     >
       <div className={styles["modal-header"]}>

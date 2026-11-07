@@ -24,6 +24,7 @@ Bugri is a developer learning platform with AI-generated quizzes.
 - For API/Mock changes, also read [API contracts and usage](docs/API.md). Consult the relevant PRD sections for quiz generation/revisions, subscriptions, learning/timezones, and shop behavior.
 - For code changes, read [coding conventions](docs/CODING_CONVENTIONS.md).
 - For requested feature implementation or fixes, use [implement-feature](.agents/skills/implement-feature/SKILL.md). Its verification reference also applies to refactoring and configuration changes.
+- After meaningful UI implementation or changes, use [ux-review-loop](.agents/skills/ux-review-loop/SKILL.md): delegate actual screen review to one independent UX sub-agent, then let the implementer fix and reverify at most three times. This explicitly authorizes that review delegation; documentation-only work does not start the UI loop.
 - For PR preparation, creation, or updates, use [prepare-pr](.agents/skills/prepare-pr/SKILL.md). Ordinary implementation does not itself authorize publishing a PR.
 - For documentation-only changes, follow the documentation exception in the [verification guide](.agents/skills/implement-feature/references/verification.md); do not start implementation or the feature Hook.
 
@@ -44,6 +45,7 @@ Bugri is a developer learning platform with AI-generated quizzes.
 - Keep static utility strings and variant mappings beside their components in `styles.ts` when long class lists need reuse. Class names must be complete literals for Tailwind detection, never interpolated fragments.
 - Global CSS is limited to the Tailwind import, theme/keyframes, and document-wide base/accessibility rules. Use local arbitrary variants for Markdown/highlight output and pseudo-elements; do not restore global component selectors or CSS Modules.
 - Preserve keyboard focus, reduced-motion behavior, and mobile layouts when changing styles.
+- Avoid unsolicited explanatory copy beneath headings, cards, and buttons. Put necessary supplementary help in accessible tooltips; follow the UI copy rules in [coding conventions](docs/CODING_CONVENTIONS.md).
 
 ## Coding essentials
 

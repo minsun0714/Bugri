@@ -42,3 +42,11 @@ export const DiscoveryKind = {
 
 export type DiscoveryKind =
   (typeof DiscoveryKind)[keyof typeof DiscoveryKind];
+
+export const ConversationRole = {
+  USER: "USER",
+  ASSISTANT: "ASSISTANT",
+} as const;
+
+export type ConversationRole =
+  (typeof ConversationRole)[keyof typeof ConversationRole];

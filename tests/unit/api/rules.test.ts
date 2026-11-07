@@ -621,7 +621,9 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
     },
   });
 
-  expect(await client.request("learningNext", {})).toMatchObject({
+  expect(
+    await client.request("learningNext", {}),
+  ).toMatchObject({
     state: LearningState.EXHAUSTED,
     mode: LearningMode.UNSOLVED,
     quiz: null,
