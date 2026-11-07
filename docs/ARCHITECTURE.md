@@ -31,6 +31,8 @@ UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID�
 
 Modal 자체는 `overflow-hidden`을 유지한다. 작성 작업 본문도 외부 스크롤을 만들지 않으며, LLM 대화 화면의 메시지 컨테이너와 일반 후보 화면의 후보 컨테이너가 각각 내부 스크롤을 담당한다.
 
+LLM 대화 본문의 ref는 대화 mode 진입과 candidateId 변경을 감지해 `scrollTop`을 `scrollHeight`로 맞춘다. 화면을 다시 열거나 재생성 응답으로 후보가 교체될 때 최신 메시지를 표시한다.
+
 직접 수정 mode에서는 `ContentPreview`를 렌더링하지 않고 후보별 `ContentFields`만 렌더링한다. 초안 반영·취소와 mode 전환 상태는 기존 `useGeneration` 경계를 유지한다.
 
 `useGeneration`은 후보별 직접 수정 초안과 LLM 요청 초안을 별도 map으로 유지한다. 직접 수정 초안이 있어도 `refineCandidate`를 호출할 수 있고, 성공한 LLM 결과 뒤에도 직접 수정 초안을 보존한다. 이후 `editCandidate`를 반영하면 최신 candidateId를 사용해 그 내용을 현재 후보로 교체하므로 마지막으로 성공한 반영 결과가 유효하다.

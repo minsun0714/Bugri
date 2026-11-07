@@ -201,6 +201,60 @@ test("keeps direct and LLM edits independent and applies the last confirmed chan
   ).toBeVisible();
 });
 
+test("returns to the latest message when reopening LLM chat", async () => {
+  const previous = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "scrollHeight",
+  );
+  Object.defineProperty(
+    HTMLElement.prototype,
+    "scrollHeight",
+    {
+      configurable: true,
+      get: () => 800,
+    },
+  );
+
+  try {
+    await setup();
+    fireEvent.click(
+      screen.getByRole("button", { name: "LLM으로 수정" }),
+    );
+    const firstLog = screen.getByRole("log", {
+      name: "대화 내용",
+    });
+    await waitFor(() =>
+      expect(firstLog.scrollTop).toBe(800),
+    );
+    firstLog.scrollTop = 0;
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "퀴즈로 돌아가기",
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "LLM으로 수정" }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("log", { name: "대화 내용" })
+          .scrollTop,
+      ).toBe(800),
+    );
+  } finally {
+    if (previous)
+      Object.defineProperty(
+        HTMLElement.prototype,
+        "scrollHeight",
+        previous,
+      );
+    else
+      delete (
+        HTMLElement.prototype as { scrollHeight?: number }
+      ).scrollHeight;
+  }
+});
+
 test("keeps separate unconfirmed edits across quiz tabs and only clears the applied draft", async () => {
   await setup();
   fireEvent.click(

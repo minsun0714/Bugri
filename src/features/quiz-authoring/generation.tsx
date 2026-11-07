@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QuizScope, QuizStatus } from "@/api/constants";
 import { ContentFields } from "@/features/quiz-authoring/content-fields";
 import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring-api";
@@ -48,6 +48,14 @@ export function Generation(props: GenerationProps) {
       ? "미리보기"
       : selectedMode;
   const chatOpen = mode === "LLM으로 수정";
+  const chatLogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const { current: log } = chatLogRef;
+
+    if (chatOpen && log) log.scrollTop = log.scrollHeight;
+  }, [chatOpen, candidate?.candidateId]);
+
   const tags = useAuthoringQuery(
     props.api,
     props.userId ?? "learner",
@@ -115,6 +123,7 @@ export function Generation(props: GenerationProps) {
       </header>
 
       <div
+        ref={chatLogRef}
         className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto py-5"
         role="log"
         aria-label="대화 내용"
