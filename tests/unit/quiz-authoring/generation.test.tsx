@@ -144,7 +144,7 @@ test("starts with quizzes only and publishes the current candidate on explicit r
   expect(list[0].status).toBe("PUBLIC");
 });
 
-test("keeps the quiz visible and preserves drafts when toggling editing areas", async () => {
+test("switches the workspace to chat and preserves drafts when returning to the quiz", async () => {
   await setup();
   expect(
     screen.queryByRole("tablist", { name: "수정 방식" }),
@@ -152,12 +152,21 @@ test("keeps the quiz visible and preserves drafts when toggling editing areas", 
   fireEvent.click(
     screen.getByRole("button", { name: "LLM으로 수정" }),
   );
+  expect(
+    screen.getByRole("region", { name: "버그리와 대화" }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("tablist", { name: "퀴즈 선택" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("list", { name: "선택지" }),
+  ).not.toBeInTheDocument();
   fireEvent.change(
     screen.getByLabelText("퀴즈 1에 추가 요청"),
     { target: { value: "예시 추가" } },
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "LLM으로 수정" }),
+    screen.getByRole("button", { name: "퀴즈로 돌아가기" }),
   );
   expect(
     screen.queryByLabelText("퀴즈 1에 추가 요청"),

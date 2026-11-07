@@ -39,6 +39,13 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   await page
     .getByRole("button", { name: "LLM으로 수정" })
     .click();
+  const chat = page.getByRole("region", {
+    name: "버그리와 대화",
+  });
+  await expect(chat).toBeVisible();
+  await expect(
+    page.getByRole("tablist", { name: "퀴즈 선택" }),
+  ).toHaveCount(0);
   await page
     .getByLabel("퀴즈 1에 추가 요청")
     .fill("예시 추가");
@@ -48,9 +55,9 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("예시 추가");
-  await expect(
-    candidates.getByRole("article"),
-  ).toContainText("Mock 재생성: 예시 추가");
+  await expect(chat).toContainText(
+    "Mock 재생성: 예시 추가",
+  );
   await page.reload();
   await page
     .getByRole("button", { name: "LLM으로 수정" })
@@ -58,6 +65,9 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("예시 추가");
+  await page
+    .getByRole("button", { name: "퀴즈로 돌아가기" })
+    .click();
   await page
     .getByRole("button", { name: "직접 수정" })
     .click();
@@ -557,16 +567,14 @@ test("quiz tabs support keyboard selection and editing and saving are immediatel
     .focus();
   await page.keyboard.press("Enter");
   await expect(
-    modes.getByRole("button", { name: "LLM으로 수정" }),
-  ).toHaveAttribute("aria-expanded", "true");
+    page.getByRole("region", { name: "버그리와 대화" }),
+  ).toBeVisible();
+  await expect(tabs).toHaveCount(0);
   await page
     .getByLabel("퀴즈 2에 추가 요청")
     .fill("추가 예시");
-  await modes
-    .getByRole("button", {
-      name: "LLM으로 수정",
-      exact: true,
-    })
+  await page
+    .getByRole("button", { name: "퀴즈로 돌아가기" })
     .click();
   await expect(
     page.getByLabel("퀴즈 2에 추가 요청"),
@@ -577,6 +585,9 @@ test("quiz tabs support keyboard selection and editing and saving are immediatel
   await expect(
     page.getByLabel("퀴즈 2에 추가 요청"),
   ).toHaveValue("추가 예시");
+  await page
+    .getByRole("button", { name: "퀴즈로 돌아가기" })
+    .click();
 
   await expect(
     page.getByRole("button", {
@@ -626,11 +637,8 @@ test("unconfirmed direct edits survive mode and quiz tab changes", async ({
   await expect(
     page.getByLabel("퀴즈 1에 추가 요청"),
   ).toBeVisible();
-  await modes
-    .getByRole("button", {
-      name: "LLM으로 수정",
-      exact: true,
-    })
+  await page
+    .getByRole("button", { name: "퀴즈로 돌아가기" })
     .click();
   await modes
     .getByRole("button", { name: "직접 수정" })

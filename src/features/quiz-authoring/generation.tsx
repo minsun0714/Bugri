@@ -84,6 +84,127 @@ export function Generation(props: GenerationProps) {
       `퀴즈 ${index + 1}${savedLabels[index] ? ` · ${savedLabels[index]}` : ""}`,
   );
   const manageHref = `/quizzes/authoring/manage?user=${encodeURIComponent(props.userId ?? "learner")}`;
+  const closeChat = () =>
+    setModes((current) => ({
+      ...current,
+      [selectedIndex]: "미리보기",
+    }));
+  const chatWorkspace = candidate ? (
+    <section
+      className="flex h-[calc(100dvh-145px)] min-h-0 flex-col sm:h-[calc(90dvh-145px)]"
+      aria-label="버그리와 대화"
+    >
+      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-line pb-4">
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={busy}
+          onClick={closeChat}
+        >
+          <span aria-hidden="true">←</span>
+          퀴즈로 돌아가기
+        </Button>
+        <div className="min-w-0 text-right">
+          <p className="text-xs text-muted">
+            퀴즈 {selectedIndex + 1}
+          </p>
+          <h2 className="truncate text-sm font-semibold text-foreground">
+            {candidate.content.title}
+          </h2>
+        </div>
+      </header>
+
+      <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto py-5">
+        <div
+          aria-label="첫 사용자 메시지"
+          className="max-w-[90%] justify-self-end rounded-2xl bg-primary/10 px-5 py-4"
+        >
+          <span className="mb-2 block text-xs font-semibold text-muted">
+            나
+          </span>
+          <MarkdownContent>
+            {batch.sourceContent}
+          </MarkdownContent>
+        </div>
+
+        {candidate.history?.length ? (
+          <ol
+            className="grid gap-4"
+            aria-label="추가 요청 기록"
+          >
+            {candidate.history.map(
+              ({ prompt: sent, content }, index) => (
+                <li key={index} className="grid gap-3">
+                  <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
+                    {sent}
+                  </p>
+                  <div className="max-w-[90%] rounded-2xl border border-line bg-canvas px-5 py-4 text-sm">
+                    <span className="mb-2 block text-xs font-semibold text-primary">
+                      버그리
+                    </span>
+                    <p className="mb-2 font-semibold text-foreground">
+                      {content.title}
+                    </p>
+                    <MarkdownContent>
+                      {content.question.prompt}
+                    </MarkdownContent>
+                  </div>
+                </li>
+              ),
+            )}
+          </ol>
+        ) : (
+          <div className="max-w-[90%] rounded-2xl border border-line bg-canvas px-5 py-4 text-sm">
+            <span className="mb-2 block text-xs font-semibold text-primary">
+              버그리
+            </span>
+            <p className="mb-2 font-semibold text-foreground">
+              {candidate.content.title}
+            </p>
+            <MarkdownContent>
+              {candidate.content.question.prompt}
+            </MarkdownContent>
+          </div>
+        )}
+      </div>
+
+      {editing && (
+        <p
+          role="status"
+          className="mb-3 text-xs text-muted"
+        >
+          직접 수정한 내용이 아직 반영되지 않았습니다.
+        </p>
+      )}
+      <form
+        className="flex shrink-0 flex-wrap items-end justify-end gap-3 border-t border-line bg-surface pt-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          refine();
+        }}
+      >
+        <div className="min-w-0 flex-1">
+          <TextField
+            label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
+            placeholder="예시를 추가해줘"
+            value={prompt}
+            disabled={busy || !!editing}
+            onChange={(event) =>
+              changePrompt(event.target.value)
+            }
+          />
+        </div>
+        <Button
+          size="sm"
+          type="submit"
+          loading={busy}
+          disabled={!prompt.trim() || !!editing}
+        >
+          요청 보내기
+        </Button>
+      </form>
+    </section>
+  ) : null;
 
   return (
     <section
@@ -122,7 +243,8 @@ export function Generation(props: GenerationProps) {
           </Button>
         </div>
       )}
-      {batch && candidate && (
+      {batch && candidate && chatOpen && chatWorkspace}
+      {batch && candidate && !chatOpen && (
         <section
           className={styles.stack}
           aria-label="생성 후보"
@@ -162,7 +284,11 @@ export function Generation(props: GenerationProps) {
                               variant="ghost"
                               disabled={busy}
                               aria-expanded={mode === label}
-                              aria-controls="candidate-editing"
+                              aria-controls={
+                                label === "직접 수정"
+                                  ? "candidate-editing"
+                                  : undefined
+                              }
                               onClick={() => {
                                 const nextMode =
                                   mode === label
@@ -210,100 +336,6 @@ export function Generation(props: GenerationProps) {
                     }
                   >
                     <div className="grid min-w-0 gap-5">
-                      {chatOpen &&
-                        !candidate.savedQuizId && (
-                          <div
-                            aria-label="첫 사용자 메시지"
-                            className="max-w-[90%] justify-self-end rounded-2xl bg-primary/10 px-5 py-4"
-                          >
-                            <span className="mb-2 block text-xs font-semibold text-muted">
-                              나
-                            </span>
-                            <MarkdownContent>
-                              {batch.sourceContent}
-                            </MarkdownContent>
-                          </div>
-                        )}
-                      {chatOpen &&
-                        !candidate.savedQuizId &&
-                        !!candidate.history?.length && (
-                          <ol
-                            className="grid gap-3"
-                            aria-label="추가 요청 기록"
-                          >
-                            {candidate.history.map(
-                              (
-                                { prompt: sent, content },
-                                index,
-                              ) => (
-                                <li
-                                  key={index}
-                                  className="grid gap-2"
-                                >
-                                  <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
-                                    {sent}
-                                  </p>
-                                  {index <
-                                    candidate.history!
-                                      .length -
-                                      1 && (
-                                    <details className="text-sm text-muted">
-                                      <summary className="cursor-pointer">
-                                        응답 {index + 1} ·{" "}
-                                        {content.title}
-                                      </summary>
-                                      <div className="mt-3">
-                                        <ContentPreview
-                                          content={content}
-                                        />
-                                      </div>
-                                    </details>
-                                  )}
-                                </li>
-                              ),
-                            )}
-                          </ol>
-                        )}
-
-                      <div className="min-w-0">
-                        {chatOpen &&
-                          !candidate.savedQuizId && (
-                            <form
-                              className="flex flex-wrap items-end justify-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
-                              onSubmit={(event) => {
-                                event.preventDefault();
-                                refine();
-                              }}
-                            >
-                              <div className="min-w-0 flex-1">
-                                <TextField
-                                  label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
-                                  placeholder="예시를 추가해줘"
-                                  value={prompt}
-                                  disabled={
-                                    busy || !!editing
-                                  }
-                                  onChange={(event) =>
-                                    changePrompt(
-                                      event.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                              <Button
-                                size="sm"
-                                type="submit"
-                                loading={busy}
-                                disabled={
-                                  !prompt.trim() ||
-                                  !!editing
-                                }
-                              >
-                                요청 보내기
-                              </Button>
-                            </form>
-                          )}
-                      </div>
                       {mode === "직접 수정" && editing ? (
                         <fieldset
                           disabled={busy}
