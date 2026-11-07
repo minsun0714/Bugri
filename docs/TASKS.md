@@ -305,3 +305,8 @@
 
 - 실제 저장된 퀴즈 상태를 조회해 공개됨·임시저장됨을 구분하고 새로고침에도 유지한다.
 - 검증: 공개 상태 테스트의 의도한 실패 확인 후 관련 단위 테스트 5개 통과. Node 22.23.3에서 마지막 코드 변경 후 PLAYWRIGHT_PORT=3291 npm run verify 통과(lint·타입·Jest 80개·빌드·E2E 15개). 공개 후 새로고침 상태 복원을 포함했다. 독립 리뷰는 남아 있다.
+
+### A · Markdown 코드 블럭 도구 배치 — DONE
+
+- 코드 블럭 버튼과 언어 선택기를 본문 입력창과 같은 편집 컨테이너 안에 배치한다.
+- 검증: 의도한 E2E 실패를 확인한 뒤 관련 E2E 1개와 Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.

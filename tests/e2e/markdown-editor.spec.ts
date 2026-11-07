@@ -34,6 +34,16 @@ test("Markdown preview preserves code and safely ignores raw HTML", async ({
   await page
     .getByRole("tab", { name: "작성", exact: true })
     .click();
+  const editor = page.getByRole("group", {
+    name: "Markdown 작성",
+  });
+  await expect(editor.getByRole("textbox")).toBeVisible();
+  await expect(
+    editor.getByRole("button", {
+      name: "+ 코드 블럭",
+      exact: true,
+    }),
+  ).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await input.fill("설명");
   await input.evaluate((element: HTMLTextAreaElement) =>

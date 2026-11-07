@@ -55,11 +55,13 @@ export const styles = {
   "editor-title":
     "editor-title text-[12px] font-[650] flex items-center justify-between mb-2.5 [&_span]:[font:10px_monospace] [&_span]:text-muted",
   "markdown-editor":
-    "markdown-editor [&_.tab-panel]:pt-0 [&_textarea]:block [&_textarea]:w-full [&_textarea]:min-h-[220px] [&_textarea]:resize-y [&_textarea]:border [&_textarea]:border-line [&_textarea]:rounded-[10px] [&_textarea]:bg-white [&_textarea]:p-3.5 [&_textarea]:text-foreground [&_textarea]:[font:12px/1.9_monospace] [&_textarea]:[tab-size:2] [&_.error-text]:text-[#af3158] [&_.error-text]:text-[11px] [&_.error-text]:mt-1.75",
+    "markdown-editor [&_.tab-panel]:pt-0 [&_textarea]:block [&_textarea]:w-full [&_textarea]:min-h-[220px] [&_textarea]:resize-y [&_textarea]:border-0 [&_textarea]:border-t [&_textarea]:border-line [&_textarea]:rounded-none [&_textarea]:rounded-b-[10px] [&_textarea]:bg-white [&_textarea]:p-3.5 [&_textarea]:text-foreground [&_textarea]:[font:12px/1.9_monospace] [&_textarea]:[tab-size:2] [&_textarea]:outline-none [&_.error-text]:text-[#af3158] [&_.error-text]:text-[11px] [&_.error-text]:mt-1.75",
+  "editor-shell":
+    "editor-shell rounded-[10px] border border-line bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15",
   "editor-tools":
-    "editor-tools flex items-center justify-end flex-wrap gap-2 py-2.5 px-0",
+    "editor-tools flex items-center justify-end flex-wrap gap-2 p-2.5",
   "editor-picker":
-    "editor-picker grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-end bg-canvas p-3 rounded-2xl mb-3",
+    "editor-picker mx-2.5 mb-2.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 rounded-xl bg-canvas p-3",
   "editor-footer":
     "editor-footer flex justify-between gap-2.5 flex-wrap mt-2.5 text-[10px] text-muted",
   "markdown-preview":

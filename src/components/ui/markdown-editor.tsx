@@ -44,7 +44,11 @@ export function MarkdownEditor({
   });
 
   const editor = (
-    <>
+    <div
+      className={styles["editor-shell"]}
+      role="group"
+      aria-label="Markdown 작성"
+    >
       <div className={styles["editor-tools"]}>
         <Button
           size="sm"
@@ -93,7 +97,7 @@ export function MarkdownEditor({
           "오늘 배운 내용을 Markdown으로 적어보세요.\n\n# 제목\n- 배운 점\n\n코드는 코드 블록 버튼으로 추가할 수 있어요."
         }
       />
-    </>
+    </div>
   );
 
   const preview = (
