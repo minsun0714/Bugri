@@ -82,6 +82,7 @@ export interface ServiceContext {
   state: UserState;
   allQuizzes: StoredQuiz[];
   allStates: UserState[];
+  unavailableUserIds?: string[];
   now: Date;
   id: () => string;
   generate: MockGenerator;
@@ -1032,7 +1033,13 @@ export function execute<K extends Operation>(
 
     case "searchDiscovery":
       return searchDiscovery(
-        { users, hashtags, subscriptions: s.subscriptions },
+        {
+          users,
+          hashtags,
+          subscriptions: s.subscriptions,
+          quizzes: allQuizzes,
+          unavailableUserIds: ctx.unavailableUserIds,
+        },
         input as ApiOperations["searchDiscovery"]["request"],
       );
 

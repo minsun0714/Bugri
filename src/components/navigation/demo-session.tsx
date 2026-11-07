@@ -14,7 +14,13 @@ import {
 import { Button, Modal } from "@/components/ui";
 import { Dropdown } from "@/components/ui/dropdown";
 
-const DemoSessionContext = createContext({
+interface DemoSessionValue {
+  signedIn: boolean;
+  signIn: (options?: { onCancel?: () => void }) => void;
+  signOut: () => void;
+}
+
+const DemoSessionContext = createContext<DemoSessionValue>({
   signedIn: false,
   signIn: () => {},
   signOut: () => {},
@@ -31,9 +37,14 @@ export function DemoSessionProvider({
   const router = useRouter();
   const userId = params.get("user");
   const trigger = useRef<HTMLElement | null>(null);
+  const cancelSignIn = useRef<(() => void) | undefined>(
+    undefined,
+  );
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState("learner");
   function close() {
+    cancelSignIn.current?.();
+    cancelSignIn.current = undefined;
     setOpen(false);
     requestAnimationFrame(() => {
       if (trigger.current?.isConnected)
@@ -42,6 +53,7 @@ export function DemoSessionProvider({
   }
 
   function choose() {
+    cancelSignIn.current = undefined;
     const next = new URLSearchParams(params);
     next.set("user", selected);
     next.delete("attempt");
@@ -54,7 +66,8 @@ export function DemoSessionProvider({
     <DemoSessionContext.Provider
       value={{
         signedIn: !!userId,
-        signIn: () => {
+        signIn: (options) => {
+          cancelSignIn.current = options?.onCancel;
           trigger.current =
             document.activeElement instanceof HTMLElement
               ? document.activeElement

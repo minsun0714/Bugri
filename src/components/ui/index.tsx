@@ -11,6 +11,7 @@ import {
   type KeyboardEventHandler,
   type SelectHTMLAttributes,
   type ReactNode,
+  type Ref,
 } from "react";
 
 type Tone = "neutral" | "success" | "warning" | "danger";
@@ -24,6 +25,7 @@ export function Button({
   disabled,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
+  ref?: Ref<HTMLButtonElement>;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "sm" | "md";
   loading?: boolean;

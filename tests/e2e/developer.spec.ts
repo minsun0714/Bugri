@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { initialState } from "@/mocks/storage";
 
-test("developer name opens scoped tags and quizzes; subscriptions stay on the page", async ({
+test("developer quiz count opens scoped tags and quizzes; subscriptions stay on the page", async ({
   page,
 }) => {
   const state = initialState("friend");
@@ -23,7 +23,9 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   }, state);
   await page.goto("/discover/developers?user=friend");
   await page
-    .getByRole("link", { name: "타입 개발자", exact: true })
+    .getByRole("link", {
+      name: /타입 개발자 공개 퀴즈 \d+개/,
+    })
     .click();
   await expect(
     page.getByRole("link", {
