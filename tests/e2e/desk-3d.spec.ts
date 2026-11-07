@@ -1,3 +1,4 @@
+import { selectSceneProduct } from "./helpers/desk";
 import { orbitTo } from "./helpers/desk";
 import {
   productPoint,
@@ -40,9 +41,7 @@ async function equipped(page: Page) {
     .getByRole("button", { name: "닫기", exact: true })
     .click();
   await page.goto("/my/desk");
-  await page
-    .getByRole("button", { name: "새싹 키보드 선택" })
-    .click();
+  await selectSceneProduct(page, "새싹 키보드");
   const canvas = page.locator(
     '#desk [data-renderer="canvas"] canvas',
   );
@@ -84,9 +83,7 @@ test("Canvas camera orbit, surface drag, item rotation and public restoration", 
   await expect(
     page.getByRole("main").getByLabel("카메라 방위각"),
   ).not.toHaveText("45°");
-  await page
-    .getByRole("button", { name: "새싹 키보드 선택" })
-    .click();
+  await selectSceneProduct(page, "새싹 키보드");
   await expect(
     page.getByLabel("선택 상품 배치"),
   ).toContainText("회전 0°");
@@ -101,7 +98,7 @@ test("Canvas camera orbit, surface drag, item rotation and public restoration", 
   await page.mouse.up();
   await expect(
     page.getByText("3D 배치를 저장했어요."),
-  ).toBeVisible();
+  ).toHaveCount(1);
   await expect(
     page.getByLabel("선택 상품 배치"),
   ).not.toContainText("X -0.45");
@@ -127,12 +124,10 @@ test("Canvas camera orbit, surface drag, item rotation and public restoration", 
   await expect.poll(() => rotationOf(page)).not.toBe(0);
   await expect(
     page.getByText("3D 배치를 저장했어요."),
-  ).toBeVisible();
+  ).toHaveCount(1);
   const rotation = await rotationOf(page);
   await page.reload();
-  await page
-    .getByRole("button", { name: "새싹 키보드 선택" })
-    .click();
+  await selectSceneProduct(page, "새싹 키보드");
   await expect.poll(() => rotationOf(page)).toBe(rotation);
   await page.goto("/users/bugri-learner");
   const profile = page.getByRole("main");
@@ -189,24 +184,22 @@ test("touch moves on the tabletop, cancel restores, keyboard rotation saves on m
     }
     await expect(
       page.getByText("3D 배치를 저장했어요."),
-    ).toBeVisible();
+    ).toHaveCount(1);
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).not.toContainText("X -0.45");
     await rotateTo(page, "새싹 키보드", 45);
     await page
-      .getByRole("button", {
-        name: "배치 저장",
+      .getByRole("img", {
+        name: "3D 데스크 캔버스",
         exact: true,
       })
-      .tap();
+      .press("Enter");
     await expect(
       page.getByText("3D 배치를 저장했어요."),
-    ).toBeVisible();
+    ).toHaveCount(1);
     await page.reload();
-    await page
-      .getByRole("button", { name: "새싹 키보드 선택" })
-      .tap();
+    await selectSceneProduct(page, "새싹 키보드");
     await expect.poll(() => rotationOf(page)).toBe(45);
     await expect(
       page.getByLabel("선택 상품 배치"),

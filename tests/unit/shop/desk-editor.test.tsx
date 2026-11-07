@@ -28,10 +28,11 @@ beforeEach(async () => {
 
 test("keyboard movement cancels with Escape and commits rotation with Enter", async () => {
   render(<ShopApp editing />);
-  const item = await screen.findByRole("button", {
-    name: "새싹 키보드 선택",
+  await screen.findByRole("button", { name: "장착 해제" });
+  const item = screen.getByRole("img", {
+    name: "3D 데스크 캔버스",
   });
-  fireEvent.click(item);
+  fireEvent.keyDown(item, { key: "Home" });
   expect(
     screen.queryByRole("slider", { name: "아이템 회전" }),
   ).not.toBeInTheDocument();
@@ -66,10 +67,11 @@ test("keyboard movement cancels with Escape and commits rotation with Enter", as
 
 test("failed placement retains the spatial draft and rotation for retry", async () => {
   render(<ShopApp editing />);
-  const item = await screen.findByRole("button", {
-    name: "새싹 키보드 선택",
+  await screen.findByRole("button", { name: "장착 해제" });
+  const item = screen.getByRole("img", {
+    name: "3D 데스크 캔버스",
   });
-  fireEvent.click(item);
+  fireEvent.keyDown(item, { key: "Home" });
   const spy = jest
     .spyOn(Storage.prototype, "setItem")
     .mockImplementation(() => {
@@ -80,13 +82,11 @@ test("failed placement retains the spatial draft and rotation for retry", async 
       key: "ArrowRight",
       altKey: true,
     });
-  fireEvent.change(
-    screen.getByRole("slider", { name: "아이템 높이" }),
-    { target: { value: "0.5" } },
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "배치 저장" }),
-  );
+  fireEvent.keyDown(item, {
+    key: "ArrowDown",
+    shiftKey: true,
+  });
+  fireEvent.keyDown(item, { key: "Enter" });
   await screen.findByRole("button", {
     name: "배치 다시 저장",
   });
@@ -95,7 +95,7 @@ test("failed placement retains the spatial draft and rotation for retry", async 
   ).toHaveTextContent("회전 45°");
   expect(
     screen.getByLabelText("선택 상품 배치"),
-  ).toHaveTextContent("Y 0.50");
+  ).toHaveTextContent("Y 1.45");
   spy.mockRestore();
   fireEvent.click(
     screen.getByRole("button", { name: "배치 다시 저장" }),
@@ -107,33 +107,40 @@ test("failed placement retains the spatial draft and rotation for retry", async 
   );
 });
 
-test("height presets and keyboard adjustment cancel and save independently of planar position", async () => {
+test("keyboard height adjustment cancels and saves without lower controls", async () => {
   render(<ShopApp editing />);
-  const item = await screen.findByRole("button", {
-    name: "새싹 키보드 선택",
+  await screen.findByRole("button", { name: "장착 해제" });
+  const item = screen.getByRole("img", {
+    name: "3D 데스크 캔버스",
   });
-  fireEvent.click(item);
-  fireEvent.click(
-    screen.getByRole("button", { name: "바닥에 놓기" }),
-  );
+  fireEvent.keyDown(item, { key: "Home" });
+  for (const name of [
+    "새싹 키보드 선택",
+    "바닥에 놓기",
+    "책상 위에 놓기",
+    "배치 저장",
+  ])
+    expect(
+      screen.queryByRole("button", { name }),
+    ).not.toBeInTheDocument();
   expect(
-    screen.getByLabelText("선택 상품 배치"),
-  ).toHaveTextContent("Y 0.00");
+    screen.queryByLabelText("아이템 높이"),
+  ).not.toBeInTheDocument();
   fireEvent.keyDown(item, {
     key: "ArrowUp",
     shiftKey: true,
   });
   expect(
     screen.getByLabelText("선택 상품 배치"),
-  ).toHaveTextContent("Y 0.10");
+  ).toHaveTextContent("Y 1.65");
   fireEvent.keyDown(item, { key: "Escape" });
   expect(
     screen.getByLabelText("선택 상품 배치"),
   ).toHaveTextContent("Y 1.55");
-  fireEvent.change(
-    screen.getByRole("slider", { name: "아이템 높이" }),
-    { target: { value: "0.5" } },
-  );
+  fireEvent.keyDown(item, {
+    key: "ArrowDown",
+    shiftKey: true,
+  });
   fireEvent.keyDown(item, { key: "Enter" });
   await screen.findByText("3D 배치를 저장했어요.");
   const api = await createBrowserApi({
@@ -143,13 +150,7 @@ test("height presets and keyboard adjustment cancel and save independently of pl
   expect(
     (await api.request("inventory", {})).transforms
       .KEYBOARD,
-  ).toEqual({ x: -0.45, y: 0.5, z: 0.65, rotationY: 0 });
-  fireEvent.click(
-    screen.getByRole("button", { name: "책상 위에 놓기" }),
-  );
-  expect(
-    screen.getByLabelText("선택 상품 배치"),
-  ).toHaveTextContent("Y 1.55");
+  ).toEqual({ x: -0.45, y: 1.45, z: 0.65, rotationY: 0 });
 });
 
 test("successful height stays visible until refreshed props arrive, then accepts external changes", async () => {
@@ -170,25 +171,23 @@ test("successful height stays visible until refreshed props arrive, then accepts
       transforms={transforms}
       save={save}
       saveBugri={jest.fn()}
+      saveDesk={jest.fn()}
       disabled={false}
     />,
   );
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: "새싹 키보드 선택",
-    }),
-  );
-  fireEvent.change(
-    screen.getByRole("slider", { name: "아이템 높이" }),
-    { target: { value: "0.7" } },
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "배치 저장" }),
-  );
+  const item = screen.getByRole("img", {
+    name: "3D 데스크 캔버스",
+  });
+  fireEvent.keyDown(item, { key: "Home" });
+  fireEvent.keyDown(item, {
+    key: "ArrowUp",
+    shiftKey: true,
+  });
+  fireEvent.keyDown(item, { key: "Enter" });
   await screen.findByText("3D 배치를 저장했어요.");
   expect(
     screen.getByLabelText("선택 상품 배치"),
-  ).toHaveTextContent("Y 0.70");
+  ).toHaveTextContent("Y 1.65");
   expect(
     screen.queryByRole("button", { name: "배치 저장" }),
   ).not.toBeInTheDocument();
@@ -200,6 +199,7 @@ test("successful height stays visible until refreshed props arrive, then accepts
       transforms={{ KEYBOARD: { ...initial, y: 0.3 } }}
       save={save}
       saveBugri={jest.fn()}
+      saveDesk={jest.fn()}
       disabled={false}
     />,
   );

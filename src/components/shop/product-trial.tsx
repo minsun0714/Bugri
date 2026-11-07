@@ -6,7 +6,7 @@ import type {
   Request,
 } from "@/api/contracts";
 import { Button, Coin } from "@/components/ui";
-import { ThreeView } from "@/components/shop/three-view";
+import { EditableDeskScene } from "@/components/shop/editable-desk-scene";
 import { useProductTrial } from "@/components/shop/use-product-trial";
 
 export function ProductTrial(props: {
@@ -50,8 +50,10 @@ export function ProductTrial(props: {
 
   return (
     <>
-      <ThreeView
+      <EditableDeskScene
         key={revision}
+        selectedName={selectedName}
+        current={editor.current}
         onKeyDown={keyDown}
         label="장착 미리보기"
         equipment={
@@ -69,15 +71,11 @@ export function ProductTrial(props: {
         allowDefaultDesk
         layerOrder={layerOrder}
         onReorder={reorder}
-        wheelZoom
         selected={editor.selected}
         tool={editor.tool}
         disabled={editor.blocked}
-        readOnly={false}
-        directManipulation
         onSelect={select}
         onDeselect={editor.deselect}
-        showViewPresets={false}
         onPreview={previewTransform}
         onCommit={commitTransform}
         onCancel={editor.cancel}
@@ -91,20 +89,6 @@ export function ProductTrial(props: {
         >
           초기화
         </Button>
-        <output aria-label="선택 상품" className="sr-only">
-          {selectedName}
-        </output>
-        {editor.current && (
-          <output
-            aria-label="선택 상품 배치"
-            className="sr-only"
-          >
-            X {editor.current.x.toFixed(2)} · Y{" "}
-            {editor.current.y.toFixed(2)} · Z{" "}
-            {editor.current.z.toFixed(2)} · 회전{" "}
-            {editor.current.rotationY}°
-          </output>
-        )}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Coin amount={product.price} />
           {owned ? (

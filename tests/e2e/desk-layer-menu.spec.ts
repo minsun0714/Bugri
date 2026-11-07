@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 for (const width of [1100, 390]) {
@@ -10,12 +10,7 @@ for (const width of [1100, 390]) {
   }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/my/desk");
-    await page
-      .getByRole("button", {
-        name: "버그리 선택",
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, "버그리");
     await page
       .getByRole("button", {
         name: "선택 아이템 메뉴",
@@ -48,7 +43,7 @@ for (const width of [1100, 390]) {
     await page.mouse.up();
     await expect(
       page.getByText("3D 배치를 저장했어요."),
-    ).toBeVisible();
+    ).toHaveCount(1);
     await expect(
       page.getByLabel("선택 테두리"),
     ).toBeVisible();
@@ -58,19 +53,17 @@ for (const width of [1100, 390]) {
       "기본 데스크 · 버그리",
     );
     await page.goto("/shop");
-    const card = page
-      .getByRole("article")
-      .filter({
-        has: page.getByRole("heading", {
-          name: "라벤더 키보드",
-          exact: true,
-        }),
-      });
+    const card = page.getByRole("article").filter({
+      has: page.getByRole("heading", {
+        name: "라벤더 키보드",
+        exact: true,
+      }),
+    });
     await card
       .getByRole("button", { name: "장착해 보기" })
       .click();
     const dialog = page.getByRole("dialog");
-    await selectTrialProduct(dialog, "버그리");
+    await selectSceneProduct(dialog, "버그리");
     const initial = await dialog
       .getByLabel("겹침 순서")
       .textContent();
@@ -114,7 +107,7 @@ for (const width of [1100, 390]) {
     await expect(dialog.getByLabel("겹침 순서")).toHaveText(
       initial!,
     );
-    await selectTrialProduct(dialog, "버그리");
+    await selectSceneProduct(dialog, "버그리");
     const menu = dialog.getByRole("button", {
       name: "선택 아이템 메뉴",
       exact: true,

@@ -12,6 +12,7 @@ import {
   QuizStatus,
   LearningMode,
   DeskObject,
+  Category,
   ConversationRole,
 } from "@/api/constants";
 import { users, hashtags } from "@/mocks/users";
@@ -184,7 +185,8 @@ function validateState(
         validTransform(category, transform)) ||
         (isMovable(category) &&
           validTransform(category, transform) &&
-          typeof equipment[category] === "string"),
+          (category === Category.DESK ||
+            typeof equipment[category] === "string")),
       "3D 배치 정보가 손상되었습니다.",
     );
   }

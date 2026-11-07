@@ -5,7 +5,7 @@ import {
 } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 async function pixels(
@@ -128,7 +128,7 @@ for (const width of [1100, 390]) {
       );
       await page.mouse.up();
       await expect(original).not.toHaveText(before!);
-      await selectTrialProduct(dialog, name);
+      await selectSceneProduct(dialog, name);
       await expect(
         dialog.getByLabel("선택 상품 배치"),
       ).toHaveText(addedPosition!);
@@ -142,7 +142,7 @@ for (const width of [1100, 390]) {
       await expect(
         dialog.getByRole("button", { name: /선택$/ }),
       ).toHaveCount(0);
-      const surface = await selectTrialProduct(
+      const surface = await selectSceneProduct(
         dialog,
         name,
       );
@@ -151,7 +151,7 @@ for (const width of [1100, 390]) {
         .textContent();
       await surface.press("ArrowRight");
       await surface.press("Enter");
-      await selectTrialProduct(dialog, "새싹 키보드");
+      await selectSceneProduct(dialog, "새싹 키보드");
       await surface.press("Alt+ArrowRight");
       await surface.press("Enter");
       await expect(original).not.toHaveText(before!);
@@ -162,7 +162,7 @@ for (const width of [1100, 390]) {
         })
         .click();
       await expect(original).toHaveText(before!);
-      await selectTrialProduct(dialog, name);
+      await selectSceneProduct(dialog, name);
       await expect(
         dialog.getByLabel("선택 상품 배치"),
       ).toHaveText(resetPosition!);
@@ -177,9 +177,7 @@ for (const width of [1100, 390]) {
         exact: true,
       }),
     ).toBeVisible();
-    await page
-      .getByRole("button", { name: "새싹 키보드 선택" })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toContainText("X -0.45 · Y 1.55 · Z 0.65 · 회전 0°");

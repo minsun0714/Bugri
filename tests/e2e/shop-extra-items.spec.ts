@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { selectTrialProduct } from "./helpers/desk";
+import { selectSceneProduct } from "./helpers/desk";
 
 const additions = [
   { category: "배경", name: "노을 작업실" },
@@ -45,7 +45,7 @@ for (const width of [1100, 390]) {
       const dialog = page.getByRole("dialog");
       await expect(dialog.locator("canvas")).toBeVisible();
       if (category !== "배경") {
-        const controls = await selectTrialProduct(
+        const controls = await selectSceneProduct(
           dialog,
           name,
         );
@@ -102,12 +102,7 @@ for (const width of [1100, 390]) {
     ).toBeVisible();
     for (const { category, name } of additions) {
       if (category === "배경") continue;
-      await page
-        .getByRole("button", {
-          name: `${name} 선택`,
-          exact: true,
-        })
-        .click();
+      await selectSceneProduct(page, name);
       await expect(
         page.getByLabel("선택 상품 배치"),
       ).toContainText("회전 15°");

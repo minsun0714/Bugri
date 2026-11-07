@@ -1,3 +1,4 @@
+import { selectSceneProduct } from "./helpers/desk";
 import { orbitTo } from "./helpers/desk";
 import { rotateTo, productPoint } from "./helpers/desk";
 import { expect, test } from "@playwright/test";
@@ -38,12 +39,7 @@ test("lavender keyboard can leave the table, rotate, save and remain visible", a
     .getByRole("button", { name: "닫기", exact: true })
     .click();
   await page.goto("/my/desk");
-  await page
-    .getByRole("button", {
-      name: "라벤더 키보드 선택",
-      exact: true,
-    })
-    .click();
+  await selectSceneProduct(page, "라벤더 키보드");
   await orbitTo(page, "위에서");
   const canvas = page
     .getByRole("main")
@@ -61,7 +57,7 @@ test("lavender keyboard can leave the table, rotate, save and remain visible", a
   await page.mouse.up();
   await expect(
     page.getByText("3D 배치를 저장했어요."),
-  ).toBeVisible();
+  ).toHaveCount(1);
   const placement = page.getByLabel("선택 상품 배치");
   await expect
     .poll(async () => {
@@ -72,20 +68,18 @@ test("lavender keyboard can leave the table, rotate, save and remain visible", a
   await expect(placement).toContainText("Y 1.55");
   await rotateTo(page, "라벤더 키보드", 90);
   await page
-    .getByRole("button", { name: "배치 저장", exact: true })
-    .click();
+    .getByRole("img", {
+      name: "3D 데스크 캔버스",
+      exact: true,
+    })
+    .press("Enter");
   await expect(
     page.getByText("3D 배치를 저장했어요."),
-  ).toBeVisible();
+  ).toHaveCount(1);
   await expect(placement).toContainText("회전 90°");
   const saved = await placement.innerText();
   await page.reload();
-  await page
-    .getByRole("button", {
-      name: "라벤더 키보드 선택",
-      exact: true,
-    })
-    .click();
+  await selectSceneProduct(page, "라벤더 키보드");
   await expect(placement).toHaveText(saved);
   await expect
     .poll(() =>

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 for (const width of [1100, 390]) {
@@ -26,7 +26,7 @@ for (const width of [1100, 390]) {
     await page.mouse.up();
     await expect(
       page.getByText("3D 배치를 저장했어요."),
-    ).toBeVisible();
+    ).toHaveCount(1);
     const saved = await page
       .getByLabel("선택 상품 배치")
       .textContent();
@@ -34,12 +34,7 @@ for (const width of [1100, 390]) {
       "X -2.30 · Y 0.00 · Z 1.80 · 회전 0°",
     );
     await page.reload();
-    await page
-      .getByRole("button", {
-        name: "버그리 선택",
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, "버그리");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(saved!);
@@ -66,7 +61,7 @@ for (const width of [1100, 390]) {
       .getByRole("button", { name: "장착해 보기" })
       .click();
     const dialog = page.getByRole("dialog");
-    const surface = await selectTrialProduct(
+    const surface = await selectSceneProduct(
       dialog,
       "버그리",
     );
@@ -81,7 +76,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "초기화", exact: true })
       .click();
-    await selectTrialProduct(dialog, "버그리");
+    await selectSceneProduct(dialog, "버그리");
     await expect(
       dialog.getByLabel("선택 상품 배치"),
     ).toHaveText(saved!);
@@ -91,12 +86,7 @@ for (const width of [1100, 390]) {
       .getByRole("button", { name: "닫기", exact: true })
       .click();
     await page.goto("/my/desk");
-    await page
-      .getByRole("button", {
-        name: "버그리 선택",
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, "버그리");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(saved!);
@@ -153,7 +143,7 @@ for (const width of [1100, 390]) {
         dialog.getByLabel("카메라 방위각"),
       ).not.toHaveText("45°");
       expect(await backdrop()).toBe(themed);
-      const controls = await selectTrialProduct(
+      const controls = await selectSceneProduct(
         dialog,
         "버그리",
       );
@@ -189,12 +179,7 @@ for (const width of [1100, 390]) {
     await page.reload();
     await expect(surface).toBeVisible();
     await expect.poll(backdrop).toBe(previous);
-    await page
-      .getByRole("button", {
-        name: "버그리 선택",
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, "버그리");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toContainText("X -2.30");

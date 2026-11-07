@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 for (const width of [1100, 390]) {
@@ -99,7 +99,7 @@ for (const width of [1100, 390]) {
       steps: 12,
     });
     await page.mouse.up();
-    await selectTrialProduct(dialog, "버그리");
+    await selectSceneProduct(dialog, "버그리");
     await expect(
       dialog.getByLabel("선택 상품 배치"),
     ).toHaveText(saved!);
@@ -107,7 +107,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "초기화", exact: true })
       .click();
-    await selectTrialProduct(dialog, "버그리");
+    await selectSceneProduct(dialog, "버그리");
     await expect(
       dialog.getByLabel("선택 상품 배치"),
     ).toHaveText("X -2.30 · Y 0.00 · Z 1.80 · 회전 0°");

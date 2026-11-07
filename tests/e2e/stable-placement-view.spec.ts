@@ -5,7 +5,7 @@ import {
 } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 async function deskBounds(canvas: Locator) {
@@ -57,7 +57,7 @@ for (const width of [1100, 390]) {
       .click();
     const dialog = page.getByRole("dialog");
     const canvas = dialog.locator("canvas");
-    const surface = await selectTrialProduct(
+    const surface = await selectSceneProduct(
       dialog,
       "집중 모니터",
     );

@@ -1,7 +1,7 @@
 import {
   rotateTo,
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 import { expect, test } from "@playwright/test";
 
@@ -95,16 +95,12 @@ for (const width of [1100, 390]) {
       }),
     ).toBeFocused();
     await page.goto("/my/desk");
-    await page
-      .getByRole("button", { name: "새싹 키보드 선택" })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(placed!);
     await page.reload();
-    await page
-      .getByRole("button", { name: "새싹 키보드 선택" })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(placed!);
@@ -148,13 +144,11 @@ for (const width of [1100, 390]) {
     await unownedCard
       .getByRole("button", { name: "장착해 보기" })
       .click();
-    await selectTrialProduct(dialog, "라벤더 키보드");
+    await selectSceneProduct(dialog, "라벤더 키보드");
     await rotateTo(dialog, "라벤더 키보드", 180);
     await page.keyboard.press("Escape");
     await page.goto("/my/desk");
-    await page
-      .getByRole("button", { name: "새싹 키보드 선택" })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(placed!);

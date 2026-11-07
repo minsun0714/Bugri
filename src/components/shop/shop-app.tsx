@@ -73,6 +73,7 @@ function ShopContent({
     equip,
     move,
     moveBugri,
+    moveDesk,
     reorder,
   } = useShop(userId);
   const currentUser = users.data?.find(
@@ -241,14 +242,11 @@ function ShopContent({
             transforms={inventory.data?.transforms ?? {}}
             save={move.mutateAsync}
             saveBugri={moveBugri.mutateAsync}
+            saveDesk={moveDesk.mutateAsync}
             order={inventory.data?.order ?? []}
             saveOrder={reorder.mutateAsync}
             disabled={pending || loading || Boolean(error)}
           />
-          <p className="pb-3 text-center text-xs text-muted">
-            보관함에서 상품을 장착하고 원하는 위치로
-            옮겨보세요.
-          </p>
         </section>
       )}
       <section id="collection" aria-label="상품 컬렉션">

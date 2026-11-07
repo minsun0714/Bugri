@@ -219,6 +219,7 @@ export function ThreeView(props: Props) {
               : undefined
           }
           role="img"
+          data-disabled={props.disabled}
           aria-label="3D 데스크 캔버스"
           aria-describedby={descriptionId}
           data-renderer={
@@ -261,7 +262,7 @@ export function ThreeView(props: Props) {
       <p id={descriptionId} className="sr-only">
         버그리가 공간에서 함께하고 있어요.
         {props.onKeyDown &&
-          " Home 키로 첫 상품을 선택하고 PageDown/PageUp 키로 상품을 바꿉니다. 방향키로 이동하고 Alt와 방향키로 회전합니다."}
+          " Home 키로 첫 상품을 선택하고 PageDown/PageUp 키로 상품을 바꿉니다. 방향키로 이동하고 Alt와 방향키로 회전합니다. Shift와 위아래 방향키로 높이를 조절하고 Enter로 저장, Escape로 취소합니다."}
       </p>
       <output aria-label="겹침 순서" className="sr-only">
         {normalizeOrder(props.layerOrder ?? [], [

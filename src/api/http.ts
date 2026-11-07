@@ -201,6 +201,10 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "PUT",
     path: "/me/desk/order",
   },
+  transformDesk: {
+    method: "PUT",
+    path: "/me/desk/table",
+  },
   transformBugri: {
     method: "PUT",
     path: "/me/desk/bugri",

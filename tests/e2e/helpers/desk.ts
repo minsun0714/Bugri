@@ -1,4 +1,8 @@
-import type { Locator, Page } from "@playwright/test";
+import {
+  expect,
+  type Locator,
+  type Page,
+} from "@playwright/test";
 
 /** Use a visible product pixel, never an assumed Canvas centre or test-only hit box. */
 export async function productPoint(
@@ -51,7 +55,7 @@ export async function rotationOf(scope: Page | Locator) {
   return Number(match[1]);
 }
 
-export async function selectTrialProduct(
+export async function selectSceneProduct(
   scope: Page | Locator,
   name: string,
 ) {
@@ -59,8 +63,16 @@ export async function selectTrialProduct(
     name: "3D 데스크 캔버스",
     exact: true,
   });
+  await expect(surface).toHaveAttribute(
+    "data-renderer",
+    "canvas",
+  );
+  await expect(surface).toHaveAttribute(
+    "data-disabled",
+    "false",
+  );
   await surface.press("Home");
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     if (
       (await scope
         .getByLabel("선택 상품", { exact: true })
@@ -69,7 +81,7 @@ export async function selectTrialProduct(
       return surface;
     await surface.press("PageDown");
   }
-  throw new Error(`Trial product not found: ${name}`);
+  throw new Error(`Scene product not found: ${name}`);
 }
 
 export async function rotateTo(
@@ -77,13 +89,7 @@ export async function rotateTo(
   name: string,
   angle: number,
 ) {
-  const button = scope.getByRole("button", {
-    name: `${name} 선택`,
-    exact: true,
-  });
-  const selection = (await button.count())
-    ? button
-    : await selectTrialProduct(scope, name);
+  const selection = await selectSceneProduct(scope, name);
   const current = await rotationOf(scope);
   const steps = ((angle - current + 360) % 360) / 15;
   if (!Number.isInteger(steps))
@@ -98,13 +104,12 @@ export async function rotateTo(
 export async function orbitTo(page: Page, view: string) {
   const yaw = view === "45도 시점" ? 45 : 0;
   const pitch = view === "위에서" ? 85 : 30;
-  const selection = page
-    .getByRole("button", { pressed: true })
-    .filter({ hasText: / 선택$/ });
-  const selectedName =
-    (await selection.count()) === 1
-      ? await selection.innerText()
-      : null;
+  const selection = page.getByLabel("선택 상품", {
+    exact: true,
+  });
+  const selectedName = (await selection.count())
+    ? await selection.textContent()
+    : null;
   const canvas = page.locator(
     '[data-renderer="canvas"] canvas',
   );
@@ -146,11 +151,6 @@ export async function orbitTo(page: Page, view: string) {
     await page.mouse.up();
   }
   if (selectedName)
-    await page
-      .getByRole("button", {
-        name: selectedName,
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, selectedName);
   await canvas.scrollIntoViewIfNeeded();
 }
