@@ -21,7 +21,7 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
       );
     }
   }, state);
-  await page.goto("/discover?user=friend");
+  await page.goto("/discover/developers?user=friend");
   await page
     .getByRole("link", { name: "타입 개발자", exact: true })
     .click();
@@ -30,7 +30,10 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
       name: "탐색으로 돌아가기",
       exact: true,
     }),
-  ).toHaveAttribute("href", "/discover?user=friend");
+  ).toHaveAttribute(
+    "href",
+    "/discover/developers?user=friend",
+  );
   await expect(
     page.getByRole("heading", {
       name: "타입 개발자의 퀴즈",

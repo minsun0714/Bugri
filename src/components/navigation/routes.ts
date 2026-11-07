@@ -20,9 +20,14 @@ export function getNavigationItems(
 ): NavigationItem[] {
   return [
     {
-      label: "개발자·태그 탐색",
-      href: withDemoUser("/discover", userId),
-      activePaths: ["/discover", "/developers"],
+      label: "개발자 탐색",
+      href: withDemoUser("/discover/developers", userId),
+      activePaths: ["/discover/developers", "/developers"],
+    },
+    {
+      label: "태그 탐색",
+      href: withDemoUser("/discover/tags", userId),
+      activePaths: ["/discover/tags"],
     },
     {
       label: "Shop",
@@ -58,7 +63,8 @@ export function getBreadcrumbs(
       : undefined,
   };
   const routes: Record<string, BreadcrumbItem[]> = {
-    "/discover": [{ label: "탐색" }],
+    "/discover/developers": [{ label: "개발자 탐색" }],
+    "/discover/tags": [{ label: "태그 탐색" }],
     "/explore": [{ label: "탐색" }],
     "/shop": [{ label: "상점" }],
     "/my": [{ label: "마이페이지" }],
@@ -112,8 +118,8 @@ export function getBreadcrumbs(
     return [
       home,
       {
-        label: "탐색",
-        href: withDemoUser("/discover", userId),
+        label: "개발자 탐색",
+        href: withDemoUser("/discover/developers", userId),
       },
       { label: "개발자 프로필" },
     ];

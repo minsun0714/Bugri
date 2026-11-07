@@ -198,6 +198,14 @@ PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따
 - Mock 퀴즈 저장 필드 `publishedAt`은 직접 공개, 최초 PUBLIC 승인, PRIVATE→PUBLIC 전환 때 기록한다. PUBLIC 내용 수정·수정본 승인과 같은 상태 저장으로는 바뀌지 않는다. 공개 응답에 정답·해설·원문을 추가하지 않는다.
 - 기존 v1 저장 데이터의 `publishedAt` 누락은 허용하고 시각 미상으로 처리한다. 알려진 공개 시각 뒤에 안정적으로 배치하며 updatedAt으로 공개 시각을 추정하지 않는다. seeds에는 명시적인 공개 시각을 부여한다. 기본값·가짜 역사 데이터로 기존 저장소를 덮어쓰지 않는다.
 
+## 공개 프로필 자기소개·링크
+
+- `profileAbout({ publicId })`: `GET /users/{id}/about` → `{ biography: string, links: ProfileLink[] }`. 사용자 없음은 404. 기존 프로필/데스크 API와 분리하며 레거시 저장 데이터의 profileAbout 누락은 빈 자기소개·빈 링크로 읽는다.
+- `updateProfileAbout({ biography, links })`: `PUT /me/about`. 현재 사용자 자기소개와 링크 전체를 교체하고 같은 형태를 반환한다. 요청에 소유자 ID를 받지 않으며 다른 필드는 거부한다. Mock은 현재 더미 사용자 상태만 기록한다.
+- `ProfileLink`: `{ kind: GITHUB|BLOG|PORTFOLIO|LINKEDIN|OTHER, url: string, label?: string }`. http(s) 절대 URL만 허용하고 자격 증명이 포함된 URL을 거부한다. OTHER에만 비어 있지 않은 label을 받는다. URL·표시 이름 양끝 공백을 제거한다. 자기소개는 Markdown 원문을 보존하고 길이·링크 개수의 별도 제품 상한을 추가하지 않는다.
+- UI와 서비스가 같은 순수 검증을 사용한다. 잘못된 요청은 VALIDATION_ERROR, 저장 실패는 STORAGE_UNAVAILABLE이며 기존 저장 내용을 바꾸지 않는다. 저장 상태를 읽을 때도 프로필 구조를 검증한다.
+- TanStack Query 키는 `['profileAbout', viewerUserId, publicId]`. 저장 성공 시 해당 캐시를 교체하고 프로필 조회 캐시를 무효화한다. 사용자·프로필·로그인 상태 변경 시 편집 폼을 재생성해 다른 사용자에게 초안이 남지 않게 한다.
+
 ## P08 BugCoin 내역 화면
 
 `/my`의 BugCoin 영역은 `wallet`의 잔액·원장을 조회하며 별도 지급이나 구매 요청을 발생시키지 않는다. 내역은 최신순(동일 시각은 원장 뒤 항목 우선)이고 데모 시작 지급·일일 학습 보상·상품 구매와 부호 있는 금액, 브라우저 시간대가 표시된 시각을 제공한다. 빈 내역·로딩·오류 재시도를 구분한다. 지급량 정책과 fixture는 변경하지 않는다.

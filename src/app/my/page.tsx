@@ -29,11 +29,6 @@ async function Content({ searchParams }: Props) {
           </Link>
           <FeatureSectionShell
             compact
-            id="profile"
-            title="프로필 편집"
-          />
-          <FeatureSectionShell
-            compact
             id="learning-history"
             title="풀이 기록"
           />

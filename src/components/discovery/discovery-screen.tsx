@@ -15,7 +15,11 @@ import { DiscoverySearch } from "@/components/discovery/search-results";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import { FeatureSectionShell } from "@/components/navigation/feature-section-shell";
 
-export function DiscoveryScreen() {
+export function DiscoveryScreen({
+  kind,
+}: {
+  kind: DiscoveryQuery["kind"];
+}) {
   const params = useSearchParams();
   const { signedIn } = useDemoSession();
   const router = useRouter();
@@ -23,10 +27,7 @@ export function DiscoveryScreen() {
   const userId = params.get("user") ?? "learner";
   const page = Number(params.get("page") ?? 1);
   const request: DiscoveryQuery = {
-    kind:
-      params.get("kind") === DiscoveryKind.HASHTAG
-        ? DiscoveryKind.HASHTAG
-        : DiscoveryKind.USER,
+    kind,
     query: params.get("query") ?? "",
     page: Number.isSafeInteger(page) && page > 0 ? page : 1,
     pageSize: 20,
@@ -41,7 +42,11 @@ export function DiscoveryScreen() {
   return (
     <QueryClientProvider client={client}>
       <div className="space-y-6">
-        <h1 className="text-3xl">개발자·태그 탐색</h1>
+        <h1 className="text-3xl">
+          {kind === DiscoveryKind.USER
+            ? "개발자 탐색"
+            : "태그 탐색"}
+        </h1>
         {signedIn && (
           <FeatureSectionShell
             id="subscriptions"
@@ -57,14 +62,16 @@ export function DiscoveryScreen() {
           onSearch={(next) => {
             const query = new URLSearchParams({
               user: userId,
-              kind: next.kind,
               page: String(next.page),
             });
             if (next.query) query.set("query", next.query);
             startTransition(() =>
-              router.push(`/discover?${query}`, {
-                scroll: false,
-              }),
+              router.push(
+                `/discover/${kind === DiscoveryKind.USER ? "developers" : "tags"}?${query}`,
+                {
+                  scroll: false,
+                },
+              ),
             );
           }}
         />

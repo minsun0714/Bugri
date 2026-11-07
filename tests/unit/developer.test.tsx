@@ -8,6 +8,16 @@ import {
 } from "@testing-library/react";
 import { DeveloperScreen } from "@/components/developer/developer-screen";
 
+jest.mock("react-markdown", () => ({
+  __esModule: true,
+  default: ({ children }: { children: string }) => (
+    <div>{children}</div>
+  ),
+}));
+jest.mock("rehype-highlight", () => ({
+  __esModule: true,
+  default: () => {},
+}));
 const push = jest.fn();
 let mockSearch = "user=friend";
 jest.mock("next/navigation", () => ({
@@ -97,7 +107,7 @@ test("public profile requires explicit demo selection and a separate subscriptio
   );
   expect(
     await screen.findByRole("heading", {
-      name: "타입 개발자",
+      name: "@bugri-author",
     }),
   ).toBeVisible();
   expect(

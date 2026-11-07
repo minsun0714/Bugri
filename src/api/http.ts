@@ -204,6 +204,15 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "PUT",
     path: "/me/desk/transform",
   },
+  profileAbout: {
+    method: "GET",
+    path: "/users/{id}/about",
+    pathKey: "publicId",
+  },
+  updateProfileAbout: {
+    method: "PUT",
+    path: "/me/about",
+  },
   publicProfile: {
     method: "GET",
     path: "/users/{id}",

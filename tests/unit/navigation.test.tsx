@@ -19,8 +19,11 @@ test("breadcrumbs identify the current page without exposing dynamic IDs", () =>
     />,
   );
   expect(
-    screen.getByRole("link", { name: "탐색" }),
-  ).toHaveAttribute("href", "/discover?user=friend");
+    screen.getByRole("link", { name: "개발자 탐색" }),
+  ).toHaveAttribute(
+    "href",
+    "/discover/developers?user=friend",
+  );
   expect(screen.getByText("개발자 프로필")).toHaveAttribute(
     "aria-current",
     "page",
@@ -40,9 +43,9 @@ test("home and unknown routes have no guessed breadcrumb", () => {
 test("navigation preserves the demo identity and excludes personal destinations for visitors", () => {
   const member = getNavigationItems("friend");
   expect(
-    member.find(({ label }) => label === "개발자·태그 탐색")
+    member.find(({ label }) => label === "개발자 탐색")
       ?.href,
-  ).toBe("/discover?user=friend");
+  ).toBe("/discover/developers?user=friend");
   expect(
     getNavigationItems(null).some(
       ({ label }) => label === "내 퀴즈",
@@ -76,13 +79,16 @@ test("member and visitor headers expose only applicable links", async () => {
   const { HeaderNavigation } =
     await import("@/components/navigation/product-header");
   const { rerender } = render(
-    <HeaderNavigation pathname="/discover" userId={null} />,
+    <HeaderNavigation
+      pathname="/discover/developers"
+      userId={null}
+    />,
   );
   expect(
     screen.queryByRole("link", { name: "내 퀴즈" }),
   ).not.toBeInTheDocument();
   expect(
-    screen.getByRole("link", { name: "개발자·태그 탐색" }),
+    screen.getByRole("link", { name: "개발자 탐색" }),
   ).toHaveAttribute("aria-current", "page");
   rerender(
     <HeaderNavigation
@@ -115,4 +121,12 @@ test("home is represented by the logo, not a duplicate menu item", () => {
       ({ label }) => label === "홈",
     ),
   ).toBe(false);
+});
+
+test("tag discovery has a separate destination", () => {
+  expect(getNavigationItems("friend")).toContainEqual({
+    label: "태그 탐색",
+    href: "/discover/tags?user=friend",
+    activePaths: ["/discover/tags"],
+  });
 });

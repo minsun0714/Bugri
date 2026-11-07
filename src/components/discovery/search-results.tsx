@@ -11,7 +11,6 @@ import {
   Button,
   Skeleton,
   TextField,
-  Tabs,
   Toast,
 } from "@/components/ui";
 import { useDiscovery } from "@/components/discovery/queries";
@@ -119,35 +118,12 @@ function SubscriptionMenu({
 export function DiscoverySearch(
   props: DiscoverySearchProps,
 ) {
-  const { request, onSearch, navigating = false } = props;
-
+  const { request } = props;
   return (
-    <Tabs
-      items={["개발자", "태그"]}
-      value={
-        request.kind === DiscoveryKind.USER
-          ? "개발자"
-          : "태그"
-      }
-      label="검색 대상"
-      disabled={navigating}
-      panelClassName="pt-6"
-      onChange={(value) =>
-        onSearch({
-          ...request,
-          kind:
-            value === "개발자"
-              ? DiscoveryKind.USER
-              : DiscoveryKind.HASHTAG,
-          page: 1,
-        })
-      }
-    >
-      <DiscoveryResults
-        key={JSON.stringify(request)}
-        {...props}
-      />
-    </Tabs>
+    <DiscoveryResults
+      key={JSON.stringify(request)}
+      {...props}
+    />
   );
 }
 
@@ -243,7 +219,11 @@ function DiscoveryResults({
         <div className="min-w-0 flex-1">
           <TextField
             type="search"
-            label="개발자 또는 태그 검색"
+            label={
+              request.kind === DiscoveryKind.USER
+                ? "개발자 검색"
+                : "태그 검색"
+            }
             placeholder={
               request.kind === DiscoveryKind.USER
                 ? "개발자 이름 또는 ID"
@@ -359,8 +339,7 @@ function DiscoveryResults({
             </ul>
           ) : (
             <p>
-              검색 결과가 없습니다. 검색어나 검색 대상을
-              바꿔 보세요.
+              검색 결과가 없습니다. 검색어를 바꿔 보세요.
             </p>
           )}
           {totalPages > 1 && (
