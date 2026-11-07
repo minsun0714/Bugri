@@ -24,41 +24,41 @@ export function DiscoveryMascot() {
             fill="none"
             strokeWidth="3"
             strokeLinecap="round"
-            className="stroke-primary"
+            className="stroke-bugri-outline"
           />
           <path
             d="m93 64 15 17"
             fill="none"
             strokeWidth="9"
             strokeLinecap="round"
-            className="stroke-primary"
+            className="stroke-bugri-outline"
           />
           <circle
             cx="78"
             cy="47"
             r="22"
             strokeWidth="3.5"
-            className="fill-lime stroke-primary"
+            className="fill-bugri-body stroke-bugri-outline"
           />
           <ellipse
             cx="79"
             cy="47"
             rx="5.5"
             ry="9"
-            className="fill-foreground"
+            className="fill-bugri-ink"
           />
           <circle
             cx="81"
             cy="43"
             r="2"
-            className="fill-surface"
+            className="fill-art-white"
           />
           <path
             d="M63 41a16 16 0 0 1 14-10"
             fill="none"
             strokeWidth="3"
             strokeLinecap="round"
-            className="stroke-surface"
+            className="stroke-art-white"
           />
           <ellipse
             cx="100"
@@ -67,14 +67,14 @@ export function DiscoveryMascot() {
             ry="5"
             transform="rotate(-35 100 75)"
             strokeWidth="2.5"
-            className="fill-lime stroke-primary"
+            className="fill-bugri-body stroke-bugri-outline"
           />
           <path
             d="M104 13v8m-4-4h8"
             fill="none"
             strokeWidth="2.5"
             strokeLinecap="round"
-            className="stroke-primary/60"
+            className="stroke-bugri-outline/60"
           />
         </svg>
       </div>

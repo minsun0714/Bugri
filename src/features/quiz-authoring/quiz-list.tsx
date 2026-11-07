@@ -216,7 +216,7 @@ export function QuizList({
         </h1>
         <a
           href={createHref}
-          className="inline-flex min-h-10 items-center justify-center rounded-[13px] border-2 border-[#4b30ac] bg-primary px-4 py-2 text-[13px] font-semibold text-white shadow-[0_3px_0_#4b30ac] transition hover:-translate-y-0.5 hover:bg-[#5032ba]"
+          className="inline-flex min-h-10 items-center justify-center rounded-[13px] border-2 border-primary-edge bg-primary-solid px-4 py-2 text-[13px] font-semibold text-on-primary shadow-[0_3px_0_var(--color-primary-edge)] transition hover:-translate-y-0.5 hover:bg-primary-hover"
         >
           새 퀴즈 만들기
         </a>
@@ -409,7 +409,7 @@ export function QuizList({
                 onClick={() =>
                   onViewChange({ page: number })
                 }
-                className="grid size-9 place-items-center rounded-lg text-xs font-semibold text-muted aria-[current=page]:bg-primary aria-[current=page]:text-white"
+                className="grid size-9 place-items-center rounded-lg text-xs font-semibold text-muted aria-[current=page]:bg-primary-solid aria-[current=page]:text-on-primary"
               >
                 {number}
               </button>

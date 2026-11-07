@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { DemoSessionProvider } from "@/components/navigation/demo-session";
-import type { Metadata } from "next";
+import { ThemeSync } from "@/components/ui/theme-sync";
+import { themeBootstrapScript } from "@/lib/theme/bootstrap";
+import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -9,12 +11,24 @@ export const metadata: Metadata = {
     "퀴즈를 만들고 공유하며, 구독으로 함께 성장하는 Bugri",
 };
 
+export const viewport: Viewport = {
+  colorScheme: "light dark",
+};
+
 export default function RootLayout({
   children,
 }: LayoutProps<"/">) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: themeBootstrapScript,
+          }}
+        />
+      </head>
       <body>
+        <ThemeSync />
         <Suspense
           fallback={<p role="status">불러오는 중…</p>}
         >

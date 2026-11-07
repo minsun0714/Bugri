@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ThemePicker } from "@/components/ui/theme-picker";
 import { PublicProfileLink } from "@/components/navigation/public-profile-link";
 import { Suspense } from "react";
 import { useEffect, useId, useRef, useState } from "react";
@@ -68,15 +69,15 @@ export function HeaderNavigation({
 
   return (
     <header className="relative z-20 border-b border-line bg-surface">
-      <div className="mx-auto flex max-w-[1220px] flex-wrap items-center justify-between gap-3 px-5 py-4 md:px-12">
+      <div className="mx-auto grid max-w-[1220px] grid-cols-[1fr_auto_auto] items-center gap-x-2 gap-y-3 px-5 py-4 md:px-12 lg:flex lg:flex-wrap lg:justify-between lg:gap-3">
         <Link
           href={withDemoUser("/", userId)}
           aria-label="Bugri 홈"
-          className="flex items-center gap-2 rounded text-[29px] font-extrabold tracking-[-1.5px] text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+          className="flex items-center gap-2 rounded text-2xl sm:text-[29px] font-extrabold tracking-[-1.5px] text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
         >
           <span
             aria-hidden="true"
-            className="grid h-8 w-8 -rotate-8 place-items-center rounded-xl bg-primary font-serif text-2xl text-lime"
+            className="grid h-8 w-8 -rotate-8 place-items-center rounded-xl bg-primary-solid font-serif text-2xl text-lime"
           >
             b.
           </span>
@@ -90,7 +91,7 @@ export function HeaderNavigation({
         </Link>
         <nav
           aria-label="주 메뉴"
-          className="hidden items-center gap-1 sm:flex"
+          className="hidden items-center gap-1 lg:flex"
         >
           {items.map(({ label, href }) => (
             <Link
@@ -105,7 +106,8 @@ export function HeaderNavigation({
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        <ThemePicker />
+        <div className="col-span-3 row-start-2 flex items-center justify-end gap-2">
           {userId && (
             <div ref={profileRoot} className="relative">
               <button
@@ -120,7 +122,7 @@ export function HeaderNavigation({
               >
                 <span
                   aria-hidden="true"
-                  className="grid size-7 place-items-center rounded-full bg-primary text-xs font-bold text-white"
+                  className="grid size-7 place-items-center rounded-full bg-primary-solid text-xs font-bold text-on-primary"
                 >
                   B
                 </span>
@@ -131,7 +133,7 @@ export function HeaderNavigation({
                 <nav
                   id={profileId}
                   aria-label="내 프로필 메뉴"
-                  className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 gap-1 rounded-2xl border border-line bg-white p-2 shadow-[0_16px_45px_-12px_#34204b40]"
+                  className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 gap-1 rounded-2xl border border-line bg-surface p-2 shadow-[0_16px_45px_-12px_#34204b40]"
                 >
                   <PublicProfileLink
                     userId={userId}
@@ -178,16 +180,16 @@ export function HeaderNavigation({
           >
             데모 사용자 선택
           </button>
-          <MobileNavigation
-            key={`${pathname}-${userId}`}
-            sections={items.map(({ href, label }) => [
-              href,
-              label,
-            ])}
-            activePath={active ?? ""}
-            product
-          />
         </div>
+        <MobileNavigation
+          key={`${pathname}-${userId}`}
+          sections={items.map(({ href, label }) => [
+            href,
+            label,
+          ])}
+          activePath={active ?? ""}
+          product
+        />
       </div>
     </header>
   );

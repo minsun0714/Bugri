@@ -173,7 +173,7 @@ function Catalog({
             <div className="min-w-0 space-y-2">
               <h1
                 id="tag-title"
-                className="w-fit max-w-full break-all rounded-2xl bg-lime/45 px-3 py-2 text-2xl sm:text-3xl"
+                className="w-fit max-w-full break-all rounded-2xl bg-success-soft px-3 py-2 text-2xl sm:text-3xl"
               >
                 #{data.hashtag.name}
               </h1>

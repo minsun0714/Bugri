@@ -285,11 +285,11 @@ export function ActivityPeriods({
                           const activityTone = future
                             ? "text-muted"
                             : count >= 5
-                              ? "bg-lime text-foreground"
+                              ? "bg-lime text-bugri-ink"
                               : count >= 2
-                                ? "bg-lime/70 text-foreground"
+                                ? "bg-lime/70 text-bugri-ink"
                                 : count > 0
-                                  ? "bg-lime/40 text-foreground"
+                                  ? "bg-success-soft text-success-ink"
                                   : "bg-canvas text-muted";
                           return (
                             <td
@@ -304,7 +304,7 @@ export function ActivityPeriods({
                             >
                               <time
                                 dateTime={date}
-                                className={`flex h-4 items-center justify-center text-[10px] font-medium sm:h-5 sm:text-xs ${date === today ? "bg-primary text-surface" : future ? "text-muted" : "border-b border-line/60 bg-line text-muted"}`}
+                                className={`flex h-4 items-center justify-center text-[10px] font-medium sm:h-5 sm:text-xs ${date === today ? "bg-primary-solid text-on-primary" : future ? "text-muted" : "border-b border-line/60 bg-line text-muted"}`}
                               >
                                 {number}
                               </time>
