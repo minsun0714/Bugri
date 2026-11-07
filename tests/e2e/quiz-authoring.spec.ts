@@ -37,7 +37,7 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     }),
   ).toHaveCount(4);
   await page
-    .getByRole("button", { name: "LLM으로 수정" })
+    .getByRole("tab", { name: "LLM으로 수정" })
     .click();
   await page
     .getByLabel("퀴즈 1에 추가 요청")
@@ -53,13 +53,13 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   ).toContainText("Mock 재생성: 예시 추가");
   await page.reload();
   await page
-    .getByRole("button", { name: "LLM으로 수정" })
+    .getByRole("tab", { name: "LLM으로 수정" })
     .click();
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("예시 추가");
   await page
-    .getByRole("button", { name: "직접 수정" })
+    .getByRole("tab", { name: "직접 수정" })
     .click();
   await page
     .getByRole("textbox", { name: "제목", exact: true })
@@ -421,7 +421,7 @@ test("new generation discards previous pending requests on mobile", async ({
   });
   await expect(dialog).toBeVisible();
   await page
-    .getByRole("button", { name: "LLM으로 수정" })
+    .getByRole("tab", { name: "LLM으로 수정" })
     .click();
   await page
     .getByLabel("퀴즈 1에 추가 요청")
@@ -435,7 +435,7 @@ test("new generation discards previous pending requests on mobile", async ({
     })
     .click();
   await page
-    .getByRole("button", { name: "LLM으로 수정" })
+    .getByRole("tab", { name: "LLM으로 수정" })
     .click();
   await expect(
     page.getByLabel("퀴즈 1에 추가 요청"),
@@ -522,8 +522,34 @@ test("quiz tabs support keyboard selection and editing and saving are immediatel
     page.getByRole("button", { name: "더 보기" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "직접 수정" }),
+    page.getByRole("tab", { name: "직접 수정" }),
   ).toBeVisible();
+  const modes = page.getByRole("tablist", {
+    name: "수정 방식",
+  });
+  await modes
+    .getByRole("tab", { name: "미리보기", exact: true })
+    .focus();
+  await page.keyboard.press("End");
+  await expect(
+    modes.getByRole("tab", { name: "LLM으로 수정" }),
+  ).toHaveAttribute("aria-selected", "true");
+  await page
+    .getByLabel("퀴즈 2에 추가 요청")
+    .fill("추가 예시");
+  await modes
+    .getByRole("tab", { name: "미리보기", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("퀴즈 2에 추가 요청"),
+  ).toHaveCount(0);
+  await modes
+    .getByRole("tab", { name: "LLM으로 수정" })
+    .click();
+  await expect(
+    page.getByLabel("퀴즈 2에 추가 요청"),
+  ).toHaveValue("추가 예시");
+
   await expect(
     page.getByRole("button", {
       name: "개별 저장",

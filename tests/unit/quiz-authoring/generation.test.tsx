@@ -81,7 +81,7 @@ test("detail saves one then all without duplicates or automatic approval", async
 test("detail refinement preserves input on failure and retry updates only the candidate", async () => {
   const { api } = await setup();
   fireEvent.click(
-    screen.getByRole("button", { name: "LLM으로 수정" }),
+    screen.getByRole("tab", { name: "LLM으로 수정" }),
   );
   const prompt =
     screen.getByLabelText("퀴즈 1에 추가 요청");
@@ -126,4 +126,39 @@ test("starts with quizzes only and publishes the current candidate on explicit r
   });
   expect(list).toHaveLength(1);
   expect(list[0].status).toBe("PUBLIC");
+});
+
+test("groups editing modes and preserves an unsent prompt when returning to preview", async () => {
+  await setup();
+  expect(
+    screen.getByRole("tablist", { name: "수정 방식" }),
+  ).toBeVisible();
+  fireEvent.click(
+    screen.getByRole("tab", { name: "LLM으로 수정" }),
+  );
+  fireEvent.change(
+    screen.getByLabelText("퀴즈 1에 추가 요청"),
+    { target: { value: "예시 추가" } },
+  );
+  fireEvent.click(
+    screen.getByRole("tab", { name: "미리보기" }),
+  );
+  expect(
+    screen.queryByLabelText("퀴즈 1에 추가 요청"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("tab", { name: "직접 수정" }),
+  );
+  expect(
+    screen.getByRole("tab", { name: "LLM으로 수정" }),
+  ).toBeDisabled();
+  fireEvent.click(
+    screen.getByRole("button", { name: "수정 취소" }),
+  );
+  fireEvent.click(
+    screen.getByRole("tab", { name: "LLM으로 수정" }),
+  );
+  expect(
+    screen.getByLabelText("퀴즈 1에 추가 요청"),
+  ).toHaveValue("예시 추가");
 });

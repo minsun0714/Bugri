@@ -72,19 +72,6 @@ export function Generation(props: GenerationProps) {
           </a>
         </div>
       )}
-      {chatOpen && (
-        <div
-          aria-label="첫 사용자 메시지"
-          className="max-w-[90%] justify-self-end rounded-2xl bg-primary/10 px-5 py-4"
-        >
-          <span className="mb-2 block text-xs font-semibold text-muted">
-            나
-          </span>
-          <MarkdownContent>
-            {batch.sourceContent}
-          </MarkdownContent>
-        </div>
-      )}
       {notice && (
         <p role="status" className="text-primary">
           {notice}
@@ -118,71 +105,6 @@ export function Generation(props: GenerationProps) {
             }
           >
             <div className="grid min-w-0 gap-5">
-              {chatOpen && !!candidate.history?.length && (
-                <ol
-                  className="grid gap-3"
-                  aria-label="추가 요청 기록"
-                >
-                  {candidate.history.map(
-                    ({ prompt: sent, content }, index) => (
-                      <li
-                        key={index}
-                        className="grid gap-2"
-                      >
-                        <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
-                          {sent}
-                        </p>
-                        {index <
-                          candidate.history!.length - 1 && (
-                          <details className="text-sm text-muted">
-                            <summary className="cursor-pointer">
-                              응답 {index + 1} ·{" "}
-                              {content.title}
-                            </summary>
-                            <div className="mt-3">
-                              <ContentPreview
-                                content={content}
-                              />
-                            </div>
-                          </details>
-                        )}
-                      </li>
-                    ),
-                  )}
-                </ol>
-              )}
-
-              <div className="min-w-0">
-                {chatOpen && !candidate.savedQuizId && (
-                  <form
-                    className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      refine();
-                    }}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <TextField
-                        label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
-                        placeholder="예시를 추가해줘"
-                        value={prompt}
-                        disabled={busy || !!editing}
-                        onChange={(event) =>
-                          changePrompt(event.target.value)
-                        }
-                      />
-                    </div>
-                    <Button
-                      size="sm"
-                      type="submit"
-                      loading={busy}
-                      disabled={!prompt.trim() || !!editing}
-                    >
-                      요청 보내기
-                    </Button>
-                  </form>
-                )}
-              </div>
               <div className="min-w-0">
                 <Card
                   className="grid gap-6 text-foreground"
@@ -198,55 +120,165 @@ export function Generation(props: GenerationProps) {
                         {candidate.content.title}
                       </h2>
                     </div>
-                    {!candidate.savedQuizId && !editing && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={busy}
-                        onClick={() =>
-                          edit(candidate.content)
-                        }
-                      >
-                        직접 수정
-                      </Button>
-                    )}
                   </div>
-                  {editing ? (
-                    <fieldset
-                      disabled={busy}
-                      className="min-w-0"
-                    >
-                      <ContentFields
-                        content={editing}
-                        source={batch.sourceContent}
-                        showSource={false}
-                        tags={tags.data ?? []}
-                        errors={{}}
-                        onChange={edit}
-                        onSource={() => {}}
-                      />
-                      <div className="mt-4 flex gap-3">
-                        <Button
-                          size="sm"
-                          onClick={applyEdit}
-                          loading={busy}
-                        >
-                          수정 반영
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={cancelEdit}
-                        >
-                          수정 취소
-                        </Button>
+                  <Tabs
+                    label="수정 방식"
+                    items={
+                      candidate.savedQuizId
+                        ? ["미리보기"]
+                        : [
+                            "미리보기",
+                            "직접 수정",
+                            "LLM으로 수정",
+                          ]
+                    }
+                    value={
+                      editing
+                        ? "직접 수정"
+                        : chatOpen && !candidate.savedQuizId
+                          ? "LLM으로 수정"
+                          : "미리보기"
+                    }
+                    disabled={busy || !!editing}
+                    onChange={(mode) => {
+                      setChatOpen(mode === "LLM으로 수정");
+                      if (mode === "직접 수정")
+                        edit(candidate.content);
+                    }}
+                  >
+                    <div className="grid min-w-0 gap-5">
+                      {chatOpen &&
+                        !candidate.savedQuizId && (
+                          <div
+                            aria-label="첫 사용자 메시지"
+                            className="max-w-[90%] justify-self-end rounded-2xl bg-primary/10 px-5 py-4"
+                          >
+                            <span className="mb-2 block text-xs font-semibold text-muted">
+                              나
+                            </span>
+                            <MarkdownContent>
+                              {batch.sourceContent}
+                            </MarkdownContent>
+                          </div>
+                        )}
+                      {chatOpen &&
+                        !candidate.savedQuizId &&
+                        !!candidate.history?.length && (
+                          <ol
+                            className="grid gap-3"
+                            aria-label="추가 요청 기록"
+                          >
+                            {candidate.history.map(
+                              (
+                                { prompt: sent, content },
+                                index,
+                              ) => (
+                                <li
+                                  key={index}
+                                  className="grid gap-2"
+                                >
+                                  <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
+                                    {sent}
+                                  </p>
+                                  {index <
+                                    candidate.history!
+                                      .length -
+                                      1 && (
+                                    <details className="text-sm text-muted">
+                                      <summary className="cursor-pointer">
+                                        응답 {index + 1} ·{" "}
+                                        {content.title}
+                                      </summary>
+                                      <div className="mt-3">
+                                        <ContentPreview
+                                          content={content}
+                                        />
+                                      </div>
+                                    </details>
+                                  )}
+                                </li>
+                              ),
+                            )}
+                          </ol>
+                        )}
+
+                      <div className="min-w-0">
+                        {chatOpen &&
+                          !candidate.savedQuizId && (
+                            <form
+                              className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                refine();
+                              }}
+                            >
+                              <div className="min-w-0 flex-1">
+                                <TextField
+                                  label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
+                                  placeholder="예시를 추가해줘"
+                                  value={prompt}
+                                  disabled={
+                                    busy || !!editing
+                                  }
+                                  onChange={(event) =>
+                                    changePrompt(
+                                      event.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
+                              <Button
+                                size="sm"
+                                type="submit"
+                                loading={busy}
+                                disabled={
+                                  !prompt.trim() ||
+                                  !!editing
+                                }
+                              >
+                                요청 보내기
+                              </Button>
+                            </form>
+                          )}
                       </div>
-                    </fieldset>
-                  ) : (
-                    <ContentPreview
-                      content={candidate.content}
-                    />
-                  )}
+                      {editing ? (
+                        <fieldset
+                          disabled={busy}
+                          className="min-w-0"
+                        >
+                          <ContentFields
+                            content={editing}
+                            source={batch.sourceContent}
+                            showSource={false}
+                            tags={tags.data ?? []}
+                            errors={{}}
+                            onChange={edit}
+                            onSource={() => {}}
+                          />
+                          <div className="mt-4 flex gap-3">
+                            <Button
+                              size="sm"
+                              onClick={applyEdit}
+                              loading={busy}
+                            >
+                              수정 반영
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={cancelEdit}
+                            >
+                              수정 취소
+                            </Button>
+                          </div>
+                        </fieldset>
+                      ) : (
+                        <ContentPreview
+                          content={candidate.content}
+                        />
+                      )}
+                    </div>
+                  </Tabs>
                   {!candidate.savedQuizId && !editing && (
                     <div className="flex flex-wrap items-center gap-2">
                       <Button
@@ -255,17 +287,6 @@ export function Generation(props: GenerationProps) {
                         onClick={publish}
                       >
                         바로 공개
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={busy}
-                        aria-expanded={chatOpen}
-                        onClick={() =>
-                          setChatOpen(!chatOpen)
-                        }
-                      >
-                        LLM으로 수정
                       </Button>
                       <Tooltip label="바로 공개 도움말">
                         현재 퀴즈의 문제·정답·해설·태그를
