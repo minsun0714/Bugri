@@ -160,7 +160,13 @@ export function ThreeView(props: Props) {
 
   return (
     <div role="group" aria-label={`${label} · ${names}`}>
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 px-2">
+      <div
+        className={
+          props.showViewPresets === false
+            ? "sr-only"
+            : "mb-2 flex flex-wrap items-center justify-between gap-2 px-2"
+        }
+      >
         {props.showViewPresets !== false && (
           <div className="flex gap-1">
             {[

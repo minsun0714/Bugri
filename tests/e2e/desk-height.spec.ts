@@ -1,3 +1,4 @@
+import { orbitTo } from "./helpers/desk";
 import {
   expect,
   test,
@@ -87,9 +88,7 @@ test("height adjustment persists and the tabletop occludes a lowered keyboard", 
   await expect
     .poll(() => visibleKeyboard(canvas))
     .toBeGreaterThan(50);
-  await page
-    .getByRole("button", { name: "위에서", exact: true })
-    .click();
+  await orbitTo(page, "위에서");
   await expect.poll(() => visibleKeyboard(canvas)).toBe(0);
   // Hidden selected objects retain bounds so their layer menu can bring them forward.
   await expect(
@@ -113,9 +112,7 @@ test("height adjustment persists and the tabletop occludes a lowered keyboard", 
   await expect
     .poll(() => visibleKeyboard(canvas))
     .toBeGreaterThan(50);
-  await page
-    .getByRole("button", { name: "45도 시점", exact: true })
-    .click();
+  await orbitTo(page, "45도 시점");
   await expect(
     page.getByRole("button", {
       name: "선택 상품 높이",

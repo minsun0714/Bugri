@@ -58,6 +58,7 @@ export function DeskEditor({
   return (
     <div>
       <ThreeView
+        showViewPresets={false}
         equipment={equipment}
         layerOrder={layers.effective}
         onReorder={(target, action) => {

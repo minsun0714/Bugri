@@ -308,3 +308,24 @@ it("keeps the personal desk inside its parent layout without duplicate page land
     "friend",
   );
 });
+
+it("keeps the own desk focused on editing without neighbors or view presets", async () => {
+  render(<ShopApp editing />);
+  await screen.findByText("아직 보관한 상품이 없어요");
+  expect(
+    screen.queryByRole("heading", {
+      name: "이웃의 데스크",
+    }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", { name: /이웃/ }),
+  ).not.toBeInTheDocument();
+  for (const name of ["45도 시점", "정면", "위에서"]) {
+    expect(
+      screen.queryByRole("button", { name }),
+    ).not.toBeInTheDocument();
+  }
+  expect(
+    screen.getByRole("img", { name: "3D 데스크 캔버스" }),
+  ).toBeInTheDocument();
+});

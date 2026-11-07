@@ -1,3 +1,4 @@
+import { orbitTo } from "./helpers/desk";
 import {
   productPoint,
   rotationOf,
@@ -51,9 +52,7 @@ async function equipped(page: Page) {
 }
 
 async function topProjection(page: Page) {
-  await page
-    .getByRole("button", { name: "위에서", exact: true })
-    .click();
+  await orbitTo(page, "위에서");
   const canvas = page.locator(
     '#desk [data-renderer="canvas"] canvas',
   );
@@ -68,9 +67,7 @@ test("Canvas camera orbit, surface drag, item rotation and public restoration", 
   page,
 }) => {
   const canvas = await equipped(page);
-  await page
-    .getByRole("button", { name: "45도 시점", exact: true })
-    .click();
+  await orbitTo(page, "45도 시점");
   await expect(
     page.getByRole("main").getByLabel("카메라 방위각"),
   ).toHaveText("45°");

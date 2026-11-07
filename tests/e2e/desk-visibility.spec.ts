@@ -1,3 +1,4 @@
+import { orbitTo } from "./helpers/desk";
 import { rotateTo, productPoint } from "./helpers/desk";
 import {
   expect,
@@ -130,9 +131,7 @@ for (const width of [1100, 390]) {
       .poll(() => keyboardPixels(canvas))
       .toBeGreaterThan(50);
     for (const name of ["정면", "위에서", "45도 시점"]) {
-      await page
-        .getByRole("button", { name, exact: true })
-        .click();
+      await orbitTo(page, name);
       await expect
         .poll(() => keyboardPixels(canvas))
         .toBeGreaterThan(50);

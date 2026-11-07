@@ -1,3 +1,4 @@
+import { orbitTo } from "./helpers/desk";
 import { rotateTo, productPoint } from "./helpers/desk";
 import { expect, test } from "@playwright/test";
 
@@ -43,9 +44,7 @@ test("lavender keyboard can leave the table, rotate, save and remain visible", a
       exact: true,
     })
     .click();
-  await page
-    .getByRole("button", { name: "위에서", exact: true })
-    .click();
+  await orbitTo(page, "위에서");
   const canvas = page
     .getByRole("main")
     .locator('[data-renderer="canvas"] canvas');

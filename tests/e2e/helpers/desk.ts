@@ -93,3 +93,64 @@ export async function rotateTo(
   for (let i = 0; i < steps; i++)
     await selection.press("Alt+ArrowRight");
 }
+
+/** Orbit through the visible canvas after removal of preset buttons. */
+export async function orbitTo(page: Page, view: string) {
+  const yaw = view === "45도 시점" ? 45 : 0;
+  const pitch = view === "위에서" ? 85 : 30;
+  const selection = page
+    .getByRole("button", { pressed: true })
+    .filter({ hasText: / 선택$/ });
+  const selectedName =
+    (await selection.count()) === 1
+      ? await selection.innerText()
+      : null;
+  const canvas = page.locator(
+    '[data-renderer="canvas"] canvas',
+  );
+  await canvas.scrollIntoViewIfNeeded();
+  const box = (await canvas.boundingBox())!;
+  const currentYaw = Number(
+    (
+      await page.getByLabel("카메라 방위각").innerText()
+    ).replace("°", ""),
+  );
+  const currentPitch = Number(
+    (
+      await page
+        .getByLabel("카메라 높낮이 각도")
+        .innerText()
+    ).replace("°", ""),
+  );
+  const dx =
+    -(((yaw - currentYaw + 540) % 360) - 180) / 0.5;
+  const dy = (pitch - currentPitch) / 0.3;
+  if (dx) {
+    await page.mouse.move(
+      box.x + box.width / 2,
+      box.y + 10,
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      box.x + box.width / 2 + dx,
+      box.y + 10,
+      { steps: 8 },
+    );
+    await page.mouse.up();
+  }
+  if (dy) {
+    const y = dy > 0 ? box.y + 10 : box.y + box.height - 10;
+    await page.mouse.move(box.x + 10, y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 10, y + dy, { steps: 8 });
+    await page.mouse.up();
+  }
+  if (selectedName)
+    await page
+      .getByRole("button", {
+        name: selectedName,
+        exact: true,
+      })
+      .click();
+  await canvas.scrollIntoViewIfNeeded();
+}
