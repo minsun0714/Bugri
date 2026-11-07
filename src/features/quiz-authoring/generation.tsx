@@ -142,6 +142,36 @@ export function Generation(props: GenerationProps) {
             )}
 
             <div className="min-w-0">
+              {!candidate.savedQuizId && (
+                <form
+                  className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    refine();
+                  }}
+                >
+                  <div className="min-w-0 flex-1">
+                    <TextField
+                      label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
+                      placeholder="예시를 추가해줘"
+                      value={prompt}
+                      disabled={busy || !!editing}
+                      onChange={(event) =>
+                        changePrompt(event.target.value)
+                      }
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    loading={busy}
+                    disabled={!prompt.trim() || !!editing}
+                  >
+                    요청 보내기
+                  </Button>
+                </form>
+              )}
+            </div>
+            <div className="min-w-0">
               <Card
                 className="grid gap-4"
                 aria-label="버그리 응답"
@@ -221,36 +251,6 @@ export function Generation(props: GenerationProps) {
                   )}
                 </div>
               </Card>
-            </div>
-            <div className="min-w-0">
-              {!candidate.savedQuizId && (
-                <form
-                  className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    refine();
-                  }}
-                >
-                  <div className="min-w-0 flex-1">
-                    <TextField
-                      label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
-                      placeholder="예시를 추가해줘"
-                      value={prompt}
-                      disabled={busy || !!editing}
-                      onChange={(event) =>
-                        changePrompt(event.target.value)
-                      }
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    loading={busy}
-                    disabled={!prompt.trim() || !!editing}
-                  >
-                    요청 보내기
-                  </Button>
-                </form>
-              )}
             </div>
           </div>
           <div className={styles.actions}>
