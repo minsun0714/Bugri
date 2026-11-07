@@ -19,13 +19,11 @@ export function ProfileAbout({
   identity,
   visitorAction,
   onNotice,
-  quizNavigation,
 }: {
   userId: string;
   publicId: string;
   owner: boolean;
   identity: ReactNode;
-  quizNavigation?: ReactNode;
   visitorAction: ReactNode;
   onNotice: (message: string, duration?: number) => void;
 }) {
@@ -175,10 +173,9 @@ export function ProfileAbout({
           {visitorAction}
         </div>
       )}
-      {(content || !editing) && (
-        <div className="col-span-2 min-w-0 max-w-3xl space-y-2">
+      {content && (
+        <div className="col-span-2 min-w-0 max-w-3xl">
           {content}
-          {!editing && quizNavigation}
         </div>
       )}
     </section>

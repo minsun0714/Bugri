@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 for (const width of [1280, 390]) {
-  test(`profile exposes editing and quiz navigation at ${width}px`, async ({
+  test(`profile exposes editing without redundant quiz shortcut at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
@@ -21,16 +21,11 @@ for (const width of [1280, 390]) {
     await expect(desk.locator("svg")).toBeVisible();
     await expect(edit).toHaveCSS("padding-right", "0px");
     await expect(desk).toHaveCSS("padding-right", "0px");
-    const jump = page.getByRole("link", {
-      name: /공개 퀴즈 \d+개 보기/,
-    });
-    await expect(jump).toBeVisible();
-    await jump.click();
     await expect(
-      page.getByRole("region", {
-        name: "개발자의 공개 퀴즈",
+      page.getByRole("link", {
+        name: /공개 퀴즈 \d+개 보기/,
       }),
-    ).toBeFocused();
+    ).toHaveCount(0);
     await page
       .getByRole("region", { name: "개발자의 공개 퀴즈" })
       .getByRole("link")

@@ -339,23 +339,6 @@ function Catalog({
           owner={signedIn && data.user.userId === userId}
           identity={identity}
           visitorAction={subscription}
-          quizNavigation={
-            <a
-              href="#public-quizzes"
-              className="inline-flex min-h-11 items-center gap-2 rounded text-sm font-medium text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary"
-              onClick={(event) => {
-                event.preventDefault();
-                const target = document.getElementById(
-                  "public-quizzes",
-                );
-                target?.focus({ preventScroll: true });
-                target?.scrollIntoView({ block: "start" });
-              }}
-            >
-              공개 퀴즈 {data.total}개 보기{" "}
-              <span aria-hidden="true">↓</span>
-            </a>
-          }
           onNotice={onNotice}
         />
       ) : (
@@ -519,9 +502,7 @@ function Catalog({
         )}
         <section
           aria-label="개발자의 공개 퀴즈"
-          id={profile ? "public-quizzes" : undefined}
-          tabIndex={profile ? -1 : undefined}
-          className="min-w-0 scroll-mt-24 rounded-xl"
+          className="min-w-0"
         >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg">
