@@ -162,7 +162,11 @@ export function room(
     ],
     fill: true,
     stroke: false,
-    color: night ? "#686390" : "#88ad86",
+    color: night
+      ? "#686390"
+      : productId === "background-3"
+        ? "#ad7e82"
+        : "#88ad86",
     backface: false,
   });
   new Zdog.Shape({

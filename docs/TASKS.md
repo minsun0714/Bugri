@@ -1323,6 +1323,47 @@
 - 관련 단위5 suites/27 tests 통과. 독립 UX/UI 및 실제 PC/mobile 통합 검토와 최종 전체 verify를 수행한다.
 - 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3195 npm run verify -- -- --workers=1` 전체 통과: lint·TypeScript·Jest47 suites/229 tests·도구3개·build·E2E141개. 로그 `/tmp/pr19-merge-verify.log`. 관련 E2E18개·단위27개 통과. 독립 UX/UI 실제화면 검토 필수회귀0개. [검토·한계](ux-reviews/PR19-DEV-INTEGRATION.md). 사용자dev서버의 탐색 hydration mismatch는 최신production에서 미재현. 충돌해결 커밋을 PR19에 반영하며 PR 자체는 merge하지 않는다.
 
+## SHOP-HEADER-CLEANUP — 상점 상단 중복 행 제거
+
+- 상태: DONE. /shop 본문의 홈 링크·더미 사용자 행을 제거하고 공통 헤더의 URL 사용자 전환에 잔액·보유 상태를 연결한다. REQ-09/AC-09b·c, REQ-13의 데모 구분 유지. 데스크 화면과 독립 전시는 변경하지 않는다.
+- 사용자 전환 컴포넌트·E2E 검증, 독립 UX/UI 리뷰, 마지막 전체 verify 수행. Hook 자동 로드는 미확인으로 직접 검증한다.
+
+- 상단 행 제거 구현·관련 단위10개/E2E8개 및 독립 UX/UI R0 완료(필수문제0, 수정0회). [리뷰](ux-reviews/SHOP-HEADER-CLEANUP.md). 전체verify2의 기존3D 모바일 테스트2개 timeout은 후속 관련 검사 및 최종 순차 전체verify3에서 통과했다.
+
+## SHOP-SORT-GROUNDING — 공통 정렬과 책상 접지
+
+- 상태: DONE. 사용자 승인으로 상품 정렬을 공통 Dropdown으로 교체하고, 장착 미리보기 책상 접점 명암을 보완한다. 다리/러그 모두 y=0인 기하를 유지하며 바닥 접지 그림자를 현재·추가 책상 위치/회전에 맞춘다. REQ-09/AC-09e. API·구매 정책 변경 없음.
+- 컴포넌트 정렬·키보드/모바일 E2E, 접점 기하·실제 화면·독립 UX/UI 리뷰, 마지막 전체 verify 수행. 이전 Hook 실패 횟수를 유지한다.
+
+- 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3418 npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest47 suites/231개·도구3개·production build·E2E143개. 로그 `.bugri-hooks/shop-ground-verify-3.log`. 상단 정리와 후속 정렬/접지 모두 검증 완료. [접지/정렬 독립 UX/UI R0](ux-reviews/SHOP-SORT-GROUNDING.md) 필수문제0·수정0회, 기존 모달초점/모바일 창문 프레이밍은 범위 밖 보류. 변경 파일 Prettier·diff check 통과, 커밋하며 push/PR/merge 없음.
+
+## SHOP-PROJECTION — 방·가구 투영 일치
+
+- 상태: DONE. 사용자가 접지그림자로 해결되지 않은 벽 바닥선/책상 모서리의 어긋남을 재지적했다. 방만 원근이고 가구는 직교인 혼합 투영을 통일하며 렌더/선택/드래그 좌표를 함께 맞춘다. REQ-09/AC-09e의 방 내부 원근, 회전·확대·배치 유지. 이전 접지 보완으로 근본 문제가 해결됐다는 판단을 정정한다.
+- 투영 일치·역변환 테스트, 실제 같은 각도 이미지 비교, 독립 UX/UI 리뷰, 관련3D 및 전체검증 후 완료한다.
+
+- 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3420 npm run verify -- -- --workers=1` 통과(lint·TypeScript·Jest48 suites/237개·도구3개·build·E2E145개). 로그 `.bugri-hooks/shop-projection-verify-final.log`. [독립 UX/UI 리뷰](ux-reviews/SHOP-PROJECTION.md) C1/R1 완료·필수미해결0개. 관련검사 모바일프레이밍 실패2회 보완·최종전체통과, Prettier·diff check통과. 커밋하며 push/PR/merge 없음.
+
+## SHOP-DEMO-STRIP — 상점 데모 표시 줄 제거
+
+- 상태: DONE. 사용자 요청으로 /shop 헤더 아래 데모 사용자 표시 줄을 제거하고 전환 동작은 내 프로필 메뉴로 이동한다. 다른 페이지 표시/방문자 데모선택과 사용자별 데이터 정책 유지. REQ-13 데모 구분, REQ-09 상점 흐름.
+- 메뉴 전환·복귀초점 단위/E2E, 독립 UX/UI 인접화면 확인 및 전체verify 수행.
+
+- Node v22.23.3 최종 `PLAYWRIGHT_PORT=3424 npm run verify -- -- --workers=2` 전체통과: lint·TypeScript·Jest48 suites/238개·도구3개·build·E2E145개. `.bugri-hooks/shop-strip-verify.log`. 관련 단위8개/E2E8개, Prettier·diff check 통과. [독립 UX/UI R0](ux-reviews/SHOP-DEMO-STRIP.md) 실제PC/mobile확인·필수문제0·수정0회. 커밋하며 push/PR/merge 없음.
+
+## SHOP-EXTRA-ITEMS — 카테고리별 추가 검증 상품
+
+- 상태: DONE. 사용자 요청으로 키보드/모니터/책상/소품/배경에1개씩 총5개 추가한다. 공통 모델·투영·조작 경로를 재사용하는 색상 변형으로 새ID에도 수정이 적용되는지 확인한다. 새5개 가격합100은 구매·장착 검증용fixture이며 지급/가격정책 변경이 아니다. REQ-09/AC-09b~e.
+- API 목록·구매/장착·사용자격리·저장복원과 새상품미리보기·공개데스크를 검증하고 독립 UX/UI 화면리뷰 및 최종전체verify 수행. 기존 사용자 데이터 초기화 없음.
+
+- Node v22.23.3 최종 `PLAYWRIGHT_PORT=3426 npm run verify -- -- --workers=2` 통과: lint·TypeScript·Jest50 suites/244개·도구3개·production build·E2E147개. `.bugri-hooks/shop-extra-verify-final.log`. [독립 UX/UI R0](ux-reviews/SHOP-EXTRA-ITEMS.md) 필수문제0·수정0회. 검증 실패 수정3회 기록, 변경파일 Prettier·diff check 통과. 검증 후 변경은 결과 문서뿐이며 커밋, push/PR/merge 없음.
+
+## HEADER-SHOP-LABEL — 상점 메뉴 한글화
+
+- 상태: DONE. 사용자 요청으로 공통 헤더 메뉴 Shop을 상점으로 변경한다. PC/모바일 공통 목록을 사용하고 링크·동작은 유지한다. 단순 문구 수정으로 전체verify/UX루프 대신 변경파일 정적검사·관련 navigation 테스트·PC/모바일 확인을 수행한다.
+
+- Node v22.23.3 변경파일 ESLint/Prettier·navigation 단위8개·E2E6개 통과. PC1280/mobile390 캡처에서 상점 표시와 정렬 확인. 독립 리뷰어가 diff/공통 호출부 확인(문제0, 실제 화면은 구현자 확인). 단순 문구 변경으로 전체verify 미실행. `git diff --check` 통과.
+
 ## TAG-HASH-LABEL — 태그명 # 표시
 
 - 상태: DONE. 아래 TAG-DISCOVERY-CUTE에 포함해 완료했다. 사용자 요청에 따라 태그 탐색 카드의 표시 이름에만 #을 붙인다. 저장된 태그 이름/ID·검색·구독·학습 동작은 유지한다. 기존 화면 문구 검증을 새 표기에 맞춘다.
@@ -1394,8 +1435,18 @@
 
 - 후속 사용자 요청: 현재 변경을 PR로 게시. 미통과E2E와 재시도한도 상태는 유지하고 최신popover/SVG변경을 커밋하여 dev대상Draft PR에 포함한다. 이전의커밋보류를 게시요청으로해제할뿐 DONE/검증성공으로전환하지않는다. 최종head 전체verify도 미실행으로본문에명시한다.
 
+## SHOP-PR-DEV-INTEGRATION
+
+- 상태: DONE. 사용자 PR 게시 요청에 따라 dev6d7b0f6을 통합했다. TASKS의 추가 섹션 충돌은 양쪽 기록을 모두 보존했다. 독립 정적 통합 리뷰에서 상점 헤더/사용자전환과 dev 취소초점 로직 공존, 충돌마커·미해결인덱스 없음 확인.
+- 통합 전115d68b 전체verify 통과(단위244/E2E147), 통합 후 Node v22.23.3 `PLAYWRIGHT_PORT=3430 npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest52 suites/253개·도구3개·production build·E2E155개. 로그 `/tmp/shop-pr-integrated-verify.log`. 통합 후 검증 대상에서 변경된 것은 이 결과 기록뿐이다. dev의 기존 DISCOVERY 검증 실패 기록은 역사로 보존하며 이번 통합검증 결과와 구분한다. 브랜치 push와 dev대상 PR 생성까지만 수행한다.
+
 ## PR22-DEV-INTEGRATION — 개발자 탐색과 태그 탐색 통합
 
 - 상태: IN_PROGRESS. 사용자 요청으로 origin/dev 6d7b0f6의 개발자 탐색·구독 관리와 태그 탐색/목록을 통합한다. 충돌6파일에서 양쪽 API·스타일·테스트·기록을 보존한다. 실제 quiz→attempt 전환과 태그 홈 학습 계약에 맞게 URL 검증을 통합하고, 관련 검사·독립 UX/UI 실제화면 검토·새 통합 코드 전체 verify 후 PR22를 갱신한다. 이전 작업의 실패 기록은 보존하며 이번 통합 검증으로 최종 상태를 판단한다.
 
 - PR22-DEV-INTEGRATION: 충돌6파일 해소·양쪽기능 보존 완료. 관련 단위39개/E2E20개 통과. 전체247단위·도구3·build 통과, E2E156통과/1실패(개발자 빠른구독관리). 후속 초점복원 회귀 테스트 추가·관련단위5개 통과, 개발자 production E2E7통과/1실패. 재시도3회 한도 도달, 빠른관리메뉴 미해결로 검증 상태 IN_PROGRESS 및 PR Draft 유지. [회차·실제결과](ux-reviews/PR22-DEV-INTEGRATION.md). 태그 URL 기대값 실패는 이번 통합검사에서 해결 확인했다.
+
+## PR23-TASKS-CONFLICT — 태그 작업 통합 후 기록 충돌 해결
+
+- 상태: 충돌 해결 완료, 통합 검증 미완료. origin/dev9a7d573 통합에서 TASKS의 두 추가 블록을 양쪽 모두 보존했다. 독립 정적 리뷰에서 양쪽 비어 있지 않은 줄 보존·중복 제목 없음·상점 label/태그 경로 보존 확인. 충돌마커·미해결 인덱스 없음, diff check 통과.
+- Node v22.23.3 `PLAYWRIGHT_PORT=3431 npm run verify -- -- --workers=2`: lint·TypeScript·Jest53 suites/263개·도구3개·build 통과, E2E162통과/1실패. 개발자 구독 해제 버튼을 기다리다30초 시간초과(`developer-discovery-repair.spec.ts:64`). 최신 dev의 PR22 기록과 같은 미해결 흐름이며 이번 문서 충돌 해결에서 해당 기능/테스트를 수정하지 않았다. 기존 재시도 한도를 초기화하지 않고 추가 수정·재실행하지 않는다. 로그 `/tmp/shop-pr23-conflict-verify.log`. 충돌 해결을 PR23에 push하고 미통과 근거를 반영해 Draft로 전환한다. PR 병합은 수행하지 않는다.
