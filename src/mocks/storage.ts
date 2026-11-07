@@ -1,3 +1,4 @@
+import { ConversationRole } from "@/api/constants";
 import { QuizStatus, LearningMode } from "@/api/constants";
 import { users, hashtags } from "@/mocks/users";
 import { quizzes } from "@/mocks/quizzes";
@@ -136,6 +137,54 @@ function validateState(
     purchases,
   } = value as unknown as UserState;
 
+  const { authoringConversation } = value;
+
+  if (authoringConversation !== undefined) {
+    object(authoringConversation);
+
+    const { version, messages, draft, latestBatchId } =
+      authoringConversation;
+
+    requireValue(
+      Number.isInteger(version) &&
+        Number(version) >= 0 &&
+        Array.isArray(messages) &&
+        messages.length % 2 === 0,
+      "대화 기록이 손상되었습니다.",
+    );
+
+    requireValue(
+      typeof draft === "string" &&
+        [...draft].length <= 10000,
+      "대화 입력이 손상되었습니다.",
+    );
+
+    requireValue(
+      latestBatchId === null ||
+        batches.some(
+          ({ batchId }) => batchId === latestBatchId,
+        ),
+      "생성 결과 연결이 손상되었습니다.",
+    );
+
+    for (const [index, message] of (
+      messages as unknown[]
+    ).entries()) {
+      object(message);
+
+      requireValue(
+        typeof message.messageId === "string" &&
+          message.role ===
+            (index % 2 === 0
+              ? ConversationRole.USER
+              : ConversationRole.ASSISTANT),
+        "대화 메시지가 손상되었습니다.",
+      );
+
+      source(message.content);
+    }
+  }
+
   const revision = (
     r: NonNullable<UserState["quizzes"][number]["active"]>,
   ) => {
@@ -199,7 +248,6 @@ function validateState(
     requireValue(
       typeof b.batchId === "string" &&
         Array.isArray(b.candidates) &&
-        b.candidates.length >= 1 &&
         b.candidates.length <= 5,
       "생성 묶음이 손상되었습니다.",
     );
@@ -220,6 +268,28 @@ function validateState(
         c.content,
         hashtags.map(({ id }) => id),
       );
+
+      if (c.history !== undefined) {
+        requireValue(
+          Array.isArray(c.history),
+          "추가 요청 기록이 손상되었습니다.",
+        );
+
+        for (const item of c.history as unknown[]) {
+          object(item);
+
+          requireValue(
+            typeof item.prompt === "string" &&
+              item.prompt.trim().length > 0,
+            "추가 요청이 손상되었습니다.",
+          );
+
+          validateContent(
+            item.content,
+            hashtags.map(({ id }) => id),
+          );
+        }
+      }
     }
   }
 

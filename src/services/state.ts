@@ -1,5 +1,6 @@
 import type {
   Answer,
+  AuthoringConversation,
   Equipment,
   GenerationBatch,
   LedgerEntry,
@@ -34,6 +35,7 @@ export interface StoredDay {
 
 export interface UserState {
   schemaVersion: 1;
+  authoringConversation?: AuthoringConversation;
   userId: string;
   quizzes: StoredQuiz[];
   batches: GenerationBatch[];

@@ -1,5 +1,6 @@
 import type {
   ApiTransport,
+  AuthoringMessage,
   Operation,
   Request,
   Response,
@@ -21,6 +22,7 @@ import {
   writeState,
 } from "@/mocks/storage";
 import { generatedContents } from "@/mocks/quizzes";
+import { mockAuthoringReply } from "@/mocks/authoring-chat";
 import { users } from "@/mocks/users";
 
 export interface MockOptions {
@@ -33,6 +35,10 @@ export interface MockOptions {
   /** Fixture configuration, not an approved economy policy. Default: no reward minting. */
   dailyReward?: number;
   generate?: MockGenerator;
+  reply?: (
+    messages: AuthoringMessage[],
+    content: string,
+  ) => unknown;
 }
 
 /** Instantiate in a browser event/effect. No localStorage access at module import or on a server. */
@@ -143,6 +149,7 @@ export function createMockTransport(
           now: options.now?.() ?? new Date(),
           id: () => globalThis.crypto.randomUUID(),
           generate: options.generate ?? defaultGenerate,
+          reply: options.reply ?? mockAuthoringReply,
           dailyReward: dailyReward ?? 0,
         });
 

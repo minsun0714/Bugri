@@ -1,11 +1,14 @@
 import {
   QuizStatus,
+  ConversationRole,
   LearningMode,
   LearningState,
   QuizScope,
 } from "@/api/constants";
 import type {
   ApiOperations,
+  AuthoringConversation,
+  AuthoringMessage,
   AttemptView,
   GenerationBatch,
   LearningSelection,
@@ -61,13 +64,24 @@ export interface ServiceContext {
   id: () => string;
   generate: MockGenerator;
   dailyReward: number;
+  reply?: (
+    messages: AuthoringMessage[],
+    content: string,
+  ) => unknown;
 }
 
 const tagIds = hashtags.map(({ id }) => id);
 
 const allowed: Record<Operation, string[]> = {
+  authoringConversation: [],
+  sendAuthoringMessage: ["content", "expectedVersion"],
+  generateFromConversation: ["draft", "expectedVersion"],
   generate: ["sourceContent"],
   generationBatch: ["batchId"],
+  refineCandidate: ["batchId", "candidateId", "prompt"],
+  editCandidate: ["batchId", "candidateId", "content"],
+  deleteCandidate: ["batchId", "candidateId"],
+  publishCandidate: ["batchId", "candidateId", "reviewed"],
   saveBatch: ["batchId", "mode", "candidateId"],
   quizzes: ["scope"],
   reviewQuiz: ["quizId"],
@@ -322,7 +336,126 @@ export function execute<K extends Operation>(
   const balance = () =>
     s.ledger.reduce((sum, { amount }) => sum + amount, 0);
 
+  const conversation: AuthoringConversation =
+    s.authoringConversation ?? {
+      version: 0,
+      messages: [],
+      draft: "",
+      latestBatchId: null,
+    };
+
+  const conversationVersion = () => {
+    requireValue(
+      Number.isInteger(r.expectedVersion),
+      "대화 버전이 필요합니다.",
+    );
+
+    if (r.expectedVersion !== conversation.version)
+      throw new ServiceError(
+        "VERSION_CONFLICT",
+        "다른 탭에서 대화가 변경되었습니다. 최신 대화를 불러오세요.",
+        409,
+      );
+  };
+
   switch (operation) {
+    case "authoringConversation":
+      return conversation;
+
+    case "sendAuthoringMessage": {
+      conversationVersion();
+      source(r.content);
+
+      let reply: string;
+
+      try {
+        const result = ctx.reply?.(
+          conversation.messages,
+          r.content,
+        );
+
+        source(result);
+        reply = result;
+      } catch {
+        throw new ServiceError(
+          "GENERATION_FAILED",
+          "답변을 받지 못했습니다. 다시 보내주세요.",
+          502,
+        );
+      }
+
+      s.authoringConversation = {
+        ...conversation,
+        version: conversation.version + 1,
+        draft: "",
+        messages: [
+          ...conversation.messages,
+          {
+            messageId: id(),
+            role: ConversationRole.USER,
+            content: r.content,
+          },
+          {
+            messageId: id(),
+            role: ConversationRole.ASSISTANT,
+            content: reply,
+          },
+        ],
+      };
+
+      return s.authoringConversation;
+    }
+
+    case "generateFromConversation": {
+      conversationVersion();
+
+      requireValue(
+        typeof r.draft === "string" &&
+          [...r.draft].length <= 10000,
+        "입력은 최대 10,000자입니다.",
+      );
+
+      requireValue(
+        conversation.messages.length > 0,
+        "먼저 대화를 보내주세요.",
+      );
+
+      const sourceContent = conversation.messages
+        .map(
+          ({ role, content }) =>
+            `${role === ConversationRole.USER ? "사용자" : "답변"}:\n${content}`,
+        )
+        .join("\n\n");
+
+      source(sourceContent);
+
+      const contents = generate({ sourceContent });
+
+      const batch: GenerationBatch = {
+        batchId: id(),
+        sourceContent,
+        candidates: contents.map((content) => ({
+          candidateId: id(),
+          content,
+          savedQuizId: null,
+        })),
+      };
+
+      s.batches.push(batch);
+
+      s.authoringConversation = {
+        ...conversation,
+        version: conversation.version + 1,
+        draft: r.draft,
+        latestBatchId: batch.batchId,
+      };
+
+      return {
+        conversation: s.authoringConversation,
+        batch,
+      };
+    }
+
     case "generate": {
       source(r.sourceContent);
 
@@ -347,6 +480,169 @@ export function execute<K extends Operation>(
 
     case "generationBatch":
       return getBatch();
+
+    case "editCandidate":
+
+    case "refineCandidate": {
+      const batch = getBatch();
+
+      text(r.candidateId, "candidateId");
+
+      if (operation === "refineCandidate")
+        text(r.prompt, "prompt");
+
+      const candidate = batch.candidates.find(
+        ({ candidateId }) => candidateId === r.candidateId,
+      );
+
+      if (!candidate)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
+          409,
+        );
+
+      requireValue(
+        candidate.savedQuizId === null,
+        "저장한 퀴즈는 검토 화면에서 수정하세요.",
+      );
+
+      if (operation === "editCandidate") {
+        validateContent(r.content, tagIds);
+        candidate.content = r.content;
+        candidate.candidateId = id();
+
+        return batch;
+      }
+
+      text(r.prompt, "prompt");
+
+      const [content] = generate(
+        {
+          sourceContent: batch.sourceContent,
+          current: candidate.content,
+          prompt: r.prompt,
+        },
+        true,
+      );
+
+      candidate.content = content;
+
+      candidate.history = [
+        ...(candidate.history ?? []),
+        { prompt: r.prompt, content },
+      ];
+
+      candidate.candidateId = id();
+
+      return batch;
+    }
+
+    case "publishCandidate": {
+      const batch = getBatch();
+
+      text(r.candidateId);
+
+      requireValue(
+        r.reviewed === true,
+        "내용 확인 후 공개하세요.",
+      );
+
+      const candidate = batch.candidates.find(
+        ({ candidateId }) => candidateId === r.candidateId,
+      );
+
+      if (!candidate)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "후보가 변경되었습니다. 최신 결과를 확인하세요.",
+          409,
+        );
+
+      if (candidate.savedQuizId) {
+        const existing = s.quizzes.find(
+          ({ quizId }) => quizId === candidate.savedQuizId,
+        );
+
+        requireValue(
+          existing &&
+            !existing.deletedAt &&
+            existing.status === QuizStatus.PUBLIC &&
+            !existing.pending,
+          "저장한 퀴즈는 검토 화면에서 공개하세요.",
+        );
+
+        return batch;
+      }
+
+      validateContent(candidate.content, tagIds);
+      source(batch.sourceContent);
+
+      const quiz: StoredQuiz = {
+        quizId: id(),
+        ownerUserId: s.userId,
+        status: QuizStatus.PUBLIC,
+        version: 1,
+        active: {
+          ...candidate.content,
+          revisionId: id(),
+          sourceContent: batch.sourceContent,
+          reviewed: true,
+        },
+        pending: null,
+        updatedAt: timestamp,
+        deletedAt: null,
+      };
+
+      s.quizzes.push(quiz);
+      candidate.savedQuizId = quiz.quizId;
+
+      return batch;
+    }
+
+    case "deleteCandidate": {
+      const batch = getBatch();
+
+      text(r.candidateId, "candidateId");
+
+      const index = batch.candidates.findIndex(
+        ({ candidateId }) => candidateId === r.candidateId,
+      );
+
+      if (index < 0)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
+          409,
+        );
+
+      const [candidate] = batch.candidates.slice(
+        index,
+        index + 1,
+      );
+
+      if (!candidate)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
+          409,
+        );
+
+      if (candidate.savedQuizId) {
+        const quiz = s.quizzes.find(
+          ({ quizId }) => quizId === candidate.savedQuizId,
+        );
+
+        if (quiz && !quiz.deletedAt) {
+          quiz.deletedAt = timestamp;
+          touch(quiz);
+        }
+      }
+
+      batch.candidates.splice(index, 1);
+
+      return batch;
+    }
 
     case "saveBatch": {
       const batch = getBatch();

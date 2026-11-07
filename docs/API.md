@@ -45,7 +45,33 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 제목·문제·해설·단답은 공백뿐인 문자열을 거부한다. 선택지는 최소 2개이며 ID와 표시 텍스트는 중복될 수 없다. 답은 해당 형식·선택지에 맞아야 한다. 해시태그는 등록된 ID 0~3개이며 중복은 거부한다. 원본 학습 내용은 공백만 허용하지 않고 유니코드 코드 포인트 최대 10,000자다. 코드 블록·언어·줄바꿈·들여쓰기를 문자열 그대로 보존하며 실행하지 않는다. 별도 제목/문제/해설 길이 상한은 확정하지 않았다.
 
-생성 후보는 작성자 전용 `GenerationBatch`다. `saveBatch`의 SINGLE은 한 후보, ALL은 후보별 독립 PENDING 퀴즈를 저장한다. 이미 저장된 후보는 같은 퀴즈를 반환하여 재전송이 복제하지 않는다. 저장 후 삭제한 후보의 재저장은 409로 거부한다.
+생성 후보는 작성자 전용 `GenerationBatch`다. 최초 생성 결과는 1~5개이며 모든 후보를 삭제한 묶음은 0개 상태로 복원할 수 있다. `saveBatch`의 SINGLE은 한 후보, ALL은 후보별 독립 PENDING 퀴즈를 저장한다. 이미 저장된 후보는 같은 퀴즈를 반환하여 재전송이 복제하지 않는다. `deleteCandidate({ batchId, candidateId })`는 `DELETE /generation-batches/{id}/candidates`로 작성자의 후보를 묶음에서 제거한다. 이미 임시저장되었거나 공개된 후보라면 연결된 퀴즈도 soft delete하고 일반 목록에서 숨긴다. 삭제한 후보의 재삭제·재저장은 409로 거부하며 다른 사용자의 묶음은 404로 숨긴다.
+
+### 기존 학습 대화 계약
+
+아래 대화 전용 계약은 기존 데이터 호환을 위해 유지한다. 현재 작성 UI는 `generate`로 작업 모달을 열고 `refineCandidate`·`editCandidate`로 후보를 다듬는다.
+
+- `authoringConversation({})`: GET /authoring/conversation. 사용자별 대화의 version, messages, draft, latestBatchId를 반환한다.
+- `sendAuthoringMessage({ content, expectedVersion })`: POST /authoring/conversation/messages. 사용자 메시지와 검증된 Mock 답변을 함께 저장한다. 퀴즈는 생성하지 않는다.
+- `generateFromConversation({ draft, expectedVersion })`: POST /authoring/conversation/generate. 보낸 메시지와 답변을 원문으로 후보를 생성하고, 미전송 draft는 복귀용으로만 보존한다. conversation과 batch를 반환하며 퀴즈 저장·승인은 하지 않는다.
+
+대화 변경 시 version을 증가시키고 오래된 버전은 VERSION_CONFLICT로 거부한다. 입력·답변·생성에 사용한 전체 대화는 각각 기존 10,000자 검증을 적용한다. 실패 시 저장 상태를 유지한다. 기존 schemaVersion 1 데이터의 선택적 authoringConversation 필드가 없으면 빈 대화로 읽는다. UI는 API로 복원하며 대화 키에도 사용자 식별자를 포함한다. 실제 AI 호출이나 여러 대화 목록은 구현하지 않는다.
+
+### 후보 바로 공개
+
+`publishCandidate({ batchId, candidateId, reviewed: true })`는 POST /generation-batches/{id}/publish 계약이다. 현재 표시된 미저장 후보에 대한 명시적 검토·공개 요청을 받아 내용을 검증하고 PUBLIC 퀴즈·검토된 active revision·후보 저장 연결을 한 스냅샷으로 저장한다. 다른 후보는 바꾸지 않는다. 오래된 ID는 VERSION_CONFLICT, 타인 batch는 NOT_FOUND이며 검토 표시가 없으면 VALIDATION_ERROR다. 이미 PUBLIC으로 저장된 후보의 재전송은 중복 생성하지 않는다. 저장 후 비공개·삭제·수정본이 생긴 퀴즈는 이 경로로 공개하지 않는다. 저장소 실패는 기존 상태를 유지한다. 기존 `approve`의 미검토 승인 거부 규칙은 그대로 유지한다.
+
+### 저장 전 후보의 직접 편집
+
+`editCandidate({ batchId, candidateId, content })`는 POST /generation-batches/{id}/edit 계약이다. 작성자의 미저장 후보에 QuizContent 전체 검증을 적용하고 후보 ID를 교체한다. 오래된 ID는 VERSION_CONFLICT, 저장된 후보는 VALIDATION_ERROR, 타인의 batch는 NOT_FOUND다. 원문·다른 후보·이전 대화 이력은 유지하고 자동 저장·승인은 하지 않는다. 이후 추가 요청은 직접 수정한 현재 내용을 사용한다. 실패 시 후보를 바꾸지 않는다.
+
+### 저장 전 후보의 추가 요청
+
+`refineCandidate({ batchId, candidateId, prompt })`는 `POST /generation-batches/{id}/refine` 계약이다. 작성자의 미저장 후보 한 개에 원본 학습 내용·현재 후보·추가 요청을 전달하고 검증된 한 개 결과로 갱신한다. 다른 후보·저장한 퀴즈는 바꾸지 않는다. 후보의 선택적 `history` 배열에 `{ prompt, content }` 요청·응답을 보존하며 기존 history 없는 저장 데이터도 읽는다.
+
+성공하면 해당 candidateId를 새 ID로 교체한다. 오래된 후보 ID 요청은 VERSION_CONFLICT이며 최신 후보를 재조회해야 한다. 저장된 후보는 VALIDATION_ERROR, 타인의 batch는 NOT_FOUND다. 생성/저장소 실패 시 기존 결과는 그대로 남는다. 실제 AI는 호출하지 않으며 Mock은 추가 요청을 문제 문구에 표시한다.
+
+작성 UI는 TanStack Query의 사용자별 키로 후보·목록·상세를 조회하고, 변경 성공 후 관련 조회를 무효화한다. 오류 자동 재시도와 창 포커스 자동 재조회는 끄고 편집 입력을 보존한다. QueryClientProvider는 작성 영역에 안정적으로 유지하며 사용자 식별자를 모든 작성 데이터 키에 포함한다.
 
 ## 수정·검토·공개
 
@@ -54,6 +80,8 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 1. `action: 'EDIT'`, `content`, `sourceContent`, `expectedVersion`으로 저장한다. 검토 표시는 항상 해제한다.
 2. 저장된 내용을 확인한 뒤 `action: 'MARK_REVIEWED'`, 최신 `expectedVersion`으로 검토 완료를 저장한다.
 3. `approve`에 최신 버전을 전달한다. 첫 승인은 PRIVATE/PUBLIC을 지정해야 하며, 수정본 승인은 생략하면 기존 공개 범위를 유지한다.
+
+검토 UI는 2와 3을 별도 버튼으로 노출하지 않는다. 작성자가 저장된 미리보기에서 `승인`을 누르면 `MARK_REVIEWED` 성공 응답의 최신 버전으로 `approve`를 이어서 요청한다. 첫 요청만 성공하고 승인이 실패하면 검토 완료 상태를 유지하고 최신 버전으로 승인을 다시 시도할 수 있어야 한다.
 
 승인된 문제를 수정·재생성해도 active는 유지하고 pending만 만든다. stale version은 409 VERSION_CONFLICT다. 실패 시 저장 상태를 변경하지 않으며 UI는 오류 시 아직 저장되지 않은 편집 내용·추가 프롬프트를 유지해야 한다. 생성·재생성으로 자동 승인하지 않는다.
 

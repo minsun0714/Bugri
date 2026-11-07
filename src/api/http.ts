@@ -13,6 +13,18 @@ interface Endpoint {
 }
 
 export const endpoints: Record<Operation, Endpoint> = {
+  authoringConversation: {
+    method: "GET",
+    path: "/authoring/conversation",
+  },
+  sendAuthoringMessage: {
+    method: "POST",
+    path: "/authoring/conversation/messages",
+  },
+  generateFromConversation: {
+    method: "POST",
+    path: "/authoring/conversation/generate",
+  },
   generate: {
     method: "POST",
     path: "/quizzes/generate",
@@ -20,6 +32,26 @@ export const endpoints: Record<Operation, Endpoint> = {
   generationBatch: {
     method: "GET",
     path: "/generation-batches/{id}",
+    pathKey: "batchId",
+  },
+  publishCandidate: {
+    method: "POST",
+    path: "/generation-batches/{id}/publish",
+    pathKey: "batchId",
+  },
+  editCandidate: {
+    method: "POST",
+    path: "/generation-batches/{id}/edit",
+    pathKey: "batchId",
+  },
+  refineCandidate: {
+    method: "POST",
+    path: "/generation-batches/{id}/refine",
+    pathKey: "batchId",
+  },
+  deleteCandidate: {
+    method: "DELETE",
+    path: "/generation-batches/{id}/candidates",
     pathKey: "batchId",
   },
   saveBatch: {

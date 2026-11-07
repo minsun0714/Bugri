@@ -141,7 +141,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(30);
+  expect(Object.keys(endpoints)).toHaveLength(37);
 });
 
 // Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.
@@ -159,3 +159,67 @@ const invalidAnswer: Request<"answer"> = {
 
 void invalidSubscription;
 void invalidAnswer;
+
+test("candidate refinement uses its batch path and explicit prompt body", async () => {
+  const fetcher = jest.fn().mockResolvedValue(
+    response({
+      data: {
+        batchId: "batch/1",
+        sourceContent: "내용",
+        candidates: [],
+      },
+    }),
+  );
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await client.request("refineCandidate", {
+    batchId: "batch/1",
+    candidateId: "candidate-1",
+    prompt: "예시 추가",
+  });
+
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/generation-batches/batch%2F1/refine",
+    expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({
+        candidateId: "candidate-1",
+        prompt: "예시 추가",
+      }),
+    }),
+  );
+});
+
+test("candidate deletion uses its batch path and candidate body", async () => {
+  const fetcher = jest.fn().mockResolvedValue(
+    response({
+      data: {
+        batchId: "batch/1",
+        sourceContent: "내용",
+        candidates: [],
+      },
+    }),
+  );
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await client.request("deleteCandidate", {
+    batchId: "batch/1",
+    candidateId: "candidate-1",
+  });
+
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/generation-batches/batch%2F1/candidates",
+    expect.objectContaining({
+      method: "DELETE",
+      body: JSON.stringify({
+        candidateId: "candidate-1",
+      }),
+    }),
+  );
+});

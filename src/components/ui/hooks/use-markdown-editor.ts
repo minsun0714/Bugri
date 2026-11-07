@@ -6,12 +6,14 @@ type MarkdownEditorOptions = {
   value: string;
   onChange: (value: string) => void;
   limit: number;
+  preserveOverflow?: boolean;
 };
 
 export function useMarkdownEditor({
   value,
   onChange,
   limit,
+  preserveOverflow = false,
 }: MarkdownEditorOptions) {
   const input = useRef<HTMLTextAreaElement>(null);
   const selection = useRef({
@@ -65,7 +67,11 @@ export function useMarkdownEditor({
   }
 
   function changeValue(value: string) {
-    onChange(Array.from(value).slice(0, limit).join(""));
+    onChange(
+      preserveOverflow
+        ? value
+        : Array.from(value).slice(0, limit).join(""),
+    );
     setError("");
   }
 

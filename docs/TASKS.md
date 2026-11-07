@@ -21,8 +21,8 @@
 | P01M  | Mock 초기 파일                        | IN_PROGRESS | P01                      | users·quizzes·subscriptions·shop-items·learning-history 초기 데이터 파일, 배포 시 읽기 전용                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | P02   | localStorage Mock 어댑터              | IN_PROGRESS | P01M                     | 초기 파일 읽기·사용자별 변경 상태 저장/복원, UI 직접 의존 제거, HTTP 호출 없이 계약 유지, 서버 파일 쓰기·메모리 영속 저장 금지                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | P02T  | 학습 시간대 감지·설정                 | TODO        | P02                      | 브라우저 IANA 감지·마이페이지 조회/변경·설정 복원, IP 시간대 검토·국가 코드 추론 금지, 기본 시간대 확정 후 fallback                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| P03   | 학습 내용 입력·퀴즈 생성              | TODO        | P02                      | 단일 입력·코드 블록·현재/10,000자, Mock 퀴즈 1~5개와 퀴즈당 태그 최대 3개                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| P04   | 퀴즈 개별·일괄 저장·검토              | TODO        | P03                      | 각 후보의 독립 ID·PENDING 저장, 검토·수정·PRIVATE/PUBLIC 화면 흐름                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| P03   | 학습 내용 입력·퀴즈 생성              | IN_PROGRESS | P02                      | 단일 입력·코드 블록·현재/10,000자, Mock 퀴즈 1~5개와 퀴즈당 태그 최대 3개                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| P04   | 퀴즈 개별·일괄 저장·검토              | IN_PROGRESS | P03                      | 각 후보의 독립 ID·PENDING 저장, 검토·수정·PRIVATE/PUBLIC 화면 흐름                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | P05   | 퀴즈 풀이 UX                          | TODO        | P04                      | 더미 사용자별 풀이, 제출 전 정답 비노출, 결과·버그리 반응                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | P06   | 구독 3종·탐색                         | TODO        | P04                      | 사람·사람+태그·전체 작성자+태그 구독, 더미 개발자·해시태그 탐색. 구독 피드 없음                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | P07   | 학습 태그·연속 풀이                   | TODO        | P05, P06, P02T           | 기본 전체·단일 태그 선택·다음 문제의 태그 유지·소진 후 다시 풀기/다른 태그·기록 보존·하루 1개 완료 조건                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -123,3 +123,281 @@
 - 검증 결과: Node v22.23.3에서 `PLAYWRIGHT_PORT=3108 npm run verify` 통과(lint·TypeScript·Jest 8 suites/46 tests·production build·Playwright 4 tests). Markdown fence/선택 영역·Unicode·삽입 제한 회귀 검증을 포함한다.
 - 스킬 `quick_validate.py` 통과. 기본 Python의 PyYAML 부재는 `/tmp`의 별도 venv로 해결했으며 프로젝트 의존성을 변경하지 않았다.
 - `npm run format:check` 및 `git diff --check`로 마무리한다. 구현자 외 리뷰와 최종 병합 판단은 남아 있으며 push·PR·merge는 수행하지 않는다.
+
+### A 작성 UI — 생성·저장·내 목록 (2026-11-07)
+
+- P03 구현: `/quizzes/authoring`, `src/features/quiz-authoring`에서 단일 Markdown 입력·유니코드 글자 수·초과 원문 보존·Mock 생성 안내·후보 복원·개별/일괄 저장·사용자별 목록을 API 클라이언트에 연결했다. P04 검토·관리 화면은 다음 기능 커밋에서 진행한다.
+- 공통 MarkdownEditor에 label/preserveOverflow 옵션을 추가했다. 기존 기본 동작은 유지한다. B/C 기능·Mock/API 계약·패키지·공유 설정은 수정하지 않았다.
+- 테스트 우선: 컴포넌트 미구현으로 신규 테스트 실패 확인 후 구현했다. 입력 검증·중복 없는 저장·오류 후 입력 유지 3개를 검증했다.
+- Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest 7 suites/45 tests·production build·Playwright 5 tests. 생성→개별/일괄 저장→새로고침→사용자 전환을 브라우저로 확인했다. 첫 E2E 실패는 friend 초기 퀴즈 2개를 누락한 테스트 기대값을 실제 seed 계약에 맞춰 수정했다.
+- 작성자 외 독립 검토는 아직 남아 있다. A 전체 완료 및 B/C 통합 검증을 의미하지 않는다.
+
+### A 작성 UI — 검토·승인·관리 (2026-11-07)
+
+- P03/P04의 A 화면 구현 및 검증 완료: 네 형식의 문제·선택지·정답·해설·원본·태그 편집, 저장된 내용 재확인→명시적 검토→공개 범위 선택→승인, 승인 버전 유지와 PENDING 수정본, 프롬프트 재생성, 공개 범위 전환, 삭제를 연결했다.
+- 미저장 이동 경고, 버전 충돌 후 편집 보존·최신 내용 재조회, 생성/저장 실패 후 입력 보존, 사용자별 목록·후보·검토 화면 새로고침 복원을 확인했다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 8 suites/53 tests·production build·Playwright 7 tests. A 컴포넌트 11개 및 UI E2E 3개 포함. 모바일 폭 390px, 승인·수정·재생성·공개 범위·삭제, 다른 탭 충돌을 검증했다. E2E 오류 선택자가 Next.js route announcer까지 선택한 실패는 검토 영역으로 범위를 제한해 해결했다.
+- 사용자 확인에 따라 승인 목록의 B 풀이 링크는 경로가 정해지는 통합 시 연결한다. B/C 화면 및 통합 검증, 작성자 외 독립 리뷰는 남아 있다. 전체 P04 완료 상태는 통합 후 확정한다.
+
+### A 브랜치 dev 병합 (2026-11-07)
+
+- 사용자 pull 차단을 해결하기 위해 검증된 A 기능을 `22aa19e`, `821f0c8`에 커밋하고 `origin/dev`의 `631e5dd`를 병합했다.
+- TASKS 양쪽 기록을 보존하고, 공통 MarkdownEditor는 dev의 `useMarkdownEditor` 분리 구조와 A의 label/preserveOverflow·상한 없는 본문/해설 표시를 함께 유지했다.
+- 병합 후 Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest·production build·Playwright 7개. 푸시/PR 생성은 하지 않았다.
+
+### A 화면 보충 설명 정리 (2026-11-07)
+
+- 작성실·생성·후보 저장·수정본·재생성·단답 정답의 보충 설명을 공통 Tooltip으로 옮겼다. 중복 태그 설명은 삭제하고, 오류·현재 상태·승인 대상은 직접 표시한다.
+- Tooltip은 hover·키보드 focus·탭으로 열고 Escape·바깥 클릭으로 닫는다. 모바일에서는 화면 안에 표시한다.
+- Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest 59개·production build·Playwright 8개. 새 단위 테스트 2개와 브라우저 도움말·390px 화면 검증 포함. 독립 리뷰는 남아 있다.
+
+### A 작성 화면 컨테이너 정렬 (2026-11-07)
+
+- 본문 최대 너비를 헤더와 같은 1220px로 맞추고 좌우 여백을 모바일 20px·md 이상 48px로 통일했다.
+- Chromium 실측: 1280px 화면에서 헤더/본문 내용 경계 모두 78~1202px, 390px 화면에서 모두 20~370px.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 59개·production build·Playwright 8개. `git diff --check` 통과.
+
+### A 공통 선택 입력·상단 정리 (2026-11-07)
+
+- 더미 사용자·승인 공개 범위·현재 공개 범위를 공통 Select로 교체했다. 공통 컴포넌트는 기존 문자열 옵션을 유지하면서 표시명/값 분리, value/onChange/disabled를 지원한다.
+- 큰 작성실 제목을 작은 ‘퀴즈’ 제목으로 정리하고 사용자 선택을 상단 오른쪽에 배치했다. 모바일에서는 줄바꿈한다. 데스크톱 브라우저 캡처로 배치를 확인했다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 60개·production build·Playwright 8개. 기존 사용자 전환·공개 범위 동작과 새 공통 Select 테스트를 포함한다. `git diff --check` 통과.
+
+### A 메뉴 형태 공통 드롭다운 적용 (2026-11-07)
+
+- 헤더 모바일 메뉴의 둥근 패널·그림자·보라색 선택 표시를 따르는 공통 `Dropdown`과 상호작용 훅을 추가했다. 사용자·승인 범위·현재 공개 범위 선택에 적용했다. 선택 값과 API 계약은 유지한다.
+- combobox/listbox 의미, 방향키·Home/End·Enter 선택, Escape·Tab·바깥 클릭 닫기, 비활성 상태를 지원한다. 공통 사용 규칙은 CODING_CONVENTIONS에 기록했다.
+- 새 컴포넌트 미구현 실패 확인 후 단위 테스트 3개를 통과했다. 기존 화면 테스트는 커스텀 옵션 클릭으로 변경하고 사용자 전환·승인·비공개 전환 검증을 유지했다. 타입 검사에서 RTL에 없는 exact 옵션을 사용한 오류를 수정했다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 63개·production build·Playwright 9개. 키보드·390px 모바일·바깥 클릭 검증과 데스크톱 열린 패널 캡처 확인 포함. `git diff --check` 통과. 독립 리뷰는 남아 있다.
+
+### A 생성 대화와 관리 화면 분리 — DONE (2026-11-07)
+
+- 생성 화면에서 내 목록·더미 사용자 선택을 제거하고 관리를 `/quizzes/authoring/manage`로 분리한다. 저장 전 후보별 추가 요청·이력·실패 시 입력 보존을 구현한다. Mock 유지, B/C 기능 제외.
+- 새 후보 추가 요청 API·저장 검증과 UI 흐름 테스트를 추가했다. 요청만으로 내 목록에 저장하지 않으며, 실패 시 기존 후보와 요청 입력을 보존한다. candidateId 교체로 오래된 후보 갱신을 거부하고 사용자별 요청·응답 기록을 복원한다.
+- 최신 구현 스킬에 따라 TanStack Query와 작성 영역 Provider, 사용자별 쿼리 키·API mutation 훅을 적용했다. 생성 입력/비동기 흐름은 useGeneration에 분리했다. 원본 API 클라이언트와 Mock 서비스 경계는 유지한다. API/Mock 외 변경은 A 화면·공통 헤더의 경로 링크 지원에 한정한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 67개·production build·Playwright 9개. 후보 추가 요청 정상/실패/권한/오래된 후보/저장 전 목록 제외와 실제 HTTP 직렬화, 생성→대화→복원→개별/일괄 저장→별도 관리·승인·수정·삭제를 확인했다. 데스크톱 대화 화면 캡처를 확인했다.
+- 초기 타입/린트 오류(unknown 조건부 렌더링·테스트 구조 분해)를 수정했다. 전체 검증의 기존 HTTP endpoint 개수 기대값은 새 계약 추가에 따라 30→31로 수정하고 신규 경로/본문 검증을 추가했다. 이후 전체 검증 통과. 실제 LLM 호출·B/C 통합과 독립 리뷰는 이번 완료 범위에 포함하지 않는다.
+
+### A 학습 대화와 생성 결과 상세 분리 — DONE (2026-11-07)
+
+- 메시지 전송과 퀴즈 생성을 분리하고, 명시적 생성 성공 시 별도 상세로 이동한다. 대화 복귀 시 기록·미전송 입력을 복원한다.
+- Mock 대화 API·사용자 격리·버전 충돌·실패 보존 및 UI 테스트를 추가했다. B/C 및 실제 LLM 연결은 제외한다.
+- Node 22.23.3에서 최종 `npm run verify` 전체 통과: lint·TypeScript·Jest 71개·production build·Playwright 9개. 최초 전체 검증의 구조 분해 lint 오류를 수정한 뒤 전체 재실행했다.
+- 브라우저에서 메시지만 보낼 때 미생성, 명시적 상세 이동, 상세 새로고침, 복귀 시 대화·미전송 입력 복원, 개별/일괄 저장 및 검토·승인·수정·삭제를 검증했다. 독립 리뷰는 남아 있다.
+
+### A 대화 모달 — DONE
+
+- 공통 모달을 확장해 대화·생성을 한곳에 배치하고 모바일 전체 화면, 하단 입력 고정, 닫기·재열기 입력 유지를 검증한다.
+- Node 22.23.3에서 최종 `npm run verify` 통과: lint·TypeScript·Jest 72개·production build·Playwright 10개. 테스트 타입 오류와 상세 이동 시 잔류 모달 문제를 수정한 뒤 전체 검증을 재실행했다.
+- 공통 모달·툴팁 키보드 동작, 모바일 390px 전체 화면·입력 유지·상세 이동을 확인했다. 모바일 대화 캡처도 확인했다. 독립 리뷰는 남아 있다.
+
+### A 퀴즈 공동 편집 작업 공간 — DONE
+
+- 바깥 학습 입력 → 생성 모달에서 후보·대화를 함께 표시 → 추가 요청 또는 직접 편집 → 저장으로 변경한다. 실제 AI 스트리밍은 현재 Mock 단계에 포함하지 않는다.
+- 작성 입력은 모달 밖에 두고, 생성 성공 후 같은 모달에서 후보·추가 요청·직접 편집을 제공한다. 직접 수정은 후보 ID를 교체하고 이후 재생성의 현재 내용으로 전달한다. 자동 저장·승인은 하지 않는다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 75개·production build·Playwright 10개. 직접 수정·실패 보존·오래된 후보 충돌, 모달 재열기·새로고침 복원·개별/일괄 저장·검토/승인 흐름을 확인했다. 데스크톱·390px 모바일 캡처를 확인했다.
+- 기존 대화 전용 API와 결과 상세 직접 접근은 호환을 위해 유지한다. 실제 LLM 연결·스트리밍과 독립 리뷰는 남아 있다.
+
+### A 작업 모달 세로 배치 — DONE
+
+- 오른쪽 대화 칼럼을 제거하고 퀴즈 아래에 대화·추가 요청을 배치한다. 화면과 키보드 탐색 순서를 일치시킨다.
+- Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest 75개·build·Playwright 10개. 독립 리뷰는 남아 있다.
+
+### A 메시지 순서 정리 — DONE
+
+- 학습 내용을 첫 사용자 메시지로 펼쳐 표시하고, 버그리 퀴즈 응답 바로 아래에 추가 요청 입력을 배치한다. 별도 대화 제목·소개 문구는 제거한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 75개·build·Playwright 10개. 독립 리뷰는 남아 있다.
+
+### A 채팅창 아래 퀴즈 배치 — DONE
+
+- 추가 요청 입력창 다음에 퀴즈를 배치한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 75개·build·Playwright 10개. 독립 리뷰는 남아 있다.
+
+### A 생성 모달 재열기 오류 — DONE
+
+- 개발 StrictMode의 effect 정리에서 예약된 close 이벤트가 다시 열린 모달을 닫는 문제를 회귀 테스트로 재현했다. 실제 닫힌 상태에서만 닫기 콜백을 전달한다.
+- 회귀 테스트가 수정 전 실패·수정 후 성공했다. 테스트 lint 오류 수정 후 Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 76개·build·Playwright 10개. 독립 리뷰는 남아 있다.
+
+### A 퀴즈 우선 표시와 바로 공개 — DONE
+
+- 최초 화면은 퀴즈만 표시하고 LLM으로 수정 선택 시 대화를 펼친다. 바로 공개는 현재 후보 한 개에 대한 명시적 검토·공개 요청이다.
+- 후보 바로 공개 API는 명시적 검토 표시·소유권·최신 후보·내용을 검증하고 선택한 후보 한 개를 PUBLIC으로 저장한다. 기존 승인 API의 미검토 차단은 유지한다. LLM 수정 선택 전에는 학습 메시지·요청 기록·입력을 숨긴다.
+- 기존 입력 테스트의 펼치기 동작, lint 공백 오류, 브라우저 버튼 선택자 충돌을 수정한 뒤 Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 11개. 선택 후보만 공개·중복 방지·타인 거부와 기존 저장/승인 흐름을 확인했다. 독립 리뷰는 남아 있다.
+
+### A 작업 이어가기 버튼 제거 — DONE
+
+- 별도 작업 이어가기 버튼을 제거한다. 같은 학습 내용이나 미반영 수정이 있을 때는 퀴즈 만들기로 기존 모달을 열어 작업을 유지한다.
+- 마지막 테스트 변경 후 Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 11개. 단일 버튼으로 모달 재열기·미반영 요청 유지 확인. 독립 리뷰는 남아 있다.
+
+### A 매번 새 퀴즈 생성 — DONE
+
+- 같은 입력에서도 생성 버튼은 새 batch를 만든다. 기존 작업을 여는 분기를 제거하고 새 결과에 이전 미반영 요청·편집을 넘기지 않는다.
+- 수정 전 기존 작업 재열기 동작으로 회귀 테스트 실패를 확인했다. Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 11개. 같은 입력의 새 batch 생성과 이전 편집·미반영 요청 초기화를 검증했다. 독립 리뷰는 남아 있다.
+
+### A 퀴즈 탭과 작업 버튼 정리 — DONE
+
+- 공통 Tabs로 퀴즈를 선택하고 바로 공개·LLM 수정만 주요 동작으로 유지한다. 직접 수정·개별/일괄 저장은 더 보기로 이동하고 버튼 크기를 통일한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 12개. 공통 탭 방향키 전환·더 보기 메뉴 Escape/포커스 복귀·기존 수정/저장을 검증했다. 데스크톱·390px 모바일 캡처 확인. 독립 리뷰는 남아 있다.
+
+### A 발견하기 쉬운 퀴즈 검토 UI — DONE
+
+- 더 보기 메뉴를 제거하고 직접 수정·개별/일괄 저장을 해당 콘텐츠 옆에 노출한다. 문제·번호 선택지·정답/해설의 시각적 구분과 한국어 형식명을 적용한다. B 풀이 화면은 변경하지 않는다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 12개. 메뉴 없이 수정·저장 접근, 탭 키보드 전환, 한국어 문제 형식과 선택지 표시를 확인했다. 데스크톱·390px 모바일 캡처 확인. 독립 리뷰는 남아 있다.
+
+### P03-EDIT-MODES — 수정 방식 탭 통합
+
+- 상태: IN_PROGRESS. 생성 후보 카드에 미리보기·직접 수정·LLM 수정 탭을 함께 배치한다. 기존 직접 편집 반영/취소·추가 요청·초안 보존·공개/저장 정책을 유지한다.
+- 수정 방식 탭·전환 시 미전송 요청 보존 테스트의 의도한 실패를 확인했다. 관련 컴포넌트 테스트와 기존 작성 E2E 및 전체 verify로 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기로 IN_PROGRESS 유지. Node v22.23.3에서 관련 컴포넌트 6개 및 전체 Hook verify 통과(lint·TypeScript·Jest 79개·production build·Playwright 12개). 수정 방식 탭 키보드 이동·미전송 요청 보존·직접 수정·저장·공개 회귀를 검증했다.
+- 3000 개발 서버의 390px 모바일 캡처 확인: 수정 탭 영역 가로 넘침 없음. 근거 로그 .bugri-hooks/verify-1.log. 풀이/쇼핑몰 워크스페이스는 수정하지 않았다.
+
+### A 미확정 수정 중 탭 이동 — DONE
+
+- 직접 수정 초안을 퀴즈별로 보관하고 미리보기·LLM 수정·다른 퀴즈 탭 이동을 허용한다. 다른 초안이 남아 있으면 일괄 저장과 이탈 경고를 유지한다.
+- 수정 전 탭 잠금·초안 유실 회귀 테스트 실패를 확인했다. 테스트 선택자 중복을 수정하고, 별도 헤더 변경의 lint 오류가 해소된 뒤 Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 14개. 수정 방식/퀴즈 전환의 초안 유지와 다른 초안의 일괄 저장 차단을 확인했다. 독립 리뷰는 남아 있다.
+
+### A 생성 입력·미리보기 동시 표시 — DONE
+
+- 공통 MarkdownEditor에 split 배치를 추가하고 퀴즈 만들기 입력에 적용한다. 다른 편집기의 기본 탭 배치는 유지한다.
+- 기본 3107 포트 점유로 첫 전체 검증의 E2E가 차단되어, Node 22.23.3에서 `PLAYWRIGHT_PORT=3197 npm run verify`를 재실행해 전체 통과했다: lint·TypeScript·Jest 80개·build·Playwright 15개. 입력/미리보기 동시 표시·실시간 갱신·모바일 가로 넘침과 기존 탭 편집기를 확인했다. 데스크톱 캡처 확인. 독립 리뷰는 남아 있다.
+
+### A 코드 삽입 버튼 정리 — DONE
+
+- 공통 MarkdownEditor의 코드 삽입 버튼을 오른쪽 테두리 버튼 “+ 코드 블럭”으로 표시하고 제목·강조·목록 안내를 제거한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 코드 블록 삽입과 작성/미리보기 회귀 확인. 독립 리뷰는 남아 있다.
+
+### A 코드 언어 공통 드롭다운 — DONE
+
+- MarkdownEditor의 네이티브 언어 select를 기존 공통 Dropdown으로 교체한다. 모바일 선택·Escape·포커스·코드 삽입을 검증한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 390px 모바일에서 언어 선택·Escape 닫기·포커스 복귀·선택 언어 코드 삽입을 확인했다. 독립 리뷰는 남아 있다.
+
+### A 저장 동작 배치 정리 — DONE
+
+- 바로 공개와 개별 저장을 같은 줄로 합치고 일괄 저장·저장 개수는 퀴즈 선택 탭 위로 옮긴다.
+- 편집 중 JSX 구문 오류를 수정한 뒤 Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 개별/일괄 저장·공개·탭 이동 회귀 확인. 독립 리뷰는 남아 있다.
+
+### A 임시저장 버튼 명칭·스타일 — DONE
+
+- 개별 저장을 임시저장으로 바꾸고 바로 공개와 동일한 버튼 스타일을 적용한다. PENDING 저장 동작은 유지한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 임시저장·공개·기존 편집 흐름 회귀 확인. 독립 리뷰는 남아 있다.
+
+### A 공개·임시저장 툴팁 제거 — DONE
+
+- 바로 공개·임시저장 버튼 옆 도움말 아이콘과 툴팁을 제거한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 독립 리뷰는 남아 있다.
+
+### A 실행 버튼 오른쪽 정렬 — DONE
+
+- 작성·생성 결과·검토·내 퀴즈의 실행 버튼 그룹을 오른쪽으로 통일한다. 제목·탭·선택지 정렬은 유지하고 모바일 줄바꿈을 허용한다.
+- 검증 로그 경로가 다른 작업과 겹쳐 전용 로그·포트로 재검증했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 근거: /tmp/bugri-authoring-right-actions-52e9afd.log. 독립 리뷰는 남아 있다.
+
+### A 일괄 저장 버튼 제거 — DONE
+
+- 남은 후보 모두 저장 버튼을 제거하고 현재 퀴즈별 임시저장·바로 공개만 제공한다. 기존 일괄 저장 API는 유지한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 퀴즈별 임시저장·공개와 일괄 저장 버튼 미노출을 검증했다. 독립 리뷰는 남아 있다.
+
+### A · 수정 동작 위계 정리 — DONE
+
+- 퀴즈는 항상 표시하고 제목 오른쪽 수정 버튼으로 아래 편집·대화 영역을 토글한다. 초안은 보존한다.
+- 검증: Node 22.23.3, 관련 단위 테스트 7개 통과. 첫 전체 검증에서 테스트 편집 중 관리 드롭다운의 End 키가 바뀐 오류를 확인하고 복원했다. 마지막 코드 변경 후 PLAYWRIGHT_PORT=3291 npm run verify 통과(lint·타입·Jest 80개·빌드·E2E 15개). 독립 리뷰는 남아 있다.
+
+### A · 후보 공개·임시저장 상태 표시 — DONE
+
+- 실제 저장된 퀴즈 상태를 조회해 공개됨·임시저장됨을 구분하고 새로고침에도 유지한다.
+- 검증: 공개 상태 테스트의 의도한 실패 확인 후 관련 단위 테스트 5개 통과. Node 22.23.3에서 마지막 코드 변경 후 PLAYWRIGHT_PORT=3291 npm run verify 통과(lint·타입·Jest 80개·빌드·E2E 15개). 공개 후 새로고침 상태 복원을 포함했다. 독립 리뷰는 남아 있다.
+
+### A · Markdown 코드 블럭 도구 배치 — DONE
+
+- 코드 블럭 버튼과 언어 선택기를 본문 입력창과 같은 편집 컨테이너 안에 배치한다.
+- 검증: 의도한 E2E 실패를 확인한 뒤 관련 E2E 1개와 Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 수정 전체 대화 화면 — DONE
+
+- LLM 수정을 선택하면 작업 모달 본문을 대화 화면으로 전환하고 퀴즈로 돌아갈 때 요청 초안을 보존한다.
+- 검증: 전환 동작 테스트의 의도한 실패를 확인한 뒤 관련 컴포넌트 7개와 작성 E2E 10개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 대화 스크롤 영역 분리 — DONE
+
+- 모달과 채팅 헤더·입력창은 고정하고 대화 메시지 본문만 스크롤한다.
+- 검증: 스크롤 소유권 E2E의 의도한 실패를 확인한 뒤 작성 컴포넌트 7개와 작성 E2E 10개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 추가 요청 textarea — DONE
+
+- 추가 요청을 여러 줄 textarea로 바꾸고 포커스 링이 모달 경계 안에서 모두 보이도록 여백을 확보한다.
+- 검증: textarea 요소·포커스 링 경계 E2E의 의도한 실패를 확인한 뒤 작성 컴포넌트 7개와 관련 E2E 1개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 요청 포커스 링 잘림 수정 — DONE
+
+- 공통 7px 포커스 외곽선이 실제 overflow 부모의 좌우·하단 경계 안에 들어오도록 입력 영역 여백을 보정한다.
+- 검증: 실제 overflow 부모 경계 E2E의 의도한 실패를 확인한 뒤 관련 E2E 1개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · 직접 수정 단일 화면 — DONE
+
+- 직접 수정 중에는 기존 퀴즈 미리보기를 숨기고 편집 폼만 표시한다.
+- 검증: 미리보기 미노출 컴포넌트 테스트의 의도한 실패를 확인한 뒤 작성 컴포넌트 7개와 관련 E2E 1개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · 직접 수정·LLM 수정 독립 처리 — DONE
+
+- 미반영 직접 수정 초안이 있어도 LLM 요청을 허용하고 두 초안을 독립적으로 유지한다. 마지막으로 성공한 반영 결과를 현재 후보로 사용한다.
+- 검증: 직접 수정 초안 중 LLM 입력·요청과 마지막 직접 수정 반영 테스트의 의도한 실패를 확인한 뒤 작성 컴포넌트 7개와 관련 E2E 1개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 대화 최신 위치 복원 — DONE
+
+- LLM 대화에 진입하거나 새 응답이 추가되면 대화 본문을 맨 아래 최신 메시지 위치로 이동한다.
+- 검증: 재진입 스크롤 위치 컴포넌트 테스트의 의도한 실패를 확인한 뒤 작성 컴포넌트 8개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 81개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · 검토·승인 흐름 단순화 — DONE
+
+- 검토 상세는 저장된 퀴즈 미리보기를 기본으로 표시하고 `직접 수정`을 선택했을 때만 편집 폼을 보여준다. 수정 저장 후 미리보기로 돌아간다.
+- 별도 `검토 완료 저장` 버튼을 제거하고 `승인` 한 번이 기존 `MARK_REVIEWED`와 `approve` 요청을 최신 버전으로 순서대로 처리한다. 승인된 기존 버전은 PENDING 수정본이 있을 때 접힌 `현재 공개본과 비교` 영역으로만 제공한다.
+- 검토 컴포넌트 테스트의 의도한 실패를 확인한 뒤 관련 단위 테스트 8개와 검토·승인 및 오래된 탭 E2E를 통과했다. 첫 전체 검증에서 기존 영문 `PUBLIC` 기대값 1건을 한국어 상태 문구에 맞춰 수정했고, 마지막 코드 변경 후 Node 22.23.3에서 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 81개·production build·Playwright 15개. 독립 리뷰는 남아 있다.
+
+### A · 생성 모달 본문 스크롤·탭 고정 — DONE
+
+- `버그리와 퀴즈 다듬기` 모달과 작업 공간의 스크롤을 잠그고 선택된 퀴즈의 공통 Tabs panel만 세로 스크롤하도록 변경했다. 모달 헤더와 퀴즈 선택 탭은 본문 스크롤 위치와 관계없이 유지한다.
+- 모바일 직접 수정 폼을 끝까지 스크롤한 뒤 본문 overflow와 탭 위치를 실측하는 E2E의 의도한 실패를 확인하고 통과했다. 모바일 실화면에서도 하단 편집 동작과 퀴즈 탭이 동시에 보이는 것을 확인했다.
+- Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 81개·production build·Playwright 16개. 독립 리뷰는 남아 있다.
+
+### A · 검토 재생성 모달 — DONE
+
+- 검토 미리보기의 `추가 프롬프트로 재생성`을 `직접 수정`과 같은 버튼 그룹으로 옮기고, 공통 Modal의 textarea에서 수정 요청을 입력하도록 변경했다. 기존 독립 재생성 카드는 제거했다.
+- 재생성 실패 시 모달과 입력을 유지하고 성공 시 모달을 닫아 새 PENDING 미리보기로 돌아간다. 버튼 위계·모달 입력 보존 테스트의 의도한 실패를 확인한 뒤 검토 단위 테스트 8개와 검토·승인 E2E를 통과했으며 모바일 실화면을 확인했다.
+- Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 81개·production build·Playwright 16개. 독립 리뷰는 남아 있다.
+
+### A · 생성 후보 검토 진입·삭제 — DONE
+
+- 후보별 `검토·승인`을 제거하고, 남은 후보가 모두 임시저장 또는 바로 공개로 처리된 뒤에만 상단에 단일 검토 진입을 표시한다.
+- 현재 후보를 삭제하는 타입 API·Mock 서비스·UI를 추가했다. 이미 저장·공개한 후보는 연결 퀴즈도 soft delete하며, 삭제 후 탭·편집 초안 인덱스를 재정렬한다.
+- 의도한 단위 테스트 실패를 확인한 뒤 API 권한·충돌·HTTP 직렬화, UI 노출 조건·삭제, 검토 이동·새로고침 복원을 검증했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/84 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 마지막 생성 후보 삭제 복원 — DONE
+
+- 모든 후보를 삭제한 `GenerationBatch`의 빈 `candidates`를 정상 상태로 검증해, 다음 API 요청이나 새로고침에서 `STORAGE_CORRUPT`로 잘못 판정하던 문제를 수정했다. 이미 저장된 빈 묶음도 초기화 없이 다시 읽힌다.
+- 마지막 후보 삭제 후 새 API 클라이언트 복원과 브라우저 새로고침을 추가했다. 의도한 `STORAGE_CORRUPT` 실패를 확인한 뒤 Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/84 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 미처리 생성 후보 닫기 경고 — DONE
+
+- 생성 모달에 임시저장·공개하지 않은 후보가 하나라도 있으면 닫기 버튼과 Escape에서 소실 경고를 표시한다. 취소하면 모달을 유지하고, 모든 후보를 임시저장·공개·삭제했으면 경고 없이 닫는다.
+- 공통 Modal의 cancel 기본 닫기를 막아 호출부가 닫기를 거부할 수 있게 했다. 의도한 경고 미호출 실패를 확인했고, Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/86 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · LLM 요청 전송 아이콘 — DONE
+
+- LLM 추가 요청의 `요청 보내기` 텍스트 버튼을 종이비행기 아이콘 버튼으로 바꾸고, 접근성 이름·hover 제목·로딩·비활성 동작은 유지했다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/86 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 퀴즈 관리 상세 UX 재구성 — DONE
+
+- 관리 상세의 목록 복귀·퀴즈 제목·상태를 sticky 헤더로 통합하고, 편집 폼을 기본 정보·문제 구성·해설·분류 섹션으로 나뉘다. 원본 학습 내용은 기본으로 접고 Markdown 편집기와 선택지 밀도를 줄였다.
+- 추천 태그를 입력 아래 칩으로 변경하고, 선택지의 입력·정답·삭제를 컴팩트한 행으로 재배치했다. 편집 중 변경 상태·취소·저장은 viewport 하단 고정 바에 두고, 재조회는 아이콘, 삭제는 비편집 상태의 독립 위험 영역으로 분리했다.
+- 의도한 구조 테스트 실패를 확인한 뒤 관리 컴포넌트와 승인·수정·재생성·공개 범위·삭제 모바일 E2E를 통과했고 데스크톱·390px 실화면을 확인했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/87 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 내 퀴즈 목록 탐색 UX — DONE
+
+- 큰 반복 카드를 컴팩트한 목록 행으로 바꾸고 전체 개수·상태별 개수, 제목·태그 검색, 검토 필요·공개·나만 보기 필터, 최근·오래된·제목순 정렬과 10개 단위 페이지를 제공한다. wire 상태값은 사용자 문구와 배지로 표시하고 항목 전체에서 상태에 맞는 검토·관리 화면으로 이동한다.
+- 검색·필터·정렬·페이지를 URL에 보존해 상세 화면에서 돌아오거나 새로고침해도 목록 맥락을 유지한다. 새 퀴즈 만들기를 주요 동작으로 정리하고 새로고침은 정렬 옆 아이콘으로 축소했다.
+- 목록 단위 테스트 4개와 검색 조건 복귀·390px 가로 넘침 E2E를 추가하고 데스크톱·모바일 production 화면을 확인했다. Node 22.23.3 `PLAYWRIGHT_PORT=3293 npm run verify` 전체 통과: lint·TypeScript·Jest 21 suites/93 tests·production build·Playwright 17 tests. 독립 리뷰는 남아 있다.
+
+### A · 채팅 Enter 전송 — DONE
+
+- 최초 학습 대화와 퀴즈 LLM 수정 textarea에서 Enter는 전송하고 Shift+Enter는 줄바꿈으로 동작한다. 한글 등 IME 조합 중 Enter는 전송하지 않으며 기존 전송 버튼도 유지한다.
+- 두 채팅의 키보드 단위 테스트와 실제 브라우저의 Enter·Shift+Enter 흐름을 추가했다. Node 22.23.3 `PLAYWRIGHT_PORT=3293 npm run verify` 전체 통과: lint·TypeScript·Jest 21 suites/93 tests·production build·Playwright 17 tests. 독립 리뷰는 남아 있다.

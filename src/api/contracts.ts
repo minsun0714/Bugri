@@ -1,6 +1,7 @@
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 import {
   QuizStatus,
+  type ConversationRole,
   type LearningMode,
   type LearningState,
   type QuizScope,
@@ -92,6 +93,19 @@ export interface LearningQuizView {
   hashtagIds: string[];
 }
 
+export interface AuthoringMessage {
+  messageId: string;
+  role: ConversationRole;
+  content: string;
+}
+
+export interface AuthoringConversation {
+  version: number;
+  messages: AuthoringMessage[];
+  draft: string;
+  latestBatchId: string | null;
+}
+
 export interface GenerationBatch {
   batchId: string;
   sourceContent: string;
@@ -99,6 +113,7 @@ export interface GenerationBatch {
     candidateId: string;
     content: QuizContent;
     savedQuizId: string | null;
+    history?: { prompt: string; content: QuizContent }[];
   }[];
 }
 
@@ -219,12 +234,58 @@ export type PendingRequest = VersionRequest &
   );
 
 export interface ApiOperations {
+  authoringConversation: {
+    request: Record<string, never>;
+    response: AuthoringConversation;
+  };
+  sendAuthoringMessage: {
+    request: { content: string; expectedVersion: number };
+    response: AuthoringConversation;
+  };
+  generateFromConversation: {
+    request: { draft: string; expectedVersion: number };
+    response: {
+      conversation: AuthoringConversation;
+      batch: GenerationBatch;
+    };
+  };
   generate: {
     request: { sourceContent: string };
     response: GenerationBatch;
   };
   generationBatch: {
     request: { batchId: string };
+    response: GenerationBatch;
+  };
+  publishCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+      reviewed: true;
+    };
+    response: GenerationBatch;
+  };
+  editCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+      content: QuizContent;
+    };
+    response: GenerationBatch;
+  };
+  refineCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+      prompt: string;
+    };
+    response: GenerationBatch;
+  };
+  deleteCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+    };
     response: GenerationBatch;
   };
   saveBatch: {
