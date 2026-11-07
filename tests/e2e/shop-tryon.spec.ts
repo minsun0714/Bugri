@@ -63,13 +63,28 @@ for (const width of [1100, 390]) {
     await expect(page.getByLabel("내 잔액")).toContainText(
       "100",
     );
-    await page
-      .getByRole("button", { name: "보관함", exact: true })
-      .click();
+    await expect(
+      page.getByRole("button", {
+        name: "보관함",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("button", {
+        name: "상점",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await expect(
+      card.getByRole("button", {
+        name: "구매하기",
+        exact: true,
+      }),
+    ).toBeEnabled();
+    await page.goto("/my");
     await expect(
       page.getByText("아직 보관한 상품이 없어요"),
     ).toBeVisible();
-    await page.goto("/my");
     await expect(
       page.getByRole("group", {
         name: "내 데스크 · 기본 데스크",

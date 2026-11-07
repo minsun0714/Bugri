@@ -10,7 +10,7 @@ import { ShopApp } from "@/components/shop/shop-app";
 beforeEach(() => localStorage.clear());
 
 it("purchases once, updates balance, equips and unequips an owned product", async () => {
-  render(<ShopApp />);
+  const shop = render(<ShopApp />);
   const title = await screen.findByRole("heading", {
     name: "새싹 키보드",
   });
@@ -29,9 +29,8 @@ it("purchases once, updates balance, equips and unequips an owned product", asyn
   expect(
     within(card).getByRole("button", { name: "보유 중" }),
   ).toBeDisabled();
-  fireEvent.click(
-    screen.getByRole("button", { name: "보관함" }),
-  );
+  shop.unmount();
+  render(<ShopApp editing />);
   fireEvent.click(
     await screen.findByRole("button", { name: "장착하기" }),
   );
@@ -41,7 +40,11 @@ it("purchases once, updates balance, equips and unequips an owned product", asyn
     }),
   ).toBeInTheDocument();
   expect(
-    within(card).getByText("장착 중"),
+    within(
+      screen
+        .getByRole("heading", { name: "새싹 키보드" })
+        .closest("article")!,
+    ).getByText("장착 중"),
   ).toBeInTheDocument();
   fireEvent.click(
     screen.getByRole("button", { name: "장착 해제" }),
@@ -52,7 +55,7 @@ it("purchases once, updates balance, equips and unequips an owned product", asyn
 });
 
 it("shows insufficient funds without changing the balance and isolates user inventories", async () => {
-  render(<ShopApp />);
+  const shop = render(<ShopApp />);
   const title = await screen.findByRole("heading", {
     name: "원목 책상",
   });
@@ -70,9 +73,8 @@ it("shows insufficient funds without changing the balance and isolates user inve
   fireEvent.change(screen.getByLabelText("더미 사용자"), {
     target: { value: "friend" },
   });
-  fireEvent.click(
-    screen.getByRole("button", { name: "보관함" }),
-  );
+  shop.unmount();
+  render(<ShopApp editing initialUser="friend" />);
   expect(
     await screen.findByText("아직 보관한 상품이 없어요"),
   ).toBeInTheDocument();
@@ -95,7 +97,7 @@ it("filters categories and preserves products after a failed purchase", async ()
 });
 
 it("replaces equipment in the same category while keeping both purchases", async () => {
-  render(<ShopApp />);
+  const shop = render(<ShopApp />);
   for (const name of ["새싹 키보드", "라벤더 키보드"]) {
     const title = await screen.findByRole("heading", {
       name,
@@ -110,9 +112,11 @@ it("replaces equipment in the same category while keeping both purchases", async
       name: "보유 중",
     });
   }
-  fireEvent.click(
-    screen.getByRole("button", { name: "보관함" }),
-  );
+  shop.unmount();
+  render(<ShopApp editing />);
+  await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
   for (const name of ["새싹 키보드", "라벤더 키보드"]) {
     const card = screen
       .getByRole("heading", { name })
@@ -180,4 +184,18 @@ it("offers editing on my desk and product try-on entry points in the shop", asyn
       name: "상점에서 상품 구경하기",
     }),
   ).toHaveAttribute("href", "/shop?user=learner");
+});
+
+it("shows the catalog directly without shop or inventory tabs", async () => {
+  render(<ShopApp />);
+  await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
+  expect(
+    screen.queryByRole("button", { name: "상점" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "보관함" }),
+  ).not.toBeInTheDocument();
+  expect(screen.getAllByRole("article")).toHaveLength(10);
 });

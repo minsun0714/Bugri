@@ -13,11 +13,26 @@ test("lavender keyboard can leave the table, rotate, save and remain visible", a
   await card
     .getByRole("button", { name: "구매하기" })
     .click();
-  await page
-    .getByRole("button", { name: "보관함", exact: true })
+  await card
+    .getByRole("button", { name: "장착해 보기" })
     .click();
   await page
-    .getByRole("button", { name: "장착하기", exact: true })
+    .getByRole("dialog")
+    .getByRole("button", {
+      name: "내 데스크에 장착",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page
+      .getByRole("dialog")
+      .getByText("장착과 배치를 저장했어요.", {
+        exact: true,
+      }),
+  ).toBeVisible();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "닫기", exact: true })
     .click();
   await page
     .getByRole("link", {

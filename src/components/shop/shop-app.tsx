@@ -47,9 +47,6 @@ function ShopContent({
     equip,
     move,
   } = useShop(userId);
-  const [tab, setTab] = useState(
-    editing ? "보관함" : "상점",
-  );
   const [category, setCategory] = useState<Category | null>(
     null,
   );
@@ -74,9 +71,9 @@ function ShopContent({
     ),
   );
   const visible =
-    (tab === "상점"
-      ? products.data
-      : inventory.data?.products
+    (editing
+      ? inventory.data?.products
+      : products.data
     )?.filter(
       (product) =>
         !category || product.category === category,
@@ -184,26 +181,9 @@ function ShopContent({
       )}
       <section id="collection" aria-label="상품 컬렉션">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-          <div className="flex gap-2">
-            {(editing
-              ? ["보관함"]
-              : ["상점", "보관함"]
-            ).map((value) => (
-              <Button
-                key={value}
-                variant={
-                  tab === value ? "primary" : "ghost"
-                }
-                aria-pressed={tab === value}
-                onClick={() => {
-                  setTab(value);
-                  setCategory(null);
-                }}
-              >
-                {value}
-              </Button>
-            ))}
-          </div>
+          <h2 className="text-lg">
+            {editing ? "보유 상품" : "상품 목록"}
+          </h2>
           <span className="text-xs text-muted">
             {visible.length}개의 오브젝트
           </span>
@@ -263,7 +243,11 @@ function ShopContent({
           </div>
         ) : visible.length === 0 ? (
           <EmptyState
-            title="아직 보관한 상품이 없어요"
+            title={
+              editing
+                ? "아직 보관한 상품이 없어요"
+                : "이 카테고리에 상품이 없어요"
+            }
             description="상점에서 마음에 드는 상품을 골라보세요."
             action={
               editing ? (
@@ -276,7 +260,6 @@ function ShopContent({
               ) : (
                 <Button
                   onClick={() => {
-                    setTab("상점");
                     setCategory(null);
                   }}
                 >
@@ -342,7 +325,7 @@ function ShopContent({
                     )}
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                       <Coin amount={price} />
-                      {tab === "상점" ? (
+                      {!editing ? (
                         <Button
                           size="sm"
                           variant={

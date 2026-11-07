@@ -21,11 +21,26 @@ test("purchase, equip, restore, switch users and view a public desk", async ({
   await expect(
     keyboard.getByRole("button", { name: "보유 중" }),
   ).toBeDisabled();
-  await page
-    .getByRole("button", { name: "보관함", exact: true })
+  await keyboard
+    .getByRole("button", { name: "장착해 보기" })
     .click();
   await page
-    .getByRole("button", { name: "장착하기" })
+    .getByRole("dialog")
+    .getByRole("button", {
+      name: "내 데스크에 장착",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page
+      .getByRole("dialog")
+      .getByText("장착과 배치를 저장했어요.", {
+        exact: true,
+      }),
+  ).toBeVisible();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "닫기", exact: true })
     .click();
   await page
     .getByRole("link", {
@@ -52,9 +67,7 @@ test("purchase, equip, restore, switch users and view a public desk", async ({
   await expect(page.getByLabel("내 잔액")).toContainText(
     "100",
   );
-  await page
-    .getByRole("button", { name: "보관함", exact: true })
-    .click();
+
   await expect(
     page.getByText("아직 보관한 상품이 없어요"),
   ).toBeVisible();
