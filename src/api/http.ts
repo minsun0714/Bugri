@@ -13,6 +13,18 @@ interface Endpoint {
 }
 
 export const endpoints: Record<Operation, Endpoint> = {
+  authoringConversation: {
+    method: "GET",
+    path: "/authoring/conversation",
+  },
+  sendAuthoringMessage: {
+    method: "POST",
+    path: "/authoring/conversation/messages",
+  },
+  generateFromConversation: {
+    method: "POST",
+    path: "/authoring/conversation/generate",
+  },
   generate: {
     method: "POST",
     path: "/quizzes/generate",

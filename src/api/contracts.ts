@@ -1,6 +1,7 @@
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 import {
   QuizStatus,
+  type ConversationRole,
   type LearningMode,
   type LearningState,
   type QuizScope,
@@ -90,6 +91,19 @@ export interface LearningQuizView {
   title: string;
   question: Question;
   hashtagIds: string[];
+}
+
+export interface AuthoringMessage {
+  messageId: string;
+  role: ConversationRole;
+  content: string;
+}
+
+export interface AuthoringConversation {
+  version: number;
+  messages: AuthoringMessage[];
+  draft: string;
+  latestBatchId: string | null;
 }
 
 export interface GenerationBatch {
@@ -220,6 +234,21 @@ export type PendingRequest = VersionRequest &
   );
 
 export interface ApiOperations {
+  authoringConversation: {
+    request: Record<string, never>;
+    response: AuthoringConversation;
+  };
+  sendAuthoringMessage: {
+    request: { content: string; expectedVersion: number };
+    response: AuthoringConversation;
+  };
+  generateFromConversation: {
+    request: { draft: string; expectedVersion: number };
+    response: {
+      conversation: AuthoringConversation;
+      batch: GenerationBatch;
+    };
+  };
   generate: {
     request: { sourceContent: string };
     response: GenerationBatch;

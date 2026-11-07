@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { Conversation } from "@/features/quiz-authoring/conversation";
 import { useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
@@ -41,7 +43,7 @@ function setLocationParam(key: string, value?: string) {
 export function AuthoringWorkspace({
   mode = "create",
 }: {
-  mode?: "create" | "manage";
+  mode?: "create" | "manage" | "results";
 }) {
   return (
     <AuthoringQueryProvider>
@@ -53,8 +55,9 @@ export function AuthoringWorkspace({
 function Workspace({
   mode,
 }: {
-  mode: "create" | "manage";
+  mode: "create" | "manage" | "results";
 }) {
+  const router = useRouter();
   const search = useSyncExternalStore(
     subscribe,
     () => window.location.search,
@@ -80,7 +83,14 @@ function Workspace({
     userId,
     "generationBatch",
     { batchId },
-    mode === "create" && !!batchId,
+    mode === "results" && !!batchId,
+  );
+  const conversation = useAuthoringQuery(
+    api,
+    userId,
+    "authoringConversation",
+    {},
+    mode === "create",
   );
   const list = useAuthoringQuery(
     api,
@@ -106,14 +116,19 @@ function Workspace({
   const error =
     apiQuery.error ??
     (mode === "create"
-      ? batch.error
-      : (list.error ?? review.error ?? tags.error));
+      ? conversation.error
+      : mode === "results"
+        ? batch.error
+        : (list.error ?? review.error ?? tags.error));
   const createHref = `/quizzes/authoring?user=${encodeURIComponent(userId)}`;
 
   useUnsavedWarning(dirty);
 
-  function rememberBatch({ batchId }: GenerationBatch) {
-    setLocationParam("batch", batchId);
+  function showResults({ batchId }: GenerationBatch) {
+    setDirty(false);
+    router.push(
+      `/quizzes/authoring/results?batch=${encodeURIComponent(batchId)}&user=${encodeURIComponent(userId)}`,
+    );
   }
   function closeReview() {
     setDirty(false);
@@ -131,15 +146,17 @@ function Workspace({
     await Promise.all([
       apiQuery.refetch(),
       ...(mode === "create"
-        ? batchId
-          ? [batch.refetch()]
-          : []
-        : [
-            list.refetch(),
-            ...(quizId
-              ? [review.refetch(), tags.refetch()]
-              : []),
-          ]),
+        ? [conversation.refetch()]
+        : mode === "results"
+          ? batchId
+            ? [batch.refetch()]
+            : []
+          : [
+              list.refetch(),
+              ...(quizId
+                ? [review.refetch(), tags.refetch()]
+                : []),
+            ]),
     ]);
   }
 
@@ -166,7 +183,8 @@ function Workspace({
     );
   if (
     !api ||
-    (mode === "create" && batchId && !batch.data) ||
+    (mode === "create" && !conversation.data) ||
+    (mode === "results" && batchId && !batch.data) ||
     (mode === "manage" && !list.data) ||
     (mode === "manage" &&
       quizId &&
@@ -174,19 +192,47 @@ function Workspace({
   )
     return <Skeleton />;
 
-  if (mode === "create")
+  if (mode === "create" && conversation.data)
     return (
-      <Generation
+      <Conversation
         key={userId}
         api={api}
         userId={userId}
+        initialConversation={conversation.data}
+        onGenerated={showResults}
+        onDirty={setDirty}
+      />
+    );
+
+  if (mode === "results") {
+    if (!batch.data)
+      return (
+        <EmptyState
+          title="생성 결과를 선택하세요"
+          description="대화에서 퀴즈를 생성하면 이곳에서 확인할 수 있습니다."
+          action={
+            <a
+              href={createHref}
+              className="text-primary underline"
+            >
+              대화로 돌아가기
+            </a>
+          }
+        />
+      );
+    return (
+      <Generation
+        key={`${userId}:${batchId}`}
+        api={api}
+        userId={userId}
         initialBatch={batch.data}
-        onBatch={rememberBatch}
+        onBatch={() => {}}
         onSaved={() => {}}
         onDirty={setDirty}
         onBusy={setBusy}
       />
     );
+  }
 
   return (
     <div className={styles.stack}>

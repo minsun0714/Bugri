@@ -2,7 +2,7 @@
 
 import { Button, Card, TextField } from "@/components/ui";
 import { Tooltip } from "@/components/ui/tooltip";
-import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
 import { ContentPreview } from "@/features/quiz-authoring/content-preview";
 import { RequestError } from "@/features/quiz-authoring/feedback";
 import { styles } from "@/features/quiz-authoring/styles";
@@ -13,64 +13,48 @@ import {
 
 export function Generation(props: GenerationProps) {
   const {
-    source,
     batch,
     candidate,
     selectedIndex,
     setSelectedIndex,
     prompt,
-    changeSource,
+    hasDrafts,
     changePrompt,
     error,
     busy,
-    generate,
     refine,
     reload,
     save,
   } = useGeneration(props);
-  const editor = (
-    <fieldset disabled={busy} className="min-w-0">
-      <MarkdownEditor
-        value={source}
-        preserveOverflow
-        onChange={changeSource}
-      />
-      <div className="mt-4">
-        <Button loading={busy} onClick={generate}>
-          퀴즈 생성
-        </Button>
-      </div>
-    </fieldset>
-  );
   const manageHref = `/quizzes/authoring/manage?user=${encodeURIComponent(props.userId ?? "learner")}`;
 
   return (
     <section
       id="generate"
       className={styles.stack}
-      aria-label="퀴즈 생성"
+      aria-label="생성 결과 상세"
     >
-      <div className={styles.actions}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold tracking-tight">
-          퀴즈 만들기
+          생성 결과
         </h1>
-        <span className="text-xs text-muted">Mock</span>
-        <Tooltip label="퀴즈 생성 도움말">
-          실제 AI 대신 예시 퀴즈 4개로 대화를 체험합니다.
-          비밀키·개인정보는 입력하지 마세요. 결과는 이
-          브라우저에만 저장됩니다.
-        </Tooltip>
+        <a
+          className="text-sm font-semibold text-primary"
+          href={`/quizzes/authoring?user=${encodeURIComponent(props.userId ?? "learner")}`}
+        >
+          대화로 돌아가기
+        </a>
       </div>
-      {batch ? (
-        <details className="rounded-2xl border border-line bg-surface p-4">
-          <summary className="cursor-pointer text-sm font-semibold text-muted">
-            학습 내용
-          </summary>
-          <div className="mt-4">{editor}</div>
-        </details>
-      ) : (
-        editor
-      )}
+      <details className="rounded-2xl border border-line bg-surface p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-muted">
+          생성에 사용한 대화
+        </summary>
+        <div className="mt-4">
+          <MarkdownContent>
+            {batch.sourceContent}
+          </MarkdownContent>
+        </div>
+      </details>
       <RequestError error={error} />
       {!!error && batch && (
         <div>
@@ -184,10 +168,7 @@ export function Generation(props: GenerationProps) {
               <Button
                 type="submit"
                 loading={busy}
-                disabled={
-                  !prompt.trim() ||
-                  source !== batch.sourceContent
-                }
+                disabled={!prompt.trim()}
               >
                 요청 보내기
               </Button>
@@ -198,7 +179,7 @@ export function Generation(props: GenerationProps) {
               variant="secondary"
               disabled={
                 busy ||
-                !!prompt.trim() ||
+                hasDrafts ||
                 batch.candidates.every(
                   ({ savedQuizId }) => savedQuizId,
                 )

@@ -14,6 +14,7 @@ export const authoringKey = (userId: string) =>
   ["quiz-authoring", userId] as const;
 
 type ReadOperation =
+  | "authoringConversation"
   | "quizzes"
   | "generationBatch"
   | "reviewQuiz"
@@ -59,6 +60,7 @@ export function useAuthoringActions(
     ): Promise<Response<K>> {
       if (
         [
+          "authoringConversation",
           "reviewQuiz",
           "generationBatch",
           "quizzes",

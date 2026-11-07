@@ -1,11 +1,14 @@
 import {
   QuizStatus,
+  ConversationRole,
   LearningMode,
   LearningState,
   QuizScope,
 } from "@/api/constants";
 import type {
   ApiOperations,
+  AuthoringConversation,
+  AuthoringMessage,
   AttemptView,
   GenerationBatch,
   LearningSelection,
@@ -61,11 +64,18 @@ export interface ServiceContext {
   id: () => string;
   generate: MockGenerator;
   dailyReward: number;
+  reply?: (
+    messages: AuthoringMessage[],
+    content: string,
+  ) => unknown;
 }
 
 const tagIds = hashtags.map(({ id }) => id);
 
 const allowed: Record<Operation, string[]> = {
+  authoringConversation: [],
+  sendAuthoringMessage: ["content", "expectedVersion"],
+  generateFromConversation: ["draft", "expectedVersion"],
   generate: ["sourceContent"],
   generationBatch: ["batchId"],
   refineCandidate: ["batchId", "candidateId", "prompt"],
@@ -323,7 +333,126 @@ export function execute<K extends Operation>(
   const balance = () =>
     s.ledger.reduce((sum, { amount }) => sum + amount, 0);
 
+  const conversation: AuthoringConversation =
+    s.authoringConversation ?? {
+      version: 0,
+      messages: [],
+      draft: "",
+      latestBatchId: null,
+    };
+
+  const conversationVersion = () => {
+    requireValue(
+      Number.isInteger(r.expectedVersion),
+      "대화 버전이 필요합니다.",
+    );
+
+    if (r.expectedVersion !== conversation.version)
+      throw new ServiceError(
+        "VERSION_CONFLICT",
+        "다른 탭에서 대화가 변경되었습니다. 최신 대화를 불러오세요.",
+        409,
+      );
+  };
+
   switch (operation) {
+    case "authoringConversation":
+      return conversation;
+
+    case "sendAuthoringMessage": {
+      conversationVersion();
+      source(r.content);
+
+      let reply: string;
+
+      try {
+        const result = ctx.reply?.(
+          conversation.messages,
+          r.content,
+        );
+
+        source(result);
+        reply = result;
+      } catch {
+        throw new ServiceError(
+          "GENERATION_FAILED",
+          "답변을 받지 못했습니다. 다시 보내주세요.",
+          502,
+        );
+      }
+
+      s.authoringConversation = {
+        ...conversation,
+        version: conversation.version + 1,
+        draft: "",
+        messages: [
+          ...conversation.messages,
+          {
+            messageId: id(),
+            role: ConversationRole.USER,
+            content: r.content,
+          },
+          {
+            messageId: id(),
+            role: ConversationRole.ASSISTANT,
+            content: reply,
+          },
+        ],
+      };
+
+      return s.authoringConversation;
+    }
+
+    case "generateFromConversation": {
+      conversationVersion();
+
+      requireValue(
+        typeof r.draft === "string" &&
+          [...r.draft].length <= 10000,
+        "입력은 최대 10,000자입니다.",
+      );
+
+      requireValue(
+        conversation.messages.length > 0,
+        "먼저 대화를 보내주세요.",
+      );
+
+      const sourceContent = conversation.messages
+        .map(
+          ({ role, content }) =>
+            `${role === ConversationRole.USER ? "사용자" : "답변"}:\n${content}`,
+        )
+        .join("\n\n");
+
+      source(sourceContent);
+
+      const contents = generate({ sourceContent });
+
+      const batch: GenerationBatch = {
+        batchId: id(),
+        sourceContent,
+        candidates: contents.map((content) => ({
+          candidateId: id(),
+          content,
+          savedQuizId: null,
+        })),
+      };
+
+      s.batches.push(batch);
+
+      s.authoringConversation = {
+        ...conversation,
+        version: conversation.version + 1,
+        draft: r.draft,
+        latestBatchId: batch.batchId,
+      };
+
+      return {
+        conversation: s.authoringConversation,
+        batch,
+      };
+    }
+
     case "generate": {
       source(r.sourceContent);
 

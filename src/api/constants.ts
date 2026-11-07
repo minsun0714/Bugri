@@ -34,3 +34,11 @@ export const QuizScope = {
 
 export type QuizScope =
   (typeof QuizScope)[keyof typeof QuizScope];
+
+export const ConversationRole = {
+  USER: "USER",
+  ASSISTANT: "ASSISTANT",
+} as const;
+
+export type ConversationRole =
+  (typeof ConversationRole)[keyof typeof ConversationRole];

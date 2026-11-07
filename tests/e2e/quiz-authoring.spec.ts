@@ -16,8 +16,22 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
       "타입스크립트\n```ts\n  const value = 1;\n```\n😀",
     );
   await page
-    .getByRole("button", { name: "퀴즈 생성", exact: true })
+    .getByRole("button", { name: "보내기", exact: true })
     .click();
+  await expect(
+    page.getByRole("list", { name: "대화 기록" }),
+  ).toContainText("타입스크립트");
+  await expect(
+    page.getByRole("region", { name: "생성 후보" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("textbox", { name: /학습 내용/ })
+    .fill("이어서 물어볼 질문");
+  await page
+    .getByRole("button", { name: "이 대화로 퀴즈 만들기" })
+    .click();
+  await expect(page).toHaveURL(/authoring\/results\?/);
+  const resultUrl = page.url();
   const candidates = page.getByRole("region", {
     name: "생성 후보",
   });
@@ -43,14 +57,15 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("예시 추가");
   await page
-    .getByText("학습 내용", { exact: true })
-    .first()
+    .getByRole("link", { name: "대화로 돌아가기" })
     .click();
   await expect(
     page.getByRole("textbox", { name: /학습 내용/ }),
-  ).toHaveValue(
-    "타입스크립트\n```ts\n  const value = 1;\n```\n😀",
-  );
+  ).toHaveValue("이어서 물어볼 질문");
+  await expect(
+    page.getByRole("list", { name: "대화 기록" }),
+  ).toContainText("타입스크립트");
+  await page.goto(resultUrl);
   const management = await page.context().newPage();
   await management.goto("/quizzes/authoring/manage");
   await expect(
@@ -105,8 +120,12 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
       "```ts\n  const n = 1;\n```\n<script>alert(1)</script>",
     );
   await page
-    .getByRole("button", { name: "퀴즈 생성", exact: true })
+    .getByRole("button", { name: "보내기", exact: true })
     .click();
+  await page
+    .getByRole("button", { name: "이 대화로 퀴즈 만들기" })
+    .click();
+  await expect(page).toHaveURL(/authoring\/results\?/);
   await page
     .getByRole("button", { name: "개별 저장", exact: true })
     .first()
@@ -296,13 +315,13 @@ test("supplementary help opens on hover, focus and mobile tap", async ({
 }) => {
   await page.goto("/quizzes/authoring");
   const help = page.getByRole("button", {
-    name: "퀴즈 생성 도움말",
+    name: "대화 도움말",
   });
   await expect(help).toBeVisible();
   await expect(page.getByRole("tooltip")).toHaveCount(0);
   await help.hover();
   await expect(page.getByRole("tooltip")).toContainText(
-    "예시 퀴즈 4개",
+    "예시 답변",
   );
   await page.keyboard.press("Escape");
   await expect(page.getByRole("tooltip")).toHaveCount(0);

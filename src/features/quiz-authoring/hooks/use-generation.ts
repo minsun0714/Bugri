@@ -6,7 +6,7 @@ import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authori
 export interface GenerationProps {
   api: ApiClient;
   userId?: string;
-  initialBatch?: GenerationBatch;
+  initialBatch: GenerationBatch;
   onBatch: (batch: GenerationBatch) => void;
   onSaved: () => void;
   onDirty?: (dirty: boolean) => void;
@@ -23,9 +23,6 @@ export function useGeneration({
   onBusy = () => {},
 }: GenerationProps) {
   const api = useAuthoringActions(client, userId);
-  const [source, setSource] = useState(
-    initialBatch?.sourceContent ?? "",
-  );
   const [batch, setBatch] = useState(initialBatch);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [prompts, setPrompts] = useState<
@@ -37,25 +34,10 @@ export function useGeneration({
   const candidate = batch?.candidates[selectedIndex];
   const prompt = prompts[selectedIndex] ?? "";
 
-  function updateDirty(
-    nextSource: string,
-    nextPrompts: Record<number, string>,
-    nextBatch = batch,
-  ) {
-    onDirty(
-      nextSource !== (nextBatch?.sourceContent ?? "") ||
-        Object.values(nextPrompts).some((value) => !!value),
-    );
-  }
-
-  function changeSource(value: string) {
-    setSource(value);
-    updateDirty(value, prompts);
-  }
   function changePrompt(value: string) {
     const next = { ...prompts, [selectedIndex]: value };
     setPrompts(next);
-    updateDirty(source, next);
+    onDirty(Object.values(next).some((value) => !!value));
   }
 
   function accept(result: GenerationBatch) {
@@ -80,28 +62,6 @@ export function useGeneration({
     }
   }
 
-  function generate() {
-    if (!source.trim()) {
-      setError(new Error("학습 내용을 입력하세요."));
-      return;
-    }
-    if ([...source].length > 10000) {
-      setError(
-        new Error("학습 내용은 최대 10,000자입니다."),
-      );
-      return;
-    }
-    void run(async () => {
-      const result = await api.request("generate", {
-        sourceContent: source,
-      });
-      accept(result);
-      setSelectedIndex(0);
-      setPrompts({});
-      onDirty(false);
-    });
-  }
-
   function refine() {
     if (
       !batch ||
@@ -119,7 +79,7 @@ export function useGeneration({
       accept(result);
       const next = { ...prompts, [selectedIndex]: "" };
       setPrompts(next);
-      updateDirty(source, next, result);
+      onDirty(Object.values(next).some((value) => !!value));
     });
   }
 
@@ -169,17 +129,17 @@ export function useGeneration({
   }
 
   return {
-    source,
     batch,
     candidate,
     selectedIndex,
     setSelectedIndex,
     prompt,
-    changeSource,
+    hasDrafts: Object.values(prompts).some(
+      (value) => !!value.trim(),
+    ),
     changePrompt,
     error,
     busy,
-    generate,
     refine,
     reload,
     save,

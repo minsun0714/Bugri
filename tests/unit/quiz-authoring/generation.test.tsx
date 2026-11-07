@@ -8,6 +8,7 @@ import {
 import { Generation } from "@/features/quiz-authoring/generation";
 import { createApiClient } from "@/api/client";
 import { createMockTransport } from "@/mocks/adapter";
+import { QuizScope } from "@/api/constants";
 
 jest.mock("react-markdown", () => ({
   __esModule: true,
@@ -22,72 +23,41 @@ jest.mock("rehype-highlight", () => ({
 
 beforeEach(() => localStorage.clear());
 
-function setup() {
+async function setup() {
   const api = createApiClient(
     createMockTransport({ userId: "learner" }),
   );
-  const onBatch = jest.fn();
+  const initialBatch = await api.request("generate", {
+    sourceContent: "학습\n```ts\n  const n = 1;\n```",
+  });
   const onSaved = jest.fn();
   render(
     <AuthoringQueryProvider>
       <Generation
         api={api}
-        onBatch={onBatch}
+        initialBatch={initialBatch}
+        onBatch={jest.fn()}
         onSaved={onSaved}
       />
     </AuthoringQueryProvider>,
   );
-  return { api, onBatch, onSaved };
+  return { api, onSaved };
 }
 
-test("rejects blank and over-limit Unicode input without truncating it", () => {
-  setup();
-  fireEvent.change(
-    screen.getByRole("textbox", { name: /학습 내용/ }),
-    { target: { value: "  " } },
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "퀴즈 생성" }),
-  );
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "학습 내용을 입력",
-  );
-  const source = "😀".repeat(10001);
-  fireEvent.change(
-    screen.getByRole("textbox", { name: /학습 내용/ }),
-    { target: { value: source } },
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "퀴즈 생성" }),
-  );
+test("detail saves one then all without duplicates or automatic approval", async () => {
+  const { api, onSaved } = await setup();
   expect(
-    screen.getByRole("textbox", { name: /학습 내용/ }),
-  ).toHaveValue(source);
+    await api.request("quizzes", { scope: QuizScope.OWN }),
+  ).toHaveLength(0);
   expect(
-    screen.getByText("10,001 / 10,000자"),
-  ).toBeVisible();
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "10,000",
-  );
-});
-
-test("generates candidates and saves one then all without duplicates", async () => {
-  const { api, onSaved } = setup();
-  fireEvent.change(
-    screen.getByRole("textbox", { name: /학습 내용/ }),
-    {
-      target: {
-        value: "타입스크립트\n```ts\n  const a = 1;\n```",
-      },
-    },
+    screen.getByRole("link", { name: "대화로 돌아가기" }),
+  ).toHaveAttribute(
+    "href",
+    "/quizzes/authoring?user=learner",
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "퀴즈 생성" }),
+    screen.getByRole("button", { name: "개별 저장" }),
   );
-  const buttons = await screen.findAllByRole("button", {
-    name: "개별 저장",
-  });
-  fireEvent.click(buttons[0]);
   await waitFor(() =>
     expect(onSaved).toHaveBeenCalledTimes(1),
   );
@@ -100,7 +70,7 @@ test("generates candidates and saves one then all without duplicates", async () 
     expect(onSaved).toHaveBeenCalledTimes(2),
   );
   const quizzes = await api.request("quizzes", {
-    scope: "OWN",
+    scope: QuizScope.OWN,
   });
   expect(quizzes).toHaveLength(4);
   expect(
@@ -108,50 +78,10 @@ test("generates candidates and saves one then all without duplicates", async () 
   ).toBe(true);
 });
 
-test("failed generation preserves source and allows retry", async () => {
-  const api = {
-    request: jest
-      .fn()
-      .mockRejectedValue(new Error("저장소 접근 실패")),
-  };
-  render(
-    <AuthoringQueryProvider>
-      <Generation
-        api={api}
-        onBatch={jest.fn()}
-        onSaved={jest.fn()}
-      />
-    </AuthoringQueryProvider>,
-  );
-  fireEvent.change(
-    screen.getByRole("textbox", { name: /학습 내용/ }),
-    { target: { value: "유지할 내용" } },
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "퀴즈 생성" }),
-  );
-  expect(
-    await screen.findByRole("alert"),
-  ).toHaveTextContent("저장소 접근 실패");
-  expect(
-    screen.getByRole("textbox", { name: /학습 내용/ }),
-  ).toHaveValue("유지할 내용");
-  expect(
-    screen.getByRole("button", { name: "퀴즈 생성" }),
-  ).toBeEnabled();
-});
-
-test("additional requests refine before saving and preserve input on failure", async () => {
-  const { api } = setup();
-  fireEvent.change(
-    screen.getByRole("textbox", { name: /학습 내용/ }),
-    { target: { value: "타입스크립트" } },
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "퀴즈 생성" }),
-  );
+test("detail refinement preserves input on failure and retry updates only the candidate", async () => {
+  const { api } = await setup();
   const prompt =
-    await screen.findByLabelText("퀴즈 1에 추가 요청");
+    screen.getByLabelText("퀴즈 1에 추가 요청");
   fireEvent.change(prompt, {
     target: { value: "코드 예시를 추가해줘" },
   });
@@ -175,6 +105,6 @@ test("additional requests refine before saving and preserve input on failure", a
   });
   expect(prompt).toHaveValue("");
   expect(
-    await api.request("quizzes", { scope: "OWN" }),
+    await api.request("quizzes", { scope: QuizScope.OWN }),
   ).toHaveLength(0);
 });
