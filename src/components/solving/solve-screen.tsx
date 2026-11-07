@@ -32,8 +32,6 @@ import {
 
 import { Dropdown } from "@/components/ui/dropdown";
 
-import { Bugri } from "@/components/ui/bugri";
-
 function answerText(
   answer: Answer,
   question: Question,
@@ -224,20 +222,6 @@ function Session({
                       : "오답입니다"}
                   </h2>
                   <p>풀이 완료 · {data.learningDate}</p>
-                  <div className="mt-4 flex flex-wrap items-center gap-6 rounded-xl bg-primary/5 p-5">
-                    <Bugri
-                      mood={
-                        data.correct
-                          ? "happy"
-                          : "encouraging"
-                      }
-                    />
-                    <p className="text-lg font-bold">
-                      {data.correct
-                        ? "잘했어!"
-                        : "해설을 읽고 다시 도전해보자."}
-                    </p>
-                  </div>
                 </div>
               )}
               {data.quiz ? (
