@@ -188,12 +188,28 @@ function Catalog({
           구독을 저장하지 못했습니다. 다시 시도해 주세요.
         </p>
       )}
-      <div className="grid items-start gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="space-y-8">
         <section
           aria-label="개발자의 태그"
           className="min-w-0 rounded-2xl border border-line bg-surface p-5"
         >
-          <h2 className="mb-4 text-lg">태그</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg">태그</h2>
+            <Button
+              variant="ghost"
+              aria-pressed={!hashtagId}
+              disabled={busy}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  hashtagId: null,
+                  page: 1,
+                })
+              }
+            >
+              전체 퀴즈
+            </Button>
+          </div>
           <TagSearch
             key={tagQuery}
             value={tagQuery}
@@ -206,22 +222,8 @@ function Catalog({
               })
             }
           />
-          <Button
-            variant="ghost"
-            aria-pressed={!hashtagId}
-            disabled={busy}
-            onClick={() =>
-              onChange({
-                ...filters,
-                hashtagId: null,
-                page: 1,
-              })
-            }
-          >
-            전체 퀴즈
-          </Button>
           {hashtagId && (
-            <p className="my-3 text-sm text-muted">
+            <p className="mb-3 text-sm text-muted">
               선택한 태그: {hashtagId}
             </p>
           )}
@@ -238,12 +240,12 @@ function Catalog({
           )}
           {tags.data && (
             <>
-              <ul className="mt-3 space-y-3">
+              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {tags.data.items.map(
                   ({ id, name, quizCount, subscribed }) => (
                     <li
                       key={id}
-                      className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3"
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-canvas/40 p-3"
                     >
                       <button
                         type="button"

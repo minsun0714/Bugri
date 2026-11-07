@@ -18,6 +18,17 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   const tags = page.getByRole("region", {
     name: "개발자의 태그",
   });
+  const tagBounds = await tags.boundingBox();
+  const quizBounds = await quizzes.boundingBox();
+
+  expect(tagBounds).not.toBeNull();
+  expect(quizBounds).not.toBeNull();
+  expect(
+    tagBounds!.y + tagBounds!.height,
+  ).toBeLessThanOrEqual(quizBounds!.y);
+  expect(
+    Math.abs(tagBounds!.width - quizBounds!.width),
+  ).toBeLessThan(2);
   await expect(quizzes.getByRole("link")).toHaveCount(2);
   await tags
     .getByRole("button", {
