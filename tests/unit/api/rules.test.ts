@@ -621,9 +621,11 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
     },
   });
 
-  expect(
-    (await client.request("learningNext", {})).state,
-  ).toBe(LearningState.EXHAUSTED);
+  expect(await client.request("learningNext", {})).toMatchObject({
+    state: LearningState.EXHAUSTED,
+    mode: LearningMode.UNSOLVED,
+    quiz: null,
+  });
 
   const subs = await client.request("subscriptions", {});
 
@@ -646,6 +648,10 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
       })
     ).state,
   ).toBe(LearningState.AVAILABLE);
+
+  expect(
+    (await client.request("learningNext", {})).state,
+  ).toBe(LearningState.EXHAUSTED);
 
   expect(await client.request("subscriptions", {})).toEqual(
     subs,

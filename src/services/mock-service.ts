@@ -786,8 +786,14 @@ export function execute<K extends Operation>(
         hashtagId === s.selection.hashtagId &&
         mode === s.selection.mode;
 
+      const replayFinished =
+        operation === "learningNext" &&
+        mode === LearningMode.REPLAY;
+
       const selected =
-        sameFilter && previousIndex >= 0
+        replayFinished
+          ? undefined
+          : sameFilter && previousIndex >= 0
           ? pool[
               operation === "learningNext"
                 ? (previousIndex + 1) % pool.length
@@ -795,20 +801,25 @@ export function execute<K extends Operation>(
             ]
           : pool[0];
 
+      const selectionMode = replayFinished
+        ? LearningMode.UNSOLVED
+        : mode;
+
       s.selection = {
         hashtagId,
-        mode,
+        mode: selectionMode,
         quizId: selected?.quizId ?? null,
       };
 
       const result: LearningSelection = {
         hashtagId,
-        mode,
+        mode: selectionMode,
         state: !qs.length
           ? LearningState.EMPTY
           : selected
             ? LearningState.AVAILABLE
-            : mode === LearningMode.UNSOLVED
+            : mode === LearningMode.UNSOLVED ||
+                replayFinished
               ? LearningState.EXHAUSTED
               : LearningState.NO_REPLAY,
         quiz: selected ? publicView(selected) : null,

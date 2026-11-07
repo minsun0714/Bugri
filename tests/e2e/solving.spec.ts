@@ -336,7 +336,9 @@ test("replay results stop instead of cycling completed questions", async ({
   await seed(page);
   await page.goto("/");
   await submit(page, ["number"]);
-  await page.goto("/?user=learner&mode=REPLAY");
+  await page.goto(
+    "/?user=learner&tag=typescript&mode=REPLAY",
+  );
   await expect(
     page.getByRole("heading", {
       name: "타입 선언",
@@ -349,7 +351,29 @@ test("replay results stop instead of cycling completed questions", async ({
       name: "다음 문제",
       exact: true,
     }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "태그 탐색",
+      exact: true,
+    }),
   ).toHaveCount(0);
+  await page
+    .getByRole("button", {
+      name: "다음 문제",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText("이 태그의 문제를 모두 풀었어요", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("다른 태그를 선택해 학습을 이어가세요.", {
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", {
       name: "태그 탐색",

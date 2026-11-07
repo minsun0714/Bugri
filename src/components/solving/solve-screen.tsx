@@ -286,15 +286,9 @@ function Session({
                   )}
                   {!direct &&
                     (data.completedAt || !data.quiz) && (
-                      mode === LearningMode.REPLAY ? (
-                        <Button onClick={exploreTags}>
-                          태그 탐색
-                        </Button>
-                      ) : (
-                        <Button onClick={flow.next}>
-                          다음 문제
-                        </Button>
-                      )
+                      <Button onClick={flow.next}>
+                        다음 문제
+                      </Button>
                     )}
                 </div>
               ) : null}
