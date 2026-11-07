@@ -112,6 +112,7 @@ export function createDeskEngine(
             updateSort: false,
           }),
           equipment.BACKGROUND,
+          true,
         )
       : null;
     // Keep the room behind the furnishings at every camera angle.
@@ -421,6 +422,10 @@ export function createDeskEngine(
           framingHeight +
           1800,
         yaw,
+        {
+          x: framingCenter.x * 100,
+          z: framingCenter.z * 100,
+        },
       );
     }
     anchors.forEach((anchor, category) => {

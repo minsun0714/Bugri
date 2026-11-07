@@ -38,42 +38,56 @@ for (const width of [1100, 390]) {
           return count;
         });
       await expect.poll(uncovered).toBe(0);
-      const corner = await canvas.evaluate(
-        (element, night) => {
-          const c = element as HTMLCanvasElement;
-          const { data } = c
-            .getContext("2d")!
-            .getImageData(0, 0, c.width, c.height);
-          const wall = night
-            ? [65, 68, 101]
-            : [237, 241, 223];
-          const side = night
-            ? [53, 57, 84]
-            : [220, 231, 204];
-          return [0.03, 0.12].map((fraction) => {
-            const y = Math.floor(c.height * fraction);
-            for (let x = 2; x < c.width - 2; x++) {
-              const matches = (at: number, rgb: number[]) =>
-                rgb.every(
-                  (v, channel) =>
-                    data[
-                      (y * c.width + at) * 4 + channel
-                    ] === v,
-                );
-              if (
-                matches(x - 2, side) &&
-                matches(x + 2, wall)
-              )
-                return x;
-            }
-            throw new Error("Wall corner missing");
-          });
-        },
-        name === "달빛 작업실",
-      );
-      expect(
-        Math.abs(corner[0] - corner[1]),
-      ).toBeLessThanOrEqual(1);
+      const checkCorner = async () => {
+        const corner = await canvas.evaluate(
+          (element, night) => {
+            const c = element as HTMLCanvasElement;
+            const { data } = c
+              .getContext("2d")!
+              .getImageData(0, 0, c.width, c.height);
+            const wall = night
+              ? [65, 68, 101]
+              : [237, 241, 223];
+            const side = night
+              ? [53, 57, 84]
+              : [220, 231, 204];
+            return [0.03, 0.12].map((fraction) => {
+              const y = Math.floor(c.height * fraction);
+              for (let x = 2; x < c.width - 2; x++) {
+                const matches = (
+                  at: number,
+                  rgb: number[],
+                ) =>
+                  rgb.every(
+                    (v, channel) =>
+                      data[
+                        (y * c.width + at) * 4 + channel
+                      ] === v,
+                  );
+                if (
+                  (matches(x - 2, side) &&
+                    matches(x + 2, wall)) ||
+                  (matches(x - 2, wall) &&
+                    matches(x + 2, side))
+                )
+                  return x;
+              }
+              throw new Error("Wall corner missing");
+            });
+          },
+          name === "달빛 작업실",
+        );
+        expect(
+          Math.abs(corner[0] - corner[1]),
+        ).toBeLessThanOrEqual(1);
+        const intrinsicWidth = await canvas.evaluate(
+          (element) => (element as HTMLCanvasElement).width,
+        );
+        expect(
+          Math.abs(corner[0] - intrinsicWidth / 2),
+        ).toBeLessThanOrEqual(2);
+      };
+      await checkCorner();
 
       for (let turn = 0; turn < 4; turn++) {
         await page.mouse.move(box.x + 10, box.y + 10);
@@ -83,6 +97,7 @@ for (const width of [1100, 390]) {
         });
         await page.mouse.up();
         await expect.poll(uncovered).toBe(0);
+        await checkCorner();
       }
       for (const [start, end] of [
         [290, 10],

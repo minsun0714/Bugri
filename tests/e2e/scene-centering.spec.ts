@@ -36,6 +36,10 @@ for (const width of [1100, 390]) {
         .getByLabel("3D 배치 정보")
         .textContent();
       const box = (await canvas.boundingBox())!;
+      if (path === "/shop") {
+        await page.mouse.move(box.x + 10, box.y + 10);
+        await page.mouse.wheel(0, 3000);
+      }
       for (let turn = 0; turn < 5; turn++) {
         const deviation = await canvas.evaluate(
           (element) => {

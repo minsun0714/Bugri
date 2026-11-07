@@ -7,12 +7,13 @@ import {
 export function room(
   parent: Zdog.Anchor,
   productId: string,
+  immersive = false,
 ) {
   const theme = roomTheme(productId);
   const night = productId === "background-2";
   const bounds = {
-    left: -900,
-    right: 900,
+    left: immersive ? -660 : -900,
+    right: immersive ? 660 : 900,
     back: -420,
     front: 900,
   };
@@ -81,7 +82,7 @@ export function room(
     height: 460,
     cornerRadius: 75,
     rotate: { x: Math.PI / 2 },
-    translate: { y: 0, z: 40 },
+    translate: { y: 0, z: immersive ? centerZ : 40 },
     fill: true,
     stroke: false,
     color: theme.rug,
@@ -185,7 +186,15 @@ export function room(
     backface: false,
   });
   let previous = "";
-  return (required: number, yaw = 45) => {
+  return (
+    required: number,
+    yaw = 45,
+    center?: { x: number; z: number },
+  ) => {
+    if (center) {
+      parent.translate.x = center.x - centerX;
+      parent.translate.z = center.z - centerZ;
+    }
     const extent = Math.max(1800, Math.ceil(required));
     const key = `${extent}:${yaw}`;
     if (key === previous) return;
