@@ -36,13 +36,6 @@ export function Creation({
 
   async function generate() {
     if (locked.current) return;
-    if (
-      batch &&
-      (editing || source === batch.sourceContent)
-    ) {
-      setOpen(true);
-      return;
-    }
     if (!source.trim() || [...source].length > 10000) {
       setError(
         new Error("학습 내용을 1~10,000자로 입력하세요."),
@@ -58,6 +51,7 @@ export function Creation({
         sourceContent: source,
       });
       setBatch(result);
+      setEditing(false);
       onDirty(false);
       onGenerated(result);
     } catch (error) {
@@ -135,7 +129,7 @@ export function Creation({
               다시 생성
             </Button>
           )}
-          {!busy && batch && (
+          {!busy && !error && batch && (
             <Generation
               key={batch.batchId}
               api={client}

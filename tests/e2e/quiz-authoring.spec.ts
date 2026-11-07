@@ -78,12 +78,17 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   ).toHaveValue(
     "타입스크립트\n```ts\n  const value = 1;\n```\n😀",
   );
+  const previousBatchUrl = page.url();
   await page
-    .getByRole("button", { name: "퀴즈 만들기", exact: true })
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
     .click();
+  await expect(page).not.toHaveURL(previousBatchUrl);
   await expect(
     candidates.getByRole("article"),
-  ).toContainText("직접 다듬은 퀴즈");
+  ).not.toContainText("직접 다듬은 퀴즈");
   const management = await page.context().newPage();
   await management.goto("/quizzes/authoring/manage");
   await expect(
@@ -397,7 +402,7 @@ test("management dropdown retains keyboard and mobile dismissal", async ({
   await expect(page.getByRole("listbox")).toHaveCount(0);
 });
 
-test("workshop preserves pending requests when closed on mobile", async ({
+test("new generation discards previous pending requests on mobile", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -424,11 +429,20 @@ test("workshop preserves pending requests when closed on mobile", async ({
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
   await page
-    .getByRole("button", { name: "퀴즈 만들기", exact: true })
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("button", { name: "LLM으로 수정" })
     .click();
   await expect(
     page.getByLabel("퀴즈 1에 추가 요청"),
-  ).toHaveValue("더 어렵게");
+  ).toHaveValue("");
+  await page
+    .getByLabel("퀴즈 1에 추가 요청")
+    .fill("새로운 요청");
   const bounds = await dialog.boundingBox();
   expect(bounds?.width).toBe(390);
   expect(bounds?.height).toBe(844);
@@ -437,7 +451,7 @@ test("workshop preserves pending requests when closed on mobile", async ({
     .click();
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
-  ).toContainText("더 어렵게");
+  ).toContainText("새로운 요청");
 });
 
 test("initial results hide chat and publish only the displayed quiz", async ({
