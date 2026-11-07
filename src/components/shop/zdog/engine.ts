@@ -1,4 +1,5 @@
 import * as Zdog from "zdog";
+import { bugri } from "@/components/shop/zdog/bugri";
 import {
   Category,
   DeskTool,
@@ -77,6 +78,7 @@ export function createDeskEngine(
       updateSort: true,
     });
     deskParts(lower, top, equipment.DESK ?? "default");
+    bugri(lower);
     anchors.set(Category.DESK, desk);
     for (const category of [
       Category.KEYBOARD,
@@ -179,7 +181,7 @@ export function createDeskEngine(
     if (!drag || drag.tool === DeskTool.CAMERA) {
       const desk =
         state.transforms.DESK ?? defaultTransforms.DESK;
-      let radius = 2.5;
+      let radius = 3.7;
       framingHeight = 300;
       for (const category of anchors.keys()) {
         if (category === Category.DESK) continue;

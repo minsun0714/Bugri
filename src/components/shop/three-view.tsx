@@ -3,7 +3,7 @@
 import { defaultTransforms } from "@/lib/desk-spatial";
 import { isMovable } from "@/lib/desk-layout";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { SceneState } from "@/components/shop/three/engine";
 import type { createDeskEngine } from "@/components/shop/zdog/engine";
 import { DeskView } from "@/api/constants";
@@ -16,6 +16,7 @@ type Props = Omit<SceneState, "onError" | "onCamera"> & {
 };
 
 export function ThreeView(props: Props) {
+  const descriptionId = useId();
   const host = useRef<HTMLDivElement>(null);
   const engine = useRef<Engine | null>(null);
   const latest = useRef(props);
@@ -95,11 +96,15 @@ export function ThreeView(props: Props) {
         ref={host}
         role="img"
         aria-label="3D 데스크 캔버스"
+        aria-describedby={descriptionId}
         data-renderer={
           ready && !failed ? "canvas" : "unavailable"
         }
         className="relative h-[320px] overflow-hidden rounded-2xl bg-canvas sm:h-[420px]"
       />
+      <p id={descriptionId} className="sr-only">
+        버그리가 공간에서 함께하고 있어요.
+      </p>
       <ul aria-label="3D 배치 정보" className="sr-only">
         {Object.entries(props.equipment).map(
           ([category, id]) => {
