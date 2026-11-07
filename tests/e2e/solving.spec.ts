@@ -207,7 +207,7 @@ test("tag filtering persists through next and reload without changing subscripti
   ).toBeVisible();
   await page
     .getByRole("button", {
-      name: "전체 태그로 학습하기",
+      name: "타입 개발자 학습하기",
       exact: true,
     })
     .click();
@@ -528,6 +528,18 @@ test("empty state opens discovery page with URL search and explicit subscription
     .click();
   await expect(page).toHaveURL(/\/discover\?user=friend/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", {
+      name: "홈에서 학습하기",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", {
+      name: "전체 태그로 학습하기",
+      exact: true,
+    }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("heading", {
       name: "개발자·태그 탐색",

@@ -130,13 +130,6 @@ export function DiscoverySearch({
           검색
         </Button>
       </form>
-      <Button
-        variant="ghost"
-        disabled={busy}
-        onClick={() => onLearn(null)}
-      >
-        전체 태그로 학습하기
-      </Button>
       {discovery.isPending && <Skeleton />}
       {discovery.error && (
         <div role="alert">

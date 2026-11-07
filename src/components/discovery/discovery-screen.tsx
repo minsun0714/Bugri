@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import {
   useRouter,
   useSearchParams,
@@ -39,12 +38,6 @@ export function DiscoveryScreen() {
   return (
     <QueryClientProvider client={client}>
       <div className="space-y-6">
-        <Link
-          href={`/?user=${encodeURIComponent(userId)}`}
-          className="text-primary underline"
-        >
-          홈에서 학습하기
-        </Link>
         <h1 className="text-3xl">개발자·태그 탐색</h1>
         <DiscoverySearch
           key={`${userId}:${JSON.stringify(request)}`}
