@@ -6,7 +6,11 @@ import {
   DeskView,
 } from "@/api/constants";
 import type { DeskTransform } from "@/api/contracts";
-import type { DeskSceneState } from "@/components/shop/zdog/scene-state";
+import {
+  SceneObject,
+  type SceneTarget,
+  type DeskSceneState,
+} from "@/components/shop/zdog/scene-state";
 import { createPicker } from "@/components/shop/zdog/picking";
 import {
   deskParts,
@@ -36,10 +40,7 @@ export function createDeskEngine(
   });
   const scene = new Zdog.Anchor({ addTo: illustration });
   const picker = createPicker();
-  const owners = new Map<
-    Zdog.Anchor,
-    MovableCategory | null
-  >();
+  const owners = new Map<Zdog.Anchor, SceneTarget | null>();
   let content: Zdog.Anchor | null = null;
   let previewAnchor: Zdog.Anchor | null = null;
   let rotationHandle: Zdog.Anchor | null = null;
@@ -58,6 +59,7 @@ export function createDeskEngine(
     pitch: number;
     zoom: number;
     category: MovableCategory | null;
+    preview: boolean;
     transform: DeskTransform | null;
     next: DeskTransform | null;
     tool: DeskTool;
@@ -107,7 +109,7 @@ export function createDeskEngine(
         );
     }
     anchors.forEach((anchor, category) =>
-      owners.set(anchor, state.preview ? null : category),
+      owners.set(anchor, category),
     );
     if (state.preview) {
       const { category, productId, transform } =
@@ -120,7 +122,7 @@ export function createDeskEngine(
             : lower,
         productId,
       );
-      owners.set(previewAnchor, category);
+      owners.set(previewAnchor, SceneObject.PREVIEW);
     }
     createHandle();
   }
@@ -191,6 +193,7 @@ export function createDeskEngine(
         state.preview.transform.y >= tableHeight,
       ],
       state.selected,
+      state.previewSelected,
       state.tool,
       state.readOnly,
       [
@@ -352,7 +355,9 @@ export function createDeskEngine(
         width || 600,
         height || 420,
         zoom,
-        state.selected,
+        state.selected && state.previewSelected
+          ? SceneObject.PREVIEW
+          : state.selected,
       );
       state.onSelectionBounds?.(bounds);
     } else state.onSelectionBounds?.(null);
@@ -367,6 +372,7 @@ export function createDeskEngine(
     let tool = state.readOnly
       ? DeskTool.CAMERA
       : state.tool;
+    let preview = Boolean(state.previewSelected);
     let category =
       state.readOnly || tool === DeskTool.CAMERA
         ? null
@@ -381,23 +387,34 @@ export function createDeskEngine(
           event.clientX - box.x,
           event.clientY - box.y,
         );
+        preview = hit === SceneObject.PREVIEW;
+        const hitCategory = preview
+          ? state.preview?.category
+          : hit;
         category =
-          hit &&
-          (state.preview?.category === hit ||
-            state.equipment[hit]) &&
+          hitCategory &&
+          hitCategory !== SceneObject.PREVIEW &&
+          (preview ||
+            state.equipment[hitCategory] ||
+            (hitCategory === Category.DESK &&
+              state.allowDefaultDesk)) &&
           (!state.editableCategories ||
-            state.editableCategories.includes(hit))
-            ? hit
+            state.editableCategories.includes(hitCategory))
+            ? hitCategory
             : null;
         tool = category ? DeskTool.MOVE : DeskTool.CAMERA;
-        state = { ...state, selected: category };
-        if (category) state.onSelect?.(category);
+        state = {
+          ...state,
+          selected: category,
+          previewSelected: preview,
+        };
+        if (category) state.onSelect?.(category, preview);
         else state.onDeselect?.();
       }
     }
     if (!category && tool !== DeskTool.CAMERA) return;
     const transform = category
-      ? state.preview?.category === category
+      ? preview && state.preview
         ? state.preview.transform
         : (state.transforms[category] ??
           defaultTransforms[category])
@@ -410,6 +427,7 @@ export function createDeskEngine(
       pitch,
       zoom,
       category,
+      preview,
       transform,
       next: null,
       tool,
@@ -444,13 +462,15 @@ export function createDeskEngine(
       render();
       return;
     }
-    const { category, transform } = drag;
+    const { category, transform, preview } = drag;
     if (
       !category ||
       !transform ||
       !(
-        state.preview?.category === category ||
-        state.equipment[category]
+        (preview && state.preview?.category === category) ||
+        state.equipment[category] ||
+        (category === Category.DESK &&
+          state.allowDefaultDesk)
       )
     )
       return;
@@ -499,7 +519,7 @@ export function createDeskEngine(
     }
     next = constrainTransform(category, next);
     drag.next = next;
-    state.onPreview?.(category, next);
+    state.onPreview?.(category, next, preview);
   }
 
   function cancel() {
@@ -513,8 +533,14 @@ export function createDeskEngine(
 
   function pointerUp(event: PointerEvent) {
     if (!drag || drag.id !== event.pointerId) return;
-    const { category, moved, handle, transform, tool } =
-      drag;
+    const {
+      category,
+      moved,
+      handle,
+      transform,
+      tool,
+      preview,
+    } = drag;
     let { next } = drag;
     if (
       handle &&
@@ -536,7 +562,7 @@ export function createDeskEngine(
       next &&
       !state.disabled
     )
-      state.onCommit?.(category, next);
+      state.onCommit?.(category, next, preview);
   }
 
   function keyDown(event: KeyboardEvent) {

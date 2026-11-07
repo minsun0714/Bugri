@@ -23,6 +23,14 @@ export function ProductTrial(props: {
   const { product, owned, buy } = props;
   const {
     editor,
+    reset,
+    revision,
+    keyDown,
+    selectedName,
+    previewSelected,
+    select,
+    previewTransform,
+    commitTransform,
     space,
     preview,
     replacesExisting,
@@ -30,12 +38,13 @@ export function ProductTrial(props: {
     unchanged,
     error,
     message,
-    movable,
   } = useProductTrial(props);
 
   return (
     <>
       <ThreeView
+        key={revision}
+        onKeyDown={keyDown}
         label="장착 미리보기"
         equipment={
           preview
@@ -47,31 +56,32 @@ export function ProductTrial(props: {
         }
         transforms={space.transforms}
         preview={preview}
+        previewSelected={previewSelected}
+        allowDefaultDesk
         selected={editor.selected}
         tool={editor.tool}
         disabled={editor.blocked}
         readOnly={false}
         directManipulation
-        editableCategories={movable ? [movable] : []}
-        onSelect={editor.select}
+        onSelect={select}
         onDeselect={editor.deselect}
         showViewPresets={false}
-        onPreview={editor.preview}
-        onCommit={editor.commit}
+        onPreview={previewTransform}
+        onCommit={commitTransform}
         onCancel={editor.cancel}
       />
       <div className="mt-3 space-y-3 px-2">
-        {movable && (
-          <Button
-            size="sm"
-            variant="ghost"
-            onKeyDown={editor.keyDown}
-            onClick={() => editor.select(movable)}
-            disabled={editor.blocked}
-          >
-            {product.name} 선택
-          </Button>
-        )}
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={editor.blocked}
+          onClick={reset}
+        >
+          초기화
+        </Button>
+        <output aria-label="선택 상품" className="sr-only">
+          {selectedName}
+        </output>
         {editor.current && (
           <output
             aria-label="선택 상품 배치"

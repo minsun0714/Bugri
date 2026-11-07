@@ -3,7 +3,10 @@ import {
   test,
   type Locator,
 } from "@playwright/test";
-import { productPoint } from "./helpers/desk";
+import {
+  productPoint,
+  selectTrialProduct,
+} from "./helpers/desk";
 
 async function pixels(
   canvas: Locator,
@@ -106,7 +109,66 @@ for (const width of [1100, 390]) {
       await expect
         .poll(() => pixels(canvas, [168, 195, 168]))
         .toBeGreaterThan(10);
-      await page.keyboard.press("Escape");
+      const addedPosition = await dialog
+        .getByLabel("선택 상품 배치")
+        .textContent();
+      const existingPoint = await productPoint(
+        canvas,
+        [168, 195, 168],
+      );
+      await page.mouse.move(
+        existingPoint.x,
+        existingPoint.y,
+      );
+      await page.mouse.down();
+      await page.mouse.move(
+        existingPoint.x - 35,
+        existingPoint.y + 15,
+        { steps: 8 },
+      );
+      await page.mouse.up();
+      await expect(original).not.toHaveText(before!);
+      await selectTrialProduct(dialog, name);
+      await expect(
+        dialog.getByLabel("선택 상품 배치"),
+      ).toHaveText(addedPosition!);
+      await dialog
+        .getByRole("button", { name: "닫기", exact: true })
+        .click();
+      await card(name)
+        .getByRole("button", { name: "장착해 보기" })
+        .click();
+      await expect(original).toHaveText(before!);
+      await expect(
+        dialog.getByRole("button", { name: /선택$/ }),
+      ).toHaveCount(0);
+      const surface = await selectTrialProduct(
+        dialog,
+        name,
+      );
+      const resetPosition = await dialog
+        .getByLabel("선택 상품 배치")
+        .textContent();
+      await surface.press("ArrowRight");
+      await surface.press("Enter");
+      await selectTrialProduct(dialog, "새싹 키보드");
+      await surface.press("Alt+ArrowRight");
+      await surface.press("Enter");
+      await expect(original).not.toHaveText(before!);
+      await dialog
+        .getByRole("button", {
+          name: "초기화",
+          exact: true,
+        })
+        .click();
+      await expect(original).toHaveText(before!);
+      await selectTrialProduct(dialog, name);
+      await expect(
+        dialog.getByLabel("선택 상품 배치"),
+      ).toHaveText(resetPosition!);
+      await dialog
+        .getByRole("button", { name: "닫기", exact: true })
+        .click();
     }
     await page.goto("/my");
     await expect(

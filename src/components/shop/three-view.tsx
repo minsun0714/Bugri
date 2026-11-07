@@ -3,10 +3,17 @@
 import { defaultTransforms } from "@/lib/desk-spatial";
 import { isMovable } from "@/lib/desk-layout";
 
-import { useEffect, useId, useRef, useState } from "react";
-import type {
-  DeskSceneState,
-  SelectionBounds,
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEventHandler,
+} from "react";
+import {
+  SceneObject,
+  type DeskSceneState,
+  type SelectionBounds,
 } from "@/components/shop/zdog/scene-state";
 import { SelectionOverlay } from "@/components/shop/selection-overlay";
 import { constrainTransform } from "@/lib/desk-spatial";
@@ -24,6 +31,7 @@ type Props = Omit<
   DeskSceneState,
   "onError" | "onCamera"
 > & {
+  onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
   label?: string;
   showViewPresets?: boolean;
 };
@@ -50,6 +58,7 @@ export function ThreeView(props: Props) {
     const { selected, transforms, disabled } = props;
     if (!selected || disabled) return;
     const current =
+      props.previewSelected &&
       props.preview?.category === selected
         ? props.preview.transform
         : (transforms[selected] ??
@@ -60,8 +69,16 @@ export function ThreeView(props: Props) {
         ? { rotationY: current.rotationY + direction * 15 }
         : { y: current.y + direction * 0.1 }),
     });
-    props.onPreview?.(selected, transform);
-    props.onCommit?.(selected, transform);
+    props.onPreview?.(
+      selected,
+      transform,
+      props.previewSelected,
+    );
+    props.onCommit?.(
+      selected,
+      transform,
+      props.previewSelected,
+    );
   }
   const label = props.label ?? "내 데스크";
   const names =
@@ -150,6 +167,13 @@ export function ThreeView(props: Props) {
       <div className="relative">
         <div
           ref={host}
+          tabIndex={props.onKeyDown ? 0 : undefined}
+          onKeyDown={props.onKeyDown}
+          onPointerDown={
+            props.onKeyDown
+              ? (event) => event.currentTarget.focus()
+              : undefined
+          }
           role="img"
           aria-label="3D 데스크 캔버스"
           aria-describedby={descriptionId}
@@ -159,7 +183,9 @@ export function ThreeView(props: Props) {
           className="relative h-[320px] overflow-hidden rounded-2xl bg-canvas sm:h-[420px]"
         />
         {selection &&
-          props.selected === selection.category &&
+          (props.previewSelected
+            ? SceneObject.PREVIEW
+            : props.selected) === selection.category &&
           props.directManipulation &&
           !props.readOnly &&
           !failed && (
@@ -180,6 +206,8 @@ export function ThreeView(props: Props) {
       </div>
       <p id={descriptionId} className="sr-only">
         버그리가 공간에서 함께하고 있어요.
+        {props.onKeyDown &&
+          " Home 키로 첫 상품을 선택하고 PageDown/PageUp 키로 상품을 바꿉니다. 방향키로 이동하고 Alt와 방향키로 회전합니다."}
       </p>
       <ul aria-label="3D 배치 정보" className="sr-only">
         {Object.entries(props.equipment).map(

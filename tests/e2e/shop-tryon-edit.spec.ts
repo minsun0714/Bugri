@@ -1,4 +1,8 @@
-import { rotateTo, productPoint } from "./helpers/desk";
+import {
+  rotateTo,
+  productPoint,
+  selectTrialProduct,
+} from "./helpers/desk";
 import { expect, test } from "@playwright/test";
 
 for (const width of [1100, 390]) {
@@ -144,9 +148,7 @@ for (const width of [1100, 390]) {
     await unownedCard
       .getByRole("button", { name: "장착해 보기" })
       .click();
-    await dialog
-      .getByRole("button", { name: "라벤더 키보드 선택" })
-      .click();
+    await selectTrialProduct(dialog, "라벤더 키보드");
     await rotateTo(dialog, "라벤더 키보드", 180);
     await page.keyboard.press("Escape");
     await page.goto("/my");

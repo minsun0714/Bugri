@@ -1,14 +1,23 @@
-import { useRef, useState } from "react";
+import { artworkNames } from "@/components/shop/artwork";
+import {
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Category } from "@/api/constants";
 import { initialPreviewTransform } from "@/components/shop/preview-placement";
 import { defaultTransforms } from "@/lib/desk-spatial";
 import type {
+  DeskTransform,
   DeskTransforms,
   Equipment,
   Product,
   Request,
 } from "@/api/contracts";
-import { isMovable } from "@/lib/desk-layout";
+import {
+  isMovable,
+  type MovableCategory,
+} from "@/lib/desk-layout";
 import { errorMessage } from "@/components/shop/errors";
 import { useSpatialEditor } from "@/components/shop/use-spatial-editor";
 
@@ -35,6 +44,11 @@ export function useProductTrial({
     equipment: { ...equipment },
     transforms: { ...transforms },
   }));
+  const [spaceLocal, setSpaceLocal] = useState(
+    space.transforms,
+  );
+  const [previewSelected, setPreviewSelected] =
+    useState(true);
   const [local, setLocal] = useState<DeskTransforms>(() =>
     movable
       ? {
@@ -52,8 +66,9 @@ export function useProductTrial({
   const [applied, setApplied] = useState<string | null>(
     null,
   );
+  const [revision, setRevision] = useState(0);
   const lock = useRef(false);
-  const editor = useSpatialEditor({
+  const previewEditor = useSpatialEditor({
     equipment: { [category]: productId },
     transforms: local,
     disabled: pending || applying,
@@ -64,8 +79,119 @@ export function useProductTrial({
       }));
     },
   });
+  const spaceEditor = useSpatialEditor({
+    equipment: { DESK: "default", ...space.equipment },
+    transforms: spaceLocal,
+    disabled: pending || applying,
+    save: async ({ category, transform }) => {
+      setSpaceLocal((previous) => ({
+        ...previous,
+        [category]: transform,
+      }));
+    },
+  });
+  const editor = previewSelected
+    ? previewEditor
+    : spaceEditor;
+  function select(
+    category: MovableCategory,
+    preview = false,
+  ) {
+    setPreviewSelected(preview);
+    (preview ? previewEditor : spaceEditor).select(
+      category,
+    );
+  }
+  function previewTransform(
+    category: MovableCategory,
+    transform: DeskTransform,
+    preview = false,
+  ) {
+    (preview ? previewEditor : spaceEditor).preview(
+      category,
+      transform,
+    );
+  }
+  function commitTransform(
+    category: MovableCategory,
+    transform: DeskTransform,
+    preview = false,
+  ) {
+    return (preview ? previewEditor : spaceEditor).commit(
+      category,
+      transform,
+    );
+  }
+  const targets = [
+    ...(movable
+      ? [{ category: movable, preview: true }]
+      : []),
+    ...spaceEditor.categories.map((category) => ({
+      category,
+      preview: false,
+    })),
+  ];
+  function keyDown(event: KeyboardEvent) {
+    if (editor.blocked) return;
+    if (
+      ["Home", "PageDown", "PageUp"].includes(event.key)
+    ) {
+      event.preventDefault();
+      const index = targets.findIndex(
+        (target) =>
+          target.category === editor.selected &&
+          target.preview === previewSelected,
+      );
+      const next =
+        event.key === "Home"
+          ? 0
+          : (index +
+              (event.key === "PageUp" ? -1 : 1) +
+              targets.length) %
+            targets.length;
+      const target = targets[next];
+      if (target) select(target.category, target.preview);
+      return;
+    }
+    editor.keyDown(event);
+  }
+  function reset() {
+    if (
+      pending ||
+      applying ||
+      previewEditor.blocked ||
+      spaceEditor.blocked
+    )
+      return;
+    previewEditor.reset();
+    spaceEditor.reset();
+    setLocal(
+      movable
+        ? {
+            [movable]: initialPreviewTransform(
+              movable,
+              space.equipment,
+              space.transforms,
+            ),
+          }
+        : {},
+    );
+    setSpaceLocal(space.transforms);
+    setPreviewSelected(true);
+    setApplied(null);
+    setError("");
+    setMessage("");
+    setRevision((value) => value + 1);
+  }
+  const selectedName = editor.selected
+    ? previewSelected
+      ? product.name
+      : (artworkNames[
+          space.equipment[editor.selected] ?? ""
+        ] ?? "기본 데스크")
+    : "";
   const current = movable
-    ? (editor.effective[movable] ??
+    ? (previewEditor.effective[movable] ??
       defaultTransforms[movable])
     : null;
   const signature = JSON.stringify(current);
@@ -111,7 +237,16 @@ export function useProductTrial({
 
   return {
     editor,
-    space,
+    keyDown,
+    reset,
+    revision,
+    selectedName,
+    spaceEditor,
+    previewSelected,
+    select,
+    previewTransform,
+    commitTransform,
+    space: { ...space, transforms: spaceEditor.effective },
     preview:
       movable && current
         ? {

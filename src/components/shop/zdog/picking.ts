@@ -1,9 +1,13 @@
 import * as Zdog from "zdog";
 import { Category } from "@/api/constants";
-import type { MovableCategory } from "@/lib/desk-layout";
+import {
+  SceneObject,
+  type SceneTarget,
+} from "@/components/shop/zdog/scene-state";
 import type { SelectionBounds } from "@/components/shop/zdog/scene-state";
 
-const colors: Record<MovableCategory, string> = {
+const colors: Record<SceneTarget, string> = {
+  PREVIEW: "#ff00ff",
   KEYBOARD: "#ff0000",
   MONITOR: "#00ff00",
   ACCESSORY: "#0000ff",
@@ -13,11 +17,13 @@ const colors: Record<MovableCategory, string> = {
 function categoryAt(
   data: Uint8ClampedArray,
   offset: number,
-): MovableCategory | null {
+): SceneTarget | null {
   if (data[offset + 3] !== 255) return null;
   const r = data[offset];
   const g = data[offset + 1];
   const b = data[offset + 2];
+  if (r === 255 && g === 0 && b === 255)
+    return SceneObject.PREVIEW;
   if (r === 255 && g === 0 && b === 0)
     return Category.KEYBOARD;
   if (r === 0 && g === 255 && b === 0)
@@ -42,18 +48,18 @@ export function createPicker() {
 
   function render(
     illustration: Zdog.Illustration,
-    owners: Map<Zdog.Anchor, MovableCategory | null>,
+    owners: Map<Zdog.Anchor, SceneTarget | null>,
     width: number,
     height: number,
     zoom: number,
-    selected: MovableCategory | null,
+    selected: SceneTarget | null,
   ): SelectionBounds | null {
     canvas.width = Math.max(1, Math.round(width));
     canvas.height = Math.max(1, Math.round(height));
     const restore: (() => void)[] = [];
     function visit(
       node: Zdog.Anchor,
-      owner: MovableCategory | null,
+      owner: SceneTarget | null,
     ) {
       if (owners.has(node))
         owner = owners.get(node) ?? null;

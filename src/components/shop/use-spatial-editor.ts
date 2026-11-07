@@ -126,6 +126,16 @@ export function useSpatialEditor({
     setError(false);
     setMessage("변경을 취소했어요.");
   }
+  function reset() {
+    if (blocked || lock.current) return;
+    latest.current = null;
+    setDraft(null);
+    setConfirmed(null);
+    setSelected(null);
+    setTool(DeskTool.CAMERA);
+    setError(false);
+    setMessage("");
+  }
   function keyDown(event: KeyboardEvent) {
     if (!selected || !current || blocked) return;
     const { key } = event;
@@ -210,6 +220,7 @@ export function useSpatialEditor({
     preview,
     commit,
     cancel,
+    reset,
     keyDown,
     categories,
   };

@@ -51,21 +51,45 @@ export async function rotationOf(scope: Page | Locator) {
   return Number(match[1]);
 }
 
+export async function selectTrialProduct(
+  scope: Page | Locator,
+  name: string,
+) {
+  const surface = scope.getByRole("img", {
+    name: "3D 데스크 캔버스",
+    exact: true,
+  });
+  await surface.press("Home");
+  for (let i = 0; i < 5; i++) {
+    if (
+      (await scope
+        .getByLabel("선택 상품", { exact: true })
+        .textContent()) === name
+    )
+      return surface;
+    await surface.press("PageDown");
+  }
+  throw new Error(`Trial product not found: ${name}`);
+}
+
 export async function rotateTo(
   scope: Page | Locator,
   name: string,
   angle: number,
 ) {
+  const button = scope.getByRole("button", {
+    name: `${name} 선택`,
+    exact: true,
+  });
+  const selection = (await button.count())
+    ? button
+    : await selectTrialProduct(scope, name);
   const current = await rotationOf(scope);
   const steps = ((angle - current + 360) % 360) / 15;
   if (!Number.isInteger(steps))
     throw new Error(
       "Use the pointer handle for non-step angles",
     );
-  const selection = scope.getByRole("button", {
-    name: `${name} 선택`,
-    exact: true,
-  });
   for (let i = 0; i < steps; i++)
     await selection.press("Alt+ArrowRight");
 }
