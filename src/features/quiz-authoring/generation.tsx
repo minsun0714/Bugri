@@ -59,16 +59,17 @@ export function Generation(props: GenerationProps) {
           </a>
         </div>
       )}
-      <details className="rounded-2xl border border-line bg-surface p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-muted">
-          학습 내용
-        </summary>
-        <div className="mt-4">
-          <MarkdownContent>
-            {batch.sourceContent}
-          </MarkdownContent>
-        </div>
-      </details>
+      <div
+        aria-label="첫 사용자 메시지"
+        className="max-w-[90%] justify-self-end rounded-2xl bg-primary/10 px-5 py-4"
+      >
+        <span className="mb-2 block text-xs font-semibold text-muted">
+          나
+        </span>
+        <MarkdownContent>
+          {batch.sourceContent}
+        </MarkdownContent>
+      </div>
       <RequestError error={error} />
       {!!error && batch && (
         <div>
@@ -109,8 +110,45 @@ export function Generation(props: GenerationProps) {
             ))}
           </div>
           <div className="grid min-w-0 gap-5">
+            {!!candidate.history?.length && (
+              <ol
+                className="grid gap-3"
+                aria-label="추가 요청 기록"
+              >
+                {candidate.history.map(
+                  ({ prompt: sent, content }, index) => (
+                    <li key={index} className="grid gap-2">
+                      <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
+                        {sent}
+                      </p>
+                      {index <
+                        candidate.history!.length - 1 && (
+                        <details className="text-sm text-muted">
+                          <summary className="cursor-pointer">
+                            응답 {index + 1} ·{" "}
+                            {content.title}
+                          </summary>
+                          <div className="mt-3">
+                            <ContentPreview
+                              content={content}
+                            />
+                          </div>
+                        </details>
+                      )}
+                    </li>
+                  ),
+                )}
+              </ol>
+            )}
+
             <div className="min-w-0">
-              <Card className="grid gap-4">
+              <Card
+                className="grid gap-4"
+                aria-label="버그리 응답"
+              >
+                <span className="text-xs font-semibold text-muted">
+                  버그리
+                </span>
                 <h2 className="text-lg">
                   {candidate.content.title}
                 </h2>
@@ -185,44 +223,6 @@ export function Generation(props: GenerationProps) {
               </Card>
             </div>
             <div className="min-w-0">
-              <h2 className="mb-3 text-sm font-semibold">
-                버그리와 대화
-              </h2>
-              {!candidate.history?.length && (
-                <p className="text-sm text-muted">
-                  어떤 부분을 바꿔볼까요?
-                </p>
-              )}
-              {!!candidate.history?.length && (
-                <ol
-                  className="grid gap-3"
-                  aria-label="추가 요청 기록"
-                >
-                  {candidate.history.map(
-                    ({ prompt: sent, content }, index) => (
-                      <li
-                        key={index}
-                        className="grid gap-2"
-                      >
-                        <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
-                          {sent}
-                        </p>
-                        <details className="text-sm text-muted">
-                          <summary className="cursor-pointer">
-                            응답 {index + 1} ·{" "}
-                            {content.title}
-                          </summary>
-                          <div className="mt-3">
-                            <ContentPreview
-                              content={content}
-                            />
-                          </div>
-                        </details>
-                      </li>
-                    ),
-                  )}
-                </ol>
-              )}
               {!candidate.savedQuizId && (
                 <form
                   className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
