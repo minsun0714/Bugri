@@ -30,7 +30,6 @@ import type {
 import {
   Avatar,
   Button,
-  Modal,
   Skeleton,
   TextField,
   Toast,
@@ -48,11 +47,9 @@ const linkStyle =
 function Failure({
   error,
   retry,
-  changeUser,
 }: {
   error: Error;
   retry: () => void;
-  changeUser: () => void;
 }) {
   const code =
     error instanceof ApiClientError
@@ -72,11 +69,6 @@ function Failure({
             : "검색 결과를 불러오지 못했습니다."}
       </p>
       <div className="flex flex-wrap justify-end gap-2">
-        {corrupt && (
-          <Button variant="secondary" onClick={changeUser}>
-            다른 데모 사용자로 탐색
-          </Button>
-        )}
         <Button variant="secondary" onClick={retry}>
           다시 불러오기
         </Button>
@@ -139,7 +131,6 @@ function DeveloperContent({
     string | null
   >(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [chooseUser, setChooseUser] = useState(false);
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const subscriptionSummary = useRef<HTMLElement>(null);
   const focusResults = useRef(false);
@@ -307,7 +298,6 @@ function DeveloperContent({
         <Failure
           error={directory.error}
           retry={() => void directory.refetch()}
-          changeUser={() => setChooseUser(true)}
         />
       )}
       {directory.data && !validUser && (
@@ -365,7 +355,6 @@ function DeveloperContent({
             <Failure
               error={subscriptions.error}
               retry={() => void subscriptions.refetch()}
-              changeUser={() => setChooseUser(true)}
             />
           )}
           {subscriptions.data?.length === 0 && (
@@ -408,7 +397,6 @@ function DeveloperContent({
             <Failure
               error={discovery.error}
               retry={() => void discovery.refetch()}
-              changeUser={() => setChooseUser(true)}
             />
           )}
           {data && !discovery.isError && (
@@ -647,28 +635,6 @@ function DeveloperContent({
           )}
         </>
       )}
-      <Modal
-        open={chooseUser}
-        onClose={() => setChooseUser(false)}
-        title="다른 데모 사용자로 탐색"
-      >
-        <div className="flex flex-wrap justify-end gap-3">
-          {users
-            .filter(({ userId: id }) => id !== userId)
-            .map(({ userId: id, displayName }) => (
-              <Button
-                key={id}
-                variant="secondary"
-                onClick={() => {
-                  setChooseUser(false);
-                  search(query, 1, id);
-                }}
-              >
-                {displayName}
-              </Button>
-            ))}
-        </div>
-      </Modal>
       {toast && (
         <Toast
           message={toast}

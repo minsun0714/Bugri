@@ -130,33 +130,37 @@ test("tag discovery has a separate destination", () => {
   });
 });
 
-test("shop switches demo users from the profile menu and restores its persistent trigger", async () => {
-  const { HeaderNavigation } =
-    await import("@/components/navigation/product-header");
-  const onSignIn = jest.fn(() => {
-    expect(
+test.each(["/", "/shop", "/discover/developers"])(
+  "%s keeps a single header demo selector for members",
+  async (pathname) => {
+    const { HeaderNavigation } =
+      await import("@/components/navigation/product-header");
+    const onSignIn = jest.fn();
+    render(
+      <HeaderNavigation
+        pathname={pathname}
+        userId="learner"
+        onSignIn={onSignIn}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "데모 사용자 선택",
+      }),
+    );
+    expect(onSignIn).toHaveBeenCalledTimes(1);
+    fireEvent.click(
       screen.getByRole("button", { name: "내 프로필" }),
-    ).toHaveFocus();
-  });
-  render(
-    <HeaderNavigation
-      pathname="/shop"
-      userId="learner"
-      onSignIn={onSignIn}
-    />,
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "내 프로필" }),
-  );
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: "데모 사용자 전환",
-    }),
-  );
-  expect(onSignIn).toHaveBeenCalledTimes(1);
-  expect(
-    screen.queryByRole("navigation", {
-      name: "내 프로필 메뉴",
-    }),
-  ).not.toBeInTheDocument();
-});
+    );
+    expect(
+      screen.queryByRole("button", {
+        name: "데모 사용자 전환",
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", {
+        name: "데모 사용자 선택",
+      }),
+    ).toHaveLength(1);
+  },
+);

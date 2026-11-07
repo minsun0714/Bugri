@@ -244,14 +244,25 @@ test("corrupt foreign data does not block browsing, and own corruption offers an
         "이 사용자의 저장 데이터를 읽을 수 없습니다. 데이터는 변경하지 않았습니다.",
     }),
   ).toBeVisible();
-  await page
-    .getByRole("button", {
+  await expect(
+    page.getByRole("button", {
       name: "다른 데모 사용자로 탐색",
-    })
-    .click();
+    }),
+  ).toHaveCount(0);
   await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "웹 개발자" })
+    .getByRole("button", { name: "데모 사용자 선택" })
+    .click();
+  const selector = page.getByRole("dialog", {
+    name: "데모 사용자 선택",
+  });
+  await selector
+    .getByRole("combobox", { name: "더미 사용자" })
+    .click();
+  await selector
+    .getByRole("option", { name: "학습자", exact: true })
+    .click();
+  await selector
+    .getByRole("button", { name: "선택한 사용자로 시작" })
     .click();
   await expect(
     page.getByRole("link", {

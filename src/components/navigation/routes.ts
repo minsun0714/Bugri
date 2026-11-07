@@ -67,14 +67,8 @@ export function getBreadcrumbs(
     "/discover/tags": [{ label: "태그 탐색" }],
     "/explore": [{ label: "탐색" }],
     "/shop": [{ label: "상점" }],
-    "/my": [{ label: "마이페이지" }],
-    "/my/desk": [
-      {
-        label: "마이페이지",
-        href: withDemoUser("/my", userId),
-      },
-      { label: "데스크 편집" },
-    ],
+    "/coin-history": [{ label: "코인 내역" }],
+    "/my/desk": [{ label: "데스크 편집" }],
     "/my/quizzes": [
       { label: "마이페이지" },
       { label: "내 퀴즈" },

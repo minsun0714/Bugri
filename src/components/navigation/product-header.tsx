@@ -105,8 +105,8 @@ export function HeaderNavigation({
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          {userId ? (
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          {userId && (
             <div ref={profileRoot} className="relative">
               <button
                 ref={profileTrigger}
@@ -116,7 +116,7 @@ export function HeaderNavigation({
                 onClick={() =>
                   setProfileOpen((open) => !open)
                 }
-                className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface px-3 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <span
                   aria-hidden="true"
@@ -148,25 +148,15 @@ export function HeaderNavigation({
                     내 퀴즈
                   </Link>
                   <Link
-                    href={withDemoUser("/my", userId)}
+                    href={withDemoUser(
+                      "/coin-history",
+                      userId,
+                    )}
                     onClick={() => setProfileOpen(false)}
                     className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
-                    마이페이지
+                    코인 내역
                   </Link>
-                  {pathname === "/shop" && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        profileTrigger.current?.focus();
-                        setProfileOpen(false);
-                        onSignIn?.();
-                      }}
-                      className="rounded-xl px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
-                    >
-                      데모 사용자 전환
-                    </button>
-                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -180,15 +170,14 @@ export function HeaderNavigation({
                 </nav>
               )}
             </div>
-          ) : (
-            <button
-              type="button"
-              onClick={onSignIn}
-              className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface px-3 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
-              데모 사용자 선택
-            </button>
           )}
+          <button
+            type="button"
+            onClick={onSignIn}
+            className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            데모 사용자 선택
+          </button>
           <MobileNavigation
             key={`${pathname}-${userId}`}
             sections={items.map(({ href, label }) => [
@@ -211,30 +200,12 @@ function ConnectedHeader() {
   const userId = params.get("user");
   const { signIn, signOut } = useDemoSession();
   return (
-    <>
-      <HeaderNavigation
-        pathname={pathname}
-        userId={userId}
-        onSignIn={signIn}
-        onSignOut={signOut}
-      />
-      {userId && pathname !== "/shop" && (
-        <div className="border-b border-line bg-canvas px-5 py-1 text-center text-xs text-muted">
-          <button
-            className="min-h-8 rounded px-2 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-primary"
-            onClick={() => signIn()}
-          >
-            데모:{" "}
-            {userId === "author"
-              ? "작성자"
-              : userId === "friend"
-                ? "친구"
-                : "학습자"}{" "}
-            · 사용자 전환
-          </button>
-        </div>
-      )}
-    </>
+    <HeaderNavigation
+      pathname={pathname}
+      userId={userId}
+      onSignIn={signIn}
+      onSignOut={signOut}
+    />
   );
 }
 

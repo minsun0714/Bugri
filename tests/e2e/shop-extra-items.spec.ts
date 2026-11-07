@@ -118,7 +118,9 @@ for (const width of [1100, 390]) {
         new RegExp(name),
       );
     await expect(
-      page.getByRole("button", { name: /선택$/ }),
+      page
+        .getByRole("main")
+        .getByRole("button", { name: /선택$/ }),
     ).toHaveCount(0);
   });
 }
