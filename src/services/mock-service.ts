@@ -1,4 +1,18 @@
 import {
+  deskItems,
+  normalizeOrder,
+  validOrder,
+} from "@/lib/desk-order";
+import {
+  migratePosition,
+  validTransform,
+} from "@/lib/desk-spatial";
+import {
+  isMovable,
+  validPosition,
+} from "@/lib/desk-layout";
+import {
+  DeskObject,
   QuizStatus,
   ConversationRole,
   LearningMode,
@@ -129,6 +143,14 @@ const allowed: Record<Operation, string[]> = {
   purchase: ["productId", "requestKey"],
   inventory: [],
   equip: ["category", "productId"],
+  moveEquipment: ["category", "productId", "position"],
+  reorderDesk: ["order"],
+  transformBugri: ["transform"],
+  transformEquipment: [
+    "category",
+    "productId",
+    "transform",
+  ],
   publicProfile: ["publicId"],
 };
 
@@ -1374,6 +1396,9 @@ export function execute<K extends Operation>(
           ),
         ),
         equipment: s.equipment,
+        positions: s.positions,
+        transforms: s.transforms,
+        order: s.order,
       };
 
     case "equip": {
@@ -1385,9 +1410,11 @@ export function execute<K extends Operation>(
       const category =
         r.category as keyof typeof s.equipment;
 
-      if (r.productId === null)
+      if (r.productId === null) {
         delete s.equipment[category];
-      else {
+        delete s.positions[category];
+        delete s.transforms[category];
+      } else {
         text(r.productId);
 
         requireValue(
@@ -1410,10 +1437,113 @@ export function execute<K extends Operation>(
             403,
           );
 
+        if (s.equipment[category] !== r.productId) {
+          delete s.positions[category];
+          delete s.transforms[category];
+        }
+
         s.equipment[category] = r.productId;
       }
 
+      if (s.order.length)
+        s.order = normalizeOrder(
+          s.order,
+          deskItems(s.equipment),
+        );
+
       return s.equipment;
+    }
+
+    case "moveEquipment": {
+      requireValue(
+        isMovable(r.category),
+        "이 상품은 이동할 수 없습니다.",
+      );
+
+      const { category } = r;
+
+      text(r.productId);
+
+      requireValue(
+        validPosition(category, r.position),
+        "상품이 화면 안에 있도록 위치를 확인하세요.",
+      );
+
+      if (
+        s.equipment[category] !== r.productId ||
+        !s.purchases.some(
+          (p) => p.productId === r.productId,
+        )
+      ) {
+        throw new ServiceError(
+          "FORBIDDEN",
+          "현재 장착한 내 상품만 이동할 수 있습니다.",
+          403,
+        );
+      }
+
+      s.positions[category] = r.position;
+
+      s.transforms[category] = migratePosition(
+        category,
+        r.position,
+      );
+
+      return s.positions;
+    }
+
+    case "reorderDesk": {
+      requireValue(
+        validOrder(r.order, deskItems(s.equipment)),
+        "현재 공간의 아이템 순서를 확인하세요.",
+      );
+
+      s.order = [...r.order];
+
+      return s.order;
+    }
+
+    case "transformBugri": {
+      requireValue(
+        validTransform(DeskObject.BUGRI, r.transform),
+        "버그리의 위치, 높이와 회전값을 확인하세요.",
+      );
+
+      s.transforms.BUGRI = r.transform;
+
+      return s.transforms;
+    }
+
+    case "transformEquipment": {
+      requireValue(
+        isMovable(r.category),
+        "이 상품은 배치할 수 없습니다.",
+      );
+
+      const { category } = r;
+
+      text(r.productId);
+
+      requireValue(
+        validTransform(category, r.transform),
+        "상품의 위치, 높이와 회전값을 확인하세요.",
+      );
+
+      if (
+        s.equipment[category] !== r.productId ||
+        !s.purchases.some(
+          (p) => p.productId === r.productId,
+        )
+      )
+        throw new ServiceError(
+          "FORBIDDEN",
+          "현재 장착한 내 상품만 배치할 수 있습니다.",
+          403,
+        );
+
+      s.transforms[category] = r.transform;
+
+      return s.transforms;
     }
 
     case "publicProfile": {
@@ -1435,6 +1565,15 @@ export function execute<K extends Operation>(
         equipment: allStates.find(
           (state) => state.userId === user.userId,
         )!.equipment,
+        order: allStates.find(
+          (state) => state.userId === user.userId,
+        )!.order,
+        transforms: allStates.find(
+          (state) => state.userId === user.userId,
+        )!.transforms,
+        positions: allStates.find(
+          (state) => state.userId === user.userId,
+        )!.positions,
       };
     }
   }

@@ -183,6 +183,7 @@ export function TextArea({
 export function Select({
   label,
   options,
+  layout = "stacked",
   id,
   ...props
 }: Omit<
@@ -190,13 +191,22 @@ export function Select({
   "children"
 > & {
   label: string;
-  options: (string | { value: string; label: string })[];
+  layout?: "stacked" | "inline";
+  options: readonly (
+    string | { value: string; label: string }
+  )[];
 }) {
   const generated = useId();
   const fieldId = id ?? generated;
 
   return (
-    <div className={styles["ui-field"]}>
+    <div
+      className={
+        layout === "inline"
+          ? styles["ui-select-inline"]
+          : styles["ui-field"]
+      }
+    >
       <label htmlFor={fieldId}>{label}</label>
       <select {...props} id={fieldId}>
         {options.map((option) => {
@@ -468,6 +478,7 @@ export function Modal({
   onClose,
   title,
   children,
+  size = "standard",
   initialFocusSelector,
   layout = "default",
 }: {
@@ -476,6 +487,7 @@ export function Modal({
   onClose: () => void;
   title: string;
   children: ReactNode;
+  size?: "standard" | "room";
   initialFocusSelector?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -501,7 +513,7 @@ export function Modal({
       className={
         layout === "conversation"
           ? styles["conversation-modal"]
-          : styles["ui-modal"]
+          : `${styles["ui-modal"]} ${size === "room" ? styles["modal-room"] : styles["modal-standard"]}`
       }
       aria-labelledby={id}
       onCancel={(event) => {

@@ -5,8 +5,10 @@ import { MobileNavigation } from "@/components/ui/mobile-navigation";
 
 export function ShowcaseHeader({
   sections,
+  preview = true,
 }: {
   sections: string[][];
+  preview?: boolean;
 }) {
   return (
     <header className="relative z-20 border-b border-line bg-surface">
@@ -26,10 +28,14 @@ export function ShowcaseHeader({
         </Link>
         <div className="flex items-center gap-4">
           <span className="hidden text-xs text-muted sm:block">
-            Design workspace · 0.1
+            {preview
+              ? "Design workspace · 0.1"
+              : "배움이 쌓이는 작은 공간"}
           </span>
           <span className="hidden sm:inline-flex">
-            <Badge tone="success">● LIVE PREVIEW</Badge>
+            <Badge tone="success">
+              {preview ? "● LIVE PREVIEW" : "BUGRI"}
+            </Badge>
           </span>
           <MobileNavigation sections={sections} />
         </div>
@@ -57,11 +63,13 @@ export function ShowcaseHeader({
 
 export function Header({
   sections,
+  preview,
 }: {
   sections?: string[][];
+  preview?: boolean;
 }) {
   return sections ? (
-    <ShowcaseHeader sections={sections} />
+    <ShowcaseHeader sections={sections} preview={preview} />
   ) : (
     <ProductHeader />
   );

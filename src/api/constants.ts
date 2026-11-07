@@ -35,6 +35,52 @@ export const QuizScope = {
 export type QuizScope =
   (typeof QuizScope)[keyof typeof QuizScope];
 
+export const Category = {
+  KEYBOARD: "KEYBOARD",
+  MONITOR: "MONITOR",
+  DESK: "DESK",
+  ACCESSORY: "ACCESSORY",
+  BACKGROUND: "BACKGROUND",
+} as const;
+
+export type Category =
+  (typeof Category)[keyof typeof Category];
+
+export const DeskTool = {
+  CAMERA: "camera",
+  MOVE: "move",
+  ROTATE: "rotate",
+  HEIGHT: "height",
+} as const;
+
+export type DeskTool =
+  (typeof DeskTool)[keyof typeof DeskTool];
+
+export const DeskView = {
+  ANGLED: "angled",
+  FRONT: "front",
+  TOP: "top",
+} as const;
+
+export type DeskView =
+  (typeof DeskView)[keyof typeof DeskView];
+
+/** Resident scene objects are not purchasable product categories. */
+export const DeskObject = { BUGRI: "BUGRI" } as const;
+
+export type DeskObject =
+  (typeof DeskObject)[keyof typeof DeskObject];
+
+export const LayerAction = {
+  FORWARD: "FORWARD",
+  BACKWARD: "BACKWARD",
+  FRONT: "FRONT",
+  BACK: "BACK",
+} as const;
+
+export type LayerAction =
+  (typeof LayerAction)[keyof typeof LayerAction];
+
 export const DiscoveryKind = {
   USER: "USER",
   HASHTAG: "HASHTAG",

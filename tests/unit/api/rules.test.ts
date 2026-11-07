@@ -849,6 +849,9 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
     equipment: {
       KEYBOARD: "keyboard-1",
     },
+    positions: {},
+    transforms: {},
+    order: [],
   });
 
   expect(

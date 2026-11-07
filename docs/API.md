@@ -129,7 +129,7 @@ BugCoin 지급량은 미결정이므로 자동 보상 기본값은 0이고 fixtu
 
 ## 상점·저장소
 
-상품은 관리자 입력을 가정한 5개 카테고리의 고정 데이터다. `purchase`에는 productId와 requestKey가 필수다. 같은 키·상품은 최초 구매를 반환하고 같은 키·다른 상품은 IDEMPOTENCY_CONFLICT, 이미 보유한 상품은 ALREADY_OWNED, 잔액 부족은 INSUFFICIENT_BALANCE다. 보관함과 같은 카테고리의 상품만 장착하며 productId null로 해제한다. 공개 프로필은 표시 사용자와 장착 상태만 반환하고 잔액·원장·보관함은 노출하지 않는다.
+상품은 관리자 입력을 가정한 5개 카테고리·10종의 고정 데이터다. 1단계 시각 자산은 `src/components/shop/three/models.ts`의 자체 제작 3D 모델이며 상품 ID로 연결한다. 카드 미리보기와 3D 데스크에서 동일한 모델을 사용한다. 공개 프로필은 장착 ID와 공간 배치를 전달한다. 가격은 Mock fixture이며 실결제가 아니다. `purchase`에는 productId와 requestKey가 필수다. 같은 키·상품은 최초 구매를 반환하고 같은 키·다른 상품은 IDEMPOTENCY_CONFLICT, 이미 보유한 상품은 ALREADY_OWNED, 잔액 부족은 INSUFFICIENT_BALANCE다. 보관함과 같은 카테고리의 상품만 장착하며 productId null로 해제한다. 공개 프로필은 표시 사용자와 장착 상태만 반환하고 잔액·원장·보관함은 노출하지 않는다.
 
 localStorage 키는 `bugri:mock:v1:{userId}`다. 각 사용자의 작성 퀴즈·후보·구독·풀이·날짜·원장·구매·장착·시간대를 한 스냅샷으로 저장한다. 모든 요청은 최신 저장소를 다시 읽어 다른 더미 사용자의 공개 범위·삭제·장착을 반영하고 요청자 자신의 키만 변경한다. 변경된 스냅샷은 단일 setItem으로 저장한 후 성공을 반환한다. 손상/버전 불일치는 STORAGE_CORRUPT, 접근/용량 오류는 STORAGE_UNAVAILABLE이며 기존 데이터를 자동 초기화하지 않는다.
 
@@ -149,6 +149,25 @@ Jest는 계약·생성 검증·리비전·권한 UX·구독/태그/재도전·�
 
 import 별칭, `as const`, 구조 분해 할당, 빈 줄·객체 줄바꿈 및 범위 제한 자동 수정 명령은 [코딩 규칙](CODING_CONVENTIONS.md)을 따른다. API 의미와 직렬화 계약은 이 문서와 `src/api/contracts.ts`를 기준으로 유지한다.
 
+## 3D 데스크 배치 (P08-3D)
+
+`transformEquipment`는 `PUT /me/desk/transform`에 `{ category, productId, transform: { x, y, z, rotationY } }`를 보내고 카테고리별 `DeskTransforms`를 반환한다. Y는 높이, rotationY는 수직축 회전 각도(0~359도)다. 책상 폭은 4, 깊이는 2.4, 상판 높이는 1.55이며 상품 좌표는 책상 로컬 좌표다. 책상 자체는 바닥 Y=0을 유지하며 이동/회전한다. 책상을 움직이면 자식 상품이 함께 움직인다.
+
+공통 `src/lib/desk-spatial.ts`는 x/z를 0.001 단위로 맞추며 상판/방 외곽으로 제한하지 않는다. 상품 기본 높이는 1.55이며 0 이상의 높이를 0.001 단위로 저장할 수 있다. 책상 높이는 0으로 유지한다. 일반 수평 이동/회전은 현재 높이를 유지한다. 키보드·모니터·소품·버그리의 상판 드롭은 UI에서 실제 상판 좌표와 높이를 함께 계산해 상품은 기존 transformEquipment, 버그리는 transformBugri 요청으로 저장한다. 별도의 스냅 API나 저장 필드는 추가하지 않는다. API는 비유한 좌표·정규화되지 않은 정밀도·지하 높이·책상 자체의 높이 변경·잘못된 회전을 거부한다(400 VALIDATION_ERROR). 현재 구매·장착한 productId가 아니면 403 FORBIDDEN이다. 같은 상품의 재장착 요청은 배치를 유지하며 교체·해제는 해당 카테고리의 배치만 제거한다. 아이템 간 충돌/쌓기는 이 작업에서 구현하지 않는다.
+
+Inventory/PublicProfile에 `transforms`를 추가했다. 공개 프로필은 사용자·장착 ID·배치만 제공하고 잔액·원장·구매·보관함은 포함하지 않는다. 변경 성공 시 보관함·공개 프로필 캐시를 갱신한다. 저장 실패는 이전 저장 상태를 유지하고 UI는 이동·회전 초안을 유지해 재시도할 수 있다.
+
+기존 v1의 구매·장착과 2D `positions`는 삭제하지 않는다. `transforms`가 없는 스냅샷을 읽을 때 기존 2D x/y 이동량을 1/100 단위로 기본 3D x/z에 더하고 0.001 단위로 맞춘다. 회전은 0도, 높이는 상판/바닥으로 설정한다. 변환되지 않는 손상된 저장 데이터는 STORAGE_CORRUPT로 거부하며 초기화하지 않는다. 기존 `moveEquipment`/`PUT /me/desk/position`은 호환 목적으로 유지하고 성공 시 해당 3D 배치도 변환한다. 상품 배치 화면은 transformEquipment를 호출한다.
+
+카메라 시점은 뷰어 상태이고 상품 배치 API에 저장하지 않는다. 공개 데스크도 시점 회전은 가능하며 편집 도구/배치 API는 제공하지 않는다. Three.js의 OrbitControls와 TransformControls를 사용하고, React 컴포넌트가 언마운트되면 WebGL 렌더러·컨트롤·기하·재질 자원을 정리한다. 카드 이미지는 화면에 들어올 때만 같은 3D 모델로 생성한다.
+
+### 버그리 배치
+
+`transformBugri`는 `PUT /me/desk/bugri`에 `{ transform: { x, y, z, rotationY } }`를 보내고 `DeskTransforms`를 반환한다. 상품 구매/장착과 별개인 기본 캐릭터이므로 productId·category·대상 사용자 필드를 받지 않는다. 현재 더미 사용자의 `transforms.BUGRI`만 갱신하며 잔액·구매 내역·equipment는 바꾸지 않는다. 유한 좌표·Y>=0·0~359도 회전·0.001 위치 정밀도를 검증한다. 실패 시 기존 저장값은 유지한다. `inventory`와 `publicProfile`에 같은 배치를 반환한다. 저장되지 않은 기존 스냅샷은 기본 좌표 `{ x: -2.3, y: 0, z: 1.8, rotationY: 0 }`로 렌더한다. 신규 DB/인증은 도입하지 않는다. 장착해보기의 버그리 이동은 로컬 초안이며 API를 호출하지 않는다.
+
+### 겹침 순서
+
+`reorderDesk`는 `PUT /me/desk/order`에 `{ order: DeskItem[] }`를 보내고 저장된 배열을 반환한다. 배열은 뒤에서 앞으로 순서이며 `BUGRI`, 기본/장착 `DESK`, 현재 장착한 KEYBOARD/MONITOR/ACCESSORY를 각각 한 번 포함한다. BACKGROUND와 미리보기 식별자는 허용하지 않는다. 빈 배열은 기본 깊이 정렬이다. 중복·누락·미장착 대상은 400으로 거부하고 기존 순서를 유지한다. 현재 더미 사용자의 순서만 변경하며 좌표·높이·잔액은 바꾸지 않는다. 장착/해제 시 기존 상대 순서를 유지하며 새 대상을 추가하거나 해제 대상을 제거한다. `inventory`/`publicProfile`의 `order`로 복원하며 기존 v1 스냅샷에는 빈 배열을 보충한다. 미리보기 기존 상품의 변경은 저장하지 않고, 실제 장착 시 추가 상품의 순서만 저장된 기존 순서에 삽입한다.
 ### 개발자의 공개 퀴즈 페이지
 
 - 탐색 결과의 이름은 `/developers/{publicId}/quizzes?user={viewerId}`로 연결한다. `tag/page/tagQuery/tagPage`로 퀴즈 필터와 태그 검색·페이지를 복원한다.

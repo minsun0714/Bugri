@@ -1,4 +1,5 @@
 import {
+  Category,
   DiscoveryKind,
   QuizStatus,
   LearningMode,
@@ -145,7 +146,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(40);
+  expect(Object.keys(endpoints)).toHaveLength(44);
 });
 
 // Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.
@@ -163,6 +164,60 @@ const invalidAnswer: Request<"answer"> = {
 
 void invalidSubscription;
 void invalidAnswer;
+
+test("desk placement sends coordinates to the typed HTTP endpoint", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(
+      response({ data: { KEYBOARD: { x: 30, y: -10 } } }),
+    );
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  const request = {
+    category: Category.KEYBOARD,
+    productId: "keyboard-1",
+    position: { x: 30, y: -10 },
+  };
+
+  await expect(
+    client.request("moveEquipment", request),
+  ).resolves.toEqual({ KEYBOARD: request.position });
+
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/me/desk/position",
+    expect.objectContaining({
+      method: "PUT",
+      body: JSON.stringify(request),
+    }),
+  );
+});
+
+test("Bugri placement uses its own typed endpoint without a product or purchase", async () => {
+  const transform = { x: -1, y: 0, z: 2, rotationY: 90 };
+
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(
+      response({ data: { BUGRI: transform } }),
+    );
+
+  const api = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await api.request("transformBugri", { transform });
+
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/me/desk/bugri",
+    expect.objectContaining({
+      method: "PUT",
+      body: JSON.stringify({ transform }),
+    }),
+  );
+});
 
 test("discovery search sends server-side search and page parameters", async () => {
   const fetcher = jest.fn().mockResolvedValue(

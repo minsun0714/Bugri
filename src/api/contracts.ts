@@ -1,5 +1,7 @@
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 import {
+  Category,
+  type DeskObject,
   QuizStatus,
   type ConversationRole,
   type LearningMode,
@@ -9,6 +11,7 @@ import {
 } from "@/api/constants";
 
 export {
+  Category,
   QuizStatus,
   LearningMode,
   LearningState,
@@ -171,13 +174,6 @@ export interface LearningDay {
   completedDates: string[];
 }
 
-export type Category =
-  | "KEYBOARD"
-  | "MONITOR"
-  | "DESK"
-  | "ACCESSORY"
-  | "BACKGROUND";
-
 export interface Product {
   productId: string;
   name: string;
@@ -187,6 +183,32 @@ export interface Product {
 }
 
 export type Equipment = Partial<Record<Category, string>>;
+
+export interface DeskPosition {
+  x: number;
+  y: number;
+}
+
+export type DeskPositions = Partial<
+  Record<Category, DeskPosition>
+>;
+
+export type DeskItem =
+  | Exclude<Category, typeof Category.BACKGROUND>
+  | DeskObject;
+
+export type DeskOrder = DeskItem[];
+
+export interface DeskTransform {
+  x: number;
+  y: number;
+  z: number;
+  rotationY: number;
+}
+
+export type DeskTransforms = Partial<
+  Record<Category | DeskObject, DeskTransform>
+>;
 
 export interface LedgerEntry {
   id: string;
@@ -212,11 +234,17 @@ export interface Purchase {
 export interface Inventory {
   products: Product[];
   equipment: Equipment;
+  positions: DeskPositions;
+  transforms: DeskTransforms;
+  order: DeskOrder;
 }
 
 export interface PublicProfile {
   user: User;
   equipment: Equipment;
+  positions: DeskPositions;
+  transforms: DeskTransforms;
+  order: DeskOrder;
 }
 
 export interface VersionRequest {
@@ -475,6 +503,30 @@ export interface ApiOperations {
       productId: string | null;
     };
     response: Equipment;
+  };
+  moveEquipment: {
+    request: {
+      category: Category;
+      productId: string;
+      position: DeskPosition;
+    };
+    response: DeskPositions;
+  };
+  reorderDesk: {
+    request: { order: DeskOrder };
+    response: DeskOrder;
+  };
+  transformBugri: {
+    request: { transform: DeskTransform };
+    response: DeskTransforms;
+  };
+  transformEquipment: {
+    request: {
+      category: Category;
+      productId: string;
+      transform: DeskTransform;
+    };
+    response: DeskTransforms;
   };
   publicProfile: {
     request: { publicId: string };

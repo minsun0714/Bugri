@@ -1,5 +1,18 @@
-import { ConversationRole } from "@/api/constants";
-import { QuizStatus, LearningMode } from "@/api/constants";
+import { deskItems, validOrder } from "@/lib/desk-order";
+import {
+  migratePosition,
+  validTransform,
+} from "@/lib/desk-spatial";
+import {
+  isMovable,
+  validPosition,
+} from "@/lib/desk-layout";
+import {
+  QuizStatus,
+  LearningMode,
+  DeskObject,
+  ConversationRole,
+} from "@/api/constants";
 import { users, hashtags } from "@/mocks/users";
 import { quizzes } from "@/mocks/quizzes";
 import { subscriptions } from "@/mocks/subscriptions";
@@ -59,6 +72,9 @@ export function initialState(userId: string): UserState {
     },
     purchases: [],
     equipment: {},
+    positions: {},
+    transforms: {},
+    order: [],
     ledger: [
       {
         id: `seed-balance-${userId}`,
@@ -113,6 +129,58 @@ function validateState(
   object(value.equipment);
 
   const { selection, equipment } = value;
+
+  if (value.order === undefined) value.order = [];
+
+  requireValue(
+    validOrder(value.order, deskItems(equipment)),
+    "겹침 순서가 손상되었습니다.",
+  );
+
+  // Additive v1 migration: existing purchases/equipment are never reset.
+  if (value.positions === undefined) value.positions = {};
+
+  object(value.positions);
+
+  for (const [category, position] of Object.entries(
+    value.positions,
+  )) {
+    requireValue(
+      isMovable(category) &&
+        validPosition(category, position) &&
+        typeof equipment[category] === "string",
+      "배치 정보가 손상되었습니다.",
+    );
+  }
+
+  if (value.transforms === undefined) {
+    value.transforms = Object.fromEntries(
+      Object.entries(value.positions).map(
+        ([category, position]) => [
+          category,
+          migratePosition(
+            category as import("@/lib/desk-layout").MovableCategory,
+            position as import("@/api/contracts").DeskPosition,
+          ),
+        ],
+      ),
+    );
+  }
+
+  object(value.transforms);
+
+  for (const [category, transform] of Object.entries(
+    value.transforms,
+  )) {
+    requireValue(
+      (category === DeskObject.BUGRI &&
+        validTransform(category, transform)) ||
+        (isMovable(category) &&
+          validTransform(category, transform) &&
+          typeof equipment[category] === "string"),
+      "3D 배치 정보가 손상되었습니다.",
+    );
+  }
 
   requireValue(
     selection.mode === LearningMode.UNSOLVED ||

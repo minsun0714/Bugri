@@ -10,6 +10,8 @@ export const styles = {
     "ui-tag border border-line bg-white rounded-[20px] py-2 px-3.25 text-[12px] cursor-pointer text-muted font-semibold [&[aria-pressed='true']]:bg-[#e9ddff] [&[aria-pressed='true']]:border-[#b99ae9] [&[aria-pressed='true']]:text-primary",
   "ui-field":
     "ui-field flex flex-col gap-2.25 w-full [&_label]:text-[12px] [&_label]:font-[650] [&_input]:text-[13px] [&_input]:border [&_input]:border-line [&_input]:rounded-[12px] [&_input]:p-3.25 [&_input]:bg-white [&_input]:text-foreground [&_input]:w-full [&_input]:min-w-0 [&_textarea]:text-[13px] [&_textarea]:border [&_textarea]:border-line [&_textarea]:rounded-[12px] [&_textarea]:p-3.25 [&_textarea]:bg-white [&_textarea]:text-foreground [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:leading-[1.8] [&_select]:text-[13px] [&_select]:border [&_select]:border-line [&_select]:rounded-[12px] [&_select]:p-3.25 [&_select]:bg-white [&_select]:text-foreground [&_select]:w-full [&_select]:min-w-0 [&_input:disabled]:bg-[#f2eff8] [&_input:disabled]:text-[#9a90a9] [&_textarea:disabled]:bg-[#f2eff8] [&_textarea:disabled]:text-[#9a90a9] [&_input[aria-invalid='true']]:border-[#d14a78] [&_small]:text-[11px] [&_small]:text-muted [&_.error-text]:text-[#af3158] [&_.counter]:text-right [&_.counter]:[font-variant-numeric:tabular-nums] [&_.tag-input-shell_input]:[flex:1_1_150px] [&_.tag-input-shell_input]:w-auto [&_.tag-input-shell_input]:min-w-[120px] [&_.tag-input-shell_input]:[border:0] [&_.tag-input-shell_input]:p-1.75 [&_.tag-input-shell_input]:bg-transparent [&_.tag-input-shell_input]:[outline:none]",
+  "ui-select-inline":
+    "ui-select-inline flex items-center gap-2 text-xs text-muted [&_select]:rounded-xl [&_select]:border [&_select]:border-line [&_select]:bg-surface [&_select]:px-3 [&_select]:py-2 [&_select]:text-foreground",
   "ui-switch":
     'ui-switch inline-flex items-center gap-2.5 text-[13px] cursor-pointer relative [&_input]:absolute [&_input]:w-9 [&_input]:h-5.5 [&_input]:opacity-0 [&_>_span:first-of-type]:w-9 [&_>_span:first-of-type]:h-5.5 [&_>_span:first-of-type]:bg-[#d9d2e6] [&_>_span:first-of-type]:rounded-[20px] [&_>_span:first-of-type]:p-0.75 [&_>_span:first-of-type::after]:[content:""] [&_>_span:first-of-type::after]:block [&_>_span:first-of-type::after]:w-4 [&_>_span:first-of-type::after]:h-4 [&_>_span:first-of-type::after]:bg-white [&_>_span:first-of-type::after]:rounded-full [&_>_span:first-of-type::after]:[transition:transform_0.15s] [&_input:checked_+_span]:bg-primary [&_input:checked_+_span::after]:[transform:translateX(14px)] [&_input:focus-visible_+_span]:[outline:3px_solid_#9d72ed] [&_input:focus-visible_+_span]:outline-offset-[3px]',
   "ui-check":
@@ -35,7 +37,11 @@ export const styles = {
   "tab-panel":
     "tab-panel pt-5.5 px-0 pb-0 text-[13px] text-muted",
   "ui-modal":
-    "ui-modal m-auto border border-line rounded-[22px] p-6.25 [width:min(440px,_calc(100%_-_32px))] bg-surface text-foreground [box-shadow:0_8px_0_#503a8533] [&::backdrop]:bg-[#18291e66] [&::backdrop]:[backdrop-filter:blur(3px)] [&_p]:text-[14px] [&_p]:text-muted [&_p]:leading-[1.8] [&_p]:mb-6.25",
+    "ui-modal m-auto border border-line rounded-[22px] bg-surface text-foreground [box-shadow:0_8px_0_#503a8533] [&::backdrop]:bg-[#18291e66] [&::backdrop]:[backdrop-filter:blur(3px)] [&_p]:text-[14px] [&_p]:text-muted [&_p]:leading-[1.8] [&_p]:mb-6.25",
+  "modal-standard":
+    "p-6.25 [width:min(440px,_calc(100%_-_32px))]",
+  "modal-room":
+    "w-[calc(100%_-_40px)] max-w-[1124px] p-3 md:w-[calc(100%_-_96px)]",
   "conversation-modal":
     "m-auto h-dvh max-h-dvh w-full max-w-none overflow-hidden border border-line bg-surface p-4 text-foreground open:flex open:flex-col sm:h-[min(850px,90dvh)] sm:w-[min(840px,calc(100%-48px))] sm:rounded-3xl sm:p-6 [&::backdrop]:bg-foreground/40 [&::backdrop]:backdrop-blur-sm",
   "modal-header":
