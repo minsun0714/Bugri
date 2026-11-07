@@ -50,7 +50,7 @@ export function AnswerForm({
       className={solvingStyles.answerForm}
     >
       <fieldset disabled={pending} className="space-y-3">
-        <legend className="mb-3 text-sm font-semibold text-muted">
+        <legend className="mb-3 text-xs font-medium text-muted">
           {question.type === "MULTIPLE_CHOICE"
             ? "정답을 모두 선택하세요"
             : question.type === "SHORT_ANSWER"

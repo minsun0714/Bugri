@@ -7,6 +7,7 @@ import type {
   Question,
 } from "@/api/contracts";
 import { Badge, Card } from "@/components/ui";
+import { ResultBugri } from "@/components/solving/result-bugri";
 import { QuizText } from "@/components/solving/quiz-text";
 import { AnswerForm } from "@/components/solving/answer-form";
 import { solvingStyles } from "@/components/solving/styles";
@@ -98,34 +99,41 @@ export function QuizPanel({
         {result || completedAt ? (
           <div
             role="status"
-            className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2"
+            className="mb-6 flex items-center gap-3 sm:gap-4"
           >
-            <h2
-              className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-lg ${verdict ? "bg-lime/30" : "bg-coral/10"}`}
-            >
-              <span aria-hidden="true">
-                {verdict ? "✓" : "×"}
-              </span>
-              <span>
-                {verdict === true
-                  ? "정답입니다"
-                  : verdict === false
-                    ? "오답입니다"
-                    : "풀이 완료"}
-              </span>
-            </h2>
-            <p className="text-xs text-muted">
-              풀이 완료
-              {learningDate ? ` · ${learningDate}` : ""}
-            </p>
+            <ResultBugri correct={verdict} />
+            <div className="min-w-0">
+              <h2
+                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-base ${verdict ? "bg-lime/30" : "bg-coral/10"}`}
+              >
+                <span aria-hidden="true">
+                  {verdict === true
+                    ? "✓"
+                    : verdict === false
+                      ? "×"
+                      : "•"}
+                </span>
+                <span>
+                  {verdict === true
+                    ? "정답입니다"
+                    : verdict === false
+                      ? "오답입니다"
+                      : "풀이 완료"}
+                </span>
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                풀이 완료
+                {learningDate ? ` · ${learningDate}` : ""}
+              </p>
+            </div>
           </div>
         ) : null}
         {quiz && (
           <>
-            <h2 className="mb-4 [&_.ui-badge]:bg-canvas [&_.ui-badge]:text-xs [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-primary">
+            <h2 className="mb-3 [&_.ui-badge]:bg-transparent [&_.ui-badge]:p-0 [&_.ui-badge]:text-xs [&_.ui-badge]:font-medium [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-muted">
               <Badge>{quiz.title}</Badge>
             </h2>
-            <div className="break-keep text-[22px] font-semibold leading-8 [overflow-wrap:anywhere] sm:text-2xl sm:leading-9 [&_pre]:text-sm [&_pre]:font-normal">
+            <div className="break-keep text-xl font-semibold leading-8 tracking-tight [overflow-wrap:anywhere] sm:text-2xl sm:leading-9 [&_pre]:text-sm [&_pre]:font-normal">
               <QuizText>{quiz.question.prompt}</QuizText>
             </div>
           </>
@@ -137,7 +145,7 @@ export function QuizPanel({
             aria-label="제출 결과"
             className="space-y-6 border-t border-line pt-6"
           >
-            <div className="grid gap-4 rounded-xl bg-canvas p-4 sm:grid-cols-2 sm:p-5">
+            <div className="grid gap-4 rounded-2xl border border-line bg-canvas/50 p-4 sm:grid-cols-2">
               <p>
                 내 답:{" "}
                 {answerText(
@@ -151,7 +159,9 @@ export function QuizPanel({
               </p>
             </div>
             <div className="space-y-3 leading-7">
-              <h3 className="text-sm text-muted">해설</h3>
+              <h3 className="text-xs font-medium text-muted">
+                해설
+              </h3>
               <QuizText>{result.explanation}</QuizText>
             </div>
           </section>

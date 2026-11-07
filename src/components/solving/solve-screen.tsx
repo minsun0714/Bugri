@@ -75,7 +75,7 @@ function Session({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-[28px] leading-10 sm:text-3xl">
+        <h1 className={solvingStyles.title}>
           {direct ? "퀴즈 풀이" : "오늘의 퀴즈"}
         </h1>
         {!direct && (
@@ -257,7 +257,7 @@ export function SolveScreen({
           />
         ) : (
           <>
-            <h1 className="text-[28px] leading-10 sm:text-3xl">
+            <h1 className={solvingStyles.title}>
               오늘의 퀴즈
             </h1>
             <GuestQuiz />

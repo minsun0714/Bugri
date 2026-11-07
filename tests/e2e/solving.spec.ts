@@ -49,8 +49,11 @@ async function submit(page: Page, labels: string[]) {
     page.getByText("정답입니다", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("img", { name: /버그리/ }),
-  ).toHaveCount(0);
+    page.getByRole("img", {
+      name: "축하하는 버그리",
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(
     page.getByText("잘했어!", { exact: true }),
   ).toHaveCount(0);
@@ -817,8 +820,11 @@ test("empty state opens discovery page with URL search and explicit subscription
     .getByRole("button", { name: "답 제출", exact: true })
     .click();
   await expect(
-    page.getByRole("img", { name: /버그리/ }),
-  ).toHaveCount(0);
+    page.getByRole("img", {
+      name: "응원하는 버그리",
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(
     page.getByText("해설을 읽고 다시 도전해보자.", {
       exact: true,

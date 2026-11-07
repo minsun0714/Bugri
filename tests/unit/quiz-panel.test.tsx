@@ -96,3 +96,32 @@ test("a late initial quiz does not steal focus from a control the visitor is alr
   expect(trigger).toHaveFocus();
   trigger.remove();
 });
+
+test.each([
+  [true, "축하하는 버그리"],
+  [false, "응원하는 버그리"],
+] as const)(
+  "grading %s shows the matching Bugri reaction",
+  (correct, label) => {
+    render(
+      <QuizPanel
+        quiz={quiz}
+        result={{
+          submittedAnswer: {
+            type: "TRUE_FALSE",
+            value: correct,
+          },
+          answer: { type: "TRUE_FALSE", value: true },
+          correct,
+          explanation: "해설 내용",
+        }}
+        focusKey="reaction"
+        pending={false}
+        onSubmit={jest.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole("img", { name: label }),
+    ).toBeVisible();
+  },
+);
