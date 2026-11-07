@@ -1245,6 +1245,39 @@
 
 - 최종 Node v22.23.3 전체 verify2 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). 로그 `.bugri-hooks/verify-2.log`, 관련 Prettier/diff check 통과. 커밋하며 push하지 않는다.
 
+## HOME-QUIZ-01 오늘의 퀴즈 리뷰 개선
+
+- 상태: IN_PROGRESS. UX/UI 리뷰의 모바일 이동 포커스, 방문자 기록 혼입, 데모 진입, 콘텐츠 폭·질문/결과 위계·상점 CTA를 수정한다. REQ-05/AC-05h, REQ-12, AC-13a 기준. 연속 학습·학습 기록·달력은 다른 브랜치 소유로 수정 대상에서 제외하며 기존 자리 표시자를 유지한다.
+- 기능 테스트 우선 작성 후 관련 테스트, 독립 UX/UI 화면 리뷰 및 전체 verify를 수행한다. Hook 자동 로드는 확인되지 않아 검증 지침을 직접 실행한다.
+
+- 구현: 방문자 랜덤 체험 전용 API(읽기·채점만, 개인 기록/보상 쓰기 없음), URL 기반 명시 데모 선택, 퀴즈 768px 폭·질문/결과 위계·모바일 제출·보조 상점 링크, 다음/재도전 초점 이동. 연속 학습 원본 파일은 변경 없음.
+- 독립 UX/UI 리뷰: [HOME-QUIZ-01](ux-reviews/HOME-QUIZ-01.md). C1~C3/R1~R3 완료. 닫힌 모달 입력 중복과 취소 focus 회귀를 추가 수정·재검증했다. 초기 로딩 직후 빠른 모달 취소의 초기 퀴즈 focus 경합 1회 관찰은 남아 있으며, 3회 수정 한도에 도달해 IN_PROGRESS를 유지한다.
+- Node v22.23.3, 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3195 npm run verify` 전체 통과: lint·TypeScript·Jest 43 suites/202 tests·도구 테스트 3개·production build·Playwright 126 tests. `git diff --check` 통과. 최종 로그 `/tmp/bugri-home-verify-final.log`.
+- 실패·수정 기록: 초기 API 테스트는 방문자 미구현으로 실패를 확인했고 이후 테스트 fixture의 다른 작성자 후보 및 PENDING 유효성 오류를 수정했다. 전체 검증 1차는 endpoint 개수/데모 provider mock, 2차는 RTL 선택자 타입 오류, 3차는 닫힌 모달 입력 중복·데모 새로고침 기대·room-zoom timeout으로 실패했다. 관련 검사 재실행 후 전체 4차가 통과했다. timeout 대상 room-zoom은 변경 없이 관련 재실행과 최종 전체 실행에서 통과했다. 검사를 생략하거나 기대를 약화하지 않았고 데모 기대는 명시 사용자 URL 정책에 맞췄다.
+- push·PR·merge 없음. 최종 병합 판단은 사용자에게 남긴다.
+
+## HOME-QUIZ-02 헤더 정렬과 디자인 재검토
+
+- 상태: DONE. 사용자 요청대로 홈 퀴즈·보조 링크의 독립 768px 제한을 제거해 공통 헤더/본문 콘텐츠 좌우선에 맞춘다. 연속 학습·동작·직접 풀이 경로는 유지한다. 최초 범위는 너비 수정과 디자인 제안이며 아래 후속 승인으로 B 구현까지 확장했다.
+- 단순 스타일 변경으로 신규 동작 테스트는 만들지 않고 실제 desktop/mobile 경계 측정·독립 리뷰·마지막 전체 verify를 수행한다.
+- 후속 사용자 지시 ‘B로 ㄱ’에 따라 B 단일 열 학습지 구현까지 범위를 확장한다. 제목/필터 한 행, 주제 배지, 질문/답안 비례, 제출/결과/보조영역을 시안에 맞춘다. 연속 학습 제외는 유지한다. 범위 변경으로 기존 너비 전용 verify는 해당 워크트리 프로세스만 중단했다(단위202개·빌드 통과, E2E 58통과/3실패/3중단/62미실행; 완료 검증 아님). B 최종 코드에서 재검증한다.
+
+- B 구현 및 독립 UX/UI R2·R3 완료. 질문/선택지/결과 위계와 모바일 레이아웃, 키보드 선택/다음/재도전/모달 복원을 확인했다. 이전 HOME-QUIZ-01의 초기 응답 focus 경합은 StrictMode 회귀 테스트와 초기 focus 보호로 보완했다. [리뷰·실제 캡처](ux-reviews/HOME-QUIZ-02.md).
+- 최종 Node v22.23.3에서 `PLAYWRIGHT_PORT=3195 npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest43 suites/203 tests·도구3개·production build·E2E126개. 동시 실행 수만1로 조정했으며 전체 검사 범위 유지. 로그 `/tmp/bugri-b-verify-final.log`. 관련 Prettier와 diff check 통과. 연속 학습 파일 diff 없음. 커밋하며 push·PR·merge하지 않는다.
+
+## HOME-DEV-MERGE
+
+- 상태: DONE. 사용자 요청으로 진행 중인 origin/dev merge 충돌을 해결한다. HEAD B안/방문자 체험과 dev 연속학습을 보존한다. 연속학습 내부 구현 수정 없음. 예전 로그인 흐름을 사용하는 dev E2E를 현재 명시적 데모 선택 정책에 맞춰 통합했다.
+- 독립 UX/UI 실제 PC/모바일 검토와 관련 E2E9개 통과. [근거·실패/수정 기록](ux-reviews/HOME-DEV-MERGE.md). Node v22.23.3 최종 전체 verify 통과: lint·TypeScript·단위219개·도구3개·build·E2E132개. 로그 `/tmp/bugri-dev-merge-final-3.log`.
+
+## HOME-QUIZ-03 dev 스타일 통일
+
+- 상태: DONE. 사용자 요청으로 pull 받은 연속 학습의 둥근 카드·평평한 컨트롤·작은 보조 라벨 스타일을 오늘의 퀴즈에 맞춘다. 헤더 너비와 B 단일 열·방문자/회원 동작 유지. 연속 학습 내부와 공통 디자인 시스템 전체는 수정하지 않는다.
+- UX/UI 독립 설계를 적용하며 스타일 변경으로 신규 동작 테스트는 추가하지 않는다. 실제 화면·관련 E2E·최종 전체 verify로 확인한다.
+- 후속 요청: 채점 결과 문구 옆에60px 버그리 추가. 정답 축하/오답 응원 표정, 날짜 아래 배치. 공통 Bugri 재사용과 접근성 감정 label 유지. 단위 반응 테스트2개를 먼저 작성해 실패 확인 후 구현. C1 진행 중 verify는 사용자 후속 변경으로 중단하고 최종 코드로 다시 검증한다.
+- 추가 사용자 피드백 반영: 동일 얼굴 복제 대신 PC88×104/모바일72×88 전신 버그리, 작업복·손발과 정답 만세 자세. 오답은 공격적으로 보이는 팔을 제거하고 두 손을 가슴 앞에 모아 응원하는 자세로 변경했다. 연속 학습 내부 변경 없음. [설계·회차·검토 근거](ux-reviews/HOME-QUIZ-03.md).
+- 최종 Node v22.23.3 전체 verify 통과(lint·TypeScript·단위221개·도구3개·build·E2E132개). 로그 `/tmp/bugri-result-prayer-verify-final.log`. 개발 서버에서 초기 태그 dropdown 실패2회 관찰, 같은 검사가 production 전체 실행에서는 통과했으나 개발 서버 원인 해소는 미확인으로 기록한다. 독립 UX/UI 최종 실제 화면 검토 완료. 사용자 요청으로 dev 대상 PR 게시, merge는 수행하지 않는다.
+
 ## DISCOVERY-SPLIT — 개발자·태그 탐색 분리
 
 - 상태: DONE. REQ-12/AC-12i·j. 페이지·헤더·모바일 메뉴 분리, 레거시 검색 URL 보존. API 계약 변경 없음.
@@ -1273,3 +1306,10 @@
 - 상태: DONE. origin/dev 0ea777b의 프로필 편집·마이페이지 변경을 보존하고 탐색 분리 문서와 양쪽 작업 기록을 통합했다. 자동병합된 프로필 화면의 개발자 탐색 링크와 내비게이션 테스트를 포함해 전체 재검증한다.
 
 - 통합 후 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest223개·도구3개·build·E2E138개. 로그 `/tmp/bugri-discovery-merge-verify.log`. 독립 정적 병합 리뷰에서 회귀 없음, 양쪽 문서·프로필 편집·탐색 링크 보존 확인. 리뷰어는 별도 브라우저 검증을 수행하지 않았다. `git diff --cached --check` 통과. PR18 브랜치에 충돌 해결 커밋을 반영하며 PR 병합은 하지 않는다.
+
+## PR19-DEV-INTEGRATION
+
+- 상태: DONE. 사용자 요청으로 PR19의 최신 dev8b1fbd0 충돌5개를 해결한다. dev 프로필 편집/소개/링크와 개발자·태그 탐색 분리, 현재 브랜치의 방문자 전용 풀이·명시적 데모 선택·B안/전신 결과 버그리를 함께 유지한다.
+- ProfileAbout 구조를 보존하면서 방문자 구독 버튼은 데모 모달만 열고 사용자 선택 후 별도 구독하도록 통합. API48개, 양쪽 작업 문서와 테스트를 보존한다. 프로필·탐색 E2E의 예전 로그인 진입을 URL 사용자 정책에 맞췄다. 연속 학습 내부 수정 없음.
+- 관련 단위5 suites/27 tests 통과. 독립 UX/UI 및 실제 PC/mobile 통합 검토와 최종 전체 verify를 수행한다.
+- 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3195 npm run verify -- -- --workers=1` 전체 통과: lint·TypeScript·Jest47 suites/229 tests·도구3개·build·E2E141개. 로그 `/tmp/pr19-merge-verify.log`. 관련 E2E18개·단위27개 통과. 독립 UX/UI 실제화면 검토 필수회귀0개. [검토·한계](ux-reviews/PR19-DEV-INTEGRATION.md). 사용자dev서버의 탐색 hydration mismatch는 최신production에서 미재현. 충돌해결 커밋을 PR19에 반영하며 PR 자체는 merge하지 않는다.

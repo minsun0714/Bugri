@@ -13,77 +13,23 @@ import {
 import {
   LearningMode,
   LearningState,
-  type Answer,
-  type Question,
 } from "@/api/contracts";
-import { ApiClientError } from "@/api/client";
+import { ErrorNotice } from "@/components/solving/error-notice";
 import {
   Button,
-  Card,
   EmptyState,
   Skeleton,
 } from "@/components/ui";
-import { AnswerForm } from "@/components/solving/answer-form";
-import { QuizText } from "@/components/solving/quiz-text";
 import {
   solvingUrl,
   useQuizSolving,
   type SolvingLocation,
 } from "@/components/solving/use-quiz-solving";
 
+import { QuizPanel } from "@/components/solving/quiz-panel";
+import { GuestQuiz } from "@/components/solving/guest-quiz";
 import { Dropdown } from "@/components/ui/dropdown";
-
-function answerText(
-  answer: Answer,
-  question: Question,
-): string {
-  const choices =
-    "choices" in question ? question.choices : [];
-  const label = (id: string) =>
-    choices.find((choice) => choice.id === id)?.text ?? id;
-  switch (answer.type) {
-    case "SINGLE_CHOICE":
-      return label(answer.choiceId);
-    case "MULTIPLE_CHOICE":
-      return answer.choiceIds.map(label).join(", ");
-    case "TRUE_FALSE":
-      return answer.value ? "참" : "거짓";
-    case "SHORT_ANSWER":
-      return answer.text;
-  }
-}
-
-function ErrorNotice({ error }: { error: Error }) {
-  const code =
-    error instanceof ApiClientError
-      ? error.detail.code
-      : "NETWORK_ERROR";
-  const messages: Record<string, string> = {
-    QUIZ_UNAVAILABLE:
-      "이 퀴즈는 더 이상 이용할 수 없습니다.",
-    FORBIDDEN: "이 사용자로는 접근할 수 없습니다.",
-    NOT_FOUND:
-      "풀이를 찾을 수 없습니다. 사용자와 주소를 확인하세요.",
-    STORAGE_UNAVAILABLE:
-      "브라우저 저장소를 사용할 수 없습니다. 저장 공간과 설정을 확인하고 다시 시도하세요.",
-    STORAGE_CORRUPT:
-      "저장된 데이터를 읽을 수 없습니다. 기존 데이터는 유지됩니다.",
-    TIMEZONE_REQUIRED:
-      "학습 시간대를 확인할 수 없습니다. 브라우저 시간대 설정을 확인한 뒤 다시 시도하세요.",
-    ALREADY_ANSWERED:
-      "이미 제출한 풀이입니다. 저장된 결과를 다시 확인하세요.",
-  };
-  return (
-    <p
-      role="alert"
-      className="rounded-xl border border-coral p-4"
-    >
-      {messages[code] ??
-        "요청에 실패했습니다. 다시 시도하세요."}{" "}
-      버그리: 다시 시도해보자.
-    </p>
-  );
-}
+import { solvingStyles } from "@/components/solving/styles";
 
 function Session({
   location,
@@ -128,27 +74,34 @@ function Session({
 
   return (
     <div className="space-y-6">
-      {!direct && (
-        <div className="w-full sm:max-w-xs">
-          <Dropdown
-            label="학습 태그"
-            value={hashtagId ?? ""}
-            disabled={busy || submit.isPending}
-            options={[
-              { value: "", label: "전체" },
-              ...(hashtagId &&
-              !tags.data?.some(({ id }) => id === hashtagId)
-                ? [{ value: hashtagId, label: hashtagId }]
-                : []),
-              ...(tags.data?.map(({ id, name }) => ({
-                value: id,
-                label: name,
-              })) ?? []),
-            ]}
-            onValueChange={changeLearningTag}
-          />
-        </div>
-      )}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className={solvingStyles.title}>
+          {direct ? "퀴즈 풀이" : "오늘의 퀴즈"}
+        </h1>
+        {!direct && (
+          <div className={solvingStyles.tagFilter}>
+            <Dropdown
+              label="학습 태그"
+              value={hashtagId ?? ""}
+              disabled={busy || submit.isPending}
+              options={[
+                { value: "", label: "전체" },
+                ...(hashtagId &&
+                !tags.data?.some(
+                  ({ id }) => id === hashtagId,
+                )
+                  ? [{ value: hashtagId, label: hashtagId }]
+                  : []),
+                ...(tags.data?.map(({ id, name }) => ({
+                  value: id,
+                  label: name,
+                })) ?? []),
+              ]}
+              onValueChange={changeLearningTag}
+            />
+          </div>
+        )}
+      </div>
       {tags.error && (
         <>
           <ErrorNotice error={tags.error} />
@@ -208,75 +161,25 @@ function Session({
             </>
           )}
           {data && (
-            <Card className="space-y-6">
-              {data.completedAt && (
-                <div role="status">
-                  <h2 className="text-xl">
-                    {data.correct
-                      ? "정답입니다"
-                      : "오답입니다"}
-                  </h2>
-                  <p>풀이 완료 · {data.learningDate}</p>
-                </div>
-              )}
-              {data.quiz ? (
-                <>
-                  <h2 className="text-2xl">
-                    {data.quiz.title}
-                  </h2>
-                  <QuizText>
-                    {data.quiz.question.prompt}
-                  </QuizText>
-                  {data.result ? (
-                    <section
-                      className="space-y-4"
-                      aria-label="제출 결과"
-                    >
-                      <p>
-                        내 답:{" "}
-                        {answerText(
-                          data.result.submittedAnswer,
-                          data.quiz.question,
-                        )}
-                      </p>
-                      <p>
-                        정답:{" "}
-                        {answerText(
-                          data.result.answer,
-                          data.quiz.question,
-                        )}
-                      </p>
-                      <h3>해설</h3>
-                      <QuizText>
-                        {data.result.explanation}
-                      </QuizText>
-                    </section>
-                  ) : (
-                    !data.completedAt && (
-                      <AnswerForm
-                        question={data.quiz.question}
-                        pending={submit.isPending}
-                        onDirtyChange={setAnswerDirty}
-                        onSubmit={(answer) =>
-                          submit.mutate(answer, {
-                            onSuccess: () =>
-                              setAnswerDirty(false),
-                          })
-                        }
-                      />
-                    )
-                  )}
-                </>
-              ) : (
-                <p>
-                  이 퀴즈는 더 이상 이용할 수 없습니다. 완료
-                  기록과 이미 획득한 성과는 유지됩니다.
-                </p>
-              )}
+            <QuizPanel
+              quiz={data.quiz}
+              result={data.result}
+              completedAt={data.completedAt}
+              correct={data.correct}
+              learningDate={data.learningDate}
+              focusKey={data.attemptId}
+              pending={submit.isPending}
+              onDirtyChange={setAnswerDirty}
+              onSubmit={(answer) =>
+                submit.mutate(answer, {
+                  onSuccess: () => setAnswerDirty(false),
+                })
+              }
+            >
               {(data.quiz && data.result) ||
               (!direct &&
                 (data.completedAt || !data.quiz)) ? (
-                <div className="flex items-center justify-end gap-3">
+                <div className="flex flex-wrap items-center justify-end gap-3 [&>button]:min-w-28">
                   {data.quiz && data.result && (
                     <Button
                       variant="secondary"
@@ -293,7 +196,7 @@ function Session({
                     )}
                 </div>
               ) : null}
-            </Card>
+            </QuizPanel>
           )}
         </>
       )}
@@ -322,8 +225,8 @@ export function SolveScreen({
   showStreak?: boolean;
 }) {
   const params = useSearchParams();
-  const router = useRouter();
-  const userId = params.get("user") ?? "learner";
+  const selectedUser = params.get("user");
+  const userId = selectedUser ?? "learner";
   const location: SolvingLocation = {
     userId,
     attemptId: params.get("attempt"),
@@ -339,41 +242,47 @@ export function SolveScreen({
 
   return (
     <QueryClientProvider client={client}>
-      <div className="space-y-6">
+      <div
+        className={
+          direct
+            ? "mx-auto w-full max-w-3xl space-y-5"
+            : "w-full space-y-5"
+        }
+      >
         {showStreak && <StreakSummary userId={userId} />}
-        <h1 className="text-3xl">
-          {direct ? "퀴즈 풀이" : "오늘의 퀴즈"}
-        </h1>
-        <Session
-          key={JSON.stringify(location)}
-          location={location}
-        />
-        <details className="border-t border-line pt-4 text-sm text-muted">
-          <summary className="cursor-pointer">
-            프로토타입 안내 · 사용자 전환
-          </summary>
-          <label className="my-4 flex flex-wrap items-center gap-3">
-            더미 사용자
-            <select
-              className="rounded-lg border border-line bg-surface p-2"
-              aria-label="더미 사용자"
-              value={userId}
-              onChange={(event) =>
-                router.push(
-                  `/?user=${encodeURIComponent(event.target.value)}`,
-                )
-              }
+        {selectedUser || direct ? (
+          <Session
+            key={JSON.stringify(location)}
+            location={location}
+          />
+        ) : (
+          <>
+            <h1 className={solvingStyles.title}>
+              오늘의 퀴즈
+            </h1>
+            <GuestQuiz />
+          </>
+        )}
+        <div className="grid items-start gap-3 text-[13px] text-muted sm:grid-cols-[1fr_auto]">
+          <details>
+            <summary className="w-fit cursor-pointer rounded py-2 focus-visible:outline-2 focus-visible:outline-primary">
+              프로토타입 안내
+            </summary>
+            <p className="mt-3">
+              {selectedUser
+                ? "데모 학습 기록은 이 브라우저에 저장됩니다. 브라우저 데이터를 삭제하면 기록이 사라질 수 있어요."
+                : "방문자 체험은 일시적이며 학습 기록과 보상이 저장되지 않습니다."}
+            </p>
+          </details>
+          {!direct && (
+            <a
+              href="/shop"
+              className="inline-flex min-h-9 items-center rounded hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
             >
-              <option value="learner">학습자</option>
-              <option value="author">작성자</option>
-              <option value="friend">친구</option>
-            </select>
-          </label>
-          <p>
-            브라우저에 저장되는 프로토타입입니다. 브라우저
-            데이터를 삭제하면 풀이 기록이 사라질 수 있어요.
-          </p>
-        </details>
+              BugCoin 상점 둘러보기 →
+            </a>
+          )}
+        </div>
       </div>
     </QueryClientProvider>
   );

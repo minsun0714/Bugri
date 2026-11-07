@@ -31,9 +31,6 @@ for (const width of [1280, 390]) {
       state,
     );
     await page.goto("/users/bugri-author?user=author");
-    await page
-      .getByRole("button", { name: "Google 로그인 (데모)" })
-      .click();
     const profile = page.getByRole("region", {
       name: "공개 프로필 정보",
     });

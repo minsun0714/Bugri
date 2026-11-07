@@ -28,9 +28,6 @@ test("desktop and mobile expose separate discovery destinations", async ({
   for (const width of [1280, 640, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/discover/developers?user=friend");
-    await page
-      .getByRole("button", { name: "Google 로그인 (데모)" })
-      .click();
     await expect(
       page.getByRole("region", {
         name: "개발자 검색 결과",
