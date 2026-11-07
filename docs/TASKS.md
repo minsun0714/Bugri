@@ -1510,3 +1510,11 @@
 
 - 상태: DONE(충돌해결·전체검증). 사용자 요청으로 최신dev119c929의데스크조작과PR25프로필카드/스트릭을통합한다. 문서3개는양쪽추가내용보존, HTTP엔드포인트검사는transformDesk/publicLearningDay를모두반영해51개로통합한다. 앞서제거한구독관리customEscape/rAF초점복원·전용단위테스트를복원하지않고클릭기준E2E를유지한다. 전체검증·독립통합리뷰후PR25를갱신하고사용자요청에따라dev에병합한다.
 - 독립정적통합리뷰: 양쪽API/서비스·문서보존, 구독관리삭제코드/테스트미복원및clickE2E유지, 중복제목/충돌마커/미해결인덱스없음. Node v22.23.3 `npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest54 suites/271개·도구3개·production build·E2E167개통과. 로그 `/tmp/pr25-dev-integration-verify.log`. 검증대상은b52d922+dev119c929통합코드이며이후변경은결과기록뿐이다. PR25를갱신하고사용자요청에따라dev에병합한다.
+
+## ERROR-PAGES — Next.js 공통 오류 복구
+
+- 상태: IN_PROGRESS. 사용자 요청으로 404, 렌더링 예외, 루트 오류 화면을 구현한다. 관련 기존 요구사항은 REQ-02/05/09의 오류 복구·입력 보존이며 API 실패는 후속 ERROR-TRANSPORT/ERROR-QUERY에서 별도 처리한다.
+- 범위: app 오류 파일, 독립 ErrorPage, preview 빌드 전용 재현 화면, 단위/E2E. 기존 사용자 데이터·정답·에러 원문은 표시하지 않는다.
+- TDD: 미구현 not-found 모듈 때문에 새 단위 테스트 실패 확인. 관련 검사와 독립 UX/UI 리뷰 후 기능 커밋, 공통 코드 전체 검증은 마지막 통합 상태에서 수행한다.
+
+- 로컬 구현·관련검증 완료: Node22.23.3, 단위4개·production E2E2개·전체타입·변경lint/format 통과. 초기 LayoutProps 미생성은 Next 빌드 후 해결. 네이티브 홈 복구 링크는 provider/router 장애를 피하며 user만 보존한다. [독립 UX/UI](ux-reviews/ERROR-PAGES.md) C1/R1 완료. 전체검증은 최종 통합에서 수행하며 그 전에는 IN_PROGRESS 유지.
