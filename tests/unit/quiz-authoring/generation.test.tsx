@@ -149,7 +149,12 @@ test("detail refinement preserves input on failure and retry updates only the ca
   fireEvent.click(
     screen.getByRole("button", { name: "요청 보내기" }),
   );
-  await screen.findByText("생성 실패");
+  await screen.findByText(
+    "요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+  expect(
+    screen.queryByText("생성 실패"),
+  ).not.toBeInTheDocument();
   expect(prompt).toHaveValue("코드 예시를 추가해줘");
   expect(
     screen.getByRole("heading", { name: "타입 선언" }),

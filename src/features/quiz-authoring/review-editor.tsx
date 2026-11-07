@@ -1,5 +1,7 @@
 "use client";
 
+import { InputValidationError } from "@/api/errors";
+
 import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
 import { Dropdown } from "@/components/ui/dropdown";
 import { useEffect, useRef, useState } from "react";
@@ -141,7 +143,11 @@ export function ReviewEditor({
     const issues = validateEditor(content, source, tags);
     setErrors(issues);
     if (Object.keys(issues).length) {
-      setError(new Error(Object.values(issues).join(" ")));
+      setError(
+        new InputValidationError(
+          Object.values(issues).join(" "),
+        ),
+      );
       return;
     }
     void run(async () => {

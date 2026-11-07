@@ -1,15 +1,14 @@
 "use client";
 
+import { createQueryClient } from "@/api/query-client";
+
 import { useState } from "react";
 import { StreakSummary } from "@/components/streak/streak-summary";
 import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import {
   LearningMode,
   LearningState,
@@ -230,7 +229,7 @@ export function SolveScreen({
         : LearningMode.UNSOLVED,
     direct,
   };
-  const [client] = useState(() => new QueryClient());
+  const [client] = useState(() => createQueryClient());
 
   return (
     <QueryClientProvider client={client}>

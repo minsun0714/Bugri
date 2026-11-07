@@ -626,7 +626,10 @@ export type ErrorCode =
   | "STORAGE_CORRUPT"
   | "GENERATION_FAILED"
   | "INVALID_RESPONSE"
-  | "NETWORK_ERROR";
+  | "NETWORK_ERROR"
+  | "REQUEST_TIMEOUT"
+  | "SERVER_ERROR"
+  | "HTTP_ERROR";
 
 export interface ErrorBody {
   error: {

@@ -1,14 +1,13 @@
 "use client";
 
+import { createQueryClient } from "@/api/query-client";
+
 import { useState, useTransition } from "react";
 import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { DiscoveryKind } from "@/api/constants";
 import type { DiscoveryQuery } from "@/api/contracts";
 import { DiscoverySearch } from "@/components/discovery/search-results";
@@ -45,7 +44,7 @@ export function DiscoveryScreen({
       ? { subscribedOnly: true }
       : {}),
   };
-  const [client] = useState(() => new QueryClient());
+  const [client] = useState(() => createQueryClient());
   const learn = (tag: string | null) => {
     const next = new URLSearchParams({ user: userId });
     if (tag) next.set("tag", tag);

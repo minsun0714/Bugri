@@ -248,3 +248,10 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - `transformDesk`: `PUT /me/desk/table`, 요청 `{ productId: string | null, transform: DeskTransform }`, 응답 `DeskTransforms`. 기본 책상은 `productId: null`, 장착 책상은 현재 상품 ID다. 현재 장착 상태와 다르면 403, 바닥 높이/유한 좌표/회전 범위가 잘못되면 400이다. 다른 사용자 ID는 받지 않는다.
 - 책상 위치·회전과 다른 장착 아이템/버그리의 새 책상 기준 상대 좌표를 같은 상태 쓰기로 저장한다. 다른 아이템의 실제 위치·높이·방향은 유지한다. 기존 책상 상대 저장 좌표 형식과 공개 응답을 유지하며, 기본 책상도 DESK transform을 보존할 수 있다. 구매/장착 권한을 부여하는 요청은 아니다.
 - 저장 실패(503)는 전체 상태를 보존한다. UI는 초안을 유지하고 재시도·취소를 표시한다. Mock 사용자별 localStorage에 한 번 쓰는 범위이며 실제 서버 트랜잭션 보장은 2단계다. 기존 `transformEquipment`는 장착 상품 검증과 장착 미리보기 적용용 계약을 유지한다.
+
+### HTTP 장애 구분 (ERROR-TRANSPORT)
+
+- HTTP 어댑터는 요청 시작부터 JSON 본문 읽기까지 기본 15초 제한을 적용하고 AbortController로 취소한다. 테스트/연결 환경에서 `timeoutMs`로 조정할 수 있다. 성공·실패 모두 타이머를 정리한다.
+- 네트워크 연결 실패는 기존 `NETWORK_ERROR`(합성502), 시간 초과는 `REQUEST_TIMEOUT`(합성504)다. 서버의 실제 HTTP 응답과 구분하려면 상태와 `detail.code`를 함께 확인한다.
+- 계약에 맞는 오류 envelope는 기존 status/code/requestId를 보존한다. 프록시 HTML 등 비계약 오류 응답도 실제 HTTP status를 보존하며 404는 NOT_FOUND, 403은 FORBIDDEN, 5xx는 SERVER_ERROR, 그 외는 HTTP_ERROR로 변환한다. 정상 HTTP 응답의 잘못된 envelope는 INVALID_RESPONSE(합성502)다. 원본 HTML·파싱 예외는 사용자 메시지에 포함하지 않는다.
+- 전송 계층은 요청을 자동 재전송하지 않는다. 특히 응답이 유실된 변경 요청은 처리 여부가 불명확할 수 있으므로 기존 답안·구매의 재조회/중복 방지 계약을 유지한다.

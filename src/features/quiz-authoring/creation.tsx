@@ -1,5 +1,7 @@
 "use client";
 
+import { InputValidationError } from "@/api/errors";
+
 import { useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import type { GenerationBatch } from "@/api/contracts";
@@ -55,7 +57,9 @@ export function Creation({
     if (locked.current) return;
     if (!source.trim() || [...source].length > 10000) {
       setError(
-        new Error("학습 내용을 1~10,000자로 입력하세요."),
+        new InputValidationError(
+          "학습 내용을 1~10,000자로 입력하세요.",
+        ),
       );
       return;
     }

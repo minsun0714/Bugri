@@ -57,7 +57,12 @@ test("starts without link fields, validates added rows, preserves failed input a
   fireEvent.click(
     screen.getByRole("button", { name: "저장" }),
   );
-  await screen.findByText("저장 실패");
+  await screen.findByText(
+    "요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+  expect(
+    screen.queryByText("저장 실패"),
+  ).not.toBeInTheDocument();
   expect(
     screen.getByLabelText("자기소개 (선택)"),
   ).toHaveValue("소개");

@@ -1,5 +1,7 @@
 "use client";
 
+import { createQueryClient } from "@/api/query-client";
+
 import {
   useEffect,
   useRef,
@@ -13,10 +15,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import { EditIcon } from "@/components/profile/edit-icon";
 import { profileStyles } from "@/components/profile/styles";
@@ -678,7 +677,7 @@ export function DeveloperScreen({
       );
   }
 
-  const [client] = useState(() => new QueryClient());
+  const [client] = useState(() => createQueryClient());
   const userId = params.get("user") ?? "learner";
   const positive = (value: string | null) => {
     const number = Number(value ?? 1);
