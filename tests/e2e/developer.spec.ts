@@ -107,8 +107,11 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     "true",
   );
   await expect(typeScriptTag.locator("..")).toHaveClass(
-    /bg-primary\/10/,
+    /ring-primary\/35/,
   );
+  const unsubscribedBackground = await typeScriptTag
+    .locator("..")
+    .evaluate((element) => getComputedStyle(element).backgroundColor);
   await expect(tags.getByText(/선택한 태그:/)).toHaveCount(
     0,
   );
@@ -151,6 +154,18 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     .getByRole("menuitem", { name: "구독하기" })
     .click();
   await expect(typeScriptMenu).toHaveCount(0);
+  await expect(typeScriptTag.locator("..")).toHaveClass(
+    /bg-lime\/60/,
+  );
+  await expect
+    .poll(() =>
+      typeScriptTag
+        .locator("..")
+        .evaluate(
+          (element) => getComputedStyle(element).backgroundColor,
+        ),
+    )
+    .not.toBe(unsubscribedBackground);
   await expect(page).toHaveURL(url);
   await page.reload();
   await expect(quizzes.getByRole("link")).toHaveCount(1);
