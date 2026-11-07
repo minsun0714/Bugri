@@ -4,7 +4,10 @@ import type {
   Question,
   Subscription,
 } from "@/api/contracts";
-import type { StoredQuiz } from "@/services/state";
+import type {
+  StoredAttempt,
+  StoredQuiz,
+} from "@/services/state";
 
 export function questionKey(question: Question): string {
   return JSON.stringify(question);
@@ -98,4 +101,32 @@ export function streak(
   }
 
   return count;
+}
+
+/** Count completed distinct quizzes within each original learning date. */
+export function dailyQuizCounts(
+  attempts: StoredAttempt[],
+): { learningDate: string; count: number }[] {
+  const days = new Map<string, Set<string>>();
+
+  for (const {
+    completedAt,
+    learningDate,
+    quizId,
+  } of attempts) {
+    if (!completedAt || !learningDate) continue;
+
+    const quizzes =
+      days.get(learningDate) ?? new Set<string>();
+
+    quizzes.add(quizId);
+    days.set(learningDate, quizzes);
+  }
+
+  return [...days.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([learningDate, quizzes]) => ({
+      learningDate,
+      count: quizzes.size,
+    }));
 }

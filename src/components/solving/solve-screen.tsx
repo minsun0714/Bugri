@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StreakSummary } from "@/components/streak/streak-summary";
 import {
   useRouter,
   useSearchParams,
@@ -315,8 +316,10 @@ function Session({
 
 export function SolveScreen({
   direct = false,
+  showStreak = false,
 }: {
   direct?: boolean;
+  showStreak?: boolean;
 }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -337,6 +340,7 @@ export function SolveScreen({
   return (
     <QueryClientProvider client={client}>
       <div className="space-y-6">
+        {showStreak && <StreakSummary userId={userId} />}
         <h1 className="text-3xl">
           {direct ? "퀴즈 풀이" : "오늘의 퀴즈"}
         </h1>
