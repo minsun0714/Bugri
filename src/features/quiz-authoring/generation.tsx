@@ -214,6 +214,18 @@ export function Generation(props: GenerationProps) {
             showCount={false}
             className="max-h-32 min-h-16 resize-none!"
             onChange={changePrompt}
+            onKeyDown={(event) => {
+              if (
+                event.key !== "Enter" ||
+                event.shiftKey ||
+                event.nativeEvent.isComposing
+              )
+                return;
+
+              event.preventDefault();
+              if (prompt.trim() && !busy)
+                event.currentTarget.form?.requestSubmit();
+            }}
           />
         </div>
         <Button

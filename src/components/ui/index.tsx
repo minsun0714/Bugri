@@ -8,6 +8,7 @@ import {
   useRef,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
+  type KeyboardEventHandler,
   type SelectHTMLAttributes,
   type ReactNode,
 } from "react";
@@ -127,6 +128,7 @@ export function TextArea({
   rows = 5,
   disabled,
   className,
+  onKeyDown,
 }: {
   label: string;
   value: string;
@@ -138,6 +140,7 @@ export function TextArea({
   rows?: number;
   disabled?: boolean;
   className?: string;
+  onKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
 }) {
   const generated = useId();
   const id = suppliedId ?? generated;
@@ -165,6 +168,7 @@ export function TextArea({
         rows={rows}
         disabled={disabled}
         className={className}
+        onKeyDown={onKeyDown}
       />
       {showCount && (
         <small id={`${id}-count`} className={"counter"}>

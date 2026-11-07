@@ -2,7 +2,7 @@
 
 import { Dropdown } from "@/components/ui/dropdown";
 import { styles } from "@/components/ui/styles";
-import { useId } from "react";
+import { useId, type KeyboardEventHandler } from "react";
 import { useMarkdownEditor } from "@/components/ui/hooks/use-markdown-editor";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
@@ -16,6 +16,7 @@ export function MarkdownEditor({
   preserveOverflow = false,
   layout = "tabs",
   className = "",
+  onKeyDown,
 }: {
   layout?: "tabs" | "split";
   value: string;
@@ -24,6 +25,7 @@ export function MarkdownEditor({
   label?: string;
   preserveOverflow?: boolean;
   className?: string;
+  onKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
 }) {
   const id = useId();
   const {
@@ -91,6 +93,7 @@ export function MarkdownEditor({
         aria-describedby={`${id}-count ${id}-error`}
         aria-invalid={count > limit}
         value={value}
+        onKeyDown={onKeyDown}
         onChange={({ target: { value } }) =>
           changeValue(value)
         }

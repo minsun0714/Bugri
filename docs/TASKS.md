@@ -390,3 +390,14 @@
 - 관리 상세의 목록 복귀·퀴즈 제목·상태를 sticky 헤더로 통합하고, 편집 폼을 기본 정보·문제 구성·해설·분류 섹션으로 나뉘다. 원본 학습 내용은 기본으로 접고 Markdown 편집기와 선택지 밀도를 줄였다.
 - 추천 태그를 입력 아래 칩으로 변경하고, 선택지의 입력·정답·삭제를 컴팩트한 행으로 재배치했다. 편집 중 변경 상태·취소·저장은 viewport 하단 고정 바에 두고, 재조회는 아이콘, 삭제는 비편집 상태의 독립 위험 영역으로 분리했다.
 - 의도한 구조 테스트 실패를 확인한 뒤 관리 컴포넌트와 승인·수정·재생성·공개 범위·삭제 모바일 E2E를 통과했고 데스크톱·390px 실화면을 확인했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/87 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 내 퀴즈 목록 탐색 UX — DONE
+
+- 큰 반복 카드를 컴팩트한 목록 행으로 바꾸고 전체 개수·상태별 개수, 제목·태그 검색, 검토 필요·공개·나만 보기 필터, 최근·오래된·제목순 정렬과 10개 단위 페이지를 제공한다. wire 상태값은 사용자 문구와 배지로 표시하고 항목 전체에서 상태에 맞는 검토·관리 화면으로 이동한다.
+- 검색·필터·정렬·페이지를 URL에 보존해 상세 화면에서 돌아오거나 새로고침해도 목록 맥락을 유지한다. 새 퀴즈 만들기를 주요 동작으로 정리하고 새로고침은 정렬 옆 아이콘으로 축소했다.
+- 목록 단위 테스트 4개와 검색 조건 복귀·390px 가로 넘침 E2E를 추가하고 데스크톱·모바일 production 화면을 확인했다. Node 22.23.3 `PLAYWRIGHT_PORT=3293 npm run verify` 전체 통과: lint·TypeScript·Jest 21 suites/93 tests·production build·Playwright 17 tests. 독립 리뷰는 남아 있다.
+
+### A · 채팅 Enter 전송 — DONE
+
+- 최초 학습 대화와 퀴즈 LLM 수정 textarea에서 Enter는 전송하고 Shift+Enter는 줄바꿈으로 동작한다. 한글 등 IME 조합 중 Enter는 전송하지 않으며 기존 전송 버튼도 유지한다.
+- 두 채팅의 키보드 단위 테스트와 실제 브라우저의 Enter·Shift+Enter 흐름을 추가했다. Node 22.23.3 `PLAYWRIGHT_PORT=3293 npm run verify` 전체 통과: lint·TypeScript·Jest 21 suites/93 tests·production build·Playwright 17 tests. 독립 리뷰는 남아 있다.

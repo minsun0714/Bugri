@@ -109,6 +109,37 @@ test("messages stay in chat; only successful explicit generation navigates with 
   ).not.toBeInTheDocument();
 });
 
+test("sends with Enter and keeps Shift Enter for multiline input", async () => {
+  await setup();
+  const input = screen.getByRole("textbox", {
+    name: /질문이나 학습 내용/,
+  });
+
+  fireEvent.change(input, {
+    target: { value: "첫 줄" },
+  });
+  fireEvent.keyDown(input, {
+    key: "Enter",
+    code: "Enter",
+    shiftKey: true,
+  });
+  expect(
+    screen.queryByRole("list", { name: "대화 기록" }),
+  ).not.toBeInTheDocument();
+
+  fireEvent.change(input, {
+    target: { value: "첫 줄\n둘째 줄" },
+  });
+  fireEvent.keyDown(input, {
+    key: "Enter",
+    code: "Enter",
+  });
+  expect(
+    await screen.findByRole("list", { name: "대화 기록" }),
+  ).toHaveTextContent("첫 줄 둘째 줄");
+  expect(input).toHaveValue("");
+});
+
 test("reply and generation failures keep input and conversation and do not navigate", async () => {
   const { api, onGenerated } = await setup();
   fireEvent.change(screen.getByRole("textbox"), {

@@ -167,6 +167,39 @@ test("detail refinement preserves input on failure and retry updates only the ca
   ).toHaveLength(0);
 });
 
+test("sends an LLM refinement with Enter and preserves Shift Enter", async () => {
+  await setup();
+  fireEvent.click(
+    screen.getByRole("button", { name: "LLM으로 수정" }),
+  );
+  const prompt =
+    screen.getByLabelText("퀴즈 1에 추가 요청");
+
+  fireEvent.change(prompt, {
+    target: { value: "첫 요청" },
+  });
+  fireEvent.keyDown(prompt, {
+    key: "Enter",
+    code: "Enter",
+    shiftKey: true,
+  });
+  expect(
+    screen.queryByRole("list", { name: "추가 요청 기록" }),
+  ).not.toBeInTheDocument();
+
+  fireEvent.change(prompt, {
+    target: { value: "첫 요청\n두 번째 줄" },
+  });
+  fireEvent.keyDown(prompt, {
+    key: "Enter",
+    code: "Enter",
+  });
+  await screen.findByRole("list", {
+    name: "추가 요청 기록",
+  });
+  expect(prompt).toHaveValue("");
+});
+
 test("starts with quizzes only and publishes the current candidate on explicit request", async () => {
   const { api } = await setup();
   expect(

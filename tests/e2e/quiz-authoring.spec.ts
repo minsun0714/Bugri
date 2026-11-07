@@ -80,8 +80,17 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     .getByLabel("퀴즈 1에 추가 요청")
     .fill("예시 추가");
   await page
-    .getByRole("button", { name: "요청 보내기" })
-    .click();
+    .getByLabel("퀴즈 1에 추가 요청")
+    .press("Shift+Enter");
+  await expect(
+    page.getByLabel("퀴즈 1에 추가 요청"),
+  ).toHaveValue("예시 추가\n");
+  await page
+    .getByLabel("퀴즈 1에 추가 요청")
+    .fill("예시 추가");
+  await page
+    .getByLabel("퀴즈 1에 추가 요청")
+    .press("Enter");
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("예시 추가");

@@ -121,6 +121,17 @@ export function Conversation(props: ConversationProps) {
             value={draft}
             preserveOverflow
             onChange={changeDraft}
+            onKeyDown={(event) => {
+              if (
+                event.key !== "Enter" ||
+                event.shiftKey ||
+                event.nativeEvent.isComposing
+              )
+                return;
+
+              event.preventDefault();
+              if (!busy) send();
+            }}
           />
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <Button
