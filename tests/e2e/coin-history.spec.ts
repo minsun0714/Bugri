@@ -48,14 +48,14 @@ for (const width of [1280, 390]) {
       region.getByLabel("내 잔액"),
     ).toContainText("70");
     await expect(region.getByRole("listitem")).toHaveCount(
-      2,
+      10,
     );
     await page.goto("/my?user=friend");
     await expect(
       region.getByLabel("내 잔액"),
     ).toContainText("100");
     await expect(region.getByRole("listitem")).toHaveCount(
-      1,
+      10,
     );
   });
 }

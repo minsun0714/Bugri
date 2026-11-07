@@ -28,7 +28,7 @@ it("shows the balance and newest purchase first, then isolates the next user", a
   ).getAllByRole("listitem");
   expect(rows[0]).toHaveTextContent("상품 구매");
   expect(rows[0]).toHaveTextContent(`-${product.price}`);
-  expect(rows[1]).toHaveTextContent("데모 시작 지급");
+  expect(rows[1]).toHaveTextContent("데모 지급");
   view.rerender(<CoinHistory userId="friend" />);
   expect(
     await screen.findByLabelText("내 잔액"),

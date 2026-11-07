@@ -8,7 +8,7 @@ import { errorMessage } from "@/components/shop/errors";
 import { Button, Coin, Pagination } from "@/components/ui";
 
 const reasons: Record<LedgerEntry["reason"], string> = {
-  SEED: "데모 시작 지급",
+  SEED: "데모 지급",
   DAILY_COMPLETION: "일일 학습 보상",
   PURCHASE: "상품 구매",
 };
