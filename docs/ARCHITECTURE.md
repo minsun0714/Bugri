@@ -197,3 +197,8 @@ PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따
 - 기능별 QueryClient의 수명과 사용자별 키는 유지하고 `createQueryClient`로 기본 자동 재시도 금지 및 최소 오류 기록(status/code/requestId)을 공유한다. queryKey·mutation 변수·오류 원문은 기록하지 않는다. 앱 내부 입력 검증은 InputValidationError로 명시하여 필드 안내를 유지하고 API/알 수 없는 예외는 안전한 공통 메시지로 표시한다.
 - 공개 데스크 초기 조회의 예상하지 못한 예외·5xx는 지역 QueryBoundary로 처리한다. TanStack QueryErrorResetBoundary와 Next catchError의 retry를 함께 초기화한다. 프로필 ID 변경 시 경계도 초기화한다. 배경 재조회 실패는 이미 표시한 데스크와 함께 안내한다. 404·저장소 손상 같은 예상 오류는 해당 영역에서 처리하며 mutation은 경계로 던지거나 자동 재전송하지 않는다.
 - 오류 재현은 `BUGRI_UI_PREVIEW=1` 빌드의 `/ui-preview/errors`에서만 제공한다. 일반 빌드에서는 notFound로 차단한다. 외부 모니터링 서비스는 도입하지 않는다.
+
+
+### 공개 프로필 섹션 순서
+
+`DeveloperScreen`은 상단 `ProfileAbout`을 고정하고 `ProfileSections`에 데스크·최신 공개 퀴즈·학습 활동을 전달한다. 각 섹션은 ID를 React key로 유지하여 재배치 시 콘텐츠 상태를 보존한다. 편집 초안은 로컬 상태, 저장/조회는 `useProfileOrder` → typed client → Mock service/HTTP 계약을 따른다. `UserState.profileOrder` 선택 필드로 기존 v1 저장과 호환된다. 손잡이의 Pointer Events만 섹션 드래그를 시작하므로 데스크 카메라 드래그와 분리된다. 위/아래 버튼 및 손잡이 방향키로도 이동하며 저장/취소 후 편집 진입 버튼으로 초점을 복원한다. 사용자·프로필·데모 선택 상태 key로 편집 상태를 초기화한다. 공개 순서 조회는 상태 초기화/마이그레이션 없이 읽기 전용이다.

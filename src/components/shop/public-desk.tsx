@@ -77,6 +77,14 @@ export function PublicDesk({
       <div className="space-y-8">
         <DeveloperScreen
           profile
+          activity={
+            <ShopProvider>
+              <StreakSummary
+                userId="learner"
+                publicId={publicId}
+              />
+            </ShopProvider>
+          }
           afterHeader={
             <section
               aria-label="공개 데스크"
@@ -93,12 +101,6 @@ export function PublicDesk({
             </section>
           }
         />
-        <ShopProvider>
-          <StreakSummary
-            userId="learner"
-            publicId={publicId}
-          />
-        </ShopProvider>
       </div>
     </ProductLayout>
   );

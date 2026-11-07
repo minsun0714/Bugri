@@ -146,7 +146,9 @@ test("public profile requires explicit demo selection and a separate subscriptio
     screen.queryByRole("searchbox"),
   ).not.toBeInTheDocument();
   expect(
-    screen.getByRole("link", { name: "전체 보기 →" }),
+    await screen.findByRole("link", {
+      name: "전체 보기 →",
+    }),
   ).toHaveAttribute(
     "href",
     "/developers/bugri-author/quizzes?user=learner",
