@@ -229,3 +229,135 @@ test("public quiz counts exclude private, pending, deleted and inactive content"
     /secret|private source|answer/,
   );
 });
+
+test("accepts the public handle as displayed on a developer card", () => {
+  expect(
+    searchDiscovery(source, {
+      ...request,
+      query: "@developer-999",
+    }).total,
+  ).toBe(1);
+});
+
+test("isolates discovery and subscription changes from another user's corrupt snapshot", async () => {
+  localStorage.clear();
+  localStorage.setItem("bugri:mock:v1:author", "broken");
+
+  const api = createApiClient(
+    createMockTransport({
+      userId: "friend",
+      storage: localStorage,
+    }),
+  );
+
+  const result = await api.request(
+    "searchDiscovery",
+    request,
+  );
+
+  expect(result.total).toBe(3);
+
+  await api.request("subscribe", {
+    type: "PERSON",
+    authorUserId: "author",
+  });
+
+  expect(
+    await api.request("subscriptions", {}),
+  ).toHaveLength(1);
+
+  expect(localStorage.getItem("bugri:mock:v1:author")).toBe(
+    "broken",
+  );
+});
+
+test("developer summaries count only active public quizzes and expose no solving content", async () => {
+  localStorage.clear();
+
+  const api = createApiClient(
+    createMockTransport({
+      userId: "friend",
+      storage: localStorage,
+    }),
+  );
+
+  const page = await api.request("searchDiscovery", {
+    ...request,
+    query: "@bugri-author",
+  });
+
+  const { items } = page;
+  const [item] = items;
+
+  expect(item.type).toBe("USER");
+
+  if (item.type !== "USER")
+    throw new Error("Expected developer");
+
+  const catalog = await api.request("developerQuizzes", {
+    publicId: "bugri-author",
+    page: 1,
+    pageSize: 20,
+  });
+
+  expect(item.summary?.publicQuizCount).toBe(catalog.total);
+
+  expect(item.summary?.hashtags.length).toBeLessThanOrEqual(
+    3,
+  );
+
+  expect(JSON.stringify(item)).not.toMatch(
+    /"(answer|explanation|sourceContent|prompt)"/,
+  );
+});
+
+test("public directories remain available when the selected user snapshot is damaged", async () => {
+  localStorage.clear();
+  localStorage.setItem("bugri:mock:v1:friend", "broken");
+
+  const api = createApiClient(
+    createMockTransport({
+      userId: "friend",
+      storage: localStorage,
+    }),
+  );
+
+  expect(
+    await api.request("discoverUsers", {}),
+  ).toHaveLength(3);
+
+  await expect(
+    api.request("searchDiscovery", request),
+  ).rejects.toMatchObject({
+    detail: { code: "STORAGE_CORRUPT" },
+  });
+
+  expect(localStorage.getItem("bugri:mock:v1:friend")).toBe(
+    "broken",
+  );
+});
+
+test("isolating subscriptions preserves the existing learning order across authors", async () => {
+  localStorage.clear();
+
+  const api = createApiClient(
+    createMockTransport({
+      userId: "friend",
+      storage: localStorage,
+    }),
+  );
+
+  await api.request("subscribe", {
+    type: "PERSON",
+    authorUserId: "author",
+  });
+
+  await api.request("subscribe", {
+    type: "PERSON",
+    authorUserId: "friend",
+  });
+
+  const selection = await api.request("learningQuiz", {});
+
+  expect(selection.quiz?.quizId).toBe("seed-quiz-1");
+});

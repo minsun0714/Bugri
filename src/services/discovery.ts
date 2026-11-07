@@ -16,11 +16,13 @@ export function searchDiscovery(
     hashtags,
     subscriptions,
     quizzes = [],
+    unavailableUserIds = [],
   }: {
-    quizzes?: readonly StoredQuiz[];
     users: readonly User[];
     hashtags: readonly Hashtag[];
     subscriptions: readonly Subscription[];
+    quizzes?: readonly StoredQuiz[];
+    unavailableUserIds?: readonly string[];
   },
   {
     kind,
@@ -62,7 +64,7 @@ export function searchDiscovery(
   const term = (
     kind === DiscoveryKind.HASHTAG
       ? normalizeTagInput(query)
-      : query.trim()
+      : query.trim().replace(/^@/, "")
   )
     .normalize("NFC")
     .toLowerCase();
@@ -93,6 +95,30 @@ export function searchDiscovery(
         .map((user) => ({
           type: DiscoveryKind.USER,
           user,
+          summary: unavailableUserIds.includes(user.userId)
+            ? null
+            : (() => {
+                const available = quizzes.filter(
+                  (quiz) =>
+                    quiz.ownerUserId === user.userId &&
+                    quiz.status === QuizStatus.PUBLIC &&
+                    !quiz.deletedAt &&
+                    quiz.active,
+                );
+
+                const ids = new Set(
+                  available.flatMap(
+                    (quiz) => quiz.active!.hashtagIds,
+                  ),
+                );
+
+                return {
+                  publicQuizCount: available.length,
+                  hashtags: hashtags
+                    .filter(({ id }) => ids.has(id))
+                    .slice(0, 3),
+                };
+              })(),
           subscribed: subscriptions.some(
             (sub) =>
               sub.type === "PERSON" &&

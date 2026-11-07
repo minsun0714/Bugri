@@ -57,7 +57,13 @@ test("tag link preserves discovery conditions and supports explicit subscription
       exact: true,
     })
     .click();
-  await expect(page).toHaveURL(/\/?user=friend&tag=web/);
+  await expect(page).toHaveURL(
+    (url) =>
+      url.pathname === "/" &&
+      url.searchParams.get("user") === "friend" &&
+      url.searchParams.get("tag") === "web" &&
+      !!url.searchParams.get("attempt"),
+  );
   await page.goBack();
   await list
     .getByRole("listitem")
@@ -66,8 +72,17 @@ test("tag link preserves discovery conditions and supports explicit subscription
     .first()
     .click();
   await expect(page).toHaveURL(
-    /\/solve\?user=friend&quiz=/,
+    (url) =>
+      url.pathname === "/solve" &&
+      url.searchParams.get("user") === "friend" &&
+      !!url.searchParams.get("attempt"),
   );
+  await expect(
+    page.getByRole("heading", {
+      name: "퀴즈 풀이",
+      exact: true,
+    }),
+  ).toBeVisible();
   await page.goBack();
   await page
     .getByRole("link", {

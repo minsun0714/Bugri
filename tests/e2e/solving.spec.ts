@@ -242,8 +242,8 @@ test("tag filtering persists through next and reload without changing subscripti
     .getByRole("link", { name: "개발자 탐색", exact: true })
     .click();
   await page
-    .getByRole("button", {
-      name: "타입 개발자 학습하기",
+    .getByRole("link", {
+      name: "홈에서 학습하기",
       exact: true,
     })
     .click();

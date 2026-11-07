@@ -15,6 +15,8 @@ import {
   type ServiceContext,
 } from "@/services/mock-service";
 import {
+  object,
+  keys,
   requireValue,
   ServiceError,
   timeZoneValid,
@@ -27,7 +29,7 @@ import {
 } from "@/mocks/storage";
 import { generatedContents } from "@/mocks/quizzes";
 import { mockAuthoringReply } from "@/mocks/authoring-chat";
-import { users } from "@/mocks/users";
+import { users, hashtags } from "@/mocks/users";
 import { subscriptions } from "@/mocks/subscriptions";
 
 export interface MockOptions {
@@ -106,6 +108,26 @@ export function createMockTransport(
           };
         }
 
+        // Public directories do not depend on a user's browser snapshot.
+        if (
+          operation === "discoverUsers" ||
+          operation === "discoverHashtags"
+        ) {
+          object(request);
+          keys(request, []);
+
+          return {
+            status: 200,
+            body: {
+              data: clone(
+                operation === "discoverUsers"
+                  ? users
+                  : hashtags,
+              ) as Response<K>,
+            },
+          };
+        }
+
         requireValue(
           users.some((u) => u.userId === userId),
           "알 수 없는 더미 사용자입니다.",
@@ -143,13 +165,39 @@ export function createMockTransport(
         }
 
         // Fresh reads on every request observe other dummy users and tabs. Only actor-owned state is written.
-        const allStates = users.map(({ userId }) =>
-          readState(storage, userId),
-        );
+        const state = readState(storage, userId);
+        const unavailableUserIds: string[] = [];
 
-        const state = allStates.find(
-          (s) => s.userId === userId,
-        )!;
+        const actorOnly = [
+          "subscriptions",
+          "subscribe",
+          "unsubscribe",
+        ].includes(operation);
+
+        const allStates = actorOnly ? [state] : [];
+
+        if (!actorOnly) {
+          for (const { userId: otherId } of users) {
+            if (otherId === userId) {
+              allStates.push(state);
+              continue;
+            }
+
+            try {
+              allStates.push(readState(storage, otherId));
+            } catch (error) {
+              if (
+                operation !== "searchDiscovery" ||
+                !(error instanceof ServiceError) ||
+                error.code !== "STORAGE_CORRUPT"
+              )
+                throw error;
+
+              // Do not substitute seeds or overwrite the corrupt owner's data.
+              unavailableUserIds.push(otherId);
+            }
+          }
+        }
 
         const before = JSON.stringify(state);
 
@@ -173,6 +221,7 @@ export function createMockTransport(
         const context: ServiceContext = {
           state,
           allStates,
+          unavailableUserIds,
           allQuizzes: allStates.flatMap(
             ({ quizzes }) => quizzes,
           ),

@@ -289,6 +289,10 @@ export type DiscoveryItem =
       type: typeof DiscoveryKind.USER;
       user: User;
       subscribed: boolean;
+      summary: {
+        publicQuizCount: number;
+        hashtags: Hashtag[];
+      } | null;
     }
   | {
       type: typeof DiscoveryKind.HASHTAG;
