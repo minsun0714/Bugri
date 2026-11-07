@@ -1,9 +1,14 @@
 import { QuizStatus } from "@/api/constants";
 import type {
   LearningQuizView,
+  Question,
   Subscription,
 } from "@/api/contracts";
 import type { StoredQuiz } from "@/services/state";
+
+export function questionKey(question: Question): string {
+  return JSON.stringify(question);
+}
 
 export function publicView({
   quizId,

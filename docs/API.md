@@ -78,7 +78,7 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 구독 대상은 PERSON(authorUserId), HASHTAG(hashtagId), PERSON_HASHTAG(authorUserId, hashtagId)다. 같은 구독의 재등록은 기존 구독을 반환한다. 공개 퀴즈 중 직접 구독에 맞는 퀴즈만 후보이며 quizId로 중복되지 않는다. 태그 선택지는 이 후보들의 태그다. 구독이 없으면 빈 상태이며 추천 퀴즈를 넣지 않는다.
 
-`learningQuiz`에서 hashtagId 생략/null은 전체, mode 생략은 UNSOLVED다. `learningNext`는 생략된 필터를 저장된 선택에서 가져온다. 명시적 null은 전체로 바꾼다. 선택·기록은 사용자별로 복원되며 태그 변경은 구독·완료 기록을 변경하지 않는다. UNSOLVED는 완료한 quizId를 제외하고 REPLAY는 완료한 quizId만 사용한다. 가능한 경우 현재 퀴즈 다음 후보를 고르며 미제출 문제를 건너뛰어도 완료로 처리하지 않는다.
+`learningQuiz`에서 hashtagId 생략/null은 전체, mode 생략은 UNSOLVED다. `learningNext`는 생략된 필터를 저장된 선택에서 가져온다. 명시적 null은 전체로 바꾼다. 선택·기록은 사용자별로 복원되며 태그 변경은 구독·완료 기록을 변경하지 않는다. UNSOLVED는 완료한 quizId와 문제 형식·본문·선택지가 같은 완료 문제를 제외하고 REPLAY는 완료한 quizId만 사용한다. 가능한 경우 현재 퀴즈 다음 후보를 고르며 미제출 문제를 건너뛰어도 완료로 처리하지 않는다.
 
 | state     | 의미                                                        |
 | --------- | ----------------------------------------------------------- |

@@ -31,6 +31,7 @@ import {
   candidates,
   localDate,
   publicView,
+  questionKey,
   streak,
 } from "@/services/learning";
 import {
@@ -754,16 +755,27 @@ export function execute<K extends Operation>(
         hashtagId,
       );
 
+      const completedAttempts = s.attempts.filter(
+        ({ completedAt }) => completedAt,
+      );
+
       const completed = new Set(
-        s.attempts
-          .filter((a) => a.completedAt)
-          .map((a) => a.quizId),
+        completedAttempts.map(({ quizId }) => quizId),
+      );
+
+      const completedQuestions = new Set(
+        completedAttempts.map(({ revision }) =>
+          questionKey(revision.question),
+        ),
       );
 
       const pool = qs.filter((q) =>
         mode === LearningMode.REPLAY
           ? completed.has(q.quizId)
-          : !completed.has(q.quizId),
+          : !completed.has(q.quizId) &&
+            !completedQuestions.has(
+              questionKey(q.active!.question),
+            ),
       );
 
       const previousIndex = pool.findIndex(

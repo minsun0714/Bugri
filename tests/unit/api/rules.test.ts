@@ -16,7 +16,11 @@ import {
   type MockOptions,
 } from "@/mocks/adapter";
 import { generatedContents } from "@/mocks/quizzes";
-import { initialState, storageKey } from "@/mocks/storage";
+import {
+  clone,
+  initialState,
+  storageKey,
+} from "@/mocks/storage";
 import { localDate, streak } from "@/services/learning";
 
 const api = (
@@ -665,6 +669,59 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
       code: "QUIZ_UNAVAILABLE",
     },
   });
+});
+
+test("learning next skips the same completed question saved under another quiz id", async () => {
+  seedUnsubscribedLearner();
+
+  const author = initialState("author");
+
+  const original = author.quizzes.find(
+    ({ quizId }) => quizId === "seed-quiz-1",
+  )!;
+
+  author.quizzes.push({
+    ...clone(original),
+    quizId: "duplicate-type-question",
+    active: {
+      ...clone(original.active!),
+      revisionId: "duplicate-type-revision",
+    },
+  });
+
+  localStorage.setItem(
+    storageKey("author"),
+    JSON.stringify(author),
+  );
+
+  const client = api();
+
+  await client.request("subscribe", {
+    type: "PERSON",
+    authorUserId: "author",
+  });
+
+  await client.request("learningQuiz", {
+    hashtagId: "typescript",
+  });
+
+  const attempt = await client.request("startAttempt", {
+    quizId: "seed-quiz-1",
+    context: "LEARNING",
+  });
+
+  await client.request("answer", {
+    attemptId: attempt.attemptId,
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "a",
+    },
+  });
+
+  const next = await client.request("learningNext", {});
+
+  expect(next.state).toBe(LearningState.EXHAUSTED);
+  expect(next.quiz).toBeNull();
 });
 
 test("unknown fields, quiz subscription and wrong answer shapes are rejected", async () => {
