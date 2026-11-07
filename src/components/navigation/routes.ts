@@ -15,28 +15,20 @@ export function withDemoUser(
     : path;
 }
 
-// Only mounted routes belong here. Add shop/my when those pages are integrated.
 export function getNavigationItems(
   userId: string | null,
 ): NavigationItem[] {
   return [
     {
-      label: "탐색",
+      label: "개발자·태그 탐색",
       href: withDemoUser("/discover", userId),
       activePaths: ["/discover", "/developers"],
     },
-    ...(userId
-      ? [
-          {
-            label: "내 퀴즈",
-            href: withDemoUser(
-              "/quizzes/authoring/manage",
-              userId,
-            ),
-            activePaths: ["/quizzes/authoring"],
-          },
-        ]
-      : []),
+    {
+      label: "Shop",
+      href: withDemoUser("/shop", userId),
+      activePaths: ["/shop"],
+    },
   ];
 }
 

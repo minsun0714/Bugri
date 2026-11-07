@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Suspense } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   usePathname,
   useSearchParams,
@@ -29,6 +30,40 @@ export function HeaderNavigation({
   const active = items.find(({ activePaths }) =>
     isNavigationActive(pathname, activePaths),
   )?.href;
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileId = useId();
+  const profileRoot = useRef<HTMLDivElement>(null);
+  const profileTrigger = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+
+    function onPointerDown(event: PointerEvent) {
+      if (
+        !profileRoot.current?.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+        profileTrigger.current?.focus();
+      }
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener(
+        "pointerdown",
+        onPointerDown,
+      );
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [profileOpen]);
 
   return (
     <header className="relative z-20 border-b border-line bg-surface">
@@ -71,18 +106,62 @@ export function HeaderNavigation({
         </nav>
         <div className="flex items-center gap-2">
           {userId ? (
-            <>
-              <span className="rounded-full bg-lime/40 px-2 py-1 text-[10px] font-semibold text-foreground">
-                데모
-              </span>
+            <div ref={profileRoot} className="relative">
               <button
+                ref={profileTrigger}
                 type="button"
-                onClick={onSignOut}
-                className="min-h-11 rounded-full border border-line px-3 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                aria-expanded={profileOpen}
+                aria-controls={profileId}
+                onClick={() =>
+                  setProfileOpen((open) => !open)
+                }
+                className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface px-3 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
-                로그아웃
+                <span
+                  aria-hidden="true"
+                  className="grid size-7 place-items-center rounded-full bg-primary text-xs font-bold text-white"
+                >
+                  B
+                </span>
+                <span>내 프로필</span>
+                <span aria-hidden="true">⌄</span>
               </button>
-            </>
+              {profileOpen && (
+                <nav
+                  id={profileId}
+                  aria-label="내 프로필 메뉴"
+                  className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 gap-1 rounded-2xl border border-line bg-white p-2 shadow-[0_16px_45px_-12px_#34204b40]"
+                >
+                  <Link
+                    href={withDemoUser(
+                      "/quizzes/authoring/manage",
+                      userId,
+                    )}
+                    onClick={() => setProfileOpen(false)}
+                    className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    내 퀴즈
+                  </Link>
+                  <Link
+                    href={withDemoUser("/my", userId)}
+                    onClick={() => setProfileOpen(false)}
+                    className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    마이페이지
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      onSignOut?.();
+                    }}
+                    className="rounded-xl px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    로그아웃
+                  </button>
+                </nav>
+              )}
+            </div>
           ) : (
             <button
               type="button"
