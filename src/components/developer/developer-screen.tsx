@@ -31,8 +31,9 @@ import {
   Toast,
 } from "@/components/ui";
 import { developerStyles } from "@/components/developer/styles";
-import { SubscriptionControl } from "@/components/discovery/subscription-control";
-import { SubscriptionMenu } from "@/components/discovery/subscription-menu";
+import { DeveloperSubscriptionPanel } from "@/components/developer/subscription-panel";
+import { FilterChips } from "@/components/ui/filter-chips";
+
 import { withDemoUser } from "@/components/navigation/routes";
 import { QuizCard } from "@/components/ui/quiz-card";
 import { useDeveloper } from "@/components/developer/queries";
@@ -41,7 +42,7 @@ interface Filters {
   page: number;
   tagPage: number;
   tagQuery: string;
-  hashtagId: string | null;
+  hashtagIds: string[];
 }
 
 function PageControls({
@@ -157,14 +158,14 @@ function Catalog({
   onNotice: (message: string, duration?: number) => void;
 }) {
   const { signedIn, signIn } = useDemoSession();
-  const { page, tagPage, tagQuery, hashtagId } = filters;
+  const { page, tagPage, tagQuery, hashtagIds } = filters;
   const { quizzes, tags, subscribe } = useDeveloper(
     userId,
     {
       publicId,
       page: profile ? 1 : page,
       pageSize: profile ? 4 : 20,
-      hashtagId: profile ? null : hashtagId,
+      hashtagIds: profile ? [] : hashtagIds,
     },
     {
       publicId,
@@ -175,25 +176,8 @@ function Catalog({
   );
   const { data } = quizzes;
   const tagRegion = useRef<HTMLElement>(null);
-  const pendingTagFocus = useRef<string | null>(null);
   const subscriptionBusy = subscribe.isPending;
   const busy = navigating || subscriptionBusy;
-
-  useEffect(() => {
-    if (subscriptionBusy || !pendingTagFocus.current)
-      return;
-    const button = Array.from(
-      tagRegion.current?.querySelectorAll<HTMLButtonElement>(
-        "button",
-      ) ?? [],
-    ).find(
-      (item) =>
-        item.getAttribute("aria-label") ===
-        pendingTagFocus.current,
-    );
-    button?.focus();
-    pendingTagFocus.current = null;
-  }, [subscriptionBusy, tags.data]);
 
   if (quizzes.isPending) return <Skeleton />;
   if (quizzes.error)
@@ -291,18 +275,11 @@ function Catalog({
             <Avatar name={data.user.displayName} />
           </span>
           {identity}
-          <SubscriptionControl
+          <DeveloperSubscriptionPanel
             userId={userId}
-            name={data.user.displayName}
-            target={{
-              type: "PERSON",
-              authorUserId: data.user.userId,
-            }}
-            subscribed={signedIn && data.subscribed}
-            signedIn={signedIn}
-            disabled={busy}
-            onLogin={() => signIn()}
-            onSuccess={(message) => onNotice(message, 4000)}
+            publicId={publicId}
+            authorUserId={data.user.userId}
+            subscribed={data.subscribed}
           />
         </header>
       )}
@@ -338,7 +315,7 @@ function Catalog({
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-sm font-semibold">
-                태그로 좁히기
+                태그
               </h2>
               <TagSearch
                 key={tagQuery}
@@ -368,115 +345,24 @@ function Catalog({
             )}
             {tags.data && (
               <>
-                <ul className="flex flex-wrap gap-2">
-                  {tags.data.items.map(
-                    ({
+                <FilterChips
+                  options={tags.data.items.map(
+                    ({ id, name, quizCount }) => ({
                       id,
-                      name,
-                      quizCount,
-                      subscribed,
-                    }) => (
-                      <li
-                        key={id}
-                        className={developerStyles.tag}
-                      >
-                        <button
-                          type="button"
-                          disabled={busy}
-                          aria-pressed={hashtagId === id}
-                          className={
-                            developerStyles.tagFilter
-                          }
-                          onClick={() => {
-                            onChange({
-                              ...filters,
-                              hashtagId: id,
-                              page: 1,
-                            });
-                          }}
-                        >
-                          {name}{" "}
-                          <span className="text-muted">
-                            ({quizCount})
-                          </span>
-                        </button>
-                        <div className="flex shrink-0 items-center border-l border-line pl-1">
-                          {signedIn && subscribed ? (
-                            <>
-                              <span
-                                role="img"
-                                aria-label={`${name} 태그 구독 중`}
-                                className="flex size-5 items-center justify-center rounded-full bg-lime/55 text-xs text-primary"
-                              >
-                                ✓
-                              </span>
-                              <SubscriptionMenu
-                                name={name}
-                                busy={busy}
-                                onUnsubscribe={() => {
-                                  pendingTagFocus.current = `${name} 태그 구독하기`;
-                                  void subscribe
-                                    .mutateAsync({
-                                      target: {
-                                        type: "PERSON_HASHTAG",
-                                        authorUserId:
-                                          data.user.userId,
-                                        hashtagId: id,
-                                      },
-                                      subscribed: true,
-                                    })
-                                    .then(() =>
-                                      onNotice(
-                                        `${name} 태그 구독을 취소했습니다.`,
-                                        4000,
-                                      ),
-                                    )
-                                    .catch(() => undefined);
-                                }}
-                              />
-                            </>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className={
-                                developerStyles.tagSubscribe
-                              }
-                              disabled={busy}
-                              aria-label={`${name} 태그 구독하기`}
-                              onClick={() => {
-                                if (!signedIn) {
-                                  signIn();
-                                  return;
-                                }
-                                pendingTagFocus.current = `${name} 구독 메뉴`;
-                                void subscribe
-                                  .mutateAsync({
-                                    target: {
-                                      type: "PERSON_HASHTAG",
-                                      authorUserId:
-                                        data.user.userId,
-                                      hashtagId: id,
-                                    },
-                                    subscribed: false,
-                                  })
-                                  .then(() =>
-                                    onNotice(
-                                      `${name} 태그를 구독했습니다.`,
-                                      4000,
-                                    ),
-                                  )
-                                  .catch(() => undefined);
-                              }}
-                            >
-                              + 구독
-                            </Button>
-                          )}
-                        </div>
-                      </li>
-                    ),
+                      label: name,
+                      count: quizCount,
+                    }),
                   )}
-                </ul>
+                  value={hashtagIds}
+                  disabled={navigating}
+                  onChange={(selected) =>
+                    onChange({
+                      ...filters,
+                      hashtagIds: selected,
+                      page: 1,
+                    })
+                  }
+                />
                 {!tags.data.items.length && (
                   <p className="mt-4 text-sm text-muted">
                     표시할 태그가 없습니다.
@@ -515,11 +401,27 @@ function Catalog({
                 전체 보기 →
               </Link>
             )}
-            {!profile && hashtagId && (
+            {!profile && hashtagIds.length > 0 && (
               <div className="flex max-w-full flex-wrap items-center gap-2">
-                <span className="break-all rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                  #{hashtagId}
-                </span>
+                {hashtagIds.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-label={`${id} 필터 해제`}
+                    className="min-h-11 break-all rounded-xl bg-primary/10 px-3 text-xs font-semibold text-primary"
+                    onClick={() =>
+                      onChange({
+                        ...filters,
+                        hashtagIds: hashtagIds.filter(
+                          (selected) => selected !== id,
+                        ),
+                        page: 1,
+                      })
+                    }
+                  >
+                    #{id} ×
+                  </button>
+                ))}
                 <Button
                   size="sm"
                   variant="ghost"
@@ -527,7 +429,7 @@ function Catalog({
                   onClick={() =>
                     onChange({
                       ...filters,
-                      hashtagId: null,
+                      hashtagIds: [],
                       page: 1,
                     })
                   }
@@ -565,7 +467,7 @@ function Catalog({
             <EmptyState
               title="공개된 퀴즈가 없습니다"
               description={
-                !profile && hashtagId
+                !profile && hashtagIds.length > 0
                   ? "다른 태그를 선택해 보세요."
                   : "이 개발자가 공개한 퀴즈가 아직 없습니다."
               }
@@ -636,7 +538,9 @@ export function DeveloperScreen({
     page: positive(params.get("page")),
     tagPage: positive(params.get("tagPage")),
     tagQuery: params.get("tagQuery") ?? "",
-    hashtagId: params.get("tag"),
+    hashtagIds: [
+      ...new Set(params.getAll("tag").filter(Boolean)),
+    ].sort(),
   };
 
   return (
@@ -669,8 +573,10 @@ export function DeveloperScreen({
               page: String(next.page),
               tagPage: String(next.tagPage),
             });
-            if (next.hashtagId)
-              query.set("tag", next.hashtagId);
+            for (const id of [
+              ...new Set(next.hashtagIds),
+            ].sort())
+              query.append("tag", id);
             if (next.tagQuery)
               query.set("tagQuery", next.tagQuery);
             startTransition(() =>

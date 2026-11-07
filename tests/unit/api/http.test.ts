@@ -377,3 +377,35 @@ test("independent desk transforms use a typed table endpoint and preserve the ex
     }),
   );
 });
+
+test("developer multi-tag query preserves each tag as a repeated parameter", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(response({ data: {} }));
+
+  await createHttpTransport({ fetch: fetcher }).request(
+    "developerQuizzes",
+    {
+      publicId: "bugri-author",
+      page: 1,
+      pageSize: 20,
+      hashtagIds: ["javascript", "web"],
+    },
+  );
+
+  const {
+    mock: { calls },
+  } = fetcher;
+
+  const [[url]] = calls;
+  const parsed = new URL(url, "http://localhost");
+
+  expect(parsed.searchParams.getAll("hashtagIds")).toEqual([
+    "javascript",
+    "web",
+  ]);
+
+  expect(parsed.pathname).toBe(
+    "/api/v1/developers/bugri-author/quizzes",
+  );
+});

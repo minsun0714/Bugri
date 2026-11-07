@@ -53,15 +53,24 @@ for (const width of [1280, 390]) {
     await expect(quizzes.getByRole("link")).toHaveCount(1);
     expect(await subscriptions()).toEqual(before);
     const filteredUrl = page.url();
-    await tags
+    await page
       .getByRole("button", {
-        name: "TypeScript 태그 구독하기",
+        name: "구독 설정",
+        exact: true,
       })
       .click();
-    const menu = tags.getByRole("button", {
-      name: "TypeScript 구독 메뉴",
+    const panel = page.getByRole("dialog", {
+      name: "구독 설정",
     });
-    await expect(menu).toBeFocused();
+    const toggle = panel.getByRole("switch", {
+      name: "TypeScript 구독",
+    });
+    await toggle.click();
+    await expect(toggle).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await expect(panel).toBeVisible();
     await expect(page).toHaveURL(filteredUrl);
     expect(await subscriptions()).toEqual([
       expect.objectContaining({
@@ -70,25 +79,61 @@ for (const width of [1280, 390]) {
         hashtagId: "typescript",
       }),
     ]);
-    await expect(
-      tags.getByRole("img", {
-        name: "TypeScript 태그 구독 중",
-      }),
-    ).toBeVisible();
-    await menu.click();
-    await tags
-      .getByRole("menuitem", { name: "구독 해제" })
+    await toggle.click();
+    await expect(toggle).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+    await panel
+      .getByRole("switch", { name: "개발자 전체 구독" })
       .click();
     await expect(
-      tags.getByRole("button", {
-        name: "TypeScript 태그 구독하기",
+      panel.getByRole("switch", {
+        name: "개발자 전체 구독",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+    await panel
+      .getByRole("switch", { name: "개발자 전체 구독" })
+      .click();
+    await expect(
+      panel.getByRole("switch", {
+        name: "개발자 전체 구독",
+      }),
+    ).toHaveAttribute("aria-checked", "false");
+    await panel.getByRole("searchbox").fill("web");
+    await expect(
+      panel.getByRole("switch", { name: "Web 구독" }),
+    ).toBeVisible();
+    await expect(toggle).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(panel).not.toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: "구독 설정",
+        exact: true,
       }),
     ).toBeFocused();
     await expect(page).toHaveURL(filteredUrl);
+    await tags
+      .getByRole("button", { name: "Web (1)", exact: true })
+      .click();
+    await expect(quizzes.getByRole("link")).toHaveCount(2);
+    await expect(page).toHaveURL(
+      (url) => url.searchParams.getAll("tag").length === 2,
+    );
+    await tag.click();
+    await expect(quizzes.getByRole("link")).toHaveCount(1);
+    await tag.click();
     await expect(tag).toHaveAttribute(
       "aria-pressed",
       "true",
     );
+    await expect(quizzes.getByRole("link")).toHaveCount(2);
+    await tags
+      .getByRole("button", { name: "Web (1)", exact: true })
+      .click();
+    await expect(page).toHaveURL(filteredUrl);
+    await expect(quizzes.getByRole("link")).toHaveCount(1);
     expect(await subscriptions()).toEqual(before);
     await page.reload();
     await expect(quizzes.getByRole("link")).toHaveCount(1);
@@ -102,9 +147,9 @@ for (const width of [1280, 390]) {
     ).toBeVisible();
     await expect(tag).toHaveCount(0);
     await expect(
-      quizzes
-        .getByText("#typescript", { exact: true })
-        .first(),
+      quizzes.getByRole("button", {
+        name: "typescript 필터 해제",
+      }),
     ).toBeVisible();
     await quizzes
       .getByRole("button", {
@@ -151,12 +196,18 @@ test("guest filtering stays anonymous and subscription requires explicit demo se
       url.searchParams.get("tag") === "typescript" &&
       !url.searchParams.has("user"),
   );
-  await tags
-    .getByRole("button", {
-      name: "TypeScript 태그 구독하기",
-    })
+  await page
+    .getByRole("button", { name: "구독 설정", exact: true })
     .click();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await page
+    .getByRole("dialog", { name: "구독 설정" })
+    .getByRole("switch", { name: "TypeScript 구독" })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: "선택한 사용자로 시작",
+    }),
+  ).toBeVisible();
   const subscriptions = await page.evaluate(
     () =>
       JSON.parse(
@@ -208,3 +259,55 @@ test("empty and unknown developer pages show distinct states on mobile", async (
     }),
   ).toBeVisible();
 });
+
+for (const width of [1280, 390]) {
+  test(`subscription panel keeps controls visible in a short viewport at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 500 });
+    await page.goto(
+      "/developers/bugri-author/quizzes?user=friend",
+    );
+    await page
+      .getByRole("button", {
+        name: "구독 설정",
+        exact: true,
+      })
+      .click();
+    const panel = page.getByRole("dialog", {
+      name: "구독 설정",
+    });
+    await expect(
+      panel.getByRole("switch", {
+        name: "TypeScript 구독",
+      }),
+    ).toBeAttached();
+    for (const control of [
+      panel.getByRole("searchbox"),
+      panel.getByRole("button", { name: "구독 설정 닫기" }),
+      panel.getByRole("navigation", {
+        name: "구독 태그 페이지",
+      }),
+    ]) {
+      const bounds = await control.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.y).toBeGreaterThanOrEqual(0);
+      expect(
+        bounds!.y + bounds!.height,
+      ).toBeLessThanOrEqual(500);
+    }
+    expect(
+      await panel.evaluate(
+        (element) =>
+          element.scrollHeight <= element.clientHeight,
+      ),
+    ).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(
+      page.getByRole("button", {
+        name: "구독 설정",
+        exact: true,
+      }),
+    ).toBeFocused();
+  });
+}

@@ -288,7 +288,10 @@ export function createHttpTransport(
       if (method === "GET")
         for (const [key, value] of Object.entries(params))
           if (value !== undefined && value !== null)
-            query.set(key, String(value));
+            if (Array.isArray(value)) {
+              for (const item of value)
+                query.append(key, String(item));
+            } else query.set(key, String(value));
 
       let response: globalThis.Response;
 

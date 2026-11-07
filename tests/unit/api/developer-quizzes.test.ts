@@ -275,3 +275,38 @@ test("public content approval keeps publication time; private-to-public sets a n
     "2026-11-07T00:00:00.000Z",
   );
 });
+
+test("multiple tag filters use union before pagination and reject malformed lists", async () => {
+  const selected = {
+    ...query,
+    hashtagIds: ["javascript", "web"],
+  };
+
+  const result = await api().request(
+    "developerQuizzes",
+    selected,
+  );
+
+  expect(result.total).toBe(1);
+
+  expect(result.items.map(({ quizId }) => quizId)).toEqual([
+    "seed-quiz-2",
+  ]);
+
+  const union = await api().request("developerQuizzes", {
+    ...query,
+    hashtagIds: ["typescript", "web"],
+    pageSize: 1,
+    page: 2,
+  });
+
+  expect(union.total).toBe(2);
+  expect(union.items).toHaveLength(1);
+
+  await expect(
+    api().request("developerQuizzes", {
+      ...query,
+      hashtagIds: [3],
+    } as never),
+  ).rejects.toMatchObject({ status: 400 });
+});

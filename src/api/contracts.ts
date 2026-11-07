@@ -471,6 +471,7 @@ export interface ApiOperations {
   };
   developerQuizzes: {
     request: DeveloperPageQuery & {
+      hashtagIds?: string[];
       hashtagId?: string | null;
     };
     response: DeveloperQuizzesPage;
