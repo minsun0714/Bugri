@@ -527,6 +527,44 @@ test("stale tabs cannot overwrite and keep unsaved edits", async ({
   ).toHaveValue("먼저 저장한 제목");
 });
 
+test("quiz management keeps compact list filters when returning from review", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/quizzes/authoring/manage?user=author");
+  const list = page.getByRole("region", {
+    name: "내 퀴즈 목록",
+  });
+
+  await expect(
+    page.getByRole("heading", { name: "내 퀴즈 2" }),
+  ).toBeVisible();
+  await expect(
+    list.getByRole("tab", { name: "공개 2" }),
+  ).toBeVisible();
+  await expect(list.getByText("PUBLIC")).toHaveCount(0);
+  await list
+    .getByRole("searchbox", { name: "퀴즈 검색" })
+    .fill("타입");
+  await expect(page).toHaveURL(/q=%ED%83%80%EC%9E%85/);
+  await expect(list.getByRole("article")).toHaveCount(1);
+  await list
+    .getByRole("button", { name: "타입 선언 관리하기" })
+    .click();
+  await expect(page).toHaveURL(/quiz=seed-quiz-1/);
+  await page
+    .getByRole("button", { name: "내 퀴즈로 돌아가기" })
+    .click();
+  await expect(
+    list.getByRole("searchbox", { name: "퀴즈 검색" }),
+  ).toHaveValue("타입");
+  await expect(list.getByRole("article")).toHaveCount(1);
+  await expect(page.locator("body")).toHaveJSProperty(
+    "scrollWidth",
+    390,
+  );
+});
+
 test("supplementary help opens on hover, focus and mobile tap", async ({
   page,
 }) => {

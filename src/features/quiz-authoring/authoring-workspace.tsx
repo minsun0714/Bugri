@@ -10,7 +10,6 @@ import {
 } from "@/api/contracts";
 import {
   Button,
-  Card,
   EmptyState,
   Skeleton,
 } from "@/components/ui";
@@ -24,6 +23,12 @@ import {
   leaveMessage,
   useUnsavedWarning,
 } from "@/features/quiz-authoring/use-unsaved-warning";
+import {
+  QuizList,
+  QuizListFilter,
+  QuizListSort,
+  type QuizListView,
+} from "@/features/quiz-authoring/quiz-list";
 
 function subscribe(callback: () => void) {
   window.addEventListener("popstate", callback);
@@ -31,12 +36,34 @@ function subscribe(callback: () => void) {
     window.removeEventListener("popstate", callback);
 }
 
-function setLocationParam(key: string, value?: string) {
+function setLocationParams(
+  updates: Record<string, string | undefined>,
+) {
   const url = new URL(window.location.href);
-  if (value) url.searchParams.set(key, value);
-  else url.searchParams.delete(key);
+
+  Object.entries(updates).forEach(([key, value]) => {
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+  });
+
   window.history.replaceState(null, "", url);
   window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
+function readFilter(value: string | null) {
+  return (
+    Object.values(QuizListFilter).find(
+      (filter) => filter === value,
+    ) ?? QuizListFilter.ALL
+  );
+}
+
+function readSort(value: string | null) {
+  return (
+    Object.values(QuizListSort).find(
+      (sort) => sort === value,
+    ) ?? QuizListSort.NEWEST
+  );
 }
 
 export function AuthoringWorkspace({
@@ -65,6 +92,16 @@ function Workspace({
   const userId = params.get("user") ?? "learner";
   const quizId = params.get("quiz") ?? "";
   const batchId = params.get("batch") ?? "";
+  const parsedPage = Number(params.get("page") ?? "1");
+  const listView: QuizListView = {
+    query: params.get("q") ?? "",
+    filter: readFilter(params.get("status")),
+    sort: readSort(params.get("sort")),
+    page:
+      Number.isInteger(parsedPage) && parsedPage > 0
+        ? parsedPage
+        : 1,
+  };
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -115,18 +152,50 @@ function Workspace({
 
   function showResults({ batchId }: GenerationBatch) {
     setDirty(false);
-    setLocationParam("batch", batchId);
+    setLocationParams({ batch: batchId });
   }
   function closeReview() {
     setDirty(false);
-    setLocationParam("quiz");
+    setLocationParams({ quiz: undefined });
   }
   function openReview(id: string) {
     if (busy || (dirty && !window.confirm(leaveMessage)))
       return;
     setDirty(false);
-    setLocationParam("quiz", id);
+    setLocationParams({ quiz: id });
     setNotice("");
+  }
+
+  function changeListView(change: Partial<QuizListView>) {
+    setLocationParams({
+      ...(change.query !== undefined
+        ? { q: change.query || undefined }
+        : {}),
+      ...(change.filter !== undefined
+        ? {
+            status:
+              change.filter === QuizListFilter.ALL
+                ? undefined
+                : change.filter,
+          }
+        : {}),
+      ...(change.sort !== undefined
+        ? {
+            sort:
+              change.sort === QuizListSort.NEWEST
+                ? undefined
+                : change.sort,
+          }
+        : {}),
+      ...(change.page !== undefined
+        ? {
+            page:
+              change.page === 1
+                ? undefined
+                : String(change.page),
+          }
+        : {}),
+    });
   }
 
   async function retry() {
@@ -220,17 +289,6 @@ function Workspace({
 
   return (
     <div className={styles.stack}>
-      {!quizId && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold">내 퀴즈</h1>
-          <a
-            href={createHref}
-            className="text-sm font-semibold text-primary"
-          >
-            퀴즈 만들기 ↗
-          </a>
-        </div>
-      )}
       {notice && (
         <p role="status" className="text-primary">
           {notice}
@@ -261,72 +319,16 @@ function Workspace({
         </>
       )}
       {!quizId && (
-        <section
-          id="my-quizzes"
-          className={styles.stack}
-          aria-label="내 퀴즈 목록"
-        >
-          <div className={styles.actions}>
-            <Button
-              variant="ghost"
-              disabled={list.isFetching}
-              onClick={() => void list.refetch()}
-            >
-              목록 새로고침
-            </Button>
-          </div>
-          {!list.data?.length && (
-            <EmptyState
-              title="저장한 퀴즈가 없습니다"
-              description="퀴즈를 만들고 마음에 드는 결과를 저장하세요."
-              action={
-                <a
-                  href={createHref}
-                  className="text-primary underline"
-                >
-                  퀴즈 만들기
-                </a>
-              }
-            />
-          )}
-          {list.data?.map(
-            ({
-              quizId: id,
-              title,
-              status,
-              updatedAt,
-              hasPendingRevision,
-            }) => (
-              <Card key={id} className="grid gap-3">
-                <h2>{title}</h2>
-                <p>
-                  {status}
-                  {hasPendingRevision
-                    ? " · 검토할 수정본 있음"
-                    : ""}
-                </p>
-                <time
-                  dateTime={updatedAt}
-                  className="text-sm text-muted"
-                >
-                  최종 저장:{" "}
-                  {new Date(updatedAt).toLocaleString(
-                    "ko-KR",
-                  )}
-                </time>
-                <div className={styles.actions}>
-                  <Button
-                    variant="secondary"
-                    disabled={busy}
-                    onClick={() => openReview(id)}
-                  >
-                    {title} 검토·관리
-                  </Button>
-                </div>
-              </Card>
-            ),
-          )}
-        </section>
+        <QuizList
+          quizzes={list.data ?? []}
+          view={listView}
+          createHref={createHref}
+          isFetching={list.isFetching}
+          busy={busy}
+          onViewChange={changeListView}
+          onOpen={openReview}
+          onRefresh={() => void list.refetch()}
+        />
       )}
     </div>
   );
