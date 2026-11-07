@@ -11,12 +11,12 @@ export function HomeSections() {
 
   return (
     <div className="space-y-6">
-      <FeatureSectionShell
-        id={
-          signedIn ? "learning-streak" : "guest-quiz-trial"
-        }
-        title={signedIn ? "연속 학습" : "랜덤 퀴즈 체험"}
-      />
+      {signedIn && (
+        <FeatureSectionShell
+          id="learning-streak"
+          title="연속 학습"
+        />
+      )}
       <Suspense fallback={<Skeleton />}>
         <SolveScreen />
       </Suspense>
