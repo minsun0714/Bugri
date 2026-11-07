@@ -423,6 +423,7 @@ export function createDeskEngine(
             100 +
           framingHeight +
           1800,
+        yaw,
       );
     }
     anchors.forEach((anchor, category) => {

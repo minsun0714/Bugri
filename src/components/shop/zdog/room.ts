@@ -154,18 +154,35 @@ export function room(
     color: theme.glow,
     backface: false,
   });
-  let extent = 0;
-  return (required: number) => {
-    const next = Math.max(1800, Math.ceil(required));
-    if (next === extent) return;
-    extent = next;
+  let previous = "";
+  return (required: number, yaw = 45) => {
+    const extent = Math.max(1800, Math.ceil(required));
+    const key = `${extent}:${yaw}`;
+    if (key === previous) return;
+    previous = key;
+    const angle = (yaw * Math.PI) / 180;
+    const sine = Math.sin(angle);
+    const cosine = Math.cos(angle);
+    // Clip only where visible walls meet. Their other ends continue beyond
+    // the viewport, even when a wall is almost edge-on to the camera.
+    const reachX =
+      extent / Math.max(0.001, Math.abs(cosine));
+    const reachZ = extent / Math.max(0.001, Math.abs(sine));
+    const minX = sine > 0.000001 ? -900 : -reachX;
+    const maxX = sine < -0.000001 ? 900 : reachX;
+    const minZ = cosine > 0.000001 ? -420 : -reachZ;
+    const maxZ = cosine < -0.000001 ? 900 : reachZ;
     floor.width = floor.height = extent * 2;
     floor.updatePath();
-    for (const wall of walls) {
-      wall.width = wall.height = extent * 2;
+    walls.forEach((wall, index) => {
+      const alongX = index % 2 === 0;
+      wall.width = alongX ? maxX - minX : maxZ - minZ;
+      wall.height = extent * 2;
+      if (alongX) wall.translate.x = (minX + maxX) / 2;
+      else wall.translate.z = (minZ + maxZ) / 2;
       wall.translate.y = 2 - extent;
       wall.updatePath();
-    }
+    });
   };
 }
 
