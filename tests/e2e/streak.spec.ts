@@ -12,10 +12,29 @@ test("home streak updates after submission, survives reload and isolates users",
   await page
     .getByRole("button", { name: "Google 로그인 (데모)" })
     .click();
-  await expect(summary.getByText("0일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("오늘부터 시작"),
+  ).toBeVisible();
   await expect(summary.getByRole("listitem")).toHaveCount(
     7,
   );
+  await page.screenshot({
+    path: testInfo.outputPath("streak-empty-desktop.png"),
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: testInfo.outputPath("streak-empty-mobile.png"),
+  });
+  const help = summary.getByRole("button", {
+    name: "학습일 기준 안내",
+  });
+  await help.focus();
+  await expect(page.getByRole("tooltip")).toContainText(
+    "기준",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.getByLabel("number", { exact: true }).check();
   await page
     .getByRole("button", { name: "답 제출", exact: true })
@@ -60,8 +79,10 @@ test("home streak updates after submission, survives reload and isolates users",
   await page
     .getByLabel("더미 사용자", { exact: true })
     .selectOption("friend");
-  await expect(summary.getByText("0일 연속")).toBeVisible();
   await expect(
-    summary.getByText("오늘 아직 미완료"),
+    summary.getByText("오늘부터 시작"),
+  ).toBeVisible();
+  await expect(
+    summary.getByText("한 문제 풀고 첫 기록"),
   ).toBeVisible();
 });

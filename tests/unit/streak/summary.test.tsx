@@ -45,7 +45,7 @@ test("keeps yesterday's streak and displays seven dated completion states across
   setup();
   expect(await screen.findByText("2일 연속")).toBeVisible();
   expect(
-    screen.getByText("오늘 아직 미완료"),
+    screen.getByText("오늘 한 문제로 이어가요"),
   ).toBeVisible();
   expect(screen.getAllByRole("listitem")).toHaveLength(7);
   expect(
@@ -54,7 +54,14 @@ test("keeps yesterday's streak and displays seven dated completion states across
   expect(
     screen.getByLabelText("2026-01-02 오늘 미완료"),
   ).toBeVisible();
-  expect(screen.getByText("Asia/Seoul 기준")).toBeVisible();
+  fireEvent.focus(
+    screen.getByRole("button", {
+      name: "학습일 기준 안내",
+    }),
+  );
+  expect(screen.getByRole("tooltip")).toHaveTextContent(
+    "Asia/Seoul 기준",
+  );
 });
 
 test("does not show the previous user's data while the next user loads", async () => {
