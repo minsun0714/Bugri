@@ -1,3 +1,4 @@
+import { monitorScreen } from "@/components/shop/monitor-screen";
 import { useId, type ReactNode } from "react";
 import { Category } from "@/api/constants";
 import type { DeskPositions } from "@/api/contracts";
@@ -134,42 +135,41 @@ function Monitor({ night = false }: { night?: boolean }) {
         rx="12"
         fill={night ? "#514961" : "#e8dff5"}
       />
-      <rect
+      <svg
         x="207"
         y="96"
         width="194"
         height="110"
-        rx="7"
-        fill={night ? "#23223c" : "#7355ae"}
-      />
-      <path
-        d="M208 170q52-60 99-13t93-32v73q0 8-8 8H215q-8 0-8-8z"
-        fill={night ? "#6459a3" : "#a992d7"}
-      />
-      <path
-        d="M208 190q65-40 110-10t83-15v33q0 8-8 8H215q-8 0-8-8z"
-        fill={night ? "#9186c4" : "#c5afe5"}
-      />
-      <circle cx="365" cy="121" r="13" fill="#ffe8aa" />
-      <rect
-        x="229"
-        y="116"
-        width="91"
-        height="57"
-        rx="6"
-        fill="#27233c"
-        opacity=".9"
-      />
-      <circle cx="237" cy="124" r="2" fill="#f8aab7" />
-      <circle cx="244" cy="124" r="2" fill="#ffe8aa" />
-      <circle cx="251" cy="124" r="2" fill="#cbe1bd" />
-      <path
-        d="m240 140 5 4-5 4m11 0h13m-24 10h47"
-        stroke="#dcf58c"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-      />
+        viewBox="-75 -40 150 80"
+        preserveAspectRatio="none"
+      >
+        {monitorScreen(night).map((mark, index) => {
+          const { x, y, color } = mark;
+          if (mark.kind === "circle") {
+            const { diameter } = mark;
+            return (
+              <circle
+                key={index}
+                cx={x}
+                cy={y}
+                r={diameter / 2}
+                fill={color}
+              />
+            );
+          }
+          const { width, height } = mark;
+          return (
+            <rect
+              key={index}
+              x={x - width / 2}
+              y={y - height / 2}
+              width={width}
+              height={height}
+              fill={color}
+            />
+          );
+        })}
+      </svg>
       <circle cx="304" cy="212" r="2" fill="#9c8eb5" />
     </g>
   );

@@ -13,7 +13,7 @@ export const shopItems: readonly Product[] = [
     productId: "monitor-1",
     name: "집중 모니터",
     description:
-      "라일락 프레임 속 작은 터미널과 보랏빛 언덕.",
+      "밝은 타이머와 체크리스트로 차분하게 집중하는 화면.",
     category: Category.MONITOR,
     price: 80,
   },
@@ -52,7 +52,7 @@ export const shopItems: readonly Product[] = [
     productId: "monitor-2",
     name: "미드나잇 모니터",
     description:
-      "짙은 프레임과 달빛 화면으로 완성하는 밤의 작업실.",
+      "짙은 프레임과 다채로운 코드 화면으로 완성하는 밤의 작업실.",
     category: Category.MONITOR,
     price: 95,
   },

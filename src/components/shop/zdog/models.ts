@@ -1,4 +1,5 @@
 import * as Zdog from "zdog";
+import { monitorScreen } from "@/components/shop/monitor-screen";
 
 function box(
   parent: Zdog.Anchor,
@@ -56,10 +57,25 @@ export function model(parent: Zdog.Anchor, id: string) {
       }
     box(keys, [60, 4, 8], [0, -10, 20], "#dcf58c");
   } else if (id.startsWith("monitor")) {
-    box(root, [75, 5, 45], [0, -2.5, 0], "#c9c0dc");
-    box(root, [14, 42, 12], [0, -24, 0], "#ada1c3");
     box(
       root,
+      [75, 5, 45],
+      [0, -2.5, 0],
+      second ? "#393448" : "#c9c0dc",
+    );
+    box(
+      root,
+      [14, 42, 12],
+      [0, -24, 0],
+      second ? "#50475e" : "#ada1c3",
+    );
+    // Draw screen art after the housing; artwork density must not affect depth sorting.
+    const display = new Zdog.Group({
+      addTo: root,
+      updateSort: false,
+    });
+    box(
+      display,
       [170, 100, 14],
       [0, -88, 0],
       second ? "#393448" : "#d9d1e8",
@@ -69,31 +85,31 @@ export function model(parent: Zdog.Anchor, id: string) {
       },
     );
     // Flat decorations stay on their respective face and cull when facing away.
-    const front = new Zdog.Anchor({
-      addTo: root,
+    const front = new Zdog.Group({
+      addTo: display,
       translate: { y: -88, z: 7.5 },
+      updateSort: false,
     });
-    new Zdog.Rect({
-      addTo: front,
-      width: 150,
-      height: 80,
-      fill: true,
-      stroke: 0,
-      color: "#36304e",
-      backface: false,
-    });
-    new Zdog.Rect({
-      addTo: front,
-      width: 130,
-      height: 7,
-      translate: { y: -28, z: 0.1 },
-      fill: true,
-      stroke: 0,
-      color: "#8964ee",
-      backface: false,
-    });
+    for (const mark of monitorScreen(second)) {
+      const { x, y, color } = mark;
+      const options = {
+        addTo: front,
+        translate: { x, y },
+        fill: true,
+        stroke: 0,
+        color,
+        backface: false,
+      };
+      if (mark.kind === "rect") {
+        const { width, height } = mark;
+        new Zdog.Rect({ ...options, width, height });
+      } else {
+        const { diameter } = mark;
+        new Zdog.Ellipse({ ...options, diameter });
+      }
+    }
     const rear = new Zdog.Anchor({
-      addTo: root,
+      addTo: display,
       translate: { y: -88, z: -7.5 },
       rotate: { y: Math.PI },
     });

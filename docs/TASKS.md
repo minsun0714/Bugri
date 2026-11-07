@@ -312,3 +312,11 @@
 - 실패 분석: 구매 후 버튼 부재 단위 테스트의 의도한 실패 확인. 첫 전체 verify에서는 기존 E2E 10개가 구매 후 제거된 미리보기 버튼을 클릭하여 실패했다. 승인된 새 흐름에 맞춰 미리보기 안에서 구매하거나 내 데스크에서 장착하도록 진입만 수정했으며 기존 이동·회전·저장·가림 검증은 유지했다.
 - 검증: 관련 단위 7개·E2E 13개 통과. PC/모바일에서 가로 버튼 배치, 구매 전후 가격/버튼 상대 위치와 카드 높이 유지, 보유 상품 버튼 부재와 미보유 상품 취소 후 저장 상태 보존 확인. 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/75 tests·도구 3 tests·build·Playwright 24 tests). 로그 `.bugri-hooks/owned-no-trial-layout-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
+
+## P08-MONITOR-SCREENS 모니터 상품 화면 구분
+
+- 상태: IN_PROGRESS. 집중 모니터는 밝은 타이머/체크리스트, 미드나잇 모니터는 어두운 코드 편집기 화면으로 구분한다. 상품 썸네일·장착 Canvas 모델·SVG 대체 이미지에 적용한다. 시각 자산 변경이므로 화면 확인 및 기존 전체 verify로 검증한다.
+- 구현: 화면 도형 정의를 Canvas 모델과 SVG 대체 이미지에서 공유한다. 집중 모니터에 밝은 초록 타이머/체크리스트, 미드나잇 모니터에 어두운 편집기/색상 구문과 짙은 받침대를 적용하고 설명을 갱신했다. 상품 카드·장착 미리보기 실제 화면 확인.
+- 실패 분석: 화면 무늬의 도형 분포가 깊이 정렬에 영향을 주어 미드나잇 화면이 본체에 가려지는 문제를 발견했다. 본체와 화면을 같은 표시 그룹에 두고 본체 다음에 화면을 그리도록 수정했다. 새 회귀 테스트는 Canvas 타입 누락, 회전 전 선택 누락, Escape가 모달 닫기 대신 편집 취소로 처리되는 진입 문제로 실패했다. 타입/선택/명시적 닫기 단계를 보완했으며 기대값은 유지했다.
+- 검증: 모니터 두 종류의 앞면 화면 픽셀 표시·180도 뒷면 숨김·0도 복원 E2E 통과. 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/75 tests·도구 3 tests·build·Playwright 25 tests). 로그 `.bugri-hooks/monitor-screens-verify-final.log`, `git diff --check` 통과.
+- 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
