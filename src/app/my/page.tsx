@@ -24,7 +24,7 @@ async function Content({ searchParams }: Props) {
       </Link>
       <div className="mt-6">
         <CoinHistory userId={initialUser} />
-        <div className="mt-8 grid sm:grid-cols-3 sm:gap-6">
+        <div className="mt-8">
           <FeatureSectionShell
             compact
             id="profile"
@@ -49,7 +49,7 @@ async function Content({ searchParams }: Props) {
 export default function Page(props: Props) {
   return (
     <ProductLayout>
-      <div className="mx-auto max-w-3xl">
+      <div>
         <h1 className="mb-4 text-3xl font-semibold">
           마이페이지
         </h1>
