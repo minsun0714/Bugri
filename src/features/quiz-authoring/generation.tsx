@@ -103,6 +103,32 @@ export function Generation(props: GenerationProps) {
           className={styles.stack}
           aria-label="생성 후보"
         >
+          {!editing && (
+            <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-muted">
+              <span>
+                {
+                  batch.candidates.filter(
+                    ({ savedQuizId }) => savedQuizId,
+                  ).length
+                }{" "}
+                / {batch.candidates.length}개 저장됨
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={
+                  busy ||
+                  hasDrafts ||
+                  batch.candidates.every(
+                    ({ savedQuizId }) => !!savedQuizId,
+                  )
+                }
+                onClick={() => save()}
+              >
+                남은 후보 모두 저장
+              </Button>
+            </div>
+          )}
           <Tabs
             label="퀴즈 선택"
             items={tabLabels}
@@ -300,39 +326,37 @@ export function Generation(props: GenerationProps) {
                       )}
                     </div>
                   </Tabs>
-                  {!candidate.savedQuizId && !editing && (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        size="sm"
-                        disabled={busy || !!prompt.trim()}
-                        onClick={publish}
-                      >
-                        바로 공개
-                      </Button>
-                      <Tooltip label="바로 공개 도움말">
-                        현재 퀴즈의 문제·정답·해설·태그를
-                        확인했다는 뜻으로, 이 퀴즈 한 개를
-                        저장하고 모두에게 공개합니다.
-                      </Tooltip>
-                    </div>
-                  )}
-                  {!editing && (
-                    <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
-                      {candidate.savedQuizId ? (
-                        <div className="flex items-center gap-3 text-xs text-muted">
-                          <span>저장 완료</span>
-                          <a
-                            className="font-semibold text-primary underline"
-                            href={`${manageHref}&quiz=${encodeURIComponent(candidate.savedQuizId)}`}
+                  {!editing &&
+                    (candidate.savedQuizId ? (
+                      <div className="flex items-center gap-3 border-t border-line pt-3 text-xs text-muted">
+                        <span>저장 완료</span>
+                        <a
+                          className="font-semibold text-primary underline"
+                          href={`${manageHref}&quiz=${encodeURIComponent(candidate.savedQuizId)}`}
+                        >
+                          검토·승인
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="sm"
+                            disabled={
+                              busy || !!prompt.trim()
+                            }
+                            onClick={publish}
                           >
-                            검토·승인
-                          </a>
+                            바로 공개
+                          </Button>
+                          <Tooltip label="바로 공개 도움말">
+                            현재 퀴즈의
+                            문제·정답·해설·태그를 확인했다는
+                            뜻으로, 이 퀴즈 한 개를 저장하고
+                            모두에게 공개합니다.
+                          </Tooltip>
                         </div>
-                      ) : (
-                        <span />
-                      )}
-                      {!candidate.savedQuizId && (
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             size="sm"
                             variant="ghost"
@@ -350,39 +374,12 @@ export function Generation(props: GenerationProps) {
                             저장합니다.
                           </Tooltip>
                         </div>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    ))}
                 </Card>
               </div>
             </div>
           </Tabs>
-          {!editing && (
-            <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-muted">
-              <span>
-                {
-                  batch.candidates.filter(
-                    ({ savedQuizId }) => savedQuizId,
-                  ).length
-                }{" "}
-                / {batch.candidates.length}개 저장됨
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={
-                  busy ||
-                  hasDrafts ||
-                  batch.candidates.every(
-                    ({ savedQuizId }) => !!savedQuizId,
-                  )
-                }
-                onClick={() => save()}
-              >
-                남은 후보 모두 저장
-              </Button>
-            </div>
-          )}
         </section>
       )}
     </section>
