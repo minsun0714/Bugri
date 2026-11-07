@@ -108,3 +108,21 @@ test("distinguishes missing timezone from an empty learning history", async () =
     screen.queryByText("0일 연속"),
   ).not.toBeInTheDocument();
 });
+
+test("returning learners keep their history and are invited to restart, not create a first record", async () => {
+  request.mockResolvedValue({
+    ...day,
+    streak: 0,
+    completedDates: ["2025-12-29"],
+  });
+  setup();
+  expect(
+    await screen.findByText("오늘부터 다시"),
+  ).toBeVisible();
+  expect(
+    screen.queryByText("한 문제 풀고 첫 기록"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByLabelText("2025-12-29 학습 완료"),
+  ).toBeVisible();
+});

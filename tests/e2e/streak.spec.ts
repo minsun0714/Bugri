@@ -86,3 +86,57 @@ test("home streak updates after submission, survives reload and isolates users",
     summary.getByText("한 문제 풀고 첫 기록"),
   ).toBeVisible();
 });
+
+test("a returning learner restarts without losing earlier completed days", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+  await page
+    .getByRole("heading", {
+      name: "타입 선언",
+      exact: true,
+    })
+    .waitFor();
+  await page.evaluate(() => {
+    const key = "bugri:mock:v1:learner";
+    const state = JSON.parse(localStorage.getItem(key)!);
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() - 3);
+    const learningDate = date.toISOString().slice(0, 10);
+    state.timeZone = "Asia/Seoul";
+    state.days = [
+      {
+        learningDate,
+        timeZone: "Asia/Seoul",
+        completedAt: `${learningDate}T00:00:00Z`,
+      },
+    ];
+    localStorage.setItem(key, JSON.stringify(state));
+  });
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Google 로그인 (데모)" })
+    .click();
+  const summary = page.getByRole("region", {
+    name: "연속 학습",
+    exact: true,
+  });
+  await expect(
+    summary.getByText("오늘부터 다시", { exact: true }),
+  ).toBeVisible();
+  await expect(summary.getByLabel(/학습 완료/)).toHaveCount(
+    1,
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: testInfo.outputPath("returning-mobile.png"),
+  });
+  await page.getByLabel("number", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "답 제출", exact: true })
+    .click();
+  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(summary.getByLabel(/학습 완료/)).toHaveCount(
+    2,
+  );
+});

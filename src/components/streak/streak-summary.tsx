@@ -56,7 +56,9 @@ export function StreakSummary({
             <strong className="block text-2xl font-bold tracking-tight text-foreground">
               {data.streak > 0
                 ? `${data.streak}일 연속`
-                : "오늘부터 시작"}
+                : data.completedDates.length > 0
+                  ? "오늘부터 다시"
+                  : "오늘부터 시작"}
             </strong>
             <p
               className={
@@ -69,7 +71,9 @@ export function StreakSummary({
                 ? "✓ 오늘 학습 완료"
                 : data.streak > 0
                   ? "오늘 한 문제로 이어가요"
-                  : "한 문제 풀고 첫 기록"}
+                  : data.completedDates.length > 0
+                    ? "한 문제로 다시 시작해요"
+                    : "한 문제 풀고 첫 기록"}
             </p>
           </div>
           <ol
