@@ -8,6 +8,16 @@ import {
 } from "@testing-library/react";
 import { DeveloperScreen } from "@/components/developer/developer-screen";
 
+jest.mock("react-markdown", () => ({
+  __esModule: true,
+  default: ({ children }: { children: string }) => (
+    <div>{children}</div>
+  ),
+}));
+jest.mock("rehype-highlight", () => ({
+  __esModule: true,
+  default: () => {},
+}));
 const push = jest.fn();
 jest.mock("next/navigation", () => ({
   useParams: () => ({ publicId: "bugri-author" }),
@@ -87,7 +97,7 @@ test("public profile previews quizzes without filters and requires login before 
   );
   expect(
     await screen.findByRole("heading", {
-      name: "타입 개발자",
+      name: "@bugri-author",
     }),
   ).toBeVisible();
   expect(
@@ -101,7 +111,7 @@ test("public profile previews quizzes without filters and requires login before 
   );
   fireEvent.click(
     screen.getByRole("button", {
-      name: "로그인하고 구독하기",
+      name: "구독하기",
     }),
   );
   expect(await api.request("subscriptions", {})).toEqual(

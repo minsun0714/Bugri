@@ -96,3 +96,14 @@ export const ConversationRole = {
 
 export type ConversationRole =
   (typeof ConversationRole)[keyof typeof ConversationRole];
+
+export const ProfileLinkKind = {
+  GITHUB: "GITHUB",
+  BLOG: "BLOG",
+  PORTFOLIO: "PORTFOLIO",
+  LINKEDIN: "LINKEDIN",
+  OTHER: "OTHER",
+} as const;
+
+export type ProfileLinkKind =
+  (typeof ProfileLinkKind)[keyof typeof ProfileLinkKind];

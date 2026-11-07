@@ -1,3 +1,4 @@
+import { validateProfileAbout } from "@/lib/profile-about";
 import {
   deskItems,
   normalizeOrder,
@@ -152,6 +153,8 @@ const allowed: Record<Operation, string[]> = {
     "productId",
     "transform",
   ],
+  profileAbout: ["publicId"],
+  updateProfileAbout: ["biography", "links"],
   publicProfile: ["publicId"],
 };
 
@@ -1561,6 +1564,52 @@ export function execute<K extends Operation>(
       s.transforms[category] = r.transform;
 
       return s.transforms;
+    }
+
+    case "updateProfileAbout": {
+      const errors = validateProfileAbout(r);
+
+      requireValue(
+        Object.keys(errors).length === 0,
+        Object.values(errors)[0] ??
+          "프로필 입력을 확인하세요.",
+      );
+
+      s.profileAbout = {
+        biography: r.biography as string,
+        links: (
+          r.links as import("@/api/contracts").ProfileLink[]
+        ).map(({ kind, url, label }) => ({
+          kind,
+          url: url.trim(),
+          ...(label === undefined
+            ? {}
+            : { label: label.trim() }),
+        })),
+      };
+
+      return s.profileAbout;
+    }
+
+    case "profileAbout": {
+      text(r.publicId);
+
+      const user = users.find(
+        (u) => u.publicId === r.publicId,
+      );
+
+      if (!user)
+        throw new ServiceError(
+          "NOT_FOUND",
+          "사용자를 찾을 수 없습니다.",
+          404,
+        );
+
+      return (
+        allStates.find(
+          (state) => state.userId === user.userId,
+        )!.profileAbout ?? { biography: "", links: [] }
+      );
     }
 
     case "publicProfile": {

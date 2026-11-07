@@ -62,6 +62,8 @@ export const styles = {
     "editor-title text-[12px] font-[650] flex items-center justify-between mb-2.5 [&_span]:[font:10px_monospace] [&_span]:text-muted",
   "markdown-editor":
     "markdown-editor [&_.tab-panel]:pt-0 [&_textarea]:block [&_textarea]:w-full [&_textarea]:min-h-[220px] [&_textarea]:resize-y [&_textarea]:border-0 [&_textarea]:border-t [&_textarea]:border-line [&_textarea]:rounded-none [&_textarea]:rounded-b-[10px] [&_textarea]:bg-white [&_textarea]:p-3.5 [&_textarea]:text-foreground [&_textarea]:[font:12px/1.9_monospace] [&_textarea]:[tab-size:2] [&_textarea]:outline-none [&_.error-text]:text-[#af3158] [&_.error-text]:text-[11px] [&_.error-text]:mt-1.75",
+  "markdown-editor-compact":
+    "[&_textarea]:!min-h-36 [&_textarea]:!border-t-0 [&_textarea]:!rounded-[10px] [&_textarea]:!p-4 [&_textarea]:!font-sans [&_textarea]:!text-base [&_textarea]:!leading-7 [&_.markdown-preview]:!min-h-36 [&_.markdown-preview]:rounded-xl [&_.markdown-preview]:border [&_.markdown-preview]:border-line [&_.markdown-preview]:bg-surface [&_.markdown-preview]:!p-4 [&_.markdown-preview]:!text-base [&_.markdown-preview]:!leading-7",
   "editor-shell":
     "editor-shell rounded-[10px] border border-line bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15",
   "editor-tools":

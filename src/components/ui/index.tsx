@@ -82,12 +82,14 @@ export function Tag({
 
 export function TextField({
   label,
+  hideLabel = false,
   error,
   hint,
   id,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & {
   label: string;
+  hideLabel?: boolean;
   error?: string;
   hint?: string;
 }) {
@@ -96,7 +98,12 @@ export function TextField({
 
   return (
     <div className={styles["ui-field"]}>
-      <label htmlFor={fieldId}>{label}</label>
+      <label
+        htmlFor={fieldId}
+        className={hideLabel ? "sr-only" : undefined}
+      >
+        {label}
+      </label>
       <input
         {...props}
         id={fieldId}
