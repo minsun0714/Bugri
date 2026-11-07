@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 import {
   render,
   screen,
@@ -74,4 +75,24 @@ test("new question and grading results receive focus; failed submission keeps th
   );
   expect(screen.getByLabelText("정답입니다")).toHaveFocus();
   expect(screen.getByText("해설 내용")).toBeVisible();
+});
+
+test("a late initial quiz does not steal focus from a control the visitor is already using", () => {
+  const trigger = document.createElement("button");
+  trigger.textContent = "데모 사용자 선택";
+  document.body.append(trigger);
+  trigger.focus();
+  render(
+    <StrictMode>
+      <QuizPanel
+        quiz={quiz}
+        result={null}
+        focusKey="late"
+        pending={false}
+        onSubmit={jest.fn()}
+      />
+    </StrictMode>,
+  );
+  expect(trigger).toHaveFocus();
+  trigger.remove();
 });

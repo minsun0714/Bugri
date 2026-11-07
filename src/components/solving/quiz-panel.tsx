@@ -6,9 +6,10 @@ import type {
   LearningQuizView,
   Question,
 } from "@/api/contracts";
-import { Card } from "@/components/ui";
+import { Badge, Card } from "@/components/ui";
 import { QuizText } from "@/components/solving/quiz-text";
 import { AnswerForm } from "@/components/solving/answer-form";
+import { solvingStyles } from "@/components/solving/styles";
 
 function answerText(
   answer: Answer,
@@ -54,10 +55,25 @@ export function QuizPanel({
   children?: ReactNode;
 }) {
   const start = useRef<HTMLDivElement>(null);
+  const handledFocus = useRef<string | null>(null);
   const hasResult = !!result;
   const verdict = result?.correct ?? correct;
   useEffect(() => {
     const node = start.current;
+    const { activeElement } = document;
+    const identity = `${focusKey}:${hasResult}`;
+    if (handledFocus.current === identity) return;
+    const initial = handledFocus.current === null;
+    handledFocus.current = identity;
+    // A late response must not take focus from a header control or open dialog.
+    if (
+      document.querySelector("dialog[open]") ||
+      (initial &&
+        activeElement !== document.body &&
+        activeElement !== document.documentElement &&
+        !node?.contains(activeElement))
+    )
+      return;
     node?.focus({ preventScroll: true });
     node?.scrollIntoView?.({
       block: "nearest",
@@ -66,7 +82,7 @@ export function QuizPanel({
   }, [focusKey, hasResult]);
 
   return (
-    <Card className="space-y-5 sm:space-y-6">
+    <Card className={solvingStyles.card}>
       <div
         ref={start}
         tabIndex={-1}
@@ -77,21 +93,28 @@ export function QuizPanel({
               : "오답입니다"
             : (quiz?.title ?? "풀이 완료")
         }
-        className="scroll-mt-6 rounded outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="scroll-mt-6 outline-none"
       >
         {result || completedAt ? (
           <div
             role="status"
-            className={`mb-5 rounded-xl p-4 ${verdict ? "bg-lime/30" : "bg-coral/10"}`}
+            className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2"
           >
-            <h2 className="text-2xl">
-              {verdict === true
-                ? "정답입니다"
-                : verdict === false
-                  ? "오답입니다"
-                  : "풀이 완료"}
+            <h2
+              className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-lg ${verdict ? "bg-lime/30" : "bg-coral/10"}`}
+            >
+              <span aria-hidden="true">
+                {verdict ? "✓" : "×"}
+              </span>
+              <span>
+                {verdict === true
+                  ? "정답입니다"
+                  : verdict === false
+                    ? "오답입니다"
+                    : "풀이 완료"}
+              </span>
             </h2>
-            <p className="mt-1 text-sm text-muted">
+            <p className="text-xs text-muted">
               풀이 완료
               {learningDate ? ` · ${learningDate}` : ""}
             </p>
@@ -99,10 +122,10 @@ export function QuizPanel({
         ) : null}
         {quiz && (
           <>
-            <h2 className="mb-3 text-sm font-medium text-muted">
-              {quiz.title}
+            <h2 className="mb-4 [&_.ui-badge]:bg-canvas [&_.ui-badge]:text-xs [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-primary">
+              <Badge>{quiz.title}</Badge>
             </h2>
-            <div className="text-xl font-semibold leading-relaxed sm:text-2xl [&_pre]:text-sm">
+            <div className="break-keep text-[22px] font-semibold leading-8 [overflow-wrap:anywhere] sm:text-2xl sm:leading-9 [&_pre]:text-sm [&_pre]:font-normal">
               <QuizText>{quiz.question.prompt}</QuizText>
             </div>
           </>
@@ -112,9 +135,9 @@ export function QuizPanel({
         result ? (
           <section
             aria-label="제출 결과"
-            className="space-y-4 border-t border-line pt-5"
+            className="space-y-6 border-t border-line pt-6"
           >
-            <div className="space-y-2">
+            <div className="grid gap-4 rounded-xl bg-canvas p-4 sm:grid-cols-2 sm:p-5">
               <p>
                 내 답:{" "}
                 {answerText(
@@ -127,8 +150,10 @@ export function QuizPanel({
                 {answerText(result.answer, quiz.question)}
               </p>
             </div>
-            <h3 className="text-base">해설</h3>
-            <QuizText>{result.explanation}</QuizText>
+            <div className="space-y-3 leading-7">
+              <h3 className="text-sm text-muted">해설</h3>
+              <QuizText>{result.explanation}</QuizText>
+            </div>
           </section>
         ) : (
           !completedAt && (

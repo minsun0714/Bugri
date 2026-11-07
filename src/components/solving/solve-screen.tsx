@@ -28,6 +28,7 @@ import {
 import { QuizPanel } from "@/components/solving/quiz-panel";
 import { GuestQuiz } from "@/components/solving/guest-quiz";
 import { Dropdown } from "@/components/ui/dropdown";
+import { solvingStyles } from "@/components/solving/styles";
 
 function Session({
   location,
@@ -72,27 +73,34 @@ function Session({
 
   return (
     <div className="space-y-6">
-      {!direct && (
-        <div className="w-full sm:max-w-xs">
-          <Dropdown
-            label="학습 태그"
-            value={hashtagId ?? ""}
-            disabled={busy || submit.isPending}
-            options={[
-              { value: "", label: "전체" },
-              ...(hashtagId &&
-              !tags.data?.some(({ id }) => id === hashtagId)
-                ? [{ value: hashtagId, label: hashtagId }]
-                : []),
-              ...(tags.data?.map(({ id, name }) => ({
-                value: id,
-                label: name,
-              })) ?? []),
-            ]}
-            onValueChange={changeLearningTag}
-          />
-        </div>
-      )}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-[28px] leading-10 sm:text-3xl">
+          {direct ? "퀴즈 풀이" : "오늘의 퀴즈"}
+        </h1>
+        {!direct && (
+          <div className={solvingStyles.tagFilter}>
+            <Dropdown
+              label="학습 태그"
+              value={hashtagId ?? ""}
+              disabled={busy || submit.isPending}
+              options={[
+                { value: "", label: "전체" },
+                ...(hashtagId &&
+                !tags.data?.some(
+                  ({ id }) => id === hashtagId,
+                )
+                  ? [{ value: hashtagId, label: hashtagId }]
+                  : []),
+                ...(tags.data?.map(({ id, name }) => ({
+                  value: id,
+                  label: name,
+                })) ?? []),
+              ]}
+              onValueChange={changeLearningTag}
+            />
+          </div>
+        )}
+      </div>
       {tags.error && (
         <>
           <ErrorNotice error={tags.error} />
@@ -170,7 +178,7 @@ function Session({
               {(data.quiz && data.result) ||
               (!direct &&
                 (data.completedAt || !data.quiz)) ? (
-                <div className="flex items-center justify-end gap-3">
+                <div className="flex flex-wrap items-center justify-end gap-3 [&>button]:min-w-28">
                   {data.quiz && data.result && (
                     <Button
                       variant="secondary"
@@ -231,28 +239,46 @@ export function SolveScreen({
 
   return (
     <QueryClientProvider client={client}>
-      <div className="mx-auto w-full max-w-3xl space-y-5">
-        <h1 className="text-3xl">
-          {direct ? "퀴즈 풀이" : "오늘의 퀴즈"}
-        </h1>
+      <div
+        className={
+          direct
+            ? "mx-auto w-full max-w-3xl space-y-5"
+            : "w-full space-y-5"
+        }
+      >
         {selectedUser || direct ? (
           <Session
             key={JSON.stringify(location)}
             location={location}
           />
         ) : (
-          <GuestQuiz />
+          <>
+            <h1 className="text-[28px] leading-10 sm:text-3xl">
+              오늘의 퀴즈
+            </h1>
+            <GuestQuiz />
+          </>
         )}
-        <details className="border-t border-line pt-4 text-sm text-muted">
-          <summary className="cursor-pointer">
-            프로토타입 안내
-          </summary>
-          <p className="mt-3">
-            {selectedUser
-              ? "데모 학습 기록은 이 브라우저에 저장됩니다. 브라우저 데이터를 삭제하면 기록이 사라질 수 있어요."
-              : "방문자 체험은 일시적이며 학습 기록과 보상이 저장되지 않습니다."}
-          </p>
-        </details>
+        <div className="grid items-start gap-3 text-[13px] text-muted sm:grid-cols-[1fr_auto]">
+          <details>
+            <summary className="w-fit cursor-pointer rounded py-2 focus-visible:outline-2 focus-visible:outline-primary">
+              프로토타입 안내
+            </summary>
+            <p className="mt-3">
+              {selectedUser
+                ? "데모 학습 기록은 이 브라우저에 저장됩니다. 브라우저 데이터를 삭제하면 기록이 사라질 수 있어요."
+                : "방문자 체험은 일시적이며 학습 기록과 보상이 저장되지 않습니다."}
+            </p>
+          </details>
+          {!direct && (
+            <a
+              href="/shop"
+              className="inline-flex min-h-9 items-center rounded hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              BugCoin 상점 둘러보기 →
+            </a>
+          )}
+        </div>
       </div>
     </QueryClientProvider>
   );
