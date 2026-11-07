@@ -222,7 +222,7 @@ function ConnectedHeader() {
         <div className="border-b border-line bg-canvas px-5 py-1 text-center text-xs text-muted">
           <button
             className="min-h-8 rounded px-2 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-primary"
-            onClick={signIn}
+            onClick={() => signIn()}
           >
             데모:{" "}
             {userId === "author"

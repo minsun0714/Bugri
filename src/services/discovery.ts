@@ -1,4 +1,5 @@
-import { DiscoveryKind } from "@/api/constants";
+import type { StoredQuiz } from "@/services/state";
+import { QuizStatus, DiscoveryKind } from "@/api/constants";
 import type {
   DiscoveryPage,
   DiscoveryQuery,
@@ -13,10 +14,14 @@ export function searchDiscovery(
     users,
     hashtags,
     subscriptions,
+    quizzes = [],
+    unavailableUserIds = [],
   }: {
     users: readonly User[];
     hashtags: readonly Hashtag[];
     subscriptions: readonly Subscription[];
+    quizzes?: readonly StoredQuiz[];
+    unavailableUserIds?: readonly string[];
   },
   { kind, query, page, pageSize }: DiscoveryQuery,
 ): DiscoveryPage {
@@ -44,7 +49,15 @@ export function searchDiscovery(
     "페이지 크기는 1~50이어야 합니다.",
   );
 
-  const term = query.trim().normalize("NFC").toLowerCase();
+  const normalized = query
+    .trim()
+    .normalize("NFC")
+    .toLowerCase();
+
+  const term =
+    kind === DiscoveryKind.USER
+      ? normalized.replace(/^@/, "")
+      : normalized;
 
   const matches = (...values: string[]) =>
     values.some((value) =>
@@ -72,6 +85,30 @@ export function searchDiscovery(
         .map((user) => ({
           type: DiscoveryKind.USER,
           user,
+          summary: unavailableUserIds.includes(user.userId)
+            ? null
+            : (() => {
+                const available = quizzes.filter(
+                  (quiz) =>
+                    quiz.ownerUserId === user.userId &&
+                    quiz.status === QuizStatus.PUBLIC &&
+                    !quiz.deletedAt &&
+                    quiz.active,
+                );
+
+                const ids = new Set(
+                  available.flatMap(
+                    (quiz) => quiz.active!.hashtagIds,
+                  ),
+                );
+
+                return {
+                  publicQuizCount: available.length,
+                  hashtags: hashtags
+                    .filter(({ id }) => ids.has(id))
+                    .slice(0, 3),
+                };
+              })(),
           subscribed: subscriptions.some(
             (sub) =>
               sub.type === "PERSON" &&
