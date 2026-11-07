@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   useRouter,
   useSearchParams,
@@ -20,6 +20,7 @@ import {
   Button,
   Card,
   EmptyState,
+  Modal,
   Skeleton,
 } from "@/components/ui";
 import { AnswerForm } from "@/components/solving/answer-form";
@@ -29,6 +30,9 @@ import {
   useQuizSolving,
   type SolvingLocation,
 } from "@/components/solving/use-quiz-solving";
+
+import { Bugri } from "@/components/ui/bugri";
+import { DiscoverySearch } from "@/components/solving/discovery-search";
 
 function answerText(
   answer: Answer,
@@ -93,16 +97,33 @@ function Session({
   const flow = useQuizSolving(location);
   const { attempt, submit, tags, busy, empty } = flow;
   const [celebrate, setCelebrate] = useState(false);
-  const tagSelect = useRef<HTMLSelectElement>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const data = attempt.data;
 
   return (
     <div className="space-y-6">
       {!direct && (
+        <Modal
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          title="개발자·태그 검색"
+          initialFocusSelector="input[type=search]"
+        >
+          {searchOpen && (
+            <DiscoverySearch
+              userId={userId}
+              onLearn={(tag) => {
+                setSearchOpen(false);
+                flow.learn(tag);
+              }}
+            />
+          )}
+        </Modal>
+      )}
+      {!direct && (
         <label className="flex flex-wrap items-center gap-3">
           학습 태그
           <select
-            ref={tagSelect}
             aria-label="학습 태그"
             className="rounded-lg border border-line bg-surface p-2"
             value={hashtagId ?? ""}
@@ -176,7 +197,7 @@ function Session({
               )}
               <Button
                 variant="secondary"
-                onClick={() => tagSelect.current?.focus()}
+                onClick={() => setSearchOpen(true)}
               >
                 다른 태그 선택
               </Button>
@@ -206,14 +227,24 @@ function Session({
                       : "오답입니다"}
                   </h2>
                   <p>풀이 완료 · {data.learningDate}</p>
-                  <p className="mt-3 rounded-xl bg-lime p-4">
-                    버그리{" "}
-                    {celebrate
-                      ? "✳ 끝까지 풀었어!"
-                      : data.correct
-                        ? "◕‿◕ 잘했어!"
-                        : "◕ᴗ◕ 해설을 읽고 다시 도전해보자."}
-                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-6 rounded-xl bg-primary/5 p-5">
+                    <Bugri
+                      mood={
+                        celebrate
+                          ? "complete"
+                          : data.correct
+                            ? "happy"
+                            : "encouraging"
+                      }
+                    />
+                    <p className="text-lg font-bold">
+                      {celebrate
+                        ? "끝까지 풀었어!"
+                        : data.correct
+                          ? "잘했어!"
+                          : "해설을 읽고 다시 도전해보자."}
+                    </p>
+                  </div>
                   {!celebrate && (
                     <Button
                       variant="ghost"

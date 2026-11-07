@@ -659,14 +659,7 @@ export function execute<K extends Operation>(
       return users;
 
     case "discoverHashtags":
-      return hashtags.filter((t) =>
-        allQuizzes.some(
-          (q) =>
-            q.status === QuizStatus.PUBLIC &&
-            !q.deletedAt &&
-            q.active?.hashtagIds.includes(t.id),
-        ),
-      );
+      return [...hashtags];
 
     case "learningTags": {
       if (r.authorUserId !== undefined)

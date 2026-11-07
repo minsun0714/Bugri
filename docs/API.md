@@ -32,6 +32,9 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 - `/?user={userId}&attempt={attemptId}&tag={hashtagId}`: 풀이·완료 결과와 단일 태그를 복원한다. `tag` 생략은 전체, `mode=REPLAY`는 완료 문제 다시 풀기다. 미제출 답안 입력 자체는 새로고침 시 복원하지 않는다.
 - `/solve?user=author&quiz={quizId}`: 작성자 화면 등에서 특정 퀴즈로 직접 진입하는 경로. 목록 없이 해당 퀴즈를 바로 표시하며 API가 PRIVATE/PUBLIC 접근을 판단한다. 결과 URL은 `/solve?user={userId}&attempt={attemptId}`다. 인자 없는 `/solve`는 홈으로 이동한다.
 - 홈의 문제 선택은 `learningQuiz`/`learningNext` → `startAttempt(context: LEARNING)` 순서다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다. 특정 퀴즈 직접 풀이는 DIRECT를 사용한다. 태그 변경은 구독을 수정하지 않고, 다음 문제는 현재 태그·모드를 유지한다.
+- 빈 상태·소진 상태의 ‘다른 태그 선택’은 개발자·태그 검색 모달을 연다. `discoverUsers`는 전체 더미 개발자, `discoverHashtags`는 공개 퀴즈 존재 여부와 관계없이 전체 등록 태그를 반환한다. `learningTags`는 기존대로 현재 구독에 맞는 공개 퀴즈 태그만 반환한다. 이름·공개 ID·태그 이름/ID를 대소문자 구분 없이 검색하며 검색 자체는 구독을 변경하지 않는다.
+- 검색 결과의 ‘구독하고 학습하기’는 PERSON 또는 HASHTAG 구독을 명시적으로 등록한 뒤 학습으로 이동한다. 개발자는 전체 태그, 태그는 해당 단일 태그를 적용한다. 이미 해당 구독이 있으면 ‘학습하기’로 이동하며, 공개 퀴즈가 없는 태그는 빈 상태를 유지한다. 구독 변경 후 discovery/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다.
+- 결과 화면은 공통 `Bugri` 캐릭터를 정답·오답·완료 표정으로 표시하며 정오·반응 문구도 함께 제공한다. 이미지 다운로드나 애니메이션에 의존하지 않는다.
 - TanStack Query Provider는 풀이 화면에 한 번 생성한다. Attempt 키는 `['solving', userId, 'attempt', attemptId]`, 태그 키는 `['learningTags', userId]`다. 사용자·Attempt·필터 변경 시 입력과 mutation 화면을 새로 만든다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
 - 제출 성공 시 Attempt 캐시를 응답으로 교체하고 `[resource, userId]` 형태의 `learningDay`, `learningQuiz`, `wallet`, `history`를 무효화한다. 해당 후속 화면을 통합할 때 Provider와 키를 맞춰야 한다. 현재 다른 제품 화면의 캐시가 구현되었다는 의미는 아니다.
 - 기존 API·Mock 채점/보상 정책을 유지한다. 시간대 감지 실패에는 오류 안내를 제공하며, 임의 기본 시간대나 BugCoin 지급량을 추가하지 않는다. 구독 관리와 시간대 설정 UI는 각각 P06/P02T 범위다.

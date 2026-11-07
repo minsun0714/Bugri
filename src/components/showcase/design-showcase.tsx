@@ -1,6 +1,7 @@
 "use client";
 
 import { styles } from "@/components/showcase/styles";
+import { Bugri } from "@/components/ui/bugri";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 
@@ -74,23 +75,6 @@ function Sample({
       <h3 className={styles["sample-title"]}>{title}</h3>
       {children}
     </Card>
-  );
-}
-
-function Bugri({ small = false }: { small?: boolean }) {
-  return (
-    <div
-      className={`${styles["bugri-pet"]} ${small ? "small" : ""}`}
-      aria-label="버그리 캐릭터 시안"
-      role="img"
-    >
-      <i />
-      <i />
-      <span className={styles["pet-eye"] + " " + "left"} />
-      <span className={styles["pet-eye"] + " " + "right"} />
-      <span className={styles["pet-mouth"]} />
-      <span className={styles["pet-cheek"]} />
-    </div>
   );
 }
 

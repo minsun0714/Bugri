@@ -61,9 +61,14 @@ export function useQuizSolving(location: SolvingLocation) {
   const { mutate: startMutation } = start;
 
   const selectQuestion = useCallback(
-    (next: boolean, nextMode = mode, replace = false) => {
+    (
+      next: boolean,
+      nextMode = mode,
+      replace = false,
+      nextHashtag = hashtagId,
+    ) => {
       selectMutation(
-        { hashtagId, mode: nextMode, next },
+        { hashtagId: nextHashtag, mode: nextMode, next },
         {
           onSuccess: ({ attempt: created, selection }) => {
             if (!active.current) return;
@@ -142,6 +147,13 @@ export function useQuizSolving(location: SolvingLocation) {
       select.data?.attempt === null
         ? select.data.selection.state
         : null,
+    learn: (tag: string | null) =>
+      selectQuestion(
+        false,
+        LearningMode.UNSOLVED,
+        false,
+        tag,
+      ),
     next: () => selectQuestion(true),
     replay: () =>
       selectQuestion(false, LearningMode.REPLAY),

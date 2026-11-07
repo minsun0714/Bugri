@@ -395,11 +395,13 @@ export function Modal({
   onClose,
   title,
   children,
+  initialFocusSelector,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  initialFocusSelector?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -407,9 +409,14 @@ export function Modal({
   useEffect(() => {
     const { current: dialog } = ref;
 
-    if (open) dialog?.showModal();
-    else dialog?.close();
-  }, [open]);
+    if (open) {
+      dialog?.showModal();
+      if (initialFocusSelector)
+        dialog
+          ?.querySelector<HTMLElement>(initialFocusSelector)
+          ?.focus();
+    } else dialog?.close();
+  }, [open, initialFocusSelector]);
 
   return (
     <dialog
@@ -418,6 +425,12 @@ export function Modal({
       aria-labelledby={id}
       onCancel={onClose}
       onClose={onClose}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          onClose();
+        }
+      }}
     >
       <div className={styles["modal-header"]}>
         <h2 id={id}>{title}</h2>

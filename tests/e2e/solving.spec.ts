@@ -48,6 +48,9 @@ async function submit(page: Page, labels: string[]) {
   await expect(
     page.getByText("정답입니다", { exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: "기쁜 버그리" }),
+  ).toBeVisible();
 }
 
 test("home immediately shows a subscribed question without a list or start button", async ({
@@ -197,11 +200,14 @@ test("tag filtering persists through next and reload without changing subscripti
     })
     .click();
   await expect(
-    page.getByLabel("학습 태그", { exact: true }),
-  ).toBeFocused();
+    page.getByRole("dialog", { name: "개발자·태그 검색" }),
+  ).toBeVisible();
   await page
-    .getByLabel("학습 태그", { exact: true })
-    .selectOption("");
+    .getByRole("button", {
+      name: "전체 태그로 학습하기",
+      exact: true,
+    })
+    .click();
   await expect(
     page.getByRole("heading", {
       name: "타입 선언",
@@ -503,4 +509,135 @@ test("existing empty learner snapshot receives demo subscriptions on reload", as
   expect(saved.learningDemoVersion).toBe(1);
   expect(saved.subscriptions).toHaveLength(3);
   expect(saved.attempts).toHaveLength(1);
+});
+
+test("empty state opens global developer/tag search and subscribes explicitly", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/?user=friend");
+  await page
+    .getByRole("button", {
+      name: "다른 태그 선택",
+      exact: true,
+    })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "개발자·태그 검색",
+  });
+  await expect(dialog).toBeVisible();
+  const search = dialog.getByRole("searchbox", {
+    name: "개발자 또는 태그 검색",
+  });
+  await expect(search).toBeFocused();
+  await expect(
+    dialog.getByText("학습자", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByText("타입 개발자", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByText("웹 개발자", { exact: true }),
+  ).toBeVisible();
+  await search.fill("JAVA");
+  await expect(
+    dialog.getByText("Java", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByText("JavaScript", { exact: true }),
+  ).toBeVisible();
+  await search.fill("없는검색결과");
+  await expect(
+    dialog.getByText("일치하는 개발자가 없습니다.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByText("일치하는 태그가 없습니다.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "다른 태그 선택",
+      exact: true,
+    }),
+  ).toBeFocused();
+  await page
+    .getByRole("button", {
+      name: "다른 태그 선택",
+      exact: true,
+    })
+    .click();
+  await search.fill("Web");
+  const before = await page.evaluate(
+    () =>
+      JSON.parse(
+        localStorage.getItem("bugri:mock:v1:friend")!,
+      ).subscriptions,
+  );
+  expect(before).toEqual([]);
+  await page.evaluate(() => {
+    Object.assign(window, {
+      restoreStorage: Storage.prototype.setItem,
+    });
+    Storage.prototype.setItem = () => {
+      throw new Error("full");
+    };
+  });
+  await dialog
+    .getByRole("button", {
+      name: "Web 구독하고 학습하기",
+      exact: true,
+    })
+    .click();
+  await expect(dialog.getByRole("alert")).toContainText(
+    "구독을 저장하지 못했습니다",
+  );
+  await expect(search).toHaveValue("Web");
+  await page.evaluate(() => {
+    Storage.prototype.setItem = (
+      window as unknown as {
+        restoreStorage: typeof Storage.prototype.setItem;
+      }
+    ).restoreStorage;
+  });
+  await dialog
+    .getByRole("button", {
+      name: "Web 구독하고 학습하기",
+      exact: true,
+    })
+    .click();
+  await expect(dialog).not.toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "블록 스코프",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("학습 태그", { exact: true }),
+  ).toHaveValue("web");
+  await page.getByLabel("var", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "답 제출", exact: true })
+    .click();
+  await expect(
+    page.getByRole("img", { name: "응원하는 버그리" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "완료 확인", exact: true })
+    .click();
+  await expect(
+    page.getByRole("img", { name: "축하하는 버그리" }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
