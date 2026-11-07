@@ -19,6 +19,10 @@ const day = {
   completed: false,
   streak: 2,
   completedDates: ["2025-12-31", "2026-01-01"],
+  dailyCounts: [
+    { learningDate: "2025-12-31", count: 3 },
+    { learningDate: "2026-01-01", count: 1 },
+  ],
 };
 
 beforeEach(() => {
@@ -49,10 +53,10 @@ test("keeps yesterday's streak and displays seven dated completion states across
   ).toBeVisible();
   expect(screen.getAllByRole("listitem")).toHaveLength(7);
   expect(
-    screen.getByLabelText("2025-12-31 학습 완료"),
+    screen.getByLabelText("2025-12-31 학습 완료, 3개"),
   ).toBeVisible();
   expect(
-    screen.getByLabelText("2026-01-02 오늘 미완료"),
+    screen.getByLabelText("2026-01-02 오늘 미완료, 0개"),
   ).toBeVisible();
   fireEvent.focus(
     screen.getByRole("button", {
@@ -123,6 +127,13 @@ test("returning learners keep their history and are invited to restart, not crea
     screen.queryByText("한 문제 풀고 첫 기록"),
   ).not.toBeInTheDocument();
   expect(
-    screen.getByLabelText("2025-12-29 학습 완료"),
+    screen.getByLabelText("2025-12-29 학습 완료, 0개"),
   ).toBeVisible();
+});
+
+test("shows daily unique counts including zero alongside the learning dates", async () => {
+  setup();
+  expect(await screen.findByText("3개")).toBeVisible();
+  expect(screen.getByText("1개")).toBeVisible();
+  expect(screen.getAllByText("0개")).toHaveLength(5);
 });

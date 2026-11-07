@@ -41,6 +41,9 @@ test("home streak updates after submission, survives reload and isolates users",
     .click();
   await expect(summary.getByText("1일 연속")).toBeVisible();
   await expect(
+    summary.getByText("1개", { exact: true }),
+  ).toHaveCount(1);
+  await expect(
     summary.getByText("✓ 오늘 학습 완료"),
   ).toBeVisible();
   await page
@@ -51,6 +54,9 @@ test("home streak updates after submission, survives reload and isolates users",
     .getByRole("button", { name: "답 제출", exact: true })
     .click();
   await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1개", { exact: true }),
+  ).toHaveCount(1);
   await page.screenshot({
     path: testInfo.outputPath("streak-desktop.png"),
   });
@@ -71,6 +77,9 @@ test("home streak updates after submission, survives reload and isolates users",
     .getByRole("button", { name: "Google 로그인 (데모)" })
     .click();
   await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1개", { exact: true }),
+  ).toHaveCount(1);
   await page
     .getByText("프로토타입 안내 · 사용자 전환", {
       exact: true,
@@ -136,6 +145,9 @@ test("a returning learner restarts without losing earlier completed days", async
     .getByRole("button", { name: "답 제출", exact: true })
     .click();
   await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1개", { exact: true }),
+  ).toHaveCount(1);
   await expect(summary.getByLabel(/학습 완료/)).toHaveCount(
     2,
   );

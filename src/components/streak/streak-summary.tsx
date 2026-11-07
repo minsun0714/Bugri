@@ -17,6 +17,25 @@ export function StreakSummary({
     error instanceof ApiClientError &&
     error.detail.code === "TIMEZONE_REQUIRED";
 
+  const firstDate = data
+    ? new Date(
+        Date.parse(`${data.learningDate}T12:00:00Z`) -
+          6 * 86400000,
+      )
+        .toISOString()
+        .slice(0, 10)
+    : "";
+  const maxCount = Math.max(
+    1,
+    ...(data?.dailyCounts ?? [])
+      .filter(
+        ({ learningDate }) =>
+          learningDate >= firstDate &&
+          learningDate <= data!.learningDate,
+      )
+      .map(({ count }) => count),
+  );
+
   return (
     <section
       aria-labelledby="learning-streak-heading"
@@ -74,7 +93,7 @@ export function StreakSummary({
             <div className="min-w-0">
               <div className="flex items-center gap-1 text-xs font-medium text-muted">
                 <span>연속 학습</span>
-                <Tooltip label="학습일 기준 안내">{`${data.timeZone} 기준 · 하루 한 문제를 완료하면 기록돼요. 정답 여부와 관계없이 인정돼요.`}</Tooltip>
+                <Tooltip label="학습일 기준 안내">{`${data.timeZone} 기준 · 하루 한 문제를 완료하면 기록돼요. 정답 여부와 관계없이 인정돼요. 하루에 같은 퀴즈를 다시 풀어도 개수는 늘지 않아요.`}</Tooltip>
               </div>
               <div className="flex items-center gap-3 sm:mt-1">
                 <strong className="text-2xl font-bold tracking-tight text-foreground">
@@ -98,18 +117,9 @@ export function StreakSummary({
           </div>
           <div className="min-w-0 md:border-l md:border-line md:pl-8">
             <div className="mb-2 flex items-center justify-between text-xs text-muted sm:mb-3">
-              <span>최근 7일</span>
+              <span>최근 7일 · 완료한 퀴즈</span>
               <span>
-                {new Date(
-                  Date.parse(
-                    `${data.learningDate}T12:00:00Z`,
-                  ) -
-                    6 * 86400000,
-                )
-                  .toISOString()
-                  .slice(5, 10)
-                  .replace("-", "/")}
-                –
+                {firstDate.slice(5).replace("-", "/")}–
                 {data.learningDate
                   .slice(5)
                   .replace("-", "/")}
@@ -131,6 +141,12 @@ export function StreakSummary({
                   .slice(0, 10);
                 const completed =
                   data.completedDates.includes(value);
+                const count =
+                  data.dailyCounts.find(
+                    ({ learningDate }) =>
+                      learningDate === value,
+                  )?.count ?? 0;
+                const height = (count / maxCount) * 32;
                 const today = value === data.learningDate;
                 const weekday = new Intl.DateTimeFormat(
                   "ko-KR",
@@ -140,7 +156,7 @@ export function StreakSummary({
                 return (
                   <li
                     key={value}
-                    aria-label={`${value}${today ? " 오늘" : ""} ${completed ? "학습 완료" : "미완료"}`}
+                    aria-label={`${value}${today ? " 오늘" : ""} ${completed ? "학습 완료" : "미완료"}, ${count}개`}
                     aria-current={
                       today ? "date" : undefined
                     }
@@ -156,15 +172,36 @@ export function StreakSummary({
                     >
                       {today ? "오늘" : weekday}
                     </time>
-                    <span
+                    <svg
                       aria-hidden="true"
+                      viewBox="0 0 24 36"
+                      className="h-9 w-6"
+                    >
+                      {count > 0 ? (
+                        <rect
+                          x="4"
+                          y={34 - height}
+                          width="16"
+                          height={height}
+                          rx="3"
+                          className="fill-primary"
+                        />
+                      ) : (
+                        <path
+                          d="M4 34h16"
+                          className="stroke-line"
+                          strokeWidth="2"
+                        />
+                      )}
+                    </svg>
+                    <span
                       className={
-                        completed
-                          ? "grid size-5 place-items-center rounded-full bg-primary text-xs font-bold text-white"
-                          : "grid size-5 place-items-center text-line"
+                        count > 0
+                          ? "text-xs font-medium text-foreground"
+                          : "text-xs text-muted"
                       }
                     >
-                      {completed ? "✓" : "·"}
+                      {count}개
                     </span>
                   </li>
                 );
