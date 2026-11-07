@@ -288,10 +288,10 @@ function Catalog({
         signedIn &&
         data.user.userId === userId ? (
           <Link
-            href={`/my?user=${encodeURIComponent(userId)}`}
+            href={`/my/desk?user=${encodeURIComponent(userId)}`}
             className="rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
           >
-            프로필 편집
+            데스크 편집
           </Link>
         ) : (
           (profile || !data.subscribed) && (

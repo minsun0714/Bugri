@@ -61,6 +61,12 @@ test("private management leads to a public profile without personal data", async
   await expect(
     page.getByRole("navigation", { name: "현재 위치" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("link", {
+      name: "데스크 편집",
+      exact: true,
+    }),
+  ).toHaveAttribute("href", "/my/desk?user=author");
   // Next.js retains the previous route hidden during client navigation.
   await expect(page.getByLabel("내 잔액")).toBeHidden();
   await page.reload();
