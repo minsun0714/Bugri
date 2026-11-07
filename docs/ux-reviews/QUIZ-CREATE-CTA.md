@@ -41,3 +41,11 @@ UX/UI 모두 필수·일반 문제 0개. 수정 C 회차 0회, R0에서 종료�
 
 - `npm run test:e2e -- tests/e2e/quiz-authoring.spec.ts`: 12개 통과. 빌드 후 3109 포트 선점으로 최초 서버 실행이 실패했으나 공식 래퍼가 3110으로 자동 재시도하여 통과했다. 다른 서버는 중단하지 않았다.
 - `git diff --check` 통과. 최종 검증 후 변경은 이 기록과 TASKS 문서뿐이다.
+
+## PR 최종 검증
+
+- 검증 코드 커밋: `744c240`, Node v22.23.3.
+- `npm run verify`: lint·타입 검사, Jest 59 suites/299 tests, 도구 테스트 3개, 빌드 통과. 전체 E2E 최초 실행은 179개 통과·5개 실패.
+- 최초 실패: developer-discovery-repair 모바일 구독, room-theme-bugri 1100px, scene-centering 390px, shop-tryon-edit 1100px, shop-tryon 구매/장착. 시간 초과 및 기대 요소 미발견이 발생했다.
+- 코드·테스트 수정 없이 `npm run test:e2e -- --last-failed --workers=1`로 실패한 5개 모두 통과(35.6초). 병렬 실행 영향 가능성이 있으나 원인은 확정하지 않았다. 전체 verify의 최초 실행 자체를 성공으로 표기하지 않는다.
+- 검증 이후 변경은 TASKS와 본 기록뿐이며 성공한 검사 결과를 재사용한다. 앞선 전체 verify 미실행 설명은 로컬 완료 시점의 기록이다.
