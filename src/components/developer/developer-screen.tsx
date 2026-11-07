@@ -22,6 +22,7 @@ import {
   EmptyState,
   Skeleton,
   TextField,
+  Toast,
 } from "@/components/ui";
 import { useDeveloper } from "@/components/developer/queries";
 
@@ -34,12 +35,10 @@ interface Filters {
 
 function TagSubscriptionMenu({
   name,
-  subscribed,
   busy,
   onToggle,
 }: {
   name: string;
-  subscribed: boolean;
   busy: boolean;
   onToggle: () => void;
 }) {
@@ -110,7 +109,7 @@ function TagSubscriptionMenu({
               setOpen(false);
             }}
           >
-            {subscribed ? "구독 해제" : "구독하기"}
+            구독 해제
           </button>
         </div>
       )}
@@ -209,12 +208,14 @@ function Catalog({
   filters,
   navigating,
   onChange,
+  onNotice,
 }: {
   userId: string;
   publicId: string;
   filters: Filters;
   navigating: boolean;
   onChange: (filters: Filters) => void;
+  onNotice: (message: string) => void;
 }) {
   const { page, tagPage, tagQuery, hashtagId } = filters;
   const { quizzes, tags, subscribe } = useDeveloper(
@@ -261,24 +262,31 @@ function Catalog({
             @{data.user.publicId}
           </p>
         </div>
-        <Button
-          className="ml-auto"
-          variant="secondary"
-          disabled={busy}
-          onClick={() =>
-            subscribe.mutate({
-              target: {
-                type: "PERSON",
-                authorUserId: data.user.userId,
-              },
-              subscribed: data.subscribed,
-            })
-          }
-        >
-          {data.subscribed
-            ? "개발자 구독 해제"
-            : "개발자 구독하기"}
-        </Button>
+        {!data.subscribed && (
+          <Button
+            className="ml-auto"
+            variant="secondary"
+            disabled={busy}
+            onClick={() => {
+              void subscribe
+                .mutateAsync({
+                  target: {
+                    type: "PERSON",
+                    authorUserId: data.user.userId,
+                  },
+                  subscribed: false,
+                })
+                .then(() =>
+                  onNotice(
+                    `${data.user.displayName}님을 구독했습니다.`,
+                  ),
+                )
+                .catch(() => undefined);
+            }}
+          >
+            개발자 구독하기
+          </Button>
+        )}
       </header>
       {subscribe.error && (
         <p role="alert">
@@ -358,22 +366,30 @@ function Catalog({
                           ({quizCount})
                         </span>
                       </button>
-                      <TagSubscriptionMenu
-                        name={name}
-                        subscribed={subscribed}
-                        busy={busy}
-                        onToggle={() =>
-                          subscribe.mutate({
-                            target: {
-                              type: "PERSON_HASHTAG",
-                              authorUserId:
-                                data.user.userId,
-                              hashtagId: id,
-                            },
-                            subscribed,
-                          })
-                        }
-                      />
+                      {subscribed && (
+                        <TagSubscriptionMenu
+                          name={name}
+                          busy={busy}
+                          onToggle={() => {
+                            void subscribe
+                              .mutateAsync({
+                                target: {
+                                  type: "PERSON_HASHTAG",
+                                  authorUserId:
+                                    data.user.userId,
+                                  hashtagId: id,
+                                },
+                                subscribed: true,
+                              })
+                              .then(() =>
+                                onNotice(
+                                  `${name} 태그 구독을 취소했습니다.`,
+                                ),
+                              )
+                              .catch(() => undefined);
+                          }}
+                        />
+                      )}
                     </li>
                   ),
                 )}
@@ -460,6 +476,7 @@ export function DeveloperScreen() {
   const params = useSearchParams();
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
+  const [toast, setToast] = useState<string | null>(null);
   const [client] = useState(() => new QueryClient());
   const userId = params.get("user") ?? "learner";
   const positive = (value: string | null) => {
@@ -490,6 +507,7 @@ export function DeveloperScreen() {
           publicId={publicId}
           filters={filters}
           navigating={navigating}
+          onNotice={setToast}
           onChange={(next) => {
             const query = new URLSearchParams({
               user: userId,
@@ -508,6 +526,9 @@ export function DeveloperScreen() {
             );
           }}
         />
+        {toast && (
+          <Toast message={toast} onClose={() => setToast(null)} />
+        )}
       </div>
     </QueryClientProvider>
   );

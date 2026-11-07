@@ -667,6 +667,11 @@ test("empty state opens discovery page with URL search and explicit subscription
     })
     .click();
   await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Web 태그를 구독했습니다." }),
+  ).toBeVisible();
+  await expect(
     page.getByRole("button", {
       name: "Web 구독 해제",
       exact: true,

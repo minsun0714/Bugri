@@ -113,6 +113,9 @@ it("finds developers and all registered tags without subscribing on search", asy
       }),
     ).toBeEnabled(),
   );
+  expect(
+    screen.getByText("타입 개발자님을 구독했습니다."),
+  ).toBeVisible();
   expect(learn).not.toHaveBeenCalled();
   fireEvent.click(
     screen.getByRole("button", {
@@ -136,6 +139,11 @@ it("finds developers and all registered tags without subscribing on search", asy
       [],
     ),
   );
+  expect(
+    screen.getByText(
+      "타입 개발자님 구독을 취소했습니다.",
+    ),
+  ).toBeVisible();
 });
 
 it("displays a character with distinct happy and encouraging expressions", () => {
@@ -216,6 +224,9 @@ it("adds multiple tags without navigating or losing the current search", async (
       }),
     ).toBeEnabled(),
   );
+  expect(
+    screen.getByText("Java 태그를 구독했습니다."),
+  ).toBeVisible();
   fireEvent.click(
     screen.getByRole("button", {
       name: "JavaScript 구독하기",

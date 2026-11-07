@@ -12,6 +12,7 @@ import {
   Skeleton,
   TextField,
   Tabs,
+  Toast,
 } from "@/components/ui";
 import { useDiscovery } from "@/components/discovery/queries";
 
@@ -66,6 +67,7 @@ function DiscoveryResults({
   navigating = false,
 }: DiscoverySearchProps) {
   const [input, setInput] = useState(request.query);
+  const [toast, setToast] = useState<string | null>(null);
   const { discovery, subscribe } = useDiscovery(
     userId,
     request,
@@ -90,9 +92,21 @@ function DiscoveryResults({
           variant="secondary"
           disabled={busy}
           aria-label={`${name} ${subscribed ? "구독 해제" : "구독하기"}`}
-          onClick={() =>
-            subscribe.mutate({ target, subscribed })
-          }
+          onClick={() => {
+            const message =
+              target.type === "HASHTAG"
+                ? subscribed
+                  ? `${name} 태그 구독을 취소했습니다.`
+                  : `${name} 태그를 구독했습니다.`
+                : subscribed
+                  ? `${name}님 구독을 취소했습니다.`
+                  : `${name}님을 구독했습니다.`;
+
+            void subscribe
+              .mutateAsync({ target, subscribed })
+              .then(() => setToast(message))
+              .catch(() => undefined);
+          }}
         >
           {subscribed ? "구독 해제" : "구독하기"}
         </Button>
@@ -285,6 +299,9 @@ function DiscoveryResults({
             </nav>
           )}
         </section>
+      )}
+      {toast && (
+        <Toast message={toast} onClose={() => setToast(null)} />
       )}
     </div>
   );

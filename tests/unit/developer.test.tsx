@@ -31,40 +31,25 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
     "href",
     "/solve?user=friend&quiz=seed-quiz-1",
   );
-  fireEvent.click(
-    await screen.findByRole("button", {
-      name: "TypeScript 구독 메뉴",
-    }),
-  );
-  fireEvent.click(
-    screen.getByRole("menuitem", { name: "구독하기" }),
-  );
-  await waitFor(() =>
-    expect(
-      screen.getByRole("button", {
-        name: "TypeScript 구독 메뉴",
-      }),
-    ).toBeEnabled(),
-  );
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: "TypeScript 구독 메뉴",
-    }),
-  );
   expect(
-    screen.getByRole("menuitem", { name: "구독 해제" }),
-  ).toBeVisible();
+    screen.queryByRole("button", {
+      name: "TypeScript 구독 메뉴",
+    }),
+  ).not.toBeInTheDocument();
   expect(push).not.toHaveBeenCalled();
   fireEvent.click(
     screen.getByRole("button", { name: "개발자 구독하기" }),
   );
   await waitFor(() =>
     expect(
-      screen.getByRole("button", {
-        name: "개발자 구독 해제",
+      screen.queryByRole("button", {
+        name: "개발자 구독하기",
       }),
-    ).toBeEnabled(),
+    ).not.toBeInTheDocument(),
   );
+  expect(
+    screen.getByText("타입 개발자님을 구독했습니다."),
+  ).toBeVisible();
   expect(push).not.toHaveBeenCalled();
   fireEvent.click(
     screen.getByRole("button", {

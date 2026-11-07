@@ -1,8 +1,26 @@
 import { expect, test } from "@playwright/test";
+import { initialState } from "@/mocks/storage";
 
 test("developer name opens scoped tags and quizzes; subscriptions stay on the page", async ({
   page,
 }) => {
+  const state = initialState("friend");
+  state.subscriptions = [
+    {
+      type: "PERSON_HASHTAG",
+      authorUserId: "author",
+      hashtagId: "typescript",
+      subscriptionId: "test-typescript",
+    },
+  ];
+  await page.addInitScript((value) => {
+    if (!localStorage.getItem("bugri:mock:v1:friend")) {
+      localStorage.setItem(
+        "bugri:mock:v1:friend",
+        JSON.stringify(value),
+      );
+    }
+  }, state);
   await page.goto("/discover?user=friend");
   await page
     .getByRole("link", { name: "타입 개발자", exact: true })
@@ -44,7 +62,7 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     Math.abs(searchBounds!.y - searchButtonBounds!.y),
   ).toBeLessThan(1);
   await tagSearch.evaluate((element) => {
-    element.setAttribute("data-was-disabled", "false");
+    Object.assign(window, { tagSearchWasDisabled: false });
     new MutationObserver((records) => {
       if (
         records.some(
@@ -52,7 +70,7 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
             attributeName === "disabled" && oldValue === null,
         )
       ) {
-        element.setAttribute("data-was-disabled", "true");
+        Object.assign(window, { tagSearchWasDisabled: true });
       }
     }).observe(element, {
       attributes: true,
@@ -98,10 +116,18 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     )
     .not.toContain("underline");
   await typeScriptTag.click();
-  await expect(tagSearch).toHaveAttribute(
-    "data-was-disabled",
-    "false",
-  );
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as typeof window & {
+              tagSearchWasDisabled: boolean;
+            }
+          ).tagSearchWasDisabled,
+      ),
+    )
+    .toBe(false);
   await expect(typeScriptTag).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -109,7 +135,7 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   await expect(typeScriptTag.locator("..")).toHaveClass(
     /ring-primary\/50/,
   );
-  const unsubscribedBackground = await typeScriptTag
+  const subscribedBackground = await typeScriptTag
     .locator("..")
     .evaluate((element) => getComputedStyle(element).backgroundColor);
   await expect(tags.getByText(/선택한 태그:/)).toHaveCount(
@@ -151,11 +177,19 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
 
   await expect(typeScriptMenu).toBeVisible();
   await typeScriptMenu
-    .getByRole("menuitem", { name: "구독하기" })
+    .getByRole("menuitem", { name: "구독 해제" })
     .click();
   await expect(typeScriptMenu).toHaveCount(0);
+  await expect(
+    page
+      .getByRole("status")
+      .filter({
+        hasText: "TypeScript 태그 구독을 취소했습니다.",
+      }),
+  ).toBeVisible();
+  await expect(subscriptionMenuTrigger).toHaveCount(0);
   await expect(typeScriptTag.locator("..")).toHaveClass(
-    /bg-primary\/10/,
+    /bg-canvas\/40/,
   );
   await expect
     .poll(() =>
@@ -165,24 +199,16 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
           (element) => getComputedStyle(element).backgroundColor,
         ),
     )
-    .not.toBe(unsubscribedBackground);
+    .not.toBe(subscribedBackground);
   await expect(page).toHaveURL(url);
   await page.reload();
   await expect(quizzes.getByRole("link")).toHaveCount(1);
-  await tags
-    .getByRole("button", {
+  await expect(
+    tags.getByRole("button", {
       name: "TypeScript 구독 메뉴",
       exact: true,
-    })
-    .click();
-  await expect(
-    tags.getByRole("menuitem", {
-      name: "구독 해제",
-      exact: true,
     }),
-  ).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(tags.getByRole("menu")).toHaveCount(0);
+  ).toHaveCount(0);
   await tags.getByRole("searchbox").fill("web");
   await tags.getByRole("searchbox").press("Enter");
   await expect(
@@ -197,44 +223,19 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
       exact: true,
     }),
   ).toHaveCount(0);
-  await tags
-    .getByRole("button", {
-      name: "Web 구독 메뉴",
-      exact: true,
-    })
-    .click();
-  await tags
-    .getByRole("menuitem", {
-      name: "구독하기",
-      exact: true,
-    })
-    .click();
   await expect(
     tags.getByRole("button", {
       name: "Web 구독 메뉴",
       exact: true,
     }),
-  ).toBeEnabled();
+  ).toHaveCount(0);
   const subscriptions = await page.evaluate(
     () =>
       JSON.parse(
         localStorage.getItem("bugri:mock:v1:friend")!,
       ).subscriptions,
   );
-  expect(subscriptions).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        type: "PERSON_HASHTAG",
-        authorUserId: "author",
-        hashtagId: "typescript",
-      }),
-      expect.objectContaining({
-        type: "PERSON_HASHTAG",
-        authorUserId: "author",
-        hashtagId: "web",
-      }),
-    ]),
-  );
+  expect(subscriptions).toEqual([]);
   await quizzes
     .getByRole("link", { name: "타입 선언" })
     .click();
