@@ -79,6 +79,7 @@ export function Creation({
       </div>
       <fieldset disabled={busy} className="min-w-0">
         <MarkdownEditor
+          layout="split"
           label="학습 내용과 요청"
           value={source}
           preserveOverflow

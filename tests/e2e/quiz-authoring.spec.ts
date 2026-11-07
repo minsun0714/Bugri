@@ -636,3 +636,38 @@ test("unconfirmed direct edits survive mode and quiz tab changes", async ({
     "미확정 제목",
   );
 });
+
+test("creation input and live preview remain visible together on desktop and mobile", async ({
+  page,
+}) => {
+  await page.goto("/quizzes/authoring");
+  const input = page.getByRole("textbox", {
+    name: /학습 내용/,
+  });
+  const preview = page.getByRole("region", {
+    name: "미리보기",
+    exact: true,
+  });
+  await expect(
+    page.getByRole("tab", { name: "작성", exact: true }),
+  ).toHaveCount(0);
+  await input.fill(
+    "# 실시간 미리보기\n\n```typescript\nconst value = 1;\n```",
+  );
+  await expect(input).toBeVisible();
+  await expect(
+    preview.getByRole("heading", {
+      name: "실시간 미리보기",
+    }),
+  ).toBeVisible();
+  await expect(preview).toContainText("const value = 1;");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(input).toBeVisible();
+  await expect(preview).toBeVisible();
+  await expect(page.locator("body")).toHaveJSProperty(
+    "scrollWidth",
+    390,
+  );
+  await input.fill("바꾼 내용");
+  await expect(preview).toContainText("바꾼 내용");
+});
