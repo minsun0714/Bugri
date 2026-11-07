@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 test("private management leads to a public profile without personal data", async ({
   page,
 }, testInfo) => {
-  await page.goto("/my?user=author");
+  await page.goto("/coin-history?user=author");
   await expect(
     page.getByRole("link", {
       name: "데스크 꾸미기 바로가기",

@@ -148,11 +148,14 @@ export function HeaderNavigation({
                     내 퀴즈
                   </Link>
                   <Link
-                    href={withDemoUser("/my", userId)}
+                    href={withDemoUser(
+                      "/coin-history",
+                      userId,
+                    )}
                     onClick={() => setProfileOpen(false)}
                     className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
-                    마이페이지
+                    코인 내역
                   </Link>
                   {pathname === "/shop" && (
                     <button
