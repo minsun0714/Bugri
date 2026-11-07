@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("product header and breadcrumbs preserve identity and expose mounted routes", async ({
   page,
 }, testInfo) => {
-  await page.goto("/discover?user=friend");
+  await page.goto("/discover/developers?user=friend");
   await page
     .getByRole("button", { name: "Google 로그인 (데모)" })
     .click();
@@ -18,7 +18,7 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
     exact: true,
   });
   await expect(
-    nav.getByRole("link", { name: "탐색" }),
+    nav.getByRole("link", { name: "개발자 탐색" }),
   ).toHaveAttribute("aria-current", "page");
   await expect(
     page.getByText("Design workspace · 0.1"),
@@ -85,7 +85,7 @@ test("mobile menu supports keyboard, dismissals, resize and navigation", async (
   await expect(mobile).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(
-    mobile.getByRole("link", { name: /탐색/ }),
+    mobile.getByRole("link", { name: "개발자 탐색" }),
   ).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(mobile).toHaveCount(0);
@@ -139,9 +139,11 @@ test("developer breadcrumbs never show IDs and link to discovery", async ({
     "bugri-author",
   );
   await breadcrumb
-    .getByRole("link", { name: "탐색" })
+    .getByRole("link", { name: "개발자 탐색" })
     .click();
-  await expect(page).toHaveURL(/discover\?user=friend$/);
+  await expect(page).toHaveURL(
+    /discover\/developers\?user=friend$/,
+  );
 });
 
 test("social demo toggles guest and member navigation without OAuth", async ({

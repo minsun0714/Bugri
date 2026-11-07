@@ -1165,3 +1165,10 @@
 - 후속 명칭 변경으로 기존 진행중 verify1은 해당 작업 프로세스만 중단하고 최신 코드로 verify2를 시작했다. R1 UX/UI에서 최종명칭 한 줄·61px행·화살표·개인관리그룹·키보드·author유지 이동을 확인했다. 사용자 명칭 수정1회/리뷰 회귀0개.
 
 - 최종 Node v22.23.3 전체 verify2 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). 로그 `.bugri-hooks/verify-2.log`, 관련 Prettier/diff check 통과. 커밋하며 push하지 않는다.
+
+## DISCOVERY-SPLIT — 개발자·태그 탐색 분리
+
+- 상태: DONE. REQ-12/AC-12i·j. 페이지·헤더·모바일 메뉴 분리, 레거시 검색 URL 보존. API 계약 변경 없음.
+- Node v22.23.3 최종 `npm run verify` 통과: lint·TypeScript·Jest 216개·도구 테스트 3개·production build·E2E 131개. 로그 `/tmp/bugri-discovery-verify2.log`. 관련 Prettier·git diff --check 통과.
+- 최초 샌드박스 포트 바인딩 차단 후 권한 확장 실행. 빌드 Suspense 경계/반환 타입 및 변경된 화면 동선의 테스트 설정을 수정하고 재검증했다. 실패 검사를 생략하지 않았다.
+- 독립 UX/UI 실제 화면 리뷰 R0, 수정 0회. [관점별 근거·직접/간접 확인 한계](ux-reviews/DISCOVERY-SPLIT.md). 커밋하며 push·PR은 수행하지 않는다.

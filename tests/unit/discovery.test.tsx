@@ -19,9 +19,11 @@ import { createMockTransport } from "@/mocks/adapter";
 function Harness({
   onLearn,
   pageSize = 20,
+  kind = DiscoveryKind.USER,
 }: {
   onLearn: (tag: string | null) => void;
   pageSize?: number;
+  kind?: DiscoveryQuery["kind"];
 }) {
   const [client] = useState(
     () =>
@@ -30,7 +32,7 @@ function Harness({
       }),
   );
   const [request, setRequest] = useState<DiscoveryQuery>({
-    kind: DiscoveryKind.USER,
+    kind,
     query: "",
     page: 1,
     pageSize,
@@ -58,14 +60,14 @@ it("finds developers and all registered tags without subscribing on search", asy
     }),
   );
   const learn = jest.fn();
-  render(<Harness onLearn={learn} />);
-  fireEvent.click(
-    screen.getByRole("tab", {
-      name: "태그",
-    }),
+  const { rerender } = render(
+    <Harness
+      kind={DiscoveryKind.HASHTAG}
+      onLearn={learn}
+    />,
   );
   const input = screen.getByRole("searchbox", {
-    name: "개발자 또는 태그 검색",
+    name: "태그 검색",
   });
   fireEvent.change(input, { target: { value: "JAVA" } });
   fireEvent.click(
@@ -79,11 +81,7 @@ it("finds developers and all registered tags without subscribing on search", asy
   expect(await api.request("subscriptions", {})).toEqual(
     [],
   );
-  fireEvent.click(
-    screen.getByRole("tab", {
-      name: "개발자",
-    }),
-  );
+  rerender(<Harness key="developers" onLearn={learn} />);
   fireEvent.change(screen.getByRole("searchbox"), {
     target: { value: "타입 개발자" },
   });
@@ -210,9 +208,11 @@ it("hides pagination when all results fit on one page", async () => {
 
 it("adds multiple tags without navigating or losing the current search", async () => {
   const learn = jest.fn();
-  render(<Harness onLearn={learn} />);
-  fireEvent.click(
-    screen.getByRole("tab", { name: "태그" }),
+  render(
+    <Harness
+      kind={DiscoveryKind.HASHTAG}
+      onLearn={learn}
+    />,
   );
   fireEvent.change(screen.getByRole("searchbox"), {
     target: { value: "Java" },
@@ -260,18 +260,22 @@ it("adds multiple tags without navigating or losing the current search", async (
   ).toHaveLength(2);
 });
 
-it("switches discovery tabs with arrow keys and preserves focus", async () => {
-  render(<Harness onLearn={jest.fn()} />);
-  const users = screen.getByRole("tab", { name: "개발자" });
-  users.focus();
-  fireEvent.keyDown(users, { key: "ArrowRight" });
-  const tags = screen.getByRole("tab", { name: "태그" });
-  expect(tags).toHaveAttribute("aria-selected", "true");
-  expect(tags).toHaveFocus();
+it("shows only the requested search kind without internal tabs", async () => {
+  render(
+    <Harness
+      kind={DiscoveryKind.HASHTAG}
+      onLearn={jest.fn()}
+    />,
+  );
   expect(
-    await screen.findByRole("tabpanel", { name: "태그" }),
+    await screen.findByRole("region", {
+      name: "태그 검색 결과",
+    }),
   ).toBeVisible();
-  fireEvent.keyDown(tags, { key: "Home" });
-  expect(users).toHaveAttribute("aria-selected", "true");
-  expect(users).toHaveFocus();
+  expect(
+    screen.queryByRole("tablist"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("searchbox", { name: "태그 검색" }),
+  ).toBeVisible();
 });
