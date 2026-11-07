@@ -44,6 +44,31 @@ test("keeps the desk editor available without a shop entry link", async ({
   ).toBeVisible();
 });
 
+test("mobile search and price sorting narrow the catalog without overflow", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/shop");
+
+  await page.getByLabel("상품 검색").fill("모니터");
+  await expect(page.getByRole("article")).toHaveCount(2);
+  await page
+    .getByLabel("상품 정렬")
+    .selectOption("PRICE_DESC");
+  await expect(
+    page.getByRole("article").getByRole("heading", {
+      level: 3,
+    }),
+  ).toHaveText(["미드나잇 모니터", "집중 모니터"]);
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <=
+        window.innerWidth,
+    ),
+  ).toBe(true);
+});
+
 test("purchase, equip, restore, switch users and view a public desk", async ({
   page,
 }) => {

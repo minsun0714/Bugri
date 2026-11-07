@@ -471,3 +471,9 @@
 
 - 구현: 실제 공간만 대칭 방 경계를 사용하고 환경 그룹·러그를 가구 프레이밍 중심과 정렬한다. 썸네일과 저장 좌표는 유지한다. 새 모달 최소 배율에서 가구 픽셀 중심 및 두 배경의 네 방향 벽 모서리 중심/수직선과 화면 채움을 PC·모바일로 검증한다. 수정 전 모서리 중심 검사 2개 실패, 수정 후 관련 E2E 8개 통과 및 실제 화면 확인.
 - 검증: 자동 Hook과 수동 검증이 겹치며 동시 빌드 잠금 및 페이지 요소 로드 타임아웃이 발생했다. 추가 실행 없이 마지막 Hook 결과를 확인했으며 마지막 코드 변경 후 Node v22.23.3 전체 검증 통과(lint·TypeScript·Jest 17 suites/96 tests·도구 3 tests·build·E2E 78 tests). 근거: .bugri-hooks/verify-4.log. git diff --check 통과. IN_PROGRESS(독립 리뷰 대기), push·PR·merge 없음.
+
+## P08-SHOP-SEARCH-SORT 상품 검색·정렬
+
+- 상태: IN_PROGRESS. REQ-09/AC-09e. 사용자 요청에 따라 `/shop` 상품명·설명 검색과 기본순·가격 낮은순·가격 높은순·이름순 정렬을 추가한다. 카테고리와 검색을 함께 적용하고 결과 없음에서 필터를 초기화한다. `/my` 보유 상품 화면과 구매·장착 계약은 변경하지 않는다.
+- TDD/구현: 검색 입력 부재로 실패하는 상점 단위 테스트를 먼저 확인했다. 공통 TextField와 제어 가능한 Select를 사용하고 검색 결과 개수·설명 검색·가격 정렬·카테고리 조합·초기화를 구현했다. 데스크톱은 카테고리와 검색 도구를 한 행에, 모바일은 세로로 배치한다.
+- 검증: 관련 단위 11개와 모바일 검색·정렬·가로 넘침 E2E를 포함한 관련 E2E 4개 통과. 실제 1100px·390px 화면 확인. 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 전체 통과(lint·TypeScript·Jest 17 suites/97 tests·도구 3 tests·build·Playwright 79 tests), `git diff --check`와 변경 파일 Prettier 검사 통과. 구현·필수 검증 완료, 독립 리뷰 대기. push·PR·merge 없음.

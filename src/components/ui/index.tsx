@@ -9,6 +9,7 @@ import {
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
+  type SelectHTMLAttributes,
 } from "react";
 
 type Tone = "neutral" | "success" | "warning" | "danger";
@@ -156,18 +157,26 @@ export function TextArea({
 export function Select({
   label,
   options,
+  id,
+  ...props
 }: {
   label: string;
-  options: string[];
-}) {
-  const id = useId();
+  options: readonly {
+    label: string;
+    value: string;
+  }[];
+} & SelectHTMLAttributes<HTMLSelectElement>) {
+  const generated = useId();
+  const fieldId = id ?? generated;
 
   return (
     <div className={styles["ui-field"]}>
-      <label htmlFor={id}>{label}</label>
-      <select id={id}>
+      <label htmlFor={fieldId}>{label}</label>
+      <select {...props} id={fieldId}>
         {options.map((option) => (
-          <option key={option}>{option}</option>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
       </select>
     </div>

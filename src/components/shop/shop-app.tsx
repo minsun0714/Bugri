@@ -15,7 +15,9 @@ import {
   EmptyState,
   Skeleton,
   Modal,
+  Select,
   Tag,
+  TextField,
 } from "@/components/ui";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
@@ -30,6 +32,23 @@ const categories: Record<Category, string> = {
   ACCESSORY: "소품",
   BACKGROUND: "배경",
 };
+
+const ProductSort = {
+  DEFAULT: "DEFAULT",
+  PRICE_ASC: "PRICE_ASC",
+  PRICE_DESC: "PRICE_DESC",
+  NAME: "NAME",
+} as const;
+
+type ProductSort =
+  (typeof ProductSort)[keyof typeof ProductSort];
+
+const sortOptions = [
+  { value: ProductSort.DEFAULT, label: "기본순" },
+  { value: ProductSort.PRICE_ASC, label: "가격 낮은순" },
+  { value: ProductSort.PRICE_DESC, label: "가격 높은순" },
+  { value: ProductSort.NAME, label: "이름순" },
+] as const;
 
 function ShopContent({
   userId,
@@ -51,6 +70,10 @@ function ShopContent({
   } = useShop(userId);
   const [category, setCategory] = useState<Category | null>(
     null,
+  );
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<ProductSort>(
+    ProductSort.DEFAULT,
   );
   const trialTrigger = useRef<HTMLButtonElement | null>(
     null,
@@ -74,14 +97,33 @@ function ShopContent({
       ({ productId }) => productId,
     ),
   );
-  const visible =
+  const query = search.trim().toLocaleLowerCase("ko-KR");
+  const filtered =
     (editing
       ? inventory.data?.products
       : products.data
     )?.filter(
       (product) =>
-        !category || product.category === category,
+        (!category || product.category === category) &&
+        (!query ||
+          `${product.name} ${product.description}`
+            .toLocaleLowerCase("ko-KR")
+            .includes(query)),
     ) ?? [];
+  const visible =
+    sort === ProductSort.DEFAULT
+      ? filtered
+      : [...filtered].sort((left, right) => {
+          if (sort === ProductSort.PRICE_ASC)
+            return left.price - right.price;
+          if (sort === ProductSort.PRICE_DESC)
+            return right.price - left.price;
+
+          return left.name.localeCompare(
+            right.name,
+            "ko-KR",
+          );
+        });
   const pending =
     purchase.isPending || equip.isPending || move.isPending;
 
@@ -196,28 +238,51 @@ function ShopContent({
             {visible.length}개의 오브젝트
           </span>
         </div>
-        <div
-          className="my-5 flex flex-wrap gap-2"
-          aria-label="상품 카테고리"
-        >
-          <Tag
-            selected={!category}
-            onClick={() => setCategory(null)}
+        <div className="my-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div
+            className="flex flex-wrap gap-2"
+            aria-label="상품 카테고리"
           >
-            전체
-          </Tag>
-          {Object.entries(categories).map(
-            ([value, label]) => (
-              <Tag
-                key={value}
-                selected={category === value}
-                onClick={() =>
-                  setCategory(value as Category)
+            <Tag
+              selected={!category}
+              onClick={() => setCategory(null)}
+            >
+              전체
+            </Tag>
+            {Object.entries(categories).map(
+              ([value, label]) => (
+                <Tag
+                  key={value}
+                  selected={category === value}
+                  onClick={() =>
+                    setCategory(value as Category)
+                  }
+                >
+                  {label}
+                </Tag>
+              ),
+            )}
+          </div>
+          {!editing && (
+            <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_180px] lg:w-[460px]">
+              <TextField
+                type="search"
+                label="상품 검색"
+                placeholder="상품명 또는 설명 검색"
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
                 }
-              >
-                {label}
-              </Tag>
-            ),
+              />
+              <Select
+                label="상품 정렬"
+                options={sortOptions}
+                value={sort}
+                onChange={(event) =>
+                  setSort(event.target.value as ProductSort)
+                }
+              />
+            </div>
           )}
         </div>
         <div
@@ -254,9 +319,17 @@ function ShopContent({
             title={
               editing
                 ? "아직 보관한 상품이 없어요"
-                : "이 카테고리에 상품이 없어요"
+                : query || category
+                  ? "검색 결과가 없어요"
+                  : "아직 상품이 없어요"
             }
-            description="상점에서 마음에 드는 상품을 골라보세요."
+            description={
+              editing
+                ? "상점에서 마음에 드는 상품을 골라보세요."
+                : query || category
+                  ? "다른 검색어나 카테고리를 선택해 보세요."
+                  : "상품이 등록되면 이곳에 표시됩니다."
+            }
             action={
               editing ? (
                 <Link
@@ -269,9 +342,11 @@ function ShopContent({
                 <Button
                   onClick={() => {
                     setCategory(null);
+                    setSearch("");
+                    setSort(ProductSort.DEFAULT);
                   }}
                 >
-                  상점 보기
+                  필터 초기화
                 </Button>
               )
             }

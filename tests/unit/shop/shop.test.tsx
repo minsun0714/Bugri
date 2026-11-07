@@ -106,6 +106,62 @@ it("filters categories and preserves products after a failed purchase", async ()
   ).not.toBeInTheDocument();
 });
 
+it("searches, sorts and resets the product catalog", async () => {
+  render(<ShopApp />);
+  await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
+
+  const search = screen.getByLabelText("상품 검색");
+
+  fireEvent.change(search, {
+    target: { value: "타이머" },
+  });
+  expect(screen.getAllByRole("article")).toHaveLength(1);
+  expect(
+    screen.getByRole("heading", { name: "집중 모니터" }),
+  ).toBeInTheDocument();
+
+  fireEvent.change(search, {
+    target: { value: "모니터" },
+  });
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+  expect(
+    screen.queryByRole("heading", { name: "새싹 키보드" }),
+  ).not.toBeInTheDocument();
+
+  fireEvent.change(screen.getByLabelText("상품 정렬"), {
+    target: { value: "PRICE_DESC" },
+  });
+  expect(
+    screen
+      .getAllByRole("article")
+      .map(
+        (card) =>
+          within(card).getByRole("heading", { level: 3 })
+            .textContent,
+      ),
+  ).toEqual(["미드나잇 모니터", "집중 모니터"]);
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "키보드" }),
+  );
+  expect(
+    screen.getByText("검색 결과가 없어요"),
+  ).toBeInTheDocument();
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "필터 초기화" }),
+  );
+  expect(screen.getAllByRole("article")).toHaveLength(10);
+  expect(screen.getByLabelText("상품 검색")).toHaveValue(
+    "",
+  );
+  expect(screen.getByLabelText("상품 정렬")).toHaveValue(
+    "DEFAULT",
+  );
+});
+
 it("replaces equipment in the same category while keeping both purchases", async () => {
   const shop = render(<ShopApp />);
   for (const name of ["새싹 키보드", "라벤더 키보드"]) {
