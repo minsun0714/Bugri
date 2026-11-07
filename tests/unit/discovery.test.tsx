@@ -389,3 +389,26 @@ it("clears a subscription error when search conditions change", async () => {
     screen.queryByRole("alert"),
   ).not.toBeInTheDocument();
 });
+
+it("links public quiz counts to the same tag catalog as the title, including empty tags", async () => {
+  render(
+    <Harness
+      kind={DiscoveryKind.HASHTAG}
+      onLearn={jest.fn()}
+    />,
+  );
+
+  for (const name of ["Java", "JavaScript"]) {
+    const title = await screen.findByRole("link", {
+      name: `#${name}`,
+    });
+    const count = screen.getByRole("link", {
+      name: new RegExp(`^${name} 공개 퀴즈`),
+    });
+
+    expect(count).toHaveAttribute(
+      "href",
+      title.getAttribute("href"),
+    );
+  }
+});

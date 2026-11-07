@@ -404,6 +404,8 @@ export function DiscoverySearch({
                   ? showSubscriptions && storedSubscribed
                   : storedSubscribed;
 
+                const catalogHref = `/tags/${encodeURIComponent(id)}/quizzes?${new URLSearchParams({ ...(showSubscriptions ? { user: userId } : {}), ...(request.query ? { query: request.query } : {}), discoveryPage: String(request.page), ...(request.subscribedOnly ? { subscribed: "true" } : {}) })}`;
+
                 return (
                   <li
                     key={id}
@@ -418,7 +420,7 @@ export function DiscoverySearch({
                       </span>
                       <div className="min-w-0 flex-1">
                         <Link
-                          href={`/tags/${encodeURIComponent(id)}/quizzes?${new URLSearchParams({ ...(showSubscriptions ? { user: userId } : {}), ...(request.query ? { query: request.query } : {}), discoveryPage: String(request.page), ...(request.subscribedOnly ? { subscribed: "true" } : {}) })}`}
+                          href={catalogHref}
                           className={
                             discoveryStyles.personLink
                           }
@@ -436,9 +438,11 @@ export function DiscoverySearch({
                       className={tagDiscoveryStyles.footer}
                     >
                       <div className="flex flex-wrap items-center gap-2">
-                        <span
+                        <Link
+                          href={catalogHref}
+                          aria-label={`${name} 공개 퀴즈 ${publicQuizCount}개`}
                           className={
-                            tagDiscoveryStyles.count
+                            discoveryStyles.quizLink
                           }
                         >
                           <svg
@@ -469,7 +473,7 @@ export function DiscoverySearch({
                               개
                             </>
                           )}
-                        </span>
+                        </Link>
                       </div>
                       {action(
                         name,
