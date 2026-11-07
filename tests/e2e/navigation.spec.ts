@@ -121,7 +121,7 @@ test("developer breadcrumbs never show IDs and link to discovery", async ({
     name: "현재 위치",
   });
   await expect(
-    breadcrumb.getByText("개발자 프로필"),
+    breadcrumb.getByText("개발자별 공개 퀴즈"),
   ).toHaveAttribute("aria-current", "page");
   await expect(breadcrumb).not.toContainText(
     "bugri-author",

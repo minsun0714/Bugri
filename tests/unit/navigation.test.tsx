@@ -24,10 +24,9 @@ test("breadcrumbs identify the current page without exposing dynamic IDs", () =>
     "href",
     "/discover/developers?user=friend",
   );
-  expect(screen.getByText("개발자 프로필")).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  expect(
+    screen.getByText("개발자별 공개 퀴즈"),
+  ).toHaveAttribute("aria-current", "page");
   expect(
     screen.queryByText("private-id"),
   ).not.toBeInTheDocument();

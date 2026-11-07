@@ -23,12 +23,17 @@ import { profileStyles } from "@/components/profile/styles";
 import { ProfileAbout } from "@/components/profile/profile-about";
 import { ApiClientError } from "@/api/client";
 import {
+  Avatar,
   Button,
   EmptyState,
   Skeleton,
   TextField,
   Toast,
 } from "@/components/ui";
+import { developerStyles } from "@/components/developer/styles";
+import { SubscriptionControl } from "@/components/discovery/subscription-control";
+import { SubscriptionMenu } from "@/components/discovery/subscription-menu";
+import { withDemoUser } from "@/components/navigation/routes";
 import { QuizCard } from "@/components/ui/quiz-card";
 import { useDeveloper } from "@/components/developer/queries";
 
@@ -37,98 +42,6 @@ interface Filters {
   tagPage: number;
   tagQuery: string;
   hashtagId: string | null;
-}
-
-function TagSubscriptionMenu({
-  name,
-  busy,
-  onToggle,
-}: {
-  name: string;
-  busy: boolean;
-  onToggle: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    function closeOutside(event: PointerEvent) {
-      if (!root.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    function closeWithKeyboard(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-
-      setOpen(false);
-      root.current
-        ?.querySelector<HTMLButtonElement>("button")
-        ?.focus();
-    }
-
-    document.addEventListener("pointerdown", closeOutside);
-    document.addEventListener("keydown", closeWithKeyboard);
-
-    return () => {
-      document.removeEventListener(
-        "pointerdown",
-        closeOutside,
-      );
-      document.removeEventListener(
-        "keydown",
-        closeWithKeyboard,
-      );
-    };
-  }, [open]);
-
-  return (
-    <div ref={root} className="relative">
-      <Button
-        className="!size-7 !min-h-0 !rounded-full !border-0 !p-0 !shadow-none"
-        size="sm"
-        variant="ghost"
-        disabled={busy}
-        aria-label={`${name} 구독 메뉴`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="size-4"
-        >
-          <circle cx="5" cy="12" r="1.5" />
-          <circle cx="12" cy="12" r="1.5" />
-          <circle cx="19" cy="12" r="1.5" />
-        </svg>
-      </Button>
-      {open && (
-        <div
-          role="menu"
-          aria-label={`${name} 구독 관리`}
-          className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-28 rounded-xl border border-line bg-surface p-1 shadow-lg"
-        >
-          <button
-            type="button"
-            role="menuitem"
-            disabled={busy}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold whitespace-nowrap hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-45"
-            onClick={() => {
-              onToggle();
-              setOpen(false);
-            }}
-          >
-            구독 해제
-          </button>
-        </div>
-      )}
-    </div>
-  );
 }
 
 function PageControls({
@@ -193,23 +106,31 @@ function TagSearch({
 
   return (
     <form
-      className="mb-2 flex items-end gap-2"
+      className={developerStyles.search}
       onSubmit={(event) => {
         event.preventDefault();
         onSearch(query.trim());
       }}
     >
-      <div className="min-w-0 flex-1">
+      <div className={developerStyles.searchField}>
         <TextField
           type="search"
           label="이 개발자의 태그 검색"
+          hideLabel
+          placeholder="태그 검색"
           value={query}
           maxLength={100}
           disabled={busy}
           onChange={(event) => setQuery(event.target.value)}
         />
       </div>
-      <Button type="submit" disabled={busy}>
+      <Button
+        type="submit"
+        size="sm"
+        variant="secondary"
+        className={developerStyles.searchButton}
+        disabled={busy}
+      >
         검색
       </Button>
     </form>
@@ -253,8 +174,26 @@ function Catalog({
     },
   );
   const { data } = quizzes;
+  const tagRegion = useRef<HTMLElement>(null);
+  const pendingTagFocus = useRef<string | null>(null);
   const subscriptionBusy = subscribe.isPending;
   const busy = navigating || subscriptionBusy;
+
+  useEffect(() => {
+    if (subscriptionBusy || !pendingTagFocus.current)
+      return;
+    const button = Array.from(
+      tagRegion.current?.querySelectorAll<HTMLButtonElement>(
+        "button",
+      ) ?? [],
+    ).find(
+      (item) =>
+        item.getAttribute("aria-label") ===
+        pendingTagFocus.current,
+    );
+    button?.focus();
+    pendingTagFocus.current = null;
+  }, [subscriptionBusy, tags.data]);
 
   if (quizzes.isPending) return <Skeleton />;
   if (quizzes.error)
@@ -280,13 +219,19 @@ function Catalog({
       @{data.user.publicId}
     </h1>
   ) : (
-    <div>
-      <h1 className="text-3xl">
+    <div className="min-w-0 flex-1">
+      <h1 className="break-words text-lg sm:text-2xl">
         {data.user.displayName}의 퀴즈
       </h1>
-      <p className="mt-2 text-muted">
+      <Link
+        className="mt-1 inline-flex min-h-8 max-w-full items-center break-all text-sm text-muted hover:text-primary hover:underline"
+        href={withDemoUser(
+          `/users/${encodeURIComponent(publicId)}`,
+          signedIn ? userId : null,
+        )}
+      >
         @{data.user.publicId}
-      </p>
+      </Link>
     </div>
   );
   const subscription = (profile || !data.subscribed) && (
@@ -326,7 +271,7 @@ function Catalog({
   );
 
   return (
-    <div className={profile ? "space-y-4" : "space-y-8"}>
+    <div className={profile ? "space-y-4" : "space-y-5"}>
       {profile ? (
         <ProfileAbout
           key={`${userId}:${publicId}:${signedIn}`}
@@ -338,9 +283,27 @@ function Catalog({
           onNotice={onNotice}
         />
       ) : (
-        <header className="flex flex-wrap items-center justify-between gap-4">
+        <header className={developerStyles.header}>
+          <span
+            aria-hidden="true"
+            className={developerStyles.avatar}
+          >
+            <Avatar name={data.user.displayName} />
+          </span>
           {identity}
-          {subscription}
+          <SubscriptionControl
+            userId={userId}
+            name={data.user.displayName}
+            target={{
+              type: "PERSON",
+              authorUserId: data.user.userId,
+            }}
+            subscribed={signedIn && data.subscribed}
+            signedIn={signedIn}
+            disabled={busy}
+            onLogin={() => signIn()}
+            onSuccess={(message) => onNotice(message, 4000)}
+          />
         </header>
       )}
       {afterHeader && (
@@ -366,25 +329,30 @@ function Catalog({
           구독을 저장하지 못했습니다. 다시 시도해 주세요.
         </p>
       )}
-      <div className="space-y-8">
+      <div className={profile ? "space-y-8" : "space-y-5"}>
         {!profile && (
           <section
+            ref={tagRegion}
             aria-label="개발자의 태그"
-            className="min-w-0 rounded-2xl border border-line bg-surface p-3 sm:p-4"
+            className={developerStyles.filters}
           >
-            <h2 className="mb-2 text-lg">태그</h2>
-            <TagSearch
-              key={tagQuery}
-              value={tagQuery}
-              busy={subscriptionBusy}
-              onSearch={(query) =>
-                onChange({
-                  ...filters,
-                  tagQuery: query,
-                  tagPage: 1,
-                })
-              }
-            />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold">
+                태그로 좁히기
+              </h2>
+              <TagSearch
+                key={tagQuery}
+                value={tagQuery}
+                busy={subscriptionBusy}
+                onSearch={(query) =>
+                  onChange({
+                    ...filters,
+                    tagQuery: query,
+                    tagPage: 1,
+                  })
+                }
+              />
+            </div>
             {tags.isPending && <Skeleton />}
             {tags.error && (
               <div role="alert">
@@ -410,33 +378,16 @@ function Catalog({
                     }) => (
                       <li
                         key={id}
-                        className={`flex w-fit max-w-full items-center gap-1 rounded-full border py-0.5 pl-3 pr-1 ${(profile ? hashtagId === id : subscribed) ? "border-primary/25 bg-primary/10" : "border-line bg-canvas/40"} ${hashtagId === id ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-surface" : ""}`}
+                        className={developerStyles.tag}
                       >
                         <button
                           type="button"
                           disabled={busy}
                           aria-pressed={hashtagId === id}
-                          className="min-w-0 break-all text-left font-medium text-primary"
+                          className={
+                            developerStyles.tagFilter
+                          }
                           onClick={() => {
-                            if (!subscribed && !profile) {
-                              void subscribe
-                                .mutateAsync({
-                                  target: {
-                                    type: "PERSON_HASHTAG",
-                                    authorUserId:
-                                      data.user.userId,
-                                    hashtagId: id,
-                                  },
-                                  subscribed: false,
-                                })
-                                .then(() =>
-                                  onNotice(
-                                    `${name} 태그를 구독했습니다.`,
-                                  ),
-                                )
-                                .catch(() => undefined);
-                            }
-
                             onChange({
                               ...filters,
                               hashtagId: id,
@@ -449,30 +400,79 @@ function Catalog({
                             ({quizCount})
                           </span>
                         </button>
-                        {subscribed && !profile && (
-                          <TagSubscriptionMenu
-                            name={name}
-                            busy={busy}
-                            onToggle={() => {
-                              void subscribe
-                                .mutateAsync({
-                                  target: {
-                                    type: "PERSON_HASHTAG",
-                                    authorUserId:
-                                      data.user.userId,
-                                    hashtagId: id,
-                                  },
-                                  subscribed: true,
-                                })
-                                .then(() =>
-                                  onNotice(
-                                    `${name} 태그 구독을 취소했습니다.`,
-                                  ),
-                                )
-                                .catch(() => undefined);
-                            }}
-                          />
-                        )}
+                        <div className="flex shrink-0 items-center border-l border-line pl-1">
+                          {signedIn && subscribed ? (
+                            <>
+                              <span
+                                role="img"
+                                aria-label={`${name} 태그 구독 중`}
+                                className="flex size-5 items-center justify-center rounded-full bg-lime/55 text-xs text-primary"
+                              >
+                                ✓
+                              </span>
+                              <SubscriptionMenu
+                                name={name}
+                                busy={busy}
+                                onUnsubscribe={() => {
+                                  pendingTagFocus.current = `${name} 태그 구독하기`;
+                                  void subscribe
+                                    .mutateAsync({
+                                      target: {
+                                        type: "PERSON_HASHTAG",
+                                        authorUserId:
+                                          data.user.userId,
+                                        hashtagId: id,
+                                      },
+                                      subscribed: true,
+                                    })
+                                    .then(() =>
+                                      onNotice(
+                                        `${name} 태그 구독을 취소했습니다.`,
+                                        4000,
+                                      ),
+                                    )
+                                    .catch(() => undefined);
+                                }}
+                              />
+                            </>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className={
+                                developerStyles.tagSubscribe
+                              }
+                              disabled={busy}
+                              aria-label={`${name} 태그 구독하기`}
+                              onClick={() => {
+                                if (!signedIn) {
+                                  signIn();
+                                  return;
+                                }
+                                pendingTagFocus.current = `${name} 구독 메뉴`;
+                                void subscribe
+                                  .mutateAsync({
+                                    target: {
+                                      type: "PERSON_HASHTAG",
+                                      authorUserId:
+                                        data.user.userId,
+                                      hashtagId: id,
+                                    },
+                                    subscribed: false,
+                                  })
+                                  .then(() =>
+                                    onNotice(
+                                      `${name} 태그를 구독했습니다.`,
+                                      4000,
+                                    ),
+                                  )
+                                  .catch(() => undefined);
+                              }}
+                            >
+                              + 구독
+                            </Button>
+                          )}
+                        </div>
                       </li>
                     ),
                   )}
@@ -516,20 +516,25 @@ function Catalog({
               </Link>
             )}
             {!profile && hashtagId && (
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={busy}
-                onClick={() =>
-                  onChange({
-                    ...filters,
-                    hashtagId: null,
-                    page: 1,
-                  })
-                }
-              >
-                전체 퀴즈
-              </Button>
+              <div className="flex max-w-full flex-wrap items-center gap-2">
+                <span className="break-all rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  #{hashtagId}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={() =>
+                    onChange({
+                      ...filters,
+                      hashtagId: null,
+                      page: 1,
+                    })
+                  }
+                >
+                  전체 퀴즈
+                </Button>
+              </div>
             )}
           </div>
           {data.items.length ? (
@@ -593,6 +598,7 @@ export function DeveloperScreen({
 }) {
   const { publicId } = useParams<{ publicId: string }>();
   const params = useSearchParams();
+  const { signedIn } = useDemoSession();
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
   const [toast, setToast] = useState<string | null>(null);
@@ -639,7 +645,10 @@ export function DeveloperScreen({
         {!profile && (
           <Link
             className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary focus-visible:text-primary"
-            href={`/discover/developers?user=${encodeURIComponent(userId)}`}
+            href={withDemoUser(
+              "/discover/developers",
+              signedIn ? userId : null,
+            )}
           >
             <span aria-hidden="true">←</span>
             탐색으로 돌아가기
@@ -656,7 +665,7 @@ export function DeveloperScreen({
           onNotice={showNotice}
           onChange={(next) => {
             const query = new URLSearchParams({
-              user: userId,
+              ...(signedIn ? { user: userId } : {}),
               page: String(next.page),
               tagPage: String(next.tagPage),
             });

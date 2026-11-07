@@ -40,7 +40,11 @@ beforeEach(() => {
 });
 
 test("author catalog filters explicitly and refreshes subscriptions without navigating", async () => {
-  render(<DeveloperScreen />);
+  render(
+    <DemoSessionProvider>
+      <DeveloperScreen />
+    </DemoSessionProvider>,
+  );
   expect(
     await screen.findByRole("heading", {
       name: "타입 개발자의 퀴즈",
@@ -59,12 +63,14 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
   ).not.toBeInTheDocument();
   expect(push).not.toHaveBeenCalled();
   fireEvent.click(
-    screen.getByRole("button", { name: "개발자 구독하기" }),
+    screen.getByRole("button", {
+      name: "타입 개발자 구독하기",
+    }),
   );
   await waitFor(() =>
     expect(
       screen.queryByRole("button", {
-        name: "개발자 구독하기",
+        name: "타입 개발자 구독하기",
       }),
     ).not.toBeInTheDocument(),
   );
@@ -75,6 +81,21 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
   fireEvent.click(
     screen.getByRole("button", {
       name: "TypeScript (1)",
+    }),
+  );
+  const api = await createBrowserApi({
+    mode: "mock",
+    userId: "friend",
+  });
+  expect(await api.request("subscriptions", {})).toEqual([
+    expect.objectContaining({
+      type: "PERSON",
+      authorUserId: "author",
+    }),
+  ]);
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "TypeScript 태그 구독하기",
     }),
   );
   await waitFor(() =>
