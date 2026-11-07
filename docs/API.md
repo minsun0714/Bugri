@@ -81,6 +81,8 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 2. 저장된 내용을 확인한 뒤 `action: 'MARK_REVIEWED'`, 최신 `expectedVersion`으로 검토 완료를 저장한다.
 3. `approve`에 최신 버전을 전달한다. 첫 승인은 PRIVATE/PUBLIC을 지정해야 하며, 수정본 승인은 생략하면 기존 공개 범위를 유지한다.
 
+검토 UI는 2와 3을 별도 버튼으로 노출하지 않는다. 작성자가 저장된 미리보기에서 `승인`을 누르면 `MARK_REVIEWED` 성공 응답의 최신 버전으로 `approve`를 이어서 요청한다. 첫 요청만 성공하고 승인이 실패하면 검토 완료 상태를 유지하고 최신 버전으로 승인을 다시 시도할 수 있어야 한다.
+
 승인된 문제를 수정·재생성해도 active는 유지하고 pending만 만든다. stale version은 409 VERSION_CONFLICT다. 실패 시 저장 상태를 변경하지 않으며 UI는 오류 시 아직 저장되지 않은 편집 내용·추가 프롬프트를 유지해야 한다. 생성·재생성으로 자동 승인하지 않는다.
 
 `visibility`는 내용 변경과 별도이며 `expectedVersion`을 요구한다. `deleteQuiz`는 작성자만 가능한 멱등 soft delete다. 삭제한 퀴즈는 목록·학습·새 풀이에서 숨긴다.

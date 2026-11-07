@@ -53,6 +53,7 @@ export function ReviewEditor({
   );
   const [prompt, setPrompt] = useState("");
   const [sentPrompt, setSentPrompt] = useState("");
+  const [editing, setEditing] = useState(false);
   const [visibility, setVisibility] = useState<
     Visibility | ""
   >(
@@ -79,7 +80,11 @@ export function ReviewEditor({
     JSON.stringify(content) !==
       JSON.stringify(editableContent(saved));
   const dirty = edited || prompt !== sentPrompt;
-  const reviewed = !!quiz.pending?.reviewed && !edited;
+  const statusLabel = quiz.pending
+    ? "검토 중"
+    : quiz.status === QuizStatus.PUBLIC
+      ? "전체 공개"
+      : "나만 보기";
 
   useEffect(() => {
     onDirty(dirty);
@@ -140,8 +145,46 @@ export function ReviewEditor({
           content,
         }),
       );
+      setEditing(false);
       setMessage(
         "내용을 저장했습니다. 저장된 내용을 다시 확인하세요.",
+      );
+    });
+  }
+
+  function cancelEditing() {
+    setContent(editableContent(saved));
+    setSource(saved.sourceContent);
+    setErrors({});
+    setEditing(false);
+  }
+
+  function approvePending() {
+    if (!visibility || !quiz.pending) return;
+
+    void run(async () => {
+      let approvalQuiz = quiz;
+
+      if (!quiz.pending?.reviewed) {
+        approvalQuiz = await api.request("updatePending", {
+          quizId: quiz.quizId,
+          expectedVersion: quiz.version,
+          action: "MARK_REVIEWED",
+        });
+        accept(approvalQuiz);
+      }
+
+      accept(
+        await api.request("approve", {
+          quizId: approvalQuiz.quizId,
+          expectedVersion: approvalQuiz.version,
+          visibility,
+        }),
+      );
+      setMessage(
+        visibility === QuizStatus.PUBLIC
+          ? "공개했습니다."
+          : "나만 보기로 승인했습니다.",
       );
     });
   }
@@ -152,60 +195,11 @@ export function ReviewEditor({
       aria-label="퀴즈 검토"
       className={styles.stack}
     >
-      <div>
-        <h2 className="text-2xl">퀴즈 검토·수정</h2>
-        <p className="mt-2 text-sm text-muted">
-          현재 상태: {quiz.status} · 버전 {quiz.version}
-        </p>
-      </div>
-      {quiz.active && (
-        <Card>
-          <div className="flex flex-wrap items-center gap-3">
-            <h3>현재 서비스 중인 버전</h3>
-            <Tooltip label="수정본 승인 도움말">
-              수정본을 승인하기 전까지 기존 퀴즈가
-              유지됩니다.
-            </Tooltip>
-          </div>
-          <p>
-            {quiz.active.title} · {quiz.status}
-          </p>
-        </Card>
-      )}
-      <fieldset disabled={busy} className="min-w-0">
-        <ContentFields
-          content={content}
-          source={source}
-          tags={tags}
-          errors={errors}
-          onChange={setContent}
-          onSource={setSource}
-        />
-      </fieldset>
-      <div className={styles.actions}>
-        <Button disabled={busy || !edited} onClick={save}>
-          내용 저장
-        </Button>
-        <Button
-          variant="ghost"
-          disabled={busy}
-          onClick={() => {
-            if (dirty && !window.confirm(leaveMessage))
-              return;
-            void run(async () => {
-              accept(
-                await api.request("reviewQuiz", {
-                  quizId: quiz.quizId,
-                }),
-              );
-              setPrompt("");
-              setSentPrompt("");
-              setMessage("최신 내용을 불러왔습니다.");
-            });
-          }}
-        >
-          최신 내용 다시 불러오기
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-2xl">퀴즈 검토</h2>
+        <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+          {statusLabel}
+        </span>
       </div>
       <RequestError error={error} />
       {message && (
@@ -213,134 +207,164 @@ export function ReviewEditor({
           {message}
         </p>
       )}
-      {quiz.pending && (
-        <Card className={styles.stack}>
-          <h3 className="text-xl">저장된 내용 확인</h3>
-          <h4>{quiz.pending.title}</h4>
-          <details>
-            <summary className="cursor-pointer text-primary">
-              저장된 원본 학습 내용
-            </summary>
-            <pre className={styles.prose}>
-              {quiz.pending.sourceContent}
-            </pre>
-          </details>
-          <ContentPreview content={quiz.pending} />
-          <p>
-            {reviewed ? "검토 완료" : "검토 필요"}
-            {edited
-              ? " · 저장하지 않은 변경이 있습니다."
-              : ""}
-          </p>
+      {!editing && quiz.active && quiz.pending && (
+        <details className="rounded-2xl border border-line bg-surface p-5">
+          <summary className="cursor-pointer font-semibold text-primary">
+            현재 공개본과 비교
+          </summary>
+          <div className="mt-5 grid gap-5 border-t border-line pt-5">
+            <h3 className="text-lg">{quiz.active.title}</h3>
+            <ContentPreview content={quiz.active} />
+          </div>
+        </details>
+      )}
+      {editing ? (
+        <div className={styles.stack}>
+          <fieldset disabled={busy} className="min-w-0">
+            <ContentFields
+              content={content}
+              source={source}
+              tags={tags}
+              errors={errors}
+              onChange={setContent}
+              onSource={setSource}
+            />
+          </fieldset>
           <div className={styles.actions}>
             <Button
-              disabled={busy || edited || reviewed}
-              onClick={() =>
+              variant="ghost"
+              disabled={busy}
+              onClick={() => {
+                if (dirty && !window.confirm(leaveMessage))
+                  return;
                 void run(async () => {
                   accept(
-                    await api.request("updatePending", {
-                      ...version,
-                      action: "MARK_REVIEWED",
+                    await api.request("reviewQuiz", {
+                      quizId: quiz.quizId,
                     }),
                   );
-                  setMessage(
-                    "저장된 내용을 검토 완료했습니다.",
-                  );
-                })
-              }
+                  setPrompt("");
+                  setSentPrompt("");
+                  setMessage("최신 내용을 불러왔습니다.");
+                });
+              }}
             >
-              검토 완료 저장
+              최신 내용 다시 불러오기
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={cancelEditing}
+            >
+              취소
+            </Button>
+            <Button
+              disabled={busy || !edited}
+              onClick={save}
+            >
+              수정 저장
             </Button>
           </div>
-          <Dropdown
-            label="승인 공개 범위"
-            value={visibility}
+        </div>
+      ) : (
+        <Card className={styles.stack}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-xl">{saved.title}</h3>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setEditing(true)}
+            >
+              직접 수정
+            </Button>
+          </div>
+          <details>
+            <summary className="cursor-pointer text-primary">
+              원본 학습 내용
+            </summary>
+            <pre className={styles.prose}>
+              {saved.sourceContent}
+            </pre>
+          </details>
+          <ContentPreview content={saved} />
+          {quiz.pending && (
+            <div className="grid items-end gap-3 border-t border-line pt-5 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <Dropdown
+                label="승인 공개 범위"
+                value={visibility}
+                disabled={busy}
+                options={[
+                  {
+                    value: "",
+                    label: "공개 범위 선택",
+                  },
+                  {
+                    value: QuizStatus.PRIVATE,
+                    label: "나만 풀기",
+                  },
+                  {
+                    value: QuizStatus.PUBLIC,
+                    label: "공개",
+                  },
+                ]}
+                onValueChange={(value) =>
+                  setVisibility(value as Visibility | "")
+                }
+              />
+              <Button
+                className="sm:min-w-28"
+                disabled={busy || dirty || !visibility}
+                onClick={approvePending}
+              >
+                승인
+              </Button>
+            </div>
+          )}
+        </Card>
+      )}
+      {!editing && (
+        <Card className={styles.stack}>
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className="text-xl">
+              추가 프롬프트로 재생성
+            </h3>
+            <Tooltip label="재생성 도움말">
+              저장된 내용으로 수정본을 만듭니다. 검토 후
+              승인해야 반영됩니다.
+            </Tooltip>
+          </div>
+          <TextField
+            label="추가 프롬프트"
+            value={prompt}
             disabled={busy}
-            options={[
-              { value: "", label: "공개 범위 선택" },
-              ...[
-                {
-                  value: QuizStatus.PRIVATE,
-                  label: "나만 풀기",
-                },
-                { value: QuizStatus.PUBLIC, label: "공개" },
-              ],
-            ]}
-            onValueChange={(value) =>
-              setVisibility(value as Visibility | "")
+            onChange={(event) =>
+              setPrompt(event.target.value)
             }
           />
-          <p className="text-sm text-muted">
-            승인 대상: {quiz.pending.title} ·{" "}
-            {quiz.pending.hashtagIds
-              .map((id) => `#${id}`)
-              .join(" ") || "태그 없음"}{" "}
-            · {visibility || "공개 범위 미선택"}
-          </p>
           <div className={styles.actions}>
             <Button
-              disabled={
-                busy || dirty || !reviewed || !visibility
-              }
+              disabled={busy || edited || !prompt.trim()}
               onClick={() =>
                 void run(async () => {
-                  if (!visibility) return;
                   accept(
-                    await api.request("approve", {
+                    await api.request("regenerate", {
                       ...version,
-                      visibility,
+                      prompt,
                     }),
                   );
-                  setMessage("승인했습니다.");
+                  setSentPrompt(prompt);
+                  setMessage(
+                    "수정본을 생성했습니다. 내용을 검토하세요.",
+                  );
                 })
               }
             >
-              선택한 범위로 승인
+              수정본 재생성
             </Button>
           </div>
         </Card>
       )}
-      <Card className={styles.stack}>
-        <div className="flex flex-wrap items-center gap-3">
-          <h3 className="text-xl">
-            추가 프롬프트로 재생성
-          </h3>
-          <Tooltip label="재생성 도움말">
-            저장된 내용으로 수정본을 만듭니다. 검토 후
-            승인해야 반영됩니다.
-          </Tooltip>
-        </div>
-        <TextField
-          label="추가 프롬프트"
-          value={prompt}
-          disabled={busy}
-          onChange={(event) =>
-            setPrompt(event.target.value)
-          }
-        />
-        <div className={styles.actions}>
-          <Button
-            disabled={busy || edited || !prompt.trim()}
-            onClick={() =>
-              void run(async () => {
-                accept(
-                  await api.request("regenerate", {
-                    ...version,
-                    prompt,
-                  }),
-                );
-                setSentPrompt(prompt);
-                setMessage(
-                  "수정본을 생성했습니다. 내용을 검토하세요.",
-                );
-              })
-            }
-          >
-            수정본 재생성
-          </Button>
-        </div>
-      </Card>
-      {quiz.active && (
+      {!editing && quiz.active && !quiz.pending && (
         <Card className={styles.stack}>
           <h3 className="text-xl">현재 버전 공개 범위</h3>
           <Dropdown

@@ -51,29 +51,40 @@ async function setup(index = 0) {
   return { api, quiz, onChanged };
 }
 
-test("edit must be saved and explicitly reviewed before publication; approved edits preserve active revision", async () => {
+function openEditor() {
+  fireEvent.click(
+    screen.getByRole("button", { name: "직접 수정" }),
+  );
+}
+
+test("preview-first approval reviews in one action and approved edits preserve the active revision", async () => {
   const { api, quiz } = await setup();
   expect(
+    screen.queryByLabelText("제목"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", {
+      name: "검토 완료 저장",
+    }),
+  ).not.toBeInTheDocument();
+  expect(
     screen.getByRole("button", {
-      name: "선택한 범위로 승인",
+      name: "승인",
     }),
   ).toBeDisabled();
+  openEditor();
   fireEvent.change(screen.getByLabelText("제목"), {
     target: { value: "새 제목" },
   });
-  expect(
-    screen.getByRole("button", { name: "검토 완료 저장" }),
-  ).toBeDisabled();
   fireEvent.click(
-    screen.getByRole("button", { name: "내용 저장" }),
+    screen.getByRole("button", { name: "수정 저장" }),
   );
   await screen.findByText(
     "내용을 저장했습니다. 저장된 내용을 다시 확인하세요.",
   );
-  fireEvent.click(
-    screen.getByRole("button", { name: "검토 완료 저장" }),
-  );
-  await screen.findByText("검토 완료");
+  expect(
+    screen.queryByLabelText("제목"),
+  ).not.toBeInTheDocument();
   fireEvent.click(
     screen.getByRole("combobox", {
       name: "승인 공개 범위",
@@ -86,19 +97,30 @@ test("edit must be saved and explicitly reviewed before publication; approved ed
   );
   fireEvent.click(
     screen.getByRole("button", {
-      name: "선택한 범위로 승인",
+      name: "승인",
     }),
   );
-  await screen.findByText("승인했습니다.");
+  await screen.findByText("공개했습니다.");
+  openEditor();
   fireEvent.change(screen.getByLabelText("제목"), {
     target: { value: "수정본 제목" },
   });
   fireEvent.click(
-    screen.getByRole("button", { name: "내용 저장" }),
+    screen.getByRole("button", { name: "수정 저장" }),
   );
   await screen.findByText(
     "내용을 저장했습니다. 저장된 내용을 다시 확인하세요.",
   );
+  expect(
+    screen.getByText("현재 공개본과 비교"),
+  ).toBeVisible();
+  expect(
+    screen.getByText("새 제목", { exact: true }),
+  ).not.toBeVisible();
+  fireEvent.click(screen.getByText("현재 공개본과 비교"));
+  expect(
+    screen.getByText("새 제목", { exact: true }),
+  ).toBeVisible();
   const result = await api.request("reviewQuiz", {
     quizId: quiz.quizId,
   });
@@ -109,11 +131,12 @@ test("edit must be saved and explicitly reviewed before publication; approved ed
 
 test("duplicate choices are rejected at the field and preserve edits", async () => {
   await setup();
+  openEditor();
   fireEvent.change(screen.getByLabelText("선택지 2"), {
     target: { value: "number" },
   });
   fireEvent.click(
-    screen.getByRole("button", { name: "내용 저장" }),
+    screen.getByRole("button", { name: "수정 저장" }),
   );
   expect(screen.getByRole("alert")).toHaveTextContent(
     "선택지는 비어 있거나 중복될 수 없습니다",
@@ -127,6 +150,7 @@ test.each([1, 2, 3])(
   "supports answer editing for fixture %i",
   async (index) => {
     const { api, quiz, onChanged } = await setup(index);
+    openEditor();
     if (index === 1)
       fireEvent.click(
         screen.getByLabelText("정답 선택지 3"),
@@ -138,7 +162,7 @@ test.each([1, 2, 3])(
         target: { value: "let" },
       });
     fireEvent.click(
-      screen.getByRole("button", { name: "내용 저장" }),
+      screen.getByRole("button", { name: "수정 저장" }),
     );
     await waitFor(() =>
       expect(onChanged).toHaveBeenCalled(),
@@ -166,11 +190,12 @@ test("stale update preserves edits and reports conflict", async () => {
     expectedVersion: quiz.version,
     action: "MARK_REVIEWED",
   });
+  openEditor();
   fireEvent.change(screen.getByLabelText("제목"), {
     target: { value: "유지할 편집" },
   });
   fireEvent.click(
-    screen.getByRole("button", { name: "내용 저장" }),
+    screen.getByRole("button", { name: "수정 저장" }),
   );
   await screen.findByText(/다른 탭에서 변경되었습니다/);
   expect(screen.getByLabelText("제목")).toHaveValue(
@@ -193,9 +218,9 @@ test("regeneration failure preserves prompt and saved content; retry creates an 
   expect(
     screen.getByLabelText("추가 프롬프트"),
   ).toHaveValue("예시 추가");
-  expect(screen.getByLabelText("제목")).toHaveValue(
-    "타입 선언",
-  );
+  expect(
+    screen.getByRole("heading", { name: "타입 선언" }),
+  ).toBeVisible();
   request.mockRestore();
   fireEvent.click(
     screen.getByRole("button", { name: "수정본 재생성" }),
@@ -205,13 +230,14 @@ test("regeneration failure preserves prompt and saved content; retry creates an 
   );
   expect(
     screen.getByRole("button", {
-      name: "선택한 범위로 승인",
+      name: "승인",
     }),
   ).toBeDisabled();
 });
 
 test("storage failure keeps unsaved content and does not report success", async () => {
   await setup();
+  openEditor();
   fireEvent.change(screen.getByLabelText("제목"), {
     target: { value: "용량 오류에도 남길 제목" },
   });
@@ -221,7 +247,7 @@ test("storage failure keeps unsaved content and does not report success", async 
       throw new Error("quota");
     });
   fireEvent.click(
-    screen.getByRole("button", { name: "내용 저장" }),
+    screen.getByRole("button", { name: "수정 저장" }),
   );
   await screen.findByText(/STORAGE_UNAVAILABLE/);
   expect(screen.getByLabelText("제목")).toHaveValue(

@@ -218,20 +218,20 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
   });
   await expect(
     review.getByRole("button", {
-      name: "선택한 범위로 승인",
+      name: "승인",
     }),
   ).toBeDisabled();
+  await expect(
+    review.getByLabel("제목", { exact: true }),
+  ).toHaveCount(0);
+  await review
+    .getByRole("button", { name: "직접 수정" })
+    .click();
   await review
     .getByLabel("제목", { exact: true })
     .fill("내 첫 퀴즈");
-  await expect(
-    review.getByRole("button", { name: "검토 완료 저장" }),
-  ).toBeDisabled();
   await review
-    .getByRole("button", { name: "내용 저장", exact: true })
-    .click();
-  await review
-    .getByRole("button", { name: "검토 완료 저장" })
+    .getByRole("button", { name: "수정 저장", exact: true })
     .click();
   await review
     .getByRole("combobox", { name: "승인 공개 범위" })
@@ -240,15 +240,18 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .getByRole("option", { name: "공개", exact: true })
     .click();
   await review
-    .getByRole("button", { name: "선택한 범위로 승인" })
+    .getByRole("button", { name: "승인", exact: true })
     .click();
   await expect(review.getByRole("status")).toHaveText(
-    "승인했습니다.",
+    "공개했습니다.",
   );
   await page.reload();
   await expect(
-    review.getByLabel("제목", { exact: true }),
-  ).toHaveValue("내 첫 퀴즈");
+    review.getByRole("heading", { name: "내 첫 퀴즈" }),
+  ).toBeVisible();
+  await review
+    .getByRole("button", { name: "직접 수정" })
+    .click();
   await review
     .getByLabel("제목", { exact: true })
     .fill("수정본 제목");
@@ -260,21 +263,18 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     review.getByLabel("제목", { exact: true }),
   ).toHaveValue("수정본 제목");
   await review
-    .getByRole("button", { name: "내용 저장", exact: true })
+    .getByRole("button", { name: "수정 저장", exact: true })
     .click();
   await expect(
-    review.getByText("내 첫 퀴즈 · PUBLIC"),
+    review.getByText("현재 공개본과 비교"),
   ).toBeVisible();
-  await review
-    .getByRole("button", { name: "검토 완료 저장" })
-    .click();
   await expect(
     review.getByRole("combobox", {
       name: "승인 공개 범위",
     }),
   ).toHaveText("공개");
   await review
-    .getByRole("button", { name: "선택한 범위로 승인" })
+    .getByRole("button", { name: "승인", exact: true })
     .click();
   await review
     .getByLabel("추가 프롬프트")
@@ -286,18 +286,15 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     "수정본을 생성했습니다. 내용을 검토하세요.",
   );
   await expect(
-    review.getByText("수정본 제목 · PUBLIC"),
+    review.getByText("현재 공개본과 비교"),
   ).toBeVisible();
   await expect(
     review.getByRole("button", {
-      name: "선택한 범위로 승인",
+      name: "승인",
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await review
-    .getByRole("button", { name: "검토 완료 저장" })
-    .click();
-  await review
-    .getByRole("button", { name: "선택한 범위로 승인" })
+    .getByRole("button", { name: "승인", exact: true })
     .click();
   await review
     .getByRole("combobox", { name: "변경할 공개 범위" })
@@ -312,7 +309,7 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     })
     .click();
   await expect(
-    review.getByText("수정본 제목 · PRIVATE"),
+    review.getByText("나만 보기", { exact: true }),
   ).toBeVisible();
   await expect(page.locator("body")).toHaveJSProperty(
     "scrollWidth",
@@ -350,13 +347,19 @@ test("stale tabs cannot overwrite and keep unsaved edits", async ({
     "/quizzes/authoring/manage?user=author&quiz=seed-quiz-1",
   );
   await expect(
-    other.getByLabel("제목", { exact: true }),
-  ).toHaveValue("타입 선언");
+    other.getByRole("heading", { name: "타입 선언" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "직접 수정" })
+    .click();
+  await other
+    .getByRole("button", { name: "직접 수정" })
+    .click();
   await page
     .getByLabel("제목", { exact: true })
     .fill("먼저 저장한 제목");
   await page
-    .getByRole("button", { name: "내용 저장", exact: true })
+    .getByRole("button", { name: "수정 저장", exact: true })
     .click();
   await expect(page.getByRole("status")).toHaveText(
     "내용을 저장했습니다. 저장된 내용을 다시 확인하세요.",
@@ -365,7 +368,7 @@ test("stale tabs cannot overwrite and keep unsaved edits", async ({
     .getByLabel("제목", { exact: true })
     .fill("다른 탭 편집");
   await other
-    .getByRole("button", { name: "내용 저장", exact: true })
+    .getByRole("button", { name: "수정 저장", exact: true })
     .click();
   await expect(
     other
@@ -558,7 +561,7 @@ test("initial results hide chat and publish only the displayed quiz", async ({
       name: "퀴즈 검토",
       exact: true,
     }),
-  ).toContainText("PUBLIC");
+  ).toContainText("전체 공개");
 });
 
 test("quiz tabs support keyboard selection and editing and saving are immediately visible", async ({
