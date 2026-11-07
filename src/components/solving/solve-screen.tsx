@@ -205,14 +205,6 @@ function Session({
           완료한 문제를 다시 풀고 있어요.
         </p>
       )}
-      {direct && (
-        <a
-          className="inline-block text-primary underline"
-          href={`/?user=${encodeURIComponent(userId)}`}
-        >
-          홈에서 학습하기
-        </a>
-      )}
     </div>
   );
 }
@@ -242,13 +234,7 @@ export function SolveScreen({
 
   return (
     <QueryClientProvider client={client}>
-      <div
-        className={
-          direct
-            ? "mx-auto w-full max-w-3xl space-y-5"
-            : "w-full space-y-5"
-        }
-      >
+      <div className={solvingStyles.frame}>
         {showStreak && <StreakSummary userId={userId} />}
         {selectedUser || direct ? (
           <Session
@@ -274,14 +260,18 @@ export function SolveScreen({
                 : "방문자 체험은 일시적이며 학습 기록과 보상이 저장되지 않습니다."}
             </p>
           </details>
-          {!direct && (
-            <a
-              href="/shop"
-              className="inline-flex min-h-9 items-center rounded hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
-            >
-              BugCoin 상점 둘러보기 →
-            </a>
-          )}
+          <a
+            href={
+              direct
+                ? `/?user=${encodeURIComponent(userId)}`
+                : "/shop"
+            }
+            className={solvingStyles.supportLink}
+          >
+            {direct
+              ? "홈에서 학습하기 →"
+              : "BugCoin 상점 둘러보기 →"}
+          </a>
         </div>
       </div>
     </QueryClientProvider>

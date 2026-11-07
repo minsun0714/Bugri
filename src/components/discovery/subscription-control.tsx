@@ -96,6 +96,7 @@ export function SubscriptionControl({
       if (trigger.current) onLogin(trigger.current);
       return;
     }
+    const actionElement = document.activeElement;
     try {
       await mutation.mutateAsync({ target, subscribed });
       close();
@@ -103,8 +104,17 @@ export function SubscriptionControl({
         `${name}${target.type === "PERSON" ? "님" : ""}${subscribed ? " 구독을 취소했습니다." : "을 구독했습니다."}`,
       );
       requestAnimationFrame(() => {
+        const { activeElement } = document;
+        // Do not interrupt a newer action while this restoration was queued.
+        if (
+          activeElement !== document.body &&
+          activeElement !== trigger.current &&
+          activeElement !== actionElement
+        )
+          return;
         if (subscribed && onRemoved) onRemoved();
-        else trigger.current?.focus();
+        else
+          trigger.current?.focus({ preventScroll: true });
       });
     } catch {
       // Keep the action and its error together so retry preserves context.

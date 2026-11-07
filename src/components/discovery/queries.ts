@@ -54,6 +54,7 @@ export function useDiscovery(
       return api.request("searchDiscovery", request);
     },
     retry: false,
+    enabled: Array.from(request.query).length <= 100,
   });
   const subscribe = useSubscribe(userId);
 
@@ -99,6 +100,7 @@ export function useSubscribe(userId: string) {
         [
           "discovery",
           "developerQuizzes",
+          "tagQuizzes",
           "developerTags",
           "subscriptions",
           "learningTags",

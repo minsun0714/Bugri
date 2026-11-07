@@ -76,7 +76,7 @@ it("finds developers and all registered tags without subscribing on search", asy
     }),
   );
   expect(
-    await screen.findByText("Java", { exact: true }),
+    await screen.findByText("#Java", { exact: true }),
   ).toBeVisible();
   expect(await api.request("subscriptions", {})).toEqual(
     [],
@@ -278,4 +278,114 @@ it("shows only the requested search kind without internal tabs", async () => {
   expect(
     screen.getByRole("searchbox", { name: "태그 검색" }),
   ).toBeVisible();
+});
+
+it("offers a first-page recovery for an out-of-range URL", async () => {
+  const client = new QueryClient();
+  const search = jest.fn();
+  render(
+    <QueryClientProvider client={client}>
+      <DiscoverySearch
+        userId="friend"
+        request={{
+          kind: DiscoveryKind.HASHTAG,
+          query: "",
+          page: 2,
+          pageSize: 20,
+        }}
+        onSearch={search}
+        onLearn={jest.fn()}
+      />
+    </QueryClientProvider>,
+  );
+  fireEvent.click(
+    await screen.findByRole("button", {
+      name: "첫 페이지로 이동",
+    }),
+  );
+  expect(search).toHaveBeenCalledWith(
+    expect.objectContaining({ page: 1 }),
+  );
+});
+
+it("explains an overlong URL query and accepts 100 Unicode code points", async () => {
+  const client = new QueryClient();
+  const search = jest.fn();
+  render(
+    <QueryClientProvider client={client}>
+      <DiscoverySearch
+        userId="friend"
+        request={{
+          kind: DiscoveryKind.HASHTAG,
+          query: "x".repeat(101),
+          page: 1,
+          pageSize: 20,
+        }}
+        onSearch={search}
+        onLearn={jest.fn()}
+      />
+    </QueryClientProvider>,
+  );
+  expect(
+    await screen.findByText(
+      "검색어는 100자 이하여야 합니다.",
+    ),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "다시 불러오기" }),
+  ).not.toBeInTheDocument();
+  fireEvent.change(screen.getByRole("searchbox"), {
+    target: { value: "😀".repeat(100) },
+  });
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "검색",
+    }),
+  );
+  expect(search).toHaveBeenCalledWith(
+    expect.objectContaining({ query: "😀".repeat(100) }),
+  );
+});
+
+it("clears a subscription error when search conditions change", async () => {
+  const client = new QueryClient();
+  const onSearch = jest.fn();
+  const onLearn = jest.fn();
+  const request = {
+    kind: DiscoveryKind.HASHTAG,
+    query: "Web",
+    page: 1,
+    pageSize: 20,
+  };
+  const view = (query: string) => (
+    <QueryClientProvider client={client}>
+      <DiscoverySearch
+        userId="friend"
+        request={{ ...request, query }}
+        onSearch={onSearch}
+        onLearn={onLearn}
+      />
+    </QueryClientProvider>
+  );
+  const { rerender } = render(view("Web"));
+  const button = await screen.findByRole("button", {
+    name: "Web 구독하기",
+  });
+  const write = jest
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new Error("full");
+    });
+  fireEvent.click(button);
+  expect(
+    await screen.findByRole("alert"),
+  ).toHaveTextContent("구독을 저장하지 못했습니다");
+  write.mockRestore();
+  rerender(view("Java"));
+  await screen.findByRole("button", {
+    name: "Java 구독하기",
+  });
+  expect(
+    screen.queryByRole("alert"),
+  ).not.toBeInTheDocument();
 });

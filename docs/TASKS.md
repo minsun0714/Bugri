@@ -1307,6 +1307,15 @@
 
 - 통합 후 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest223개·도구3개·build·E2E138개. 로그 `/tmp/bugri-discovery-merge-verify.log`. 독립 정적 병합 리뷰에서 회귀 없음, 양쪽 문서·프로필 편집·탐색 링크 보존 확인. 리뷰어는 별도 브라우저 검증을 수행하지 않았다. `git diff --cached --check` 통과. PR18 브랜치에 충돌 해결 커밋을 반영하며 PR 병합은 하지 않는다.
 
+## TAG-DISCOVERY-POLISH — 태그 탐색 리뷰 문제 해결
+
+- 상태: DONE. REQ-05/AC-05i, REQ-07, REQ-12/AC-12i. 사용자 승인: 태그 탐색 리뷰의 기능·UX·UI·문서·검증 문제 전체 수정.
+- 검색 우선 배치, 실제 내 태그 구독 필터, 공개 퀴즈 수, 데모 로그인 안내, URL·키보드·오류 복구, 검색 정규화 및 회귀 테스트를 구현했다. 실제 인증·다른 페이지의 로그인 게이트는 제외한다.
+- 독립 UX·UI 및 코드 리뷰 C1/R1 1회 후 필수 미해결 없음. [관점별 근거·수정·한계](ux-reviews/TAG-DISCOVERY-POLISH.md).
+- Node v22.23.3에서 최종 `PLAYWRIGHT_PORT=3337 npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest45 suites/228개·도구3개·production build·E2E142개(8.5분). 로그 `/tmp/bugri-tags-verify-final.log`. 변경 코드 Prettier 및 diff check 통과.
+- Hook을 arm했으나 자동 로드는 확인되지 않아 검증 절차를 직접 수행하고 실제 명령·종료코드·로그를 로컬 상태에 기록했다. 첫 전체 검증은 리뷰 C1 반영을 위해 작업 소유 프로세스만 중단했고 성공으로 계산하지 않았다. 초기 관련검사의 TypeScript 테스트 작성 오류 및 Modal 초점 결함/선택자 범위 문제는 수정·재검증했다.
+- 기능 커밋을 생성하며 push·PR·병합은 수행하지 않는다.
+
 ## PR19-DEV-INTEGRATION
 
 - 상태: DONE. 사용자 요청으로 PR19의 최신 dev8b1fbd0 충돌5개를 해결한다. dev 프로필 편집/소개/링크와 개발자·태그 탐색 분리, 현재 브랜치의 방문자 전용 풀이·명시적 데모 선택·B안/전신 결과 버그리를 함께 유지한다.
@@ -1354,6 +1363,33 @@
 - 상태: DONE. 사용자 요청으로 공통 헤더 메뉴 Shop을 상점으로 변경한다. PC/모바일 공통 목록을 사용하고 링크·동작은 유지한다. 단순 문구 수정으로 전체verify/UX루프 대신 변경파일 정적검사·관련 navigation 테스트·PC/모바일 확인을 수행한다.
 
 - Node v22.23.3 변경파일 ESLint/Prettier·navigation 단위8개·E2E6개 통과. PC1280/mobile390 캡처에서 상점 표시와 정렬 확인. 독립 리뷰어가 diff/공통 호출부 확인(문제0, 실제 화면은 구현자 확인). 단순 문구 변경으로 전체verify 미실행. `git diff --check` 통과.
+
+## TAG-HASH-LABEL — 태그명 # 표시
+
+- 상태: DONE. 아래 TAG-DISCOVERY-CUTE에 포함해 완료했다. 사용자 요청에 따라 태그 탐색 카드의 표시 이름에만 #을 붙인다. 저장된 태그 이름/ID·검색·구독·학습 동작은 유지한다. 기존 화면 문구 검증을 새 표기에 맞춘다.
+- 단순 표시 변경으로 별도 UX 루프는 시작하지 않는다. 독립 리뷰·실제 화면 확인·Node v22.23.3 전체 verify 후 커밋한다.
+
+## TAG-DISCOVERY-CUTE — 홈 컨셉 태그 탐색 UI
+
+- 상태: DONE. TAG-HASH-LABEL 작업 중 사용자 후속 요청으로 # 표시를 포함해 홈의 둥근 형태·보라/라임 토큰·버그리를 참고한 시각 개선으로 범위를 확장했다. 앞선 # 전용 verify는 새 화면 변경을 반영할 수 없어 작업 소유 실행만 중단했다.
+- 태그 탐색에만 적용한다. #태그 이름·구독 중 배지·내 구독 필터·로그인 안내·검색/구독/학습·접근성·API는 보존한다. 홈·개발자 탐색 및 다른 워크트리 파일은 수정하지 않는다.
+- 별도 UI 설계 위임, 실제 홈/탐색 화면 비교 후 구현하고 새 컨텍스트 독립 UX/UI 리뷰와 최종 전체 검증을 수행한다.
+
+- 탐색용 돋보기 버그리와 `태그 이름 검색` placeholder 적용. 독립 UX/UI R2 완료. Node v22.23.3 전체 검증 lint·타입·Jest234개·도구3개·빌드·E2E145개 통과(`/tmp/bugri-tag-cute-final-verify.log`). 이후 placeholder 문구만 변경해 해당 파일 lint/Prettier와 dev3002 모바일 검색을 추가 확인했다. [리뷰·검증 범위](ux-reviews/TAG-DISCOVERY-CUTE.md).
+
+## TAG-QUIZ-CATALOG — 태그별 공개 퀴즈 목록
+
+- 상태: IN_PROGRESS. 사용자 요청으로 태그명 링크 → /tags/[hashtagId]/quizzes를 추가한다. 전체 작성자의 활성 PUBLIC 퀴즈 제목·작성자 목록, 페이지네이션, 구독과 명시 학습, 방문자 선택 안내, 빈/오류/없는 태그 복구를 구현한다. API 계약·서비스·화면·관련 테스트와 문서를 수정하며 홈/개발자 목록 내부는 유지한다.
+- 검증: API 테스트 우선 실패 확인, 관련 Jest/E2E, 독립 UI 설계·UX/UI 실제 화면 리뷰, 최종 전체 verify.
+
+- 구현과 C1/R1·C2/R2 독립 UX/UI 검토 완료. 태그 링크/목록/구독/학습/개별풀이·귀여운 노트 카드 반영. 최종 전체 lint·타입·Jest238개·도구3개·build 통과, E2E148통과/1실패(URL이 정상 attempt로 전환되는데 테스트는 quiz를 기대). C2 dev 검사2통과/2실패. 재시도3회 한도이므로 전체 완료 아님, IN_PROGRESS 유지. [근거·남은 검증](ux-reviews/TAG-QUIZ-CATALOG.md).
+
+## DIRECT-SOLVE-STYLE — 개별 풀이와 홈 스타일 통일
+
+- 상태: DONE(스타일 범위). 사용자 요청으로 개별 풀이 `/solve`를 홈과 동일한 스타일로 맞춘다. 이미 공통 QuizPanel/AnswerForm/결과 버그리를 사용하므로 중복 컴포넌트를 만들지 않는다. 개별 화면만의768px 제한을 제거해 공통 frame으로 통일하고 하단 홈 링크를 공통 보조영역 스타일로 옮긴다. 풀이/API/정답/기록·홈의 외형은 변경하지 않는다.
+- 순수 UI 변경: 별도 UI 설계자의 실제 PC비교, 변경 파일 lint/포맷, PC/mobile과 독립 UX/UI 리뷰, 관련 기존 풀이 검사를 실행한다. 앞선 TAG-QUIZ-CATALOG의 미통과 검증은 별도로 유지하며 이 작업으로 초기화하지 않는다.
+
+- Node v22.23.3 변경 파일 lint/Prettier·단위8개·관련 E2E4개 통과. 독립 UX/UI 실제1440/375/320 및 입력/제출/재풀이/홈이동 R0 완료, 수정0회. [검토·범위·한계](ux-reviews/DIRECT-SOLVE-STYLE.md). 전체 verify는 이 순수 스타일 변경에서 반복하지 않았으며 TAG-QUIZ-CATALOG의 기존 미해결 검증은 유지한다.
 
 ## DISCOVERY-REPAIR — 개발자 탐색 리뷰 전체 개선
 
@@ -1403,3 +1439,14 @@
 
 - 상태: DONE. 사용자 PR 게시 요청에 따라 dev6d7b0f6을 통합했다. TASKS의 추가 섹션 충돌은 양쪽 기록을 모두 보존했다. 독립 정적 통합 리뷰에서 상점 헤더/사용자전환과 dev 취소초점 로직 공존, 충돌마커·미해결인덱스 없음 확인.
 - 통합 전115d68b 전체verify 통과(단위244/E2E147), 통합 후 Node v22.23.3 `PLAYWRIGHT_PORT=3430 npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest52 suites/253개·도구3개·production build·E2E155개. 로그 `/tmp/shop-pr-integrated-verify.log`. 통합 후 검증 대상에서 변경된 것은 이 결과 기록뿐이다. dev의 기존 DISCOVERY 검증 실패 기록은 역사로 보존하며 이번 통합검증 결과와 구분한다. 브랜치 push와 dev대상 PR 생성까지만 수행한다.
+
+## PR22-DEV-INTEGRATION — 개발자 탐색과 태그 탐색 통합
+
+- 상태: IN_PROGRESS. 사용자 요청으로 origin/dev 6d7b0f6의 개발자 탐색·구독 관리와 태그 탐색/목록을 통합한다. 충돌6파일에서 양쪽 API·스타일·테스트·기록을 보존한다. 실제 quiz→attempt 전환과 태그 홈 학습 계약에 맞게 URL 검증을 통합하고, 관련 검사·독립 UX/UI 실제화면 검토·새 통합 코드 전체 verify 후 PR22를 갱신한다. 이전 작업의 실패 기록은 보존하며 이번 통합 검증으로 최종 상태를 판단한다.
+
+- PR22-DEV-INTEGRATION: 충돌6파일 해소·양쪽기능 보존 완료. 관련 단위39개/E2E20개 통과. 전체247단위·도구3·build 통과, E2E156통과/1실패(개발자 빠른구독관리). 후속 초점복원 회귀 테스트 추가·관련단위5개 통과, 개발자 production E2E7통과/1실패. 재시도3회 한도 도달, 빠른관리메뉴 미해결로 검증 상태 IN_PROGRESS 및 PR Draft 유지. [회차·실제결과](ux-reviews/PR22-DEV-INTEGRATION.md). 태그 URL 기대값 실패는 이번 통합검사에서 해결 확인했다.
+
+## PR23-TASKS-CONFLICT — 태그 작업 통합 후 기록 충돌 해결
+
+- 상태: 충돌 해결 완료, 통합 검증 미완료. origin/dev9a7d573 통합에서 TASKS의 두 추가 블록을 양쪽 모두 보존했다. 독립 정적 리뷰에서 양쪽 비어 있지 않은 줄 보존·중복 제목 없음·상점 label/태그 경로 보존 확인. 충돌마커·미해결 인덱스 없음, diff check 통과.
+- Node v22.23.3 `PLAYWRIGHT_PORT=3431 npm run verify -- -- --workers=2`: lint·TypeScript·Jest53 suites/263개·도구3개·build 통과, E2E162통과/1실패. 개발자 구독 해제 버튼을 기다리다30초 시간초과(`developer-discovery-repair.spec.ts:64`). 최신 dev의 PR22 기록과 같은 미해결 흐름이며 이번 문서 충돌 해결에서 해당 기능/테스트를 수정하지 않았다. 기존 재시도 한도를 초기화하지 않고 추가 수정·재실행하지 않는다. 로그 `/tmp/shop-pr23-conflict-verify.log`. 충돌 해결을 PR23에 push하고 미통과 근거를 반영해 Draft로 전환한다. PR 병합은 수행하지 않는다.

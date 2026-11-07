@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { tagDiscoveryStyles } from "@/components/discovery/styles";
+import { SubscriptionMenu } from "@/components/discovery/subscription-menu";
 import { useEffect, useRef, useState } from "react";
 import { DiscoveryKind } from "@/api/constants";
 import type {
@@ -16,6 +18,8 @@ import {
 import { useDiscovery } from "@/components/discovery/queries";
 
 interface DiscoverySearchProps {
+  authorize?: () => boolean;
+  showSubscriptions?: boolean;
   userId: string;
   navigating?: boolean;
   request: DiscoveryQuery;
@@ -23,137 +27,86 @@ interface DiscoverySearchProps {
   onLearn: (hashtagId: string | null) => void;
 }
 
-function SubscriptionMenu({
-  name,
-  busy,
-  onUnsubscribe,
-}: {
-  name: string;
-  busy: boolean;
-  onUnsubscribe: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    function closeOutside(event: PointerEvent) {
-      if (!root.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    function closeWithKeyboard(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-
-      setOpen(false);
-      root.current
-        ?.querySelector<HTMLButtonElement>("button")
-        ?.focus();
-    }
-
-    document.addEventListener("pointerdown", closeOutside);
-    document.addEventListener("keydown", closeWithKeyboard);
-
-    return () => {
-      document.removeEventListener(
-        "pointerdown",
-        closeOutside,
-      );
-      document.removeEventListener(
-        "keydown",
-        closeWithKeyboard,
-      );
-    };
-  }, [open]);
-
-  return (
-    <div ref={root} className="relative">
-      <Button
-        className="!size-7 !min-h-0 !rounded-full !border-0 !p-0 !shadow-none"
-        size="sm"
-        variant="ghost"
-        disabled={busy}
-        aria-label={`${name} 구독 메뉴`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="size-4"
-        >
-          <circle cx="5" cy="12" r="1.5" />
-          <circle cx="12" cy="12" r="1.5" />
-          <circle cx="19" cy="12" r="1.5" />
-        </svg>
-      </Button>
-      {open && (
-        <div
-          role="menu"
-          aria-label={`${name} 구독 관리`}
-          className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-28 rounded-xl border border-line bg-surface p-1 shadow-lg"
-        >
-          <button
-            type="button"
-            role="menuitem"
-            disabled={busy}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold whitespace-nowrap hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-45"
-            onClick={() => {
-              onUnsubscribe();
-              setOpen(false);
-            }}
-          >
-            구독 해제
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function DiscoverySearch(
-  props: DiscoverySearchProps,
-) {
-  const { request } = props;
-  return (
-    <DiscoveryResults
-      key={JSON.stringify(request)}
-      {...props}
-    />
-  );
-}
-
-function DiscoveryResults({
+export function DiscoverySearch({
   userId,
   request,
   onSearch,
   onLearn,
   navigating = false,
+  authorize,
+  showSubscriptions = false,
 }: DiscoverySearchProps) {
+  const isTags = request.kind === DiscoveryKind.HASHTAG;
   const [input, setInput] = useState(request.query);
+  const [previousQuery, setPreviousQuery] = useState(
+    request.query,
+  );
+  if (previousQuery !== request.query) {
+    setPreviousQuery(request.query);
+    setInput(request.query);
+  }
+  const root = useRef<HTMLDivElement>(null);
+  const results = useRef<HTMLParagraphElement>(null);
+  const pendingFocus = useRef<string | null>(null);
+  const searchFocus = useRef(false);
+  const invalidInput = Array.from(input).length > 100;
+  const invalidQuery =
+    Array.from(request.query).length > 100;
   const [toast, setToast] = useState<string | null>(null);
+  const requestKey = JSON.stringify(request);
+  const [feedbackRequest, setFeedbackRequest] =
+    useState(requestKey);
+  if (feedbackRequest !== requestKey) {
+    setFeedbackRequest(requestKey);
+    setToast(null);
+  }
   const { discovery, subscribe } = useDiscovery(
     userId,
     request,
   );
   const { data } = discovery;
+  const { reset } = subscribe;
+  useEffect(() => reset(), [requestKey, reset]);
   const busy = subscribe.isPending || navigating;
   const totalPages = Math.max(
     1,
     Math.ceil((data?.total ?? 0) / request.pageSize),
   );
 
+  useEffect(() => {
+    if (busy || discovery.isPending) return;
+    if (pendingFocus.current) {
+      const button = Array.from(
+        root.current?.querySelectorAll<HTMLButtonElement>(
+          "button[aria-label]",
+        ) ?? [],
+      ).find(
+        (node) =>
+          node.getAttribute("aria-label") ===
+          pendingFocus.current,
+      );
+      (button ?? results.current)?.focus();
+      pendingFocus.current = null;
+    } else if (searchFocus.current) {
+      results.current?.focus();
+      searchFocus.current = false;
+    }
+  }, [busy, discovery.isPending, data, toast]);
+
+  function search(next: DiscoveryQuery) {
+    searchFocus.current = true;
+    onSearch(next);
+  }
+
   function action(
     name: string,
     target: SubscriptionTarget,
     tag: string | null,
     subscribed: boolean,
+    publicQuizCount?: number,
   ) {
     function toggleSubscription() {
+      if (authorize && !authorize()) return;
       const message =
         target.type === "HASHTAG"
           ? subscribed
@@ -165,7 +118,14 @@ function DiscoveryResults({
 
       void subscribe
         .mutateAsync({ target, subscribed })
-        .then(() => setToast(message))
+        .then(() => {
+          pendingFocus.current = subscribed
+            ? `${name} 구독하기`
+            : publicQuizCount === 0
+              ? `${name} 구독 메뉴`
+              : `${name} 학습하기`;
+          setToast(message);
+        })
         .catch(() => undefined);
     }
 
@@ -176,11 +136,19 @@ function DiscoveryResults({
             <Button
               size="sm"
               variant="ghost"
-              disabled={busy}
+              className={
+                isTags
+                  ? tagDiscoveryStyles.learn
+                  : "!min-h-11"
+              }
+              disabled={busy || publicQuizCount === 0}
               aria-label={`${name} 학습하기`}
-              onClick={() => onLearn(tag)}
+              onClick={() => {
+                if (!authorize || authorize()) onLearn(tag);
+              }}
             >
               학습하기
+              {isTags && <span aria-hidden="true">→</span>}
             </Button>
             <SubscriptionMenu
               name={name}
@@ -192,10 +160,23 @@ function DiscoveryResults({
           <Button
             size="sm"
             variant="secondary"
+            className={
+              isTags
+                ? tagDiscoveryStyles.subscribe
+                : "!min-h-11"
+            }
             disabled={busy}
             aria-label={`${name} 구독하기`}
             onClick={toggleSubscription}
           >
+            {isTags && (
+              <span
+                aria-hidden="true"
+                className="text-base leading-none"
+              >
+                +
+              </span>
+            )}
             구독하기
           </Button>
         )}
@@ -204,45 +185,124 @@ function DiscoveryResults({
   }
 
   return (
-    <div className="space-y-6">
-      <form
-        className="flex flex-wrap items-end justify-end gap-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          onSearch({
-            ...request,
-            query: input.trim(),
-            page: 1,
-          });
-        }}
+    <div ref={root} className="space-y-5">
+      <div
+        className={
+          isTags
+            ? tagDiscoveryStyles.searchPanel
+            : undefined
+        }
       >
-        <div className="min-w-0 flex-1">
-          <TextField
-            type="search"
-            label={
-              request.kind === DiscoveryKind.USER
-                ? "개발자 검색"
-                : "태그 검색"
+        <form
+          className={
+            isTags
+              ? tagDiscoveryStyles.searchForm
+              : "flex flex-wrap items-end justify-end gap-3"
+          }
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (invalidInput) return;
+            search({
+              ...request,
+              query: input.trim(),
+              page: 1,
+            });
+          }}
+        >
+          <div
+            className={
+              isTags
+                ? tagDiscoveryStyles.searchField
+                : "min-w-0 flex-1"
             }
-            placeholder={
-              request.kind === DiscoveryKind.USER
-                ? "개발자 이름 또는 ID"
-                : "태그 이름"
+          >
+            <TextField
+              hideLabel={isTags}
+              type="search"
+              label={
+                request.kind === DiscoveryKind.USER
+                  ? "개발자 검색"
+                  : "태그 검색"
+              }
+              placeholder={
+                request.kind === DiscoveryKind.USER
+                  ? "개발자 이름 또는 ID"
+                  : "태그 이름 검색"
+              }
+              value={input}
+              error={
+                invalidInput
+                  ? "검색어는 100자 이하여야 합니다."
+                  : undefined
+              }
+              readOnly={busy}
+              onChange={(event) =>
+                setInput(event.target.value)
+              }
+            />
+          </div>
+          <Button
+            type="submit"
+            className={
+              isTags
+                ? tagDiscoveryStyles.searchButton
+                : undefined
             }
-            value={input}
-            maxLength={100}
-            disabled={busy}
-            onChange={(event) =>
-              setInput(event.target.value)
-            }
-          />
-        </div>
-        <Button type="submit" disabled={busy}>
-          검색
-        </Button>
-      </form>
-      {discovery.isPending && <Skeleton />}
-      {discovery.error && (
+            disabled={busy || invalidInput}
+          >
+            검색
+          </Button>
+        </form>
+        {request.kind === DiscoveryKind.HASHTAG &&
+          showSubscriptions && (
+            <div
+              role="group"
+              aria-label="태그 목록 필터"
+              className={tagDiscoveryStyles.filters}
+            >
+              <Button
+                variant={
+                  request.subscribedOnly
+                    ? "ghost"
+                    : "secondary"
+                }
+                className={tagDiscoveryStyles.filterButton}
+                aria-pressed={!request.subscribedOnly}
+                disabled={busy}
+                onClick={() =>
+                  search({
+                    ...request,
+                    subscribedOnly: false,
+                    page: 1,
+                  })
+                }
+              >
+                전체 태그
+              </Button>
+              <Button
+                variant={
+                  request.subscribedOnly
+                    ? "secondary"
+                    : "ghost"
+                }
+                className={tagDiscoveryStyles.filterButton}
+                aria-pressed={!!request.subscribedOnly}
+                disabled={busy}
+                onClick={() =>
+                  search({
+                    ...request,
+                    subscribedOnly: true,
+                    page: 1,
+                  })
+                }
+              >
+                내 구독
+              </Button>
+            </div>
+          )}
+      </div>
+      {discovery.isPending && !invalidQuery && <Skeleton />}
+      {discovery.error && !invalidQuery && (
         <div role="alert">
           <p>검색 결과를 불러오지 못했습니다.</p>
           <div className="flex justify-end">
@@ -260,6 +320,13 @@ function DiscoveryResults({
           시도해 주세요.
         </p>
       )}
+      {toast && (
+        <Toast
+          placement="inline"
+          message={toast}
+          onClose={() => setToast(null)}
+        />
+      )}
       {data && !discovery.isError && (
         <section
           aria-label={
@@ -269,12 +336,23 @@ function DiscoveryResults({
           }
           className="space-y-4"
         >
-          <p role="status" className="text-sm text-muted">
+          <p
+            ref={results}
+            tabIndex={-1}
+            role="status"
+            className="text-sm text-muted"
+          >
             검색 결과 {data.total.toLocaleString()}개 ·{" "}
             {data.page}페이지
           </p>
           {data.items.length ? (
-            <ul className="grid gap-4 md:grid-cols-2">
+            <ul
+              className={
+                isTags
+                  ? tagDiscoveryStyles.grid
+                  : "grid gap-3 md:grid-cols-2"
+              }
+            >
               {data.items.map((item) => {
                 if (item.type === DiscoveryKind.USER) {
                   const {
@@ -316,33 +394,128 @@ function DiscoveryResults({
                 }
                 const {
                   hashtag: { id, name },
-                  subscribed,
+                  subscribed: storedSubscribed,
+                  publicQuizCount,
                 } = item;
+                const subscribed = authorize
+                  ? showSubscriptions && storedSubscribed
+                  : storedSubscribed;
 
                 return (
                   <li
                     key={id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-5"
+                    className={tagDiscoveryStyles.card}
                   >
-                    <strong className="min-w-0 break-all">
-                      {name}
-                    </strong>
-                    {action(
-                      name,
-                      { type: "HASHTAG", hashtagId: id },
-                      id,
-                      subscribed,
-                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        href={`/tags/${encodeURIComponent(id)}/quizzes?${new URLSearchParams({ ...(showSubscriptions ? { user: userId } : {}), ...(request.query ? { query: request.query } : {}), discoveryPage: String(request.page), ...(request.subscribedOnly ? { subscribed: "true" } : {}) })}`}
+                        className={`${tagDiscoveryStyles.label} underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-primary`}
+                      >
+                        #{name}
+                      </Link>
+                      {subscribed && (
+                        <span
+                          className={
+                            tagDiscoveryStyles.subscribed
+                          }
+                        >
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="size-3"
+                          >
+                            <path d="m3 8 3 3 7-7" />
+                          </svg>
+                          구독 중
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      className={tagDiscoveryStyles.footer}
+                    >
+                      <span
+                        className={tagDiscoveryStyles.count}
+                      >
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          className="size-4 shrink-0"
+                        >
+                          <rect
+                            x="5"
+                            y="3"
+                            width="11"
+                            height="14"
+                            rx="2"
+                          />
+                          <path d="M5 6H3v10a2 2 0 0 0 2 2M8 7h5M8 10h5M8 13h3" />
+                        </svg>
+                        {publicQuizCount === 0
+                          ? "공개 퀴즈 없음"
+                          : `공개 퀴즈 ${publicQuizCount}개`}
+                      </span>
+                      {action(
+                        name,
+                        { type: "HASHTAG", hashtagId: id },
+                        id,
+                        subscribed,
+                        publicQuizCount,
+                      )}
+                    </div>
                   </li>
                 );
               })}
             </ul>
           ) : (
-            <p>
-              검색 결과가 없습니다. 검색어를 바꿔 보세요.
-            </p>
+            <div
+              className={
+                isTags
+                  ? tagDiscoveryStyles.empty
+                  : "space-y-3"
+              }
+            >
+              <p>
+                {data.total > 0
+                  ? "요청한 페이지에 결과가 없습니다."
+                  : request.subscribedOnly && !request.query
+                    ? "구독한 태그가 없습니다."
+                    : "검색 결과가 없습니다. 검색어를 바꿔 보세요."}
+              </p>
+              {request.page > 1 ? (
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    search({ ...request, page: 1 })
+                  }
+                >
+                  첫 페이지로 이동
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    search({
+                      ...request,
+                      query: "",
+                      subscribedOnly: false,
+                      page: 1,
+                    })
+                  }
+                >
+                  {request.kind === DiscoveryKind.HASHTAG
+                    ? "전체 태그 보기"
+                    : "전체 개발자 보기"}
+                </Button>
+              )}
+            </div>
           )}
-          {totalPages > 1 && (
+          {totalPages > 1 && request.page <= totalPages && (
             <nav
               aria-label="검색 결과 페이지"
               className="flex flex-wrap items-center justify-end gap-4"
@@ -351,7 +524,7 @@ function DiscoveryResults({
                 variant="secondary"
                 disabled={request.page <= 1 || busy}
                 onClick={() =>
-                  onSearch({
+                  search({
                     ...request,
                     page: request.page - 1,
                   })
@@ -369,7 +542,7 @@ function DiscoveryResults({
                   request.page >= totalPages || busy
                 }
                 onClick={() =>
-                  onSearch({
+                  search({
                     ...request,
                     page: request.page + 1,
                   })
@@ -380,12 +553,6 @@ function DiscoveryResults({
             </nav>
           )}
         </section>
-      )}
-      {toast && (
-        <Toast
-          message={toast}
-          onClose={() => setToast(null)}
-        />
       )}
     </div>
   );

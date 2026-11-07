@@ -655,12 +655,12 @@ test("empty state opens discovery page with URL search and explicit subscription
   await expect(
     page
       .getByRole("region", { name: "태그 검색 결과" })
-      .getByText("Java", { exact: true }),
+      .getByText("#Java", { exact: true }),
   ).toBeVisible();
   await expect(
     page
       .getByRole("region", { name: "태그 검색 결과" })
-      .getByText("JavaScript", { exact: true }),
+      .getByText("#JavaScript", { exact: true }),
   ).toBeVisible();
   await page.reload();
   await expect(search).toHaveValue("JAVA");
@@ -684,14 +684,14 @@ test("empty state opens discovery page with URL search and explicit subscription
   await expect(
     page
       .getByRole("region", { name: "태그 검색 결과" })
-      .getByText("Java", { exact: true }),
+      .getByText("#Java", { exact: true }),
   ).toBeVisible();
   await search.fill("Web");
   await search.press("Enter");
   await expect(
     page
       .getByRole("region", { name: "태그 검색 결과" })
-      .getByText("Web", { exact: true }),
+      .getByText("#Web", { exact: true }),
   ).toBeVisible();
   const before = await page.evaluate(
     () =>
