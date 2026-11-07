@@ -60,6 +60,7 @@ export function ProductTrial(props: {
         preview={preview}
         previewSelected={previewSelected}
         allowDefaultDesk
+        wheelZoom
         selected={editor.selected}
         tool={editor.tool}
         disabled={editor.blocked}

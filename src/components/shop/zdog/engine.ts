@@ -54,6 +54,7 @@ export function createDeskEngine(
   let yaw = 45;
   let pitch = 30;
   let zoom = 1;
+  let userZoom = 1;
   let drag: {
     id: number;
     x: number;
@@ -341,10 +342,12 @@ export function createDeskEngine(
           framingHeight * Math.cos(radians(pitch)) +
           80,
       );
-      zoom = Math.min(
-        (width || 600) / spanX,
-        (height || 420) / spanY,
-      );
+      zoom =
+        userZoom *
+        Math.min(
+          (width || 600) / spanX,
+          (height || 420) / spanY,
+        );
     }
     illustration.zoom = zoom;
     scene.rotate.set({
@@ -630,7 +633,30 @@ export function createDeskEngine(
     }
   }
 
+  function wheel(event: WheelEvent) {
+    if (!state.wheelZoom || state.readOnly) return;
+    event.preventDefault();
+    if (state.disabled || drag) return;
+    const unit =
+      event.deltaMode === WheelEvent.DOM_DELTA_LINE
+        ? 16
+        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+          ? host.clientHeight
+          : 1;
+    userZoom = Math.max(
+      0.5,
+      Math.min(
+        2.5,
+        userZoom * Math.exp(-event.deltaY * unit * 0.0015),
+      ),
+    );
+    render();
+  }
+
   window.addEventListener("keydown", keyDown);
+  canvas.addEventListener("wheel", wheel, {
+    passive: false,
+  });
   canvas.addEventListener("pointerdown", pointerDown);
   canvas.addEventListener("pointermove", pointerMove);
   canvas.addEventListener("pointerup", pointerUp);
@@ -658,6 +684,7 @@ export function createDeskEngine(
     cancel,
     dispose() {
       resize.disconnect();
+      canvas.removeEventListener("wheel", wheel);
       window.removeEventListener("keydown", keyDown);
       canvas.removeEventListener(
         "pointerdown",

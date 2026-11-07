@@ -26,6 +26,7 @@ export interface DeskSceneState extends Omit<
   itemFrame?: DeskTransform;
   previewSelected?: boolean;
   allowDefaultDesk?: boolean;
+  wheelZoom?: boolean;
   onSelect?: (
     category: SpatialTarget,
     preview?: boolean,
