@@ -219,10 +219,25 @@ export function Generation(props: GenerationProps) {
         <Button
           size="sm"
           type="submit"
+          aria-label="요청 보내기"
+          title="요청 보내기"
           loading={busy}
           disabled={!prompt.trim()}
+          className="size-10 min-h-10! p-0!"
         >
-          요청 보내기
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className={busy ? "hidden" : "size-4"}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m22 2-7 20-4-9-9-4Z" />
+            <path d="M22 2 11 13" />
+          </svg>
         </Button>
       </form>
     </section>

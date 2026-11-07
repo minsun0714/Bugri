@@ -133,6 +133,13 @@ test("detail refinement preserves input on failure and retry updates only the ca
   );
   const prompt =
     screen.getByLabelText("퀴즈 1에 추가 요청");
+  const send = screen.getByRole("button", {
+    name: "요청 보내기",
+  });
+
+  expect(send).not.toHaveTextContent("요청 보내기");
+  expect(send.querySelector("svg")).toBeInTheDocument();
+
   fireEvent.change(prompt, {
     target: { value: "코드 예시를 추가해줘" },
   });
