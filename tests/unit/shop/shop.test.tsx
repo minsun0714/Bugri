@@ -143,9 +143,12 @@ it("searches, sorts and resets the product catalog", async () => {
     screen.queryByRole("heading", { name: "새싹 키보드" }),
   ).not.toBeInTheDocument();
 
-  fireEvent.change(screen.getByLabelText("상품 정렬"), {
-    target: { value: "PRICE_DESC" },
-  });
+  fireEvent.click(
+    screen.getByRole("combobox", { name: "상품 정렬" }),
+  );
+  fireEvent.click(
+    screen.getByRole("option", { name: "가격 높은순" }),
+  );
   expect(
     screen
       .getAllByRole("article")
@@ -170,9 +173,9 @@ it("searches, sorts and resets the product catalog", async () => {
   expect(screen.getByLabelText("상품 검색")).toHaveValue(
     "",
   );
-  expect(screen.getByLabelText("상품 정렬")).toHaveValue(
-    "DEFAULT",
-  );
+  expect(
+    screen.getByRole("combobox", { name: "상품 정렬" }),
+  ).toHaveTextContent("기본순");
 });
 
 it("replaces equipment in the same category while keeping both purchases", async () => {

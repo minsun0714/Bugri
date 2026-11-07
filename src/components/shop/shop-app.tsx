@@ -1,5 +1,6 @@
 "use client";
 
+import { Dropdown } from "@/components/ui/dropdown";
 import { DeskEditor } from "@/components/shop/desk-editor";
 
 import { useRef, useState } from "react";
@@ -274,12 +275,12 @@ function ShopContent({
                   setSearch(event.target.value)
                 }
               />
-              <Select
+              <Dropdown
                 label="상품 정렬"
-                options={sortOptions}
+                options={[...sortOptions]}
                 value={sort}
-                onChange={(event) =>
-                  setSort(event.target.value as ProductSort)
+                onValueChange={(value) =>
+                  setSort(value as ProductSort)
                 }
               />
             </div>

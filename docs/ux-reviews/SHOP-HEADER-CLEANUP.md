@@ -52,3 +52,5 @@
 - 전체 verify1: lint·타입·Jest230개·도구3개·build 통과, E2E141개 통과/신규2개 실패. 홈의 정상 attempt 쿼리를 테스트가 허용하지 않아 실패했다. 홈 경로와 user 값 검증으로 수정하며 구매·잔액·보유·전환·새로고침·뒤로가기 검사는 유지했다. 앱 코드는 리뷰 후 변경하지 않았다.
 
 - 관련 E2E8개 재실행 통과. 전체 verify2는 변경 테스트 포함141개 통과, 기존 모바일 3D 테스트2개가30초 제한으로 실패. 검사 생략 없이 후속 정렬/접지 수정과 함께 재검증한다. 현재 전체검증 미완료.
+
+- 최종 전체verify3 `PLAYWRIGHT_PORT=3418 npm run verify -- -- --workers=1` 통과(Node v22.23.3): lint·TypeScript·Jest47 suites/231개·도구3개·build·E2E143개(6.9분). `.bugri-hooks/shop-ground-verify-3.log`, exit0. 이전 실패항목 포함 전체 통과. 변경 파일 Prettier·diff check 통과.

@@ -1316,7 +1316,14 @@
 
 ## SHOP-HEADER-CLEANUP — 상점 상단 중복 행 제거
 
-- 상태: IN_PROGRESS. /shop 본문의 홈 링크·더미 사용자 행을 제거하고 공통 헤더의 URL 사용자 전환에 잔액·보유 상태를 연결한다. REQ-09/AC-09b·c, REQ-13의 데모 구분 유지. 데스크 화면과 독립 전시는 변경하지 않는다.
+- 상태: DONE. /shop 본문의 홈 링크·더미 사용자 행을 제거하고 공통 헤더의 URL 사용자 전환에 잔액·보유 상태를 연결한다. REQ-09/AC-09b·c, REQ-13의 데모 구분 유지. 데스크 화면과 독립 전시는 변경하지 않는다.
 - 사용자 전환 컴포넌트·E2E 검증, 독립 UX/UI 리뷰, 마지막 전체 verify 수행. Hook 자동 로드는 미확인으로 직접 검증한다.
 
-- 상단 행 제거 구현·관련 단위10개/E2E8개 및 독립 UX/UI R0 완료(필수문제0, 수정0회). [리뷰](ux-reviews/SHOP-HEADER-CLEANUP.md). 전체verify2는 기존3D 모바일 테스트2개 timeout으로 미완료이며 IN_PROGRESS 유지. 후속 사용자 요청과 함께 재검증한다.
+- 상단 행 제거 구현·관련 단위10개/E2E8개 및 독립 UX/UI R0 완료(필수문제0, 수정0회). [리뷰](ux-reviews/SHOP-HEADER-CLEANUP.md). 전체verify2의 기존3D 모바일 테스트2개 timeout은 후속 관련 검사 및 최종 순차 전체verify3에서 통과했다.
+
+## SHOP-SORT-GROUNDING — 공통 정렬과 책상 접지
+
+- 상태: DONE. 사용자 승인으로 상품 정렬을 공통 Dropdown으로 교체하고, 장착 미리보기 책상 접점 명암을 보완한다. 다리/러그 모두 y=0인 기하를 유지하며 바닥 접지 그림자를 현재·추가 책상 위치/회전에 맞춘다. REQ-09/AC-09e. API·구매 정책 변경 없음.
+- 컴포넌트 정렬·키보드/모바일 E2E, 접점 기하·실제 화면·독립 UX/UI 리뷰, 마지막 전체 verify 수행. 이전 Hook 실패 횟수를 유지한다.
+
+- 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3418 npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest47 suites/231개·도구3개·production build·E2E143개. 로그 `.bugri-hooks/shop-ground-verify-3.log`. 상단 정리와 후속 정렬/접지 모두 검증 완료. [접지/정렬 독립 UX/UI R0](ux-reviews/SHOP-SORT-GROUNDING.md) 필수문제0·수정0회, 기존 모달초점/모바일 창문 프레이밍은 범위 밖 보류. 변경 파일 Prettier·diff check 통과, 커밋하며 push/PR/merge 없음.

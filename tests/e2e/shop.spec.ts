@@ -52,9 +52,31 @@ test("mobile search and price sorting narrow the catalog without overflow", asyn
 
   await page.getByLabel("상품 검색").fill("모니터");
   await expect(page.getByRole("article")).toHaveCount(2);
+  const sorting = page.getByRole("combobox", {
+    name: "상품 정렬",
+  });
+  await sorting.click();
   await page
-    .getByLabel("상품 정렬")
-    .selectOption("PRICE_DESC");
+    .getByRole("option", { name: "가격 높은순" })
+    .click();
+  await expect(sorting).toBeFocused();
+  await sorting.press("Home");
+  await sorting.press("ArrowDown");
+  await sorting.press("Enter");
+  await expect(
+    page
+      .getByRole("article")
+      .getByRole("heading", { level: 3 }),
+  ).toHaveText(["집중 모니터", "미드나잇 모니터"]);
+  await sorting.press("Enter");
+  await sorting.press("ArrowDown");
+  await sorting.press("Enter");
+  await expect(sorting).toHaveText("가격 높은순");
+  await sorting.press("Enter");
+  await sorting.press("Escape");
+  await expect(
+    page.getByRole("listbox", { name: "상품 정렬" }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("article").getByRole("heading", {
       level: 3,

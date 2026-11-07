@@ -165,6 +165,43 @@ export function model(parent: Zdog.Anchor, id: string) {
   return root;
 }
 
+const deskFeet = [
+  [-175, -95],
+  [-175, 95],
+  [175, -95],
+  [175, 95],
+] as const;
+
+/** Floor-only contact cues, painted after the rug and before all furnishings. */
+export function deskContactShadow(parent: Zdog.Anchor) {
+  const root = new Zdog.Group({
+    addTo: parent,
+    updateSort: false,
+  });
+  for (const [x, z] of deskFeet) {
+    const contact = new Zdog.Group({
+      addTo: root,
+      translate: { x, y: 0, z },
+      updateSort: false,
+    });
+    for (const [diameter, opacity] of [
+      [44, 0.06],
+      [32, 0.09],
+      [22, 0.14],
+    ])
+      new Zdog.Ellipse({
+        addTo: contact,
+        diameter,
+        rotate: { x: Math.PI / 2 },
+        fill: true,
+        stroke: false,
+        color: `rgba(41, 36, 61, ${opacity})`,
+        backface: false,
+      });
+  }
+  return root;
+}
+
 /** Separate the tabletop from legs so lowered items can be occluded by it. */
 export function deskParts(
   lower: Zdog.Anchor,
@@ -182,14 +219,13 @@ export function deskParts(
       bottomFace: "#ad927d",
     },
   );
-  for (const x of [-175, 175])
-    for (const z of [-95, 95])
-      box(
-        lower,
-        [15, 141, 15],
-        [x, -70.5, z],
-        second ? "#c2b5d3" : "#b69a83",
-      );
+  for (const [x, z] of deskFeet)
+    box(
+      lower,
+      [15, 141, 15],
+      [x, -70.5, z],
+      second ? "#c2b5d3" : "#b69a83",
+    );
 }
 
 export function productPreview(productId: string) {

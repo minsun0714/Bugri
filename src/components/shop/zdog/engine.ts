@@ -21,6 +21,7 @@ import {
 import { createPicker } from "@/components/shop/zdog/picking";
 import {
   deskParts,
+  deskContactShadow,
   model,
 } from "@/components/shop/zdog/models";
 import {
@@ -48,6 +49,8 @@ export function createDeskEngine(
   });
   const scene = new Zdog.Anchor({ addTo: illustration });
   let rug: Zdog.Anchor | null = null;
+  let deskShadow: Zdog.Anchor | null = null;
+  let previewDeskShadow: Zdog.Anchor | null = null;
   const picker = createPicker();
   const paintRoom = createRoomEnvironment();
   const owners = new Map<Zdog.Anchor, SceneTarget | null>();
@@ -108,6 +111,11 @@ export function createDeskEngine(
           backface: false,
         })
       : null;
+    deskShadow = deskContactShadow(content);
+    previewDeskShadow =
+      state.preview?.category === Category.DESK
+        ? deskContactShadow(content)
+        : null;
     // Keep the room behind the furnishings at every camera angle.
     const furnishings = new Zdog.Group({
       addTo: content,
@@ -289,6 +297,18 @@ export function createDeskEngine(
     if (nextFramingKey !== framingKey) {
       const desk =
         state.transforms.DESK ?? defaultTransforms.DESK;
+      for (const [shadow, transform] of [
+        [deskShadow, desk],
+        [previewDeskShadow, state.preview?.transform],
+      ] as const) {
+        if (!shadow || !transform) continue;
+        shadow.translate.set({
+          x: transform.x * 100,
+          y: 0,
+          z: transform.z * 100,
+        });
+        shadow.rotate.y = -radians(transform.rotationY);
+      }
       const itemFrame = state.itemFrame ?? desk;
       const sizes: Record<
         SpatialTarget,
@@ -418,6 +438,18 @@ export function createDeskEngine(
     // Compensate the parent transform without changing stored item coordinates.
     const desk =
       state.transforms.DESK ?? defaultTransforms.DESK;
+    for (const [shadow, transform] of [
+      [deskShadow, desk],
+      [previewDeskShadow, state.preview?.transform],
+    ] as const) {
+      if (!shadow || !transform) continue;
+      shadow.translate.set({
+        x: transform.x * 100,
+        y: 0,
+        z: transform.z * 100,
+      });
+      shadow.rotate.y = -radians(transform.rotationY);
+    }
     const itemFrame = state.itemFrame ?? desk;
     const offset = new Zdog.Vector({
       x: (itemFrame.x - desk.x) * 100,
