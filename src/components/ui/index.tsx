@@ -11,6 +11,7 @@ import {
   type KeyboardEventHandler,
   type SelectHTMLAttributes,
   type ReactNode,
+  type Ref,
 } from "react";
 
 type Tone = "neutral" | "success" | "warning" | "danger";
@@ -24,6 +25,7 @@ export function Button({
   disabled,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
+  ref?: Ref<HTMLButtonElement>;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "sm" | "md";
   loading?: boolean;
@@ -66,6 +68,7 @@ export function Tag({
   selected = false,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
+  ref?: Ref<HTMLButtonElement>;
   selected?: boolean;
 }) {
   return (
@@ -544,14 +547,23 @@ export function Modal({
 }
 
 export function Toast({
+  placement = "floating",
   message,
   onClose,
 }: {
   message: string;
+  placement?: "floating" | "inline";
   onClose: () => void;
 }) {
   return (
-    <div role="status" className={styles["ui-toast"]}>
+    <div
+      role="status"
+      className={
+        placement === "inline"
+          ? "flex items-center gap-3 rounded-xl bg-primary/10 px-4 py-2 text-sm text-primary [&_button]:ml-auto [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:shrink-0 [&_button]:rounded-lg [&_button]:text-xl"
+          : styles["ui-toast"]
+      }
+    >
       <span aria-hidden="true">✓</span>
       {message}
       <button

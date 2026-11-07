@@ -128,7 +128,13 @@ const allowed: Record<Operation, string[]> = {
     "hashtagId",
   ],
   developerTags: ["publicId", "page", "pageSize", "query"],
-  searchDiscovery: ["kind", "query", "page", "pageSize"],
+  searchDiscovery: [
+    "kind",
+    "query",
+    "page",
+    "pageSize",
+    "subscribedOnly",
+  ],
   discoverUsers: [],
   discoverHashtags: [],
   learningTags: ["authorUserId"],
@@ -1030,7 +1036,12 @@ export function execute<K extends Operation>(
 
     case "searchDiscovery":
       return searchDiscovery(
-        { users, hashtags, subscriptions: s.subscriptions },
+        {
+          users,
+          hashtags,
+          subscriptions: s.subscriptions,
+          quizzes: allQuizzes,
+        },
         input as ApiOperations["searchDiscovery"]["request"],
       );
 

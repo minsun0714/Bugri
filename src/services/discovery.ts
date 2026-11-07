@@ -1,4 +1,6 @@
-import { DiscoveryKind } from "@/api/constants";
+import { normalizeTagInput } from "@/lib/tags";
+import type { StoredQuiz } from "@/services/state";
+import { DiscoveryKind, QuizStatus } from "@/api/constants";
 import type {
   DiscoveryPage,
   DiscoveryQuery,
@@ -13,12 +15,20 @@ export function searchDiscovery(
     users,
     hashtags,
     subscriptions,
+    quizzes = [],
   }: {
+    quizzes?: readonly StoredQuiz[];
     users: readonly User[];
     hashtags: readonly Hashtag[];
     subscriptions: readonly Subscription[];
   },
-  { kind, query, page, pageSize }: DiscoveryQuery,
+  {
+    kind,
+    query,
+    page,
+    pageSize,
+    subscribedOnly = false,
+  }: DiscoveryQuery,
 ): DiscoveryPage {
   requireValue(
     kind === DiscoveryKind.USER ||
@@ -44,7 +54,18 @@ export function searchDiscovery(
     "페이지 크기는 1~50이어야 합니다.",
   );
 
-  const term = query.trim().normalize("NFC").toLowerCase();
+  requireValue(
+    typeof subscribedOnly === "boolean",
+    "구독 필터를 확인하세요.",
+  );
+
+  const term = (
+    kind === DiscoveryKind.HASHTAG
+      ? normalizeTagInput(query)
+      : query.trim()
+  )
+    .normalize("NFC")
+    .toLowerCase();
 
   const matches = (...values: string[]) =>
     values.some((value) =>
@@ -81,8 +102,23 @@ export function searchDiscovery(
     };
   }
 
+  const isSubscribed = (id: string) =>
+    subscriptions.some(
+      (sub) =>
+        sub.type === "HASHTAG" && sub.hashtagId === id,
+    );
+
+  const available = quizzes.filter(
+    ({ status, deletedAt, active }) =>
+      status === QuizStatus.PUBLIC && !deletedAt && active,
+  );
+
   const found = hashtags
-    .filter(({ id, name }) => matches(id, name))
+    .filter(
+      ({ id, name }) =>
+        matches(id, name) &&
+        (!subscribedOnly || isSubscribed(id)),
+    )
     .sort((a, b) => sortIds(a.id, b.id));
 
   return {
@@ -94,11 +130,10 @@ export function searchDiscovery(
       .map((hashtag) => ({
         type: DiscoveryKind.HASHTAG,
         hashtag,
-        subscribed: subscriptions.some(
-          (sub) =>
-            sub.type === "HASHTAG" &&
-            sub.hashtagId === hashtag.id,
-        ),
+        subscribed: isSubscribed(hashtag.id),
+        publicQuizCount: available.filter(({ active }) =>
+          active?.hashtagIds.includes(hashtag.id),
+        ).length,
       })),
   };
 }

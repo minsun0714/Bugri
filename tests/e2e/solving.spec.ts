@@ -693,6 +693,9 @@ test("empty state opens discovery page with URL search and explicit subscription
       ).subscriptions,
   );
   expect(before).toEqual([]);
+  await page
+    .getByRole("button", { name: "Google 로그인 (데모)" })
+    .click();
   await page.evaluate(() => {
     Object.assign(window, {
       restoreStorage: Storage.prototype.setItem,

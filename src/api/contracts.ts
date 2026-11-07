@@ -277,6 +277,7 @@ export type PendingRequest = VersionRequest &
   );
 
 export interface DiscoveryQuery {
+  subscribedOnly?: boolean;
   kind: DiscoveryKind;
   query: string;
   page: number;
@@ -293,6 +294,7 @@ export type DiscoveryItem =
       type: typeof DiscoveryKind.HASHTAG;
       hashtag: Hashtag;
       subscribed: boolean;
+      publicQuizCount: number;
     };
 
 export interface DiscoveryPage {
