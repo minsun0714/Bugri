@@ -172,3 +172,94 @@ it("clamps the current page when refreshed history shrinks", async () => {
     screen.getByRole("button", { name: "다음 페이지" }),
   ).toBeDisabled();
 });
+
+it("filters by sign before paging, resets on filter/user changes, and keeps the balance", async () => {
+  browserApi.mockResolvedValue({
+    request: jest.fn().mockResolvedValue({
+      balance: 10,
+      ledger: Array.from({ length: 23 }, (_, index) => ({
+        id: String(index),
+        amount: index === 22 ? 0 : index % 2 ? -1 : 2,
+        reason: index % 2 ? "PURCHASE" : "SEED",
+        reference: String(index),
+        createdAt: "2026-01-01T00:00:00Z",
+      })),
+    }),
+  });
+  const view = render(<CoinHistory userId="learner" />);
+  await screen.findByLabelText("내 잔액");
+  fireEvent.click(
+    screen.getByRole("button", { name: "다음 페이지" }),
+  );
+  fireEvent.click(
+    screen.getByRole("tab", { name: "사용 (-)" }),
+  );
+  expect(
+    screen.getByText("1 / 2 페이지"),
+  ).toBeInTheDocument();
+  expect(screen.getAllByRole("listitem")).toHaveLength(10);
+  for (const row of screen.getAllByRole("listitem"))
+    expect(row).toHaveTextContent("-1");
+  fireEvent.click(
+    screen.getByRole("button", { name: "다음 페이지" }),
+  );
+  expect(screen.getAllByRole("listitem")).toHaveLength(1);
+  fireEvent.click(
+    screen.getByRole("tab", { name: "지급 (+)" }),
+  );
+  expect(
+    screen.getByText("1 / 2 페이지"),
+  ).toBeInTheDocument();
+  for (const row of screen.getAllByRole("listitem"))
+    expect(row).toHaveTextContent("+2");
+  expect(
+    screen.getByLabelText("내 잔액"),
+  ).toHaveTextContent("10");
+  view.rerender(<CoinHistory userId="friend" />);
+  await screen.findByLabelText("내 잔액");
+  expect(
+    screen.getByRole("tab", { name: "전체" }),
+  ).toHaveAttribute("aria-selected", "true");
+  expect(
+    screen.getByText("1 / 3 페이지"),
+  ).toBeInTheDocument();
+});
+
+it("explains an empty selected filter and allows returning to all entries", async () => {
+  browserApi.mockResolvedValue({
+    request: jest.fn().mockResolvedValue({
+      balance: 4,
+      ledger: [
+        {
+          id: "credit",
+          amount: 4,
+          reason: "SEED",
+          reference: "demo",
+          createdAt: "2026-01-01T00:00:00Z",
+        },
+      ],
+    }),
+  });
+  render(<CoinHistory userId="learner" />);
+  await screen.findByLabelText("내 잔액");
+  fireEvent.click(
+    screen.getByRole("tab", { name: "사용 (-)" }),
+  );
+  expect(
+    screen.getByText("사용 내역이 없어요."),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("listitem"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("navigation", {
+      name: "페이지 이동",
+    }),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("tab", { name: "전체" }),
+  );
+  expect(screen.getByRole("listitem")).toHaveTextContent(
+    "+4",
+  );
+});

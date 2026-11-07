@@ -5,7 +5,12 @@ import type { LedgerEntry } from "@/api/contracts";
 import { useWallet } from "@/components/coins/queries";
 import { ShopProvider } from "@/components/shop/provider";
 import { errorMessage } from "@/components/shop/errors";
-import { Button, Coin, Pagination } from "@/components/ui";
+import {
+  Button,
+  Coin,
+  Pagination,
+  Tabs,
+} from "@/components/ui";
 
 const reasons: Record<LedgerEntry["reason"], string> = {
   SEED: "데모 지급",
@@ -13,19 +18,44 @@ const reasons: Record<LedgerEntry["reason"], string> = {
   PURCHASE: "상품 구매",
 };
 
+const HistoryFilter = {
+  ALL: "전체",
+  CREDIT: "지급 (+)",
+  DEBIT: "사용 (-)",
+} as const;
+
+type HistoryFilter =
+  (typeof HistoryFilter)[keyof typeof HistoryFilter];
+
 export function CoinHistoryContent({
   userId,
 }: {
   userId: string;
 }) {
-  const [selection, setSelection] = useState({
+  const [selection, setSelection] = useState<{
+    userId: string;
+    page: number;
+    filter: HistoryFilter;
+  }>({
     userId,
+    filter: HistoryFilter.ALL,
     page: 1,
   });
   const { data, error, isPending, isFetching, refetch } =
     useWallet(userId);
+  const filter =
+    selection.userId === userId
+      ? selection.filter
+      : HistoryFilter.ALL;
   const entries = data
     ? [...data.ledger]
+        .filter(
+          ({ amount }) =>
+            filter === HistoryFilter.ALL ||
+            (filter === HistoryFilter.CREDIT
+              ? amount > 0
+              : amount < 0),
+        )
         .reverse()
         .sort((a, b) =>
           b.createdAt.localeCompare(a.createdAt),
@@ -44,7 +74,7 @@ export function CoinHistoryContent({
     selection.userId !== userId ||
     selection.page !== page
   ) {
-    setSelection({ userId, page });
+    setSelection({ userId, page, filter });
   }
   const visibleEntries = entries.slice(
     (page - 1) * 10,
@@ -89,66 +119,92 @@ export function CoinHistoryContent({
               <Coin amount={data.balance} />
             </span>
           </div>
-          {entries.length === 0 ? (
-            <p className="text-muted">
-              아직 지급·사용 내역이 없어요.
-            </p>
-          ) : (
-            <ul
-              aria-label="지급·사용 내역"
-              className="divide-y divide-line"
-            >
-              {visibleEntries.map(
-                ({ id, amount, reason, createdAt }) => (
-                  <li
-                    key={id}
-                    className="flex flex-wrap items-center justify-between gap-3 py-4"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {reasons[reason]}
-                      </p>
-                      <time
-                        dateTime={createdAt}
-                        className="mt-1 block text-sm text-muted"
-                      >
-                        {new Intl.DateTimeFormat("ko-KR", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          timeZoneName: "short",
-                        }).format(new Date(createdAt))}
-                      </time>
-                    </div>
-                    <span className="whitespace-nowrap font-semibold tabular-nums">
-                      <span className="sr-only">
-                        {amount < 0 ? "사용 " : "지급 "}
+          <Tabs
+            label="BugCoin 내역 필터"
+            items={Object.values(HistoryFilter)}
+            value={filter}
+            onChange={(value) =>
+              setSelection({
+                userId,
+                page: 1,
+                filter: value as HistoryFilter,
+              })
+            }
+          >
+            {entries.length === 0 ? (
+              <p className="text-muted">
+                {filter === HistoryFilter.CREDIT
+                  ? "지급 내역이 없어요."
+                  : filter === HistoryFilter.DEBIT
+                    ? "사용 내역이 없어요."
+                    : "아직 지급·사용 내역이 없어요."}
+              </p>
+            ) : (
+              <ul
+                aria-label="지급·사용 내역"
+                className="divide-y divide-line"
+              >
+                {visibleEntries.map(
+                  ({ id, amount, reason, createdAt }) => (
+                    <li
+                      key={id}
+                      className="flex flex-wrap items-center justify-between gap-3 py-4"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {reasons[reason]}
+                        </p>
+                        <time
+                          dateTime={createdAt}
+                          className="mt-1 block text-sm text-muted"
+                        >
+                          {new Intl.DateTimeFormat(
+                            "ko-KR",
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              timeZoneName: "short",
+                            },
+                          ).format(new Date(createdAt))}
+                        </time>
+                      </div>
+                      <span className="whitespace-nowrap font-semibold tabular-nums">
+                        <span className="sr-only">
+                          {amount < 0 ? "사용 " : "지급 "}
+                        </span>
+                        {amount > 0 ? "+" : ""}
+                        {amount.toLocaleString(
+                          "ko-KR",
+                        )}{" "}
+                        <span className="text-xs font-normal text-muted">
+                          BugCoin
+                        </span>
                       </span>
-                      {amount > 0 ? "+" : ""}
-                      {amount.toLocaleString("ko-KR")}{" "}
-                      <span className="text-xs font-normal text-muted">
-                        BugCoin
-                      </span>
-                    </span>
-                  </li>
-                ),
-              )}
-            </ul>
-          )}
-          {totalPages > 1 && (
-            <div className="mt-4 flex justify-end">
-              <Pagination
-                compact
-                page={page}
-                total={totalPages}
-                onChange={(nextPage) =>
-                  setSelection({ userId, page: nextPage })
-                }
-              />
-            </div>
-          )}
+                    </li>
+                  ),
+                )}
+              </ul>
+            )}
+            {totalPages > 1 && (
+              <div className="mt-4 flex justify-end">
+                <Pagination
+                  compact
+                  page={page}
+                  total={totalPages}
+                  onChange={(nextPage) =>
+                    setSelection({
+                      userId,
+                      page: nextPage,
+                      filter,
+                    })
+                  }
+                />
+              </div>
+            )}
+          </Tabs>
         </>
       )}
     </section>

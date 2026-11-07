@@ -124,3 +124,86 @@ for (const width of [1280, 390]) {
     await expect(rows.first()).toContainText("+21");
   });
 }
+
+for (const width of [1280, 390]) {
+  test(`coin sign filters isolate usage and reset pagination at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/my?user=learner");
+    const region = page.getByRole("region", {
+      name: "BugCoin 내역",
+    });
+    await region
+      .getByRole("tab", { name: "사용 (-)" })
+      .click();
+    await expect(
+      region.getByText("사용 내역이 없어요."),
+    ).toBeVisible();
+    await region
+      .getByRole("tab", { name: "전체", exact: true })
+      .click();
+    await region
+      .getByRole("button", { name: "다음 페이지" })
+      .click();
+    await region
+      .getByRole("tab", { name: "지급 (+)" })
+      .click();
+    await expect(region.getByRole("status")).toHaveText(
+      "1 / 3 페이지",
+    );
+    await page.goto("/shop?user=learner");
+    await page
+      .getByRole("article")
+      .filter({
+        has: page.getByRole("heading", {
+          name: "새싹 키보드",
+          exact: true,
+        }),
+      })
+      .getByRole("button", {
+        name: "구매하기",
+        exact: true,
+      })
+      .click();
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "70",
+    );
+    await page.goto("/my?user=learner");
+    await region
+      .getByRole("tab", { name: "전체", exact: true })
+      .focus();
+    await page.keyboard.press("End");
+    await expect(
+      region.getByRole("tab", { name: "사용 (-)" }),
+    ).toBeFocused();
+    await expect(region.getByRole("listitem")).toHaveCount(
+      1,
+    );
+    await expect(
+      region.getByRole("listitem"),
+    ).toContainText("-30");
+    await expect(
+      region.getByLabel("내 잔액"),
+    ).toContainText("70");
+    await expect(
+      region.getByRole("navigation", {
+        name: "페이지 이동",
+      }),
+    ).toHaveCount(0);
+    await page.keyboard.press("ArrowLeft");
+    await expect(region.getByRole("listitem")).toHaveCount(
+      10,
+    );
+    await expect(region.getByText("상품 구매")).toHaveCount(
+      0,
+    );
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          innerWidth,
+      ),
+    ).toBe(true);
+  });
+}
