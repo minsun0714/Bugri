@@ -1,3 +1,4 @@
+import { styles } from "@/components/ui/styles";
 import { ProductLayout } from "@/components/navigation/product-layout";
 import { Suspense } from "react";
 import Link from "next/link";
@@ -16,12 +17,17 @@ async function Content({ searchParams }: Props) {
       : "learner";
   return (
     <>
-      <Link
-        href={withDemoUser("/my/desk", initialUser)}
-        className="inline-block rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
-      >
-        데스크 편집·보유 상품
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <h1 className="text-3xl font-semibold">
+          마이페이지
+        </h1>
+        <Link
+          href={withDemoUser("/my/desk", initialUser)}
+          className={`${styles["ui-button"]} secondary md ml-auto no-underline`}
+        >
+          데스크 편집·보유 상품
+        </Link>
+      </div>
       <div className="mt-6">
         <CoinHistory userId={initialUser} />
         <div className="mt-8">
@@ -50,9 +56,6 @@ export default function Page(props: Props) {
   return (
     <ProductLayout>
       <div>
-        <h1 className="mb-4 text-3xl font-semibold">
-          마이페이지
-        </h1>
         <Suspense
           fallback={
             <p role="status" className="p-8 text-muted">

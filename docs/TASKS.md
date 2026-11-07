@@ -1079,3 +1079,11 @@
 - verify2는 새 너비 요청을 반영한 최종 검증으로 오인하지 않도록 해당 작업의 프로세스 그룹만 종료했고, 최신 코드로 verify3을 시작했다. 사용자 실행 중인 동일 워크트리 dev서버3000은 유지한다. 별도3153 dev 시작은 Next의 중복서버 감지로 종료되어 독립 화면 확인은 같은 워크트리3000의 격리 브라우저 context로 진행한다.
 
 - 최종 최신 변경 후 Node v22.23.3 전체 verify3 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). `.bugri-hooks/verify-3.log`. 독립 R1에서3154 production PC/모바일 헤더와 본문 양끝 정렬, 세로3항목/코인5개 보존 확인. 기존3000 dev의 로딩 지속은 원인 미확정으로 리뷰 문서에 기록. 최종 증거는production과E2E다. diff check통과, 커밋하며push하지 않는다.
+
+## P08-MY-ACTION — 데스크 이동 보조 버튼
+
+- 상태: DONE. 사용자 승인에 따라 데스크 편집·보유 상품 링크를 마이페이지 제목 오른쪽 보조 버튼으로 배치한다. flex-wrap으로 공간 부족 시 다음 줄에 오른쪽 정렬한다. 링크 semantics·더미 user 쿼리·공통 버튼 스타일 유지. 다른 영역 변경 없음.
+- 단순 배치/스타일 변경으로 TDD 생략. 관련 프로필 이동 E2E, 별도 UX/UI 실제 PC/모바일 리뷰와 전체 verify로 검증한다.
+- 관련 프로필 E2E2개 통과. 별도 새 컨텍스트 UX/UI 리뷰어가1280/390/320 실제 화면·줄바꿈·정렬·포커스·Enter/사용자쿼리 이동을 확인했다. 두 역할 문제0개/수정0회. [역할별 근거와 한계](ux-reviews/P08-MY-ACTION.md).
+
+- 최종 Node v22.23.3 전체 verify 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). 로그 `.bugri-hooks/verify-1.log`. 관련 Prettier/diff check 통과, 커밋하며 push하지 않는다.
