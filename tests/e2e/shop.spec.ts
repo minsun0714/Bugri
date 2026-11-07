@@ -236,9 +236,28 @@ for (const width of [1280, 390]) {
     await expect(page.getByLabel("내 잔액")).toContainText(
       "70",
     );
+    await expect(
+      page.getByRole("button", { name: /^데모:/ }),
+    ).toHaveCount(0);
+    const profile = page.getByRole("button", {
+      name: "내 프로필",
+    });
+    await profile.click();
     await page
       .getByRole("button", {
-        name: /데모: 학습자 · 사용자 전환/,
+        name: "데모 사용자 전환",
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("dialog", { name: "데모 사용자 선택" })
+      .press("Escape");
+    await expect(profile).toBeFocused();
+    await profile.press("Enter");
+    await page
+      .getByRole("button", {
+        name: "데모 사용자 전환",
+        exact: true,
       })
       .click();
     const dialog = page.getByRole("dialog", {
