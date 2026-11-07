@@ -26,7 +26,7 @@ beforeEach(async () => {
 });
 
 test("keyboard movement cancels with Escape and commits rotation with Enter", async () => {
-  render(<ShopApp />);
+  render(<ShopApp editing />);
   const item = await screen.findByRole("button", {
     name: "새싹 키보드 선택",
   });
@@ -63,7 +63,7 @@ test("keyboard movement cancels with Escape and commits rotation with Enter", as
 });
 
 test("failed placement retains the spatial draft and rotation for retry", async () => {
-  render(<ShopApp />);
+  render(<ShopApp editing />);
   const item = await screen.findByRole("button", {
     name: "새싹 키보드 선택",
   });

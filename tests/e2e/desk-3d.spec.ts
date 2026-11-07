@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { PerspectiveCamera, Vector3 } from "three";
 
 async function equipped(page: Page) {
   await page.goto("/shop");
@@ -19,10 +18,16 @@ async function equipped(page: Page) {
     .getByRole("button", { name: "장착하기" })
     .click();
   await page
+    .getByRole("link", {
+      name: "내 데스크 꾸미기",
+      exact: true,
+    })
+    .click();
+  await page
     .getByRole("button", { name: "새싹 키보드 선택" })
     .click();
   const canvas = page.locator(
-    '#desk [data-renderer="webgl"] canvas',
+    '#desk [data-renderer="canvas"] canvas',
   );
   await expect(canvas).toBeVisible();
   await canvas.scrollIntoViewIfNeeded();
@@ -34,30 +39,19 @@ async function topProjection(page: Page) {
     .getByRole("button", { name: "위에서", exact: true })
     .click();
   const canvas = page.locator(
-    '#desk [data-renderer="webgl"] canvas',
+    '#desk [data-renderer="canvas"] canvas',
   );
   await canvas.scrollIntoViewIfNeeded();
   const box = await canvas.boundingBox();
   if (!box) throw new Error("3D canvas is not visible");
-  const camera = new PerspectiveCamera(
-    38,
-    box.width / box.height,
-    0.1,
-    50,
-  );
-  camera.position.set(0, 9, 0.05);
-  camera.lookAt(0, 1.1, 0);
-  camera.updateMatrixWorld();
-  return (x: number, y: number, z: number) => {
-    const point = new Vector3(x, y, z).project(camera);
-    return {
-      x: box.x + ((point.x + 1) * box.width) / 2,
-      y: box.y + ((1 - point.y) * box.height) / 2,
-    };
-  };
+  // Editing acts on the explicitly selected item, anywhere on the canvas.
+  return () => ({
+    x: box.x + box.width / 2,
+    y: box.y + box.height / 2,
+  });
 }
 
-test("WebGL camera orbit, surface drag, rotation ring and public restoration", async ({
+test("Canvas camera orbit, surface drag, item rotation and public restoration", async ({
   page,
 }) => {
   const canvas = await equipped(page);
@@ -67,9 +61,9 @@ test("WebGL camera orbit, surface drag, rotation ring and public restoration", a
   await page
     .getByRole("button", { name: "45도 시점", exact: true })
     .click();
-  await expect(page.getByLabel("카메라 방위각")).toHaveText(
-    "45°",
-  );
+  await expect(
+    page.getByRole("main").getByLabel("카메라 방위각"),
+  ).toHaveText("45°");
   const box = await canvas.boundingBox();
   if (!box) throw new Error("Missing canvas");
   await page.mouse.move(box.x + box.width / 2, box.y + 40);
@@ -81,7 +75,7 @@ test("WebGL camera orbit, surface drag, rotation ring and public restoration", a
   );
   await page.mouse.up();
   await expect(
-    page.getByLabel("카메라 방위각"),
+    page.getByRole("main").getByLabel("카메라 방위각"),
   ).not.toHaveText("45°");
   await expect(
     page.getByLabel("선택 상품 배치"),
@@ -91,7 +85,7 @@ test("WebGL camera orbit, surface drag, rotation ring and public restoration", a
     .getByRole("button", { name: "상품 이동", exact: true })
     .click();
   let project = await topProjection(page);
-  const start = project(-0.9, 1.69, 0.65);
+  const start = project();
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
   await page.mouse.move(start.x + 30, start.y - 15, {
@@ -107,28 +101,14 @@ test("WebGL camera orbit, surface drag, rotation ring and public restoration", a
   const location = await page
     .getByLabel("선택 상품 배치")
     .innerText();
-  const x = Number(location.match(/X (-?[\d.]+)/)![1]);
-  const z = Number(location.match(/Z (-?[\d.]+)/)![1]);
+  expect(location).toContain("Y 1.55");
 
   await page
     .getByRole("button", { name: "상품 회전", exact: true })
     .click();
   project = await topProjection(page);
-  // TransformControls' ring size is proportional to camera distance; hit the real Y-ring.
-  const radius =
-    (new Vector3(0, 9, 0.05).distanceTo(
-      new Vector3(x, 1.55, z),
-    ) *
-      1.9 *
-      Math.tan((38 * Math.PI) / 360) *
-      0.8) /
-    8;
-  const ring = project(x + radius, 1.55, z);
-  const end = project(
-    x + radius * 0.5,
-    1.55,
-    z - radius * 0.86,
-  );
+  const ring = project();
+  const end = { x: ring.x + 60, y: ring.y };
   await page.mouse.move(ring.x, ring.y);
   await page.mouse.down();
   await page.mouse.move(end.x, end.y, { steps: 10 });
@@ -152,7 +132,7 @@ test("WebGL camera orbit, surface drag, rotation ring and public restoration", a
   await page.goto("/users/bugri-learner");
   const profile = page.getByRole("main");
   await expect(
-    profile.locator('[data-renderer="webgl"] canvas'),
+    profile.locator('[data-renderer="canvas"] canvas'),
   ).toBeVisible();
   await expect(
     profile.getByLabel("3D 배치 정보"),
@@ -179,7 +159,7 @@ test("touch moves on the tabletop, cancel restores, rotation slider saves on mob
   try {
     await equipped(page);
     const project = await topProjection(page);
-    const point = project(-0.9, 1.69, 0.65);
+    const point = project();
     const cdp = await context.newCDPSession(page);
     for (const end of [
       "touchCancel",

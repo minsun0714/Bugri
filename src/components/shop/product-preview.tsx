@@ -23,7 +23,7 @@ export function ProductPreview({
         if (!entries.some((entry) => entry.isIntersecting))
           return;
         observer.disconnect();
-        import("@/components/shop/three/preview")
+        import("@/components/shop/zdog/models")
           .then(({ productPreview }) => {
             if (!cancelled)
               setImage(productPreview(productId));

@@ -66,8 +66,9 @@ export function DeskEditor({
         onCancel={editor.cancel}
       />
       <p className="px-3 pt-3 text-xs leading-5 text-muted">
-        시점 회전은 빈 공간을 드래그하세요. 상품을 선택해
-        이동하거나 원형 회전 핸들을 끌어보세요.
+        시점 회전 모드에서 화면을 드래그하세요. 상품을
+        선택한 뒤 이동 모드에서 화면을 끌거나 회전 모드에서
+        좌우로 끌어보세요.
       </p>
       <div className="flex flex-wrap gap-2 p-3">
         {editor.categories.map((category) => (

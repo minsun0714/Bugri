@@ -154,3 +154,30 @@ it("preserves the saved data and presents retry when storage is corrupted", asyn
     localStorage.getItem("bugri:mock:v1:learner"),
   ).toBe("invalid");
 });
+
+it("offers editing on my desk and a view-only preview in the shop", async () => {
+  const shop = render(<ShopApp />);
+  await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
+  expect(
+    screen.getByRole("link", { name: "내 데스크 꾸미기" }),
+  ).toHaveAttribute("href", "/my?user=learner");
+  expect(
+    screen.queryByRole("button", {
+      name: "상품 이동",
+    }),
+  ).not.toBeInTheDocument();
+  shop.unmount();
+  render(<ShopApp editing />);
+  expect(
+    await screen.findByRole("button", {
+      name: "상품 이동",
+    }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", {
+      name: "상점에서 상품 구경하기",
+    }),
+  ).toHaveAttribute("href", "/shop?user=learner");
+});

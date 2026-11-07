@@ -1,5 +1,5 @@
-import { ZdogPrototype } from "@/components/shop/zdog/prototype";
+import { redirect } from "next/navigation";
 
-export default function ZdogPage() {
-  return <ZdogPrototype />;
+export default function LegacyDeskPage() {
+  redirect("/my");
 }

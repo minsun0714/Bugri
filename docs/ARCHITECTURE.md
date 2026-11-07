@@ -121,3 +121,7 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 - 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부·시간대 변경 전후 일일 보상 중복 판정 세부 기준, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, BugCoin 지급량, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
 
 3D 데스크(P08-3D)는 React 편집 UI → Three.js 렌더러/OrbitControls/TransformControls → 타입 transformEquipment API → Mock 서비스 검증 → 사용자별 저장 순서다. 렌더러는 카메라·모델 표시·입력 좌표 변환을 담당하고, 배치 제약은 순수 `desk-spatial.ts`를 UI와 서비스에서 공유한다. 키보드·모니터·소품은 상판의 자식 좌표이며 책상 이동·회전 시 함께 변환된다. 기존 2D 배치는 읽기 시 호환 변환하고 구매 기록을 유지한다. 상세 계약은 API.md의 3D 데스크 배치 절을 따른다.
+
+### 내 데스크와 상점 렌더링
+
+`/my`는 현재 더미 사용자의 보관함과 배치 편집을 제공하고, `/shop`은 구매·장착과 보기 전용 데스크 미리보기를 제공한다. 이전 `/shop/zdog`는 `/my`로 redirect한다. Canvas 입체 모델을 카드·내 데스크·공개 데스크에 공유하며 WebGL 컨텍스트를 만들지 않는다. 기존 `DeskTransforms`와 `transformEquipment` 계약을 유지한다. 쿼리의 `user`는 1단계 더미 사용자 선택값이며 실제 인증/인가가 아니다. 공개 페이지에는 편집 콜백을 연결하지 않는다.

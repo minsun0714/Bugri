@@ -1,5 +1,7 @@
 "use client";
 
+import { ThreeView } from "@/components/shop/three-view";
+import { DeskTool } from "@/api/constants";
 import { DeskEditor } from "@/components/shop/desk-editor";
 
 import { useRef, useState } from "react";
@@ -45,7 +47,13 @@ export function errorMessage(error: unknown) {
   return "불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
 }
 
-function ShopContent({ userId }: { userId: string }) {
+function ShopContent({
+  userId,
+  editing,
+}: {
+  userId: string;
+  editing: boolean;
+}) {
   const {
     products,
     wallet,
@@ -55,7 +63,9 @@ function ShopContent({ userId }: { userId: string }) {
     equip,
     move,
   } = useShop(userId);
-  const [tab, setTab] = useState("상점");
+  const [tab, setTab] = useState(
+    editing ? "보관함" : "상점",
+  );
   const [category, setCategory] = useState<Category | null>(
     null,
   );
@@ -129,32 +139,15 @@ function ShopContent({ userId }: { userId: string }) {
   return (
     <>
       <section
-        className="mb-10 grid items-center gap-5 lg:grid-cols-[.85fr_1.15fr]"
-        aria-labelledby="shop-title"
+        className={
+          editing
+            ? "mb-10 grid gap-5"
+            : "mb-10 grid items-center gap-5 lg:grid-cols-[.85fr_1.15fr]"
+        }
+        aria-label="상점과 내 데스크"
       >
         <div>
-          <p className="mb-4 text-xs font-bold tracking-[.22em] text-primary">
-            BUGRI OBJECTS / COLLECTION 01
-          </p>
-          <h1
-            id="shop-title"
-            className="text-4xl leading-tight tracking-tight sm:text-5xl"
-          >
-            배움이 쌓이는
-            <br />
-            <span className="text-primary">
-              나만의 작은 공간.
-            </span>
-          </h1>
-          <p className="mt-5 max-w-sm text-sm leading-7 text-muted">
-            좋아하는 키보드, 작은 초록 하나.
-            <br />
-            BugCoin으로 오늘의 데스크를 꾸며보세요.
-          </p>
-          <div
-            className="mt-6 inline-flex rounded-2xl border border-line bg-surface px-5 py-3"
-            aria-label="내 잔액"
-          >
+          <div aria-label="내 잔액">
             {wallet.data ? (
               <Coin amount={wallet.data.balance} />
             ) : (
@@ -177,26 +170,54 @@ function ShopContent({ userId }: { userId: string }) {
             </Badge>
           </div>
           <div className="min-h-48">
-            <DeskEditor
-              key={JSON.stringify(
-                inventory.data?.equipment ?? {},
-              )}
-              equipment={inventory.data?.equipment ?? {}}
-              transforms={inventory.data?.transforms ?? {}}
-              save={move.mutateAsync}
-              disabled={pending}
-            />
+            {editing ? (
+              <DeskEditor
+                key={JSON.stringify(
+                  inventory.data?.equipment ?? {},
+                )}
+                equipment={inventory.data?.equipment ?? {}}
+                transforms={
+                  inventory.data?.transforms ?? {}
+                }
+                save={move.mutateAsync}
+                disabled={
+                  pending || loading || Boolean(error)
+                }
+              />
+            ) : (
+              <ThreeView
+                equipment={inventory.data?.equipment ?? {}}
+                transforms={
+                  inventory.data?.transforms ?? {}
+                }
+                selected={null}
+                tool={DeskTool.CAMERA}
+                disabled={false}
+                readOnly
+              />
+            )}
           </div>
           <p className="pb-3 text-center text-xs text-muted">
-            보관함에서 상품을 장착하고 원하는 위치로
-            옮겨보세요.
+            {editing ? (
+              "보관함에서 상품을 장착하고 원하는 위치로 옮겨보세요."
+            ) : (
+              <Link
+                href={`/my?user=${userId}`}
+                className="font-bold text-primary underline"
+              >
+                내 데스크 꾸미기
+              </Link>
+            )}
           </p>
         </div>
       </section>
       <section id="collection" aria-label="상품 컬렉션">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
           <div className="flex gap-2">
-            {["상점", "보관함"].map((value) => (
+            {(editing
+              ? ["보관함"]
+              : ["상점", "보관함"]
+            ).map((value) => (
               <Button
                 key={value}
                 variant={
@@ -274,14 +295,23 @@ function ShopContent({ userId }: { userId: string }) {
             title="아직 보관한 상품이 없어요"
             description="상점에서 마음에 드는 상품을 골라보세요."
             action={
-              <Button
-                onClick={() => {
-                  setTab("상점");
-                  setCategory(null);
-                }}
-              >
-                상점 보기
-              </Button>
+              editing ? (
+                <Link
+                  href={`/shop?user=${userId}`}
+                  className="text-primary underline"
+                >
+                  상점 보기
+                </Link>
+              ) : (
+                <Button
+                  onClick={() => {
+                    setTab("상점");
+                    setCategory(null);
+                  }}
+                >
+                  상점 보기
+                </Button>
+              )
             }
           />
         ) : (
@@ -404,14 +434,20 @@ function ShopContent({ userId }: { userId: string }) {
   );
 }
 
-export function ShopApp() {
-  const [userId, setUserId] = useState("learner");
+export function ShopApp({
+  editing = false,
+  initialUser = "learner",
+}: {
+  editing?: boolean;
+  initialUser?: string;
+}) {
+  const [userId, setUserId] = useState(initialUser);
   return (
     <ShopProvider>
       <Header
         preview={false}
         sections={[
-          ["top", "상점"],
+          ["top", editing ? "내 공간" : "상점"],
           ["desk", "내 데스크"],
           ["collection", "컬렉션"],
           ["neighbors", "이웃"],
@@ -428,9 +464,14 @@ export function ShopApp() {
             <select
               aria-label="더미 사용자"
               value={userId}
-              onChange={(event) =>
-                setUserId(event.target.value)
-              }
+              onChange={(event) => {
+                setUserId(event.target.value);
+                window.history.replaceState(
+                  null,
+                  "",
+                  `${editing ? "/my" : "/shop"}?user=${event.target.value}`,
+                );
+              }}
               className="rounded-xl border border-line bg-surface px-3 py-2 text-foreground"
             >
               <option value="learner">학습자</option>
@@ -439,7 +480,22 @@ export function ShopApp() {
             </select>
           </label>
         </div>
-        <ShopContent key={userId} userId={userId} />
+        <h1 className="mb-5 text-2xl">
+          {editing ? "내 데스크" : "상점"}
+        </h1>
+        {editing && (
+          <Link
+            href={`/shop?user=${userId}`}
+            className="mb-5 inline-block text-sm text-primary underline"
+          >
+            상점에서 상품 구경하기
+          </Link>
+        )}
+        <ShopContent
+          key={userId}
+          userId={userId}
+          editing={editing}
+        />
         <p className="mt-8 text-xs leading-6 text-muted">
           프로토타입의 더미 BugCoin을 사용합니다. 구매·장착
           기록은 이 브라우저에 저장되며 브라우저 데이터를

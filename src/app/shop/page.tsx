@@ -1,18 +1,27 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { ShopApp } from "@/components/shop/shop-app";
 
-export default function ShopPage() {
+type Props = { searchParams: Promise<{ user?: string }> };
+
+async function Content({ searchParams }: Props) {
+  const { user } = await searchParams;
+  const initialUser =
+    user === "author" || user === "friend"
+      ? user
+      : "learner";
+  return <ShopApp initialUser={initialUser} />;
+}
+
+export default function Page(props: Props) {
   return (
-    <>
-      <div className="bg-lime px-5 py-3 text-center text-sm">
-        <Link
-          href="/shop/zdog"
-          className="font-bold text-foreground underline"
-        >
-          새 입체 데스크 시제품 체험하기 →
-        </Link>
-      </div>
-      <ShopApp />
-    </>
+    <Suspense
+      fallback={
+        <p role="status" className="p-8 text-muted">
+          불러오는 중…
+        </p>
+      }
+    >
+      <Content {...props} />
+    </Suspense>
   );
 }

@@ -4,10 +4,8 @@ import { defaultTransforms } from "@/lib/desk-spatial";
 import { isMovable } from "@/lib/desk-layout";
 
 import { useEffect, useRef, useState } from "react";
-import type {
-  SceneState,
-  createDeskEngine,
-} from "@/components/shop/three/engine";
+import type { SceneState } from "@/components/shop/three/engine";
+import type { createDeskEngine } from "@/components/shop/zdog/engine";
 import { DeskView } from "@/api/constants";
 import { Button } from "@/components/ui";
 import { artworkNames } from "@/components/shop/artwork";
@@ -43,7 +41,7 @@ export function ThreeView(props: Props) {
   useEffect(() => {
     let cancelled = false;
     let instance: Engine | null = null;
-    import("@/components/shop/three/engine")
+    import("@/components/shop/zdog/engine")
       .then(({ createDeskEngine }) => {
         if (cancelled || !host.current) return;
         instance = createDeskEngine(host.current, {
@@ -98,7 +96,7 @@ export function ThreeView(props: Props) {
         role="img"
         aria-label="3D 데스크 캔버스"
         data-renderer={
-          ready && !failed ? "webgl" : "unavailable"
+          ready && !failed ? "canvas" : "unavailable"
         }
         className="relative h-[320px] overflow-hidden rounded-2xl bg-canvas sm:h-[420px]"
       />
@@ -132,9 +130,8 @@ export function ThreeView(props: Props) {
           className="p-3 text-sm text-muted"
         >
           <p>
-            3D 화면을 열 수 없어요. 브라우저의 그래픽 가속
-            설정을 확인해 주세요. 구매·배치 기록은 그대로
-            유지됩니다.
+            데스크를 불러오지 못했어요. 다시 열어 주세요.
+            구매·배치 기록은 그대로 유지됩니다.
           </p>
           <Button
             size="sm"
