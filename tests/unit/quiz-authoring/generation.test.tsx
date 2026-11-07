@@ -4,7 +4,6 @@ import {
   render,
   screen,
   waitFor,
-  within,
 } from "@testing-library/react";
 import { Generation } from "@/features/quiz-authoring/generation";
 import { createApiClient } from "@/api/client";
@@ -90,7 +89,7 @@ test("detail saves each candidate individually without automatic approval", asyn
 test("detail refinement preserves input on failure and retry updates only the candidate", async () => {
   const { api } = await setup();
   fireEvent.click(
-    screen.getByRole("tab", { name: "LLM으로 수정" }),
+    screen.getByRole("button", { name: "LLM으로 수정" }),
   );
   const prompt =
     screen.getByLabelText("퀴즈 1에 추가 요청");
@@ -137,43 +136,42 @@ test("starts with quizzes only and publishes the current candidate on explicit r
   expect(list[0].status).toBe("PUBLIC");
 });
 
-test("groups editing modes and preserves an unsent prompt when returning to preview", async () => {
+test("keeps the quiz visible and preserves drafts when toggling editing areas", async () => {
   await setup();
   expect(
-    screen.getByRole("tablist", { name: "수정 방식" }),
-  ).toBeVisible();
+    screen.queryByRole("tablist", { name: "수정 방식" }),
+  ).not.toBeInTheDocument();
   fireEvent.click(
-    screen.getByRole("tab", { name: "LLM으로 수정" }),
+    screen.getByRole("button", { name: "LLM으로 수정" }),
   );
   fireEvent.change(
     screen.getByLabelText("퀴즈 1에 추가 요청"),
     { target: { value: "예시 추가" } },
   );
   fireEvent.click(
-    within(
-      screen.getByRole("tablist", { name: "수정 방식" }),
-    ).getByRole("tab", { name: "미리보기" }),
+    screen.getByRole("button", { name: "LLM으로 수정" }),
   );
   expect(
     screen.queryByLabelText("퀴즈 1에 추가 요청"),
   ).not.toBeInTheDocument();
   fireEvent.click(
-    screen.getByRole("tab", { name: "직접 수정" }),
+    screen.getByRole("button", { name: "직접 수정" }),
   );
   expect(
-    screen.getByRole("tab", { name: "LLM으로 수정" }),
+    screen.getByRole("button", { name: "LLM으로 수정" }),
   ).toBeEnabled();
+  expect(
+    screen.getByRole("list", { name: "선택지" }),
+  ).toBeVisible();
   fireEvent.change(
     screen.getByRole("textbox", { name: "제목" }),
     { target: { value: "임시 제목" } },
   );
   fireEvent.click(
-    within(
-      screen.getByRole("tablist", { name: "수정 방식" }),
-    ).getByRole("tab", { name: "미리보기" }),
+    screen.getByRole("button", { name: "직접 수정" }),
   );
   fireEvent.click(
-    screen.getByRole("tab", { name: "직접 수정" }),
+    screen.getByRole("button", { name: "직접 수정" }),
   );
   expect(
     screen.getByRole("textbox", { name: "제목" }),
@@ -182,7 +180,7 @@ test("groups editing modes and preserves an unsent prompt when returning to prev
     screen.getByRole("button", { name: "수정 취소" }),
   );
   fireEvent.click(
-    screen.getByRole("tab", { name: "LLM으로 수정" }),
+    screen.getByRole("button", { name: "LLM으로 수정" }),
   );
   expect(
     screen.getByLabelText("퀴즈 1에 추가 요청"),
@@ -192,7 +190,7 @@ test("groups editing modes and preserves an unsent prompt when returning to prev
 test("keeps separate unconfirmed edits across quiz tabs and only clears the applied draft", async () => {
   await setup();
   fireEvent.click(
-    screen.getByRole("tab", { name: "직접 수정" }),
+    screen.getByRole("button", { name: "직접 수정" }),
   );
   fireEvent.change(
     screen.getByRole("textbox", { name: "제목" }),
@@ -202,7 +200,7 @@ test("keeps separate unconfirmed edits across quiz tabs and only clears the appl
     screen.getByRole("tab", { name: "퀴즈 2" }),
   );
   fireEvent.click(
-    screen.getByRole("tab", { name: "직접 수정" }),
+    screen.getByRole("button", { name: "직접 수정" }),
   );
   fireEvent.change(
     screen.getByRole("textbox", { name: "제목" }),

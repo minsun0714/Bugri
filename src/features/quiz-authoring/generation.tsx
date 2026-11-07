@@ -126,6 +126,41 @@ export function Generation(props: GenerationProps) {
                         {candidate.content.title}
                       </h2>
                     </div>
+                    {!candidate.savedQuizId && (
+                      <div className="ml-auto flex flex-wrap justify-end gap-1">
+                        {["직접 수정", "LLM으로 수정"].map(
+                          (label) => (
+                            <Button
+                              key={label}
+                              size="sm"
+                              variant="ghost"
+                              disabled={busy}
+                              aria-expanded={mode === label}
+                              aria-controls="candidate-editing"
+                              onClick={() => {
+                                const nextMode =
+                                  mode === label
+                                    ? "미리보기"
+                                    : label;
+
+                                setModes((current) => ({
+                                  ...current,
+                                  [selectedIndex]: nextMode,
+                                }));
+                                if (
+                                  nextMode ===
+                                    "직접 수정" &&
+                                  !editing
+                                )
+                                  edit(candidate.content);
+                              }}
+                            >
+                              {label}
+                            </Button>
+                          ),
+                        )}
+                      </div>
+                    )}
                   </div>
                   {editing && mode !== "직접 수정" && (
                     <p
@@ -136,34 +171,17 @@ export function Generation(props: GenerationProps) {
                       않았습니다.
                     </p>
                   )}
-                  <Tabs
-                    label="수정 방식"
-                    items={
-                      candidate.savedQuizId
-                        ? ["미리보기"]
-                        : [
-                            "미리보기",
-                            "직접 수정",
-                            "LLM으로 수정",
-                          ]
+                  <ContentPreview
+                    content={candidate.content}
+                  />
+                  <div
+                    id="candidate-editing"
+                    className={
+                      mode !== "미리보기" &&
+                      !candidate.savedQuizId
+                        ? "border-t border-line pt-5"
+                        : undefined
                     }
-                    value={
-                      candidate.savedQuizId
-                        ? "미리보기"
-                        : mode
-                    }
-                    disabled={busy}
-                    onChange={(nextMode) => {
-                      setModes((current) => ({
-                        ...current,
-                        [selectedIndex]: nextMode,
-                      }));
-                      if (
-                        nextMode === "직접 수정" &&
-                        !editing
-                      )
-                        edit(candidate.content);
-                    }}
                   >
                     <div className="grid min-w-0 gap-5">
                       {chatOpen &&
@@ -291,13 +309,9 @@ export function Generation(props: GenerationProps) {
                             </Button>
                           </div>
                         </fieldset>
-                      ) : (
-                        <ContentPreview
-                          content={candidate.content}
-                        />
-                      )}
+                      ) : null}
                     </div>
-                  </Tabs>
+                  </div>
                   {!editing &&
                     (candidate.savedQuizId ? (
                       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-3 text-xs text-muted">
