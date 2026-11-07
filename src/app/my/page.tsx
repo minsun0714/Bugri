@@ -22,20 +22,25 @@ async function Content({ searchParams }: Props) {
       >
         데스크 편집·보유 상품
       </Link>
-      <div className="mt-10 grid gap-5">
-        <FeatureSectionShell
-          id="profile"
-          title="프로필 편집"
-        />
-        <FeatureSectionShell
-          id="learning-history"
-          title="풀이 기록"
-        />
+      <div className="mt-6">
         <CoinHistory userId={initialUser} />
-        <FeatureSectionShell
-          id="learning-timezone"
-          title="학습 시간대 설정"
-        />
+        <div className="mt-8 grid sm:grid-cols-3 sm:gap-6">
+          <FeatureSectionShell
+            compact
+            id="profile"
+            title="프로필 편집"
+          />
+          <FeatureSectionShell
+            compact
+            id="learning-history"
+            title="풀이 기록"
+          />
+          <FeatureSectionShell
+            compact
+            id="learning-timezone"
+            title="학습 시간대 설정"
+          />
+        </div>
       </div>
     </>
   );
@@ -44,18 +49,20 @@ async function Content({ searchParams }: Props) {
 export default function Page(props: Props) {
   return (
     <ProductLayout>
-      <h1 className="mb-6 text-3xl font-semibold">
-        마이페이지
-      </h1>
-      <Suspense
-        fallback={
-          <p role="status" className="p-8 text-muted">
-            불러오는 중…
-          </p>
-        }
-      >
-        <Content {...props} />
-      </Suspense>
+      <div className="mx-auto max-w-3xl">
+        <h1 className="mb-4 text-3xl font-semibold">
+          마이페이지
+        </h1>
+        <Suspense
+          fallback={
+            <p role="status" className="p-8 text-muted">
+              불러오는 중…
+            </p>
+          }
+        >
+          <Content {...props} />
+        </Suspense>
+      </div>
     </ProductLayout>
   );
 }

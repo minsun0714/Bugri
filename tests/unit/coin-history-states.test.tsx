@@ -80,8 +80,8 @@ it("renders a daily reward distinctly from demo credit", async () => {
 it("paginates newest first without changing balance and resets when user changes", async () => {
   browserApi.mockResolvedValue({
     request: jest.fn().mockResolvedValue({
-      balance: 231,
-      ledger: Array.from({ length: 21 }, (_, index) => ({
+      balance: 66,
+      ledger: Array.from({ length: 11 }, (_, index) => ({
         id: String(index),
         amount: index + 1,
         reason: "DAILY_COMPLETION",
@@ -92,10 +92,10 @@ it("paginates newest first without changing balance and resets when user changes
   });
   const view = render(<CoinHistory userId="learner" />);
   await screen.findByLabelText("내 잔액");
-  expect(screen.getAllByRole("listitem")).toHaveLength(10);
+  expect(screen.getAllByRole("listitem")).toHaveLength(5);
   expect(
     screen.getAllByRole("listitem")[0],
-  ).toHaveTextContent("+21");
+  ).toHaveTextContent("+11");
   expect(
     screen.getByRole("button", { name: "이전 페이지" }),
   ).toBeDisabled();
@@ -104,7 +104,7 @@ it("paginates newest first without changing balance and resets when user changes
   );
   expect(
     screen.getAllByRole("listitem")[0],
-  ).toHaveTextContent("+11");
+  ).toHaveTextContent("+6");
   fireEvent.click(
     screen.getByRole("button", { name: "다음 페이지" }),
   );
@@ -114,16 +114,16 @@ it("paginates newest first without changing balance and resets when user changes
   ).toBeDisabled();
   expect(
     screen.getByLabelText("내 잔액"),
-  ).toHaveTextContent("231");
+  ).toHaveTextContent("66");
   fireEvent.click(
     screen.getByRole("button", { name: "이전 페이지" }),
   );
-  expect(screen.getAllByRole("listitem")).toHaveLength(10);
+  expect(screen.getAllByRole("listitem")).toHaveLength(5);
   view.rerender(<CoinHistory userId="friend" />);
   await screen.findByLabelText("내 잔액");
   expect(
     screen.getAllByRole("listitem")[0],
-  ).toHaveTextContent("+21");
+  ).toHaveTextContent("+11");
   expect(
     screen.getByRole("button", { name: "이전 페이지" }),
   ).toBeDisabled();
@@ -131,8 +131,8 @@ it("paginates newest first without changing balance and resets when user changes
 
 it("clamps the current page when refreshed history shrinks", async () => {
   const wallet = {
-    balance: 21,
-    ledger: Array.from({ length: 21 }, (_, index) => ({
+    balance: 11,
+    ledger: Array.from({ length: 11 }, (_, index) => ({
       id: String(index),
       amount: 1,
       reason: "DAILY_COMPLETION",
@@ -160,8 +160,8 @@ it("clamps the current page when refreshed history shrinks", async () => {
   );
   await act(async () => {
     client.setQueryData(walletKey("learner"), {
-      balance: 11,
-      ledger: wallet.ledger.slice(0, 11),
+      balance: 6,
+      ledger: wallet.ledger.slice(0, 6),
     });
   });
   expect(
@@ -177,9 +177,9 @@ it("filters by sign before paging, resets on filter/user changes, and keeps the 
   browserApi.mockResolvedValue({
     request: jest.fn().mockResolvedValue({
       balance: 10,
-      ledger: Array.from({ length: 23 }, (_, index) => ({
+      ledger: Array.from({ length: 13 }, (_, index) => ({
         id: String(index),
-        amount: index === 22 ? 0 : index % 2 ? -1 : 2,
+        amount: index === 12 ? 0 : index % 2 ? -1 : 2,
         reason: index % 2 ? "PURCHASE" : "SEED",
         reference: String(index),
         createdAt: "2026-01-01T00:00:00Z",
@@ -197,7 +197,7 @@ it("filters by sign before paging, resets on filter/user changes, and keeps the 
   expect(
     screen.getByText("1 / 2 페이지"),
   ).toBeInTheDocument();
-  expect(screen.getAllByRole("listitem")).toHaveLength(10);
+  expect(screen.getAllByRole("listitem")).toHaveLength(5);
   for (const row of screen.getAllByRole("listitem"))
     expect(row).toHaveTextContent("-1");
   fireEvent.click(

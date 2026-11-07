@@ -48,14 +48,14 @@ for (const width of [1280, 390]) {
       region.getByLabel("내 잔액"),
     ).toContainText("70");
     await expect(region.getByRole("listitem")).toHaveCount(
-      10,
+      5,
     );
     await page.goto("/my?user=friend");
     await expect(
       region.getByLabel("내 잔액"),
     ).toContainText("100");
     await expect(region.getByRole("listitem")).toHaveCount(
-      10,
+      5,
     );
   });
 }
@@ -71,7 +71,7 @@ for (const width of [1280, 390]) {
       const key = "bugri:mock:v1:learner";
       const state = JSON.parse(localStorage.getItem(key)!);
       state.ledger = Array.from(
-        { length: 21 },
+        { length: 11 },
         (_, index) => ({
           id: `pagination-${index}`,
           amount: index + 1,
@@ -87,14 +87,14 @@ for (const width of [1280, 390]) {
       name: "BugCoin 내역",
     });
     const rows = region.getByRole("listitem");
-    await expect(rows).toHaveCount(10);
-    await expect(rows.first()).toContainText("+21");
+    await expect(rows).toHaveCount(5);
+    await expect(rows.first()).toContainText("+11");
     const next = region.getByRole("button", {
       name: "다음 페이지",
     });
     await next.focus();
     await page.keyboard.press("Enter");
-    await expect(rows.first()).toContainText("+11");
+    await expect(rows.first()).toContainText("+6");
     await expect(region.getByRole("status")).toHaveText(
       "2 / 3 페이지",
     );
@@ -108,11 +108,11 @@ for (const width of [1280, 390]) {
     await expect(next).toBeDisabled();
     await expect(
       region.getByLabel("내 잔액"),
-    ).toContainText("231");
+    ).toContainText("66");
     await region
       .getByRole("button", { name: "이전 페이지" })
       .click();
-    await expect(rows).toHaveCount(10);
+    await expect(rows).toHaveCount(5);
     expect(
       await page.evaluate(
         () =>
@@ -121,7 +121,7 @@ for (const width of [1280, 390]) {
       ),
     ).toBe(true);
     await page.reload();
-    await expect(rows.first()).toContainText("+21");
+    await expect(rows.first()).toContainText("+11");
   });
 }
 
@@ -150,7 +150,7 @@ for (const width of [1280, 390]) {
       .getByRole("tab", { name: "지급 (+)" })
       .click();
     await expect(region.getByRole("status")).toHaveText(
-      "1 / 3 페이지",
+      "1 / 5 페이지",
     );
     await page.goto("/shop?user=learner");
     await page
@@ -193,7 +193,7 @@ for (const width of [1280, 390]) {
     ).toHaveCount(0);
     await page.keyboard.press("ArrowLeft");
     await expect(region.getByRole("listitem")).toHaveCount(
-      10,
+      5,
     );
     await expect(region.getByText("상품 구매")).toHaveCount(
       0,

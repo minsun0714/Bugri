@@ -12,6 +12,8 @@ import {
   Tabs,
 } from "@/components/ui";
 
+const PAGE_SIZE = 5;
+
 const reasons: Record<LedgerEntry["reason"], string> = {
   SEED: "데모 지급",
   DAILY_COMPLETION: "일일 학습 보상",
@@ -64,7 +66,7 @@ export function CoinHistoryContent({
 
   const totalPages = Math.max(
     1,
-    Math.ceil(entries.length / 10),
+    Math.ceil(entries.length / PAGE_SIZE),
   );
   const page = Math.min(
     selection.userId === userId ? selection.page : 1,
@@ -77,18 +79,18 @@ export function CoinHistoryContent({
     setSelection({ userId, page, filter });
   }
   const visibleEntries = entries.slice(
-    (page - 1) * 10,
-    page * 10,
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
   );
 
   return (
     <section
       aria-labelledby="bugcoin-history-heading"
-      className="rounded-3xl border border-line bg-surface p-6 sm:p-8"
+      className="rounded-2xl border border-line bg-surface px-5 py-6 sm:px-8 sm:py-8"
     >
       <h2
         id="bugcoin-history-heading"
-        className="text-xl font-semibold"
+        className="text-lg font-semibold tracking-tight"
       >
         BugCoin 내역
       </h2>
@@ -113,14 +115,21 @@ export function CoinHistoryContent({
       )}
       {data && !error && (
         <>
-          <div className="my-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-canvas p-4">
-            <span className="font-semibold">내 잔액</span>
-            <span aria-label="내 잔액">
+          <div className="mb-7 mt-5">
+            <span className="block text-sm text-muted">
+              내 잔액
+            </span>
+            <span
+              aria-label="내 잔액"
+              className="mt-2 block [&_.ui-coin]:text-4xl [&_.ui-coin]:tracking-tight [&_.ui-coin]:tabular-nums [&_.ui-coin_>_span]:hidden [&_.ui-coin_small]:ml-1 [&_.ui-coin_small]:text-sm"
+            >
               <Coin amount={data.balance} />
             </span>
           </div>
           <Tabs
             label="BugCoin 내역 필터"
+            className="[&_[role=tablist]]:gap-1 [&_[role=tablist]]:border-0 [&_[role=tablist]]:overflow-visible [&_[role=tablist]_button]:min-h-10 [&_[role=tablist]_button]:rounded-lg [&_[role=tablist]_button]:border-0 [&_[role=tablist]_button]:px-4 [&_[role=tablist]_button]:py-2 [&_[role=tablist]_button]:text-sm [&_[role=tablist]_button[aria-selected=true]]:bg-primary [&_[role=tablist]_button[aria-selected=true]]:text-white"
+            panelClassName="pt-3! text-foreground!"
             items={Object.values(HistoryFilter)}
             value={filter}
             onChange={(value) =>
@@ -132,7 +141,7 @@ export function CoinHistoryContent({
             }
           >
             {entries.length === 0 ? (
-              <p className="text-muted">
+              <p className="py-10 text-center text-sm text-muted">
                 {filter === HistoryFilter.CREDIT
                   ? "지급 내역이 없어요."
                   : filter === HistoryFilter.DEBIT
@@ -142,21 +151,28 @@ export function CoinHistoryContent({
             ) : (
               <ul
                 aria-label="지급·사용 내역"
-                className="divide-y divide-line"
+                className="divide-y divide-line/60"
               >
                 {visibleEntries.map(
                   ({ id, amount, reason, createdAt }) => (
                     <li
                       key={id}
-                      className="flex flex-wrap items-center justify-between gap-3 py-4"
+                      className="flex items-center justify-between gap-4 py-3.5"
                     >
                       <div>
-                        <p className="font-medium">
+                        <p className="text-sm font-semibold text-foreground">
                           {reasons[reason]}
                         </p>
                         <time
                           dateTime={createdAt}
-                          className="mt-1 block text-sm text-muted"
+                          aria-label={new Intl.DateTimeFormat(
+                            "ko-KR",
+                            {
+                              dateStyle: "long",
+                              timeStyle: "long",
+                            },
+                          ).format(new Date(createdAt))}
+                          className="mt-1 block text-xs text-muted"
                         >
                           {new Intl.DateTimeFormat(
                             "ko-KR",
@@ -164,14 +180,13 @@ export function CoinHistoryContent({
                               year: "numeric",
                               month: "2-digit",
                               day: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              timeZoneName: "short",
                             },
                           ).format(new Date(createdAt))}
                         </time>
                       </div>
-                      <span className="whitespace-nowrap font-semibold tabular-nums">
+                      <span
+                        className={`whitespace-nowrap text-base font-semibold tabular-nums ${amount > 0 ? "text-primary" : "text-foreground"}`}
+                      >
                         <span className="sr-only">
                           {amount < 0 ? "사용 " : "지급 "}
                         </span>
@@ -179,7 +194,7 @@ export function CoinHistoryContent({
                         {amount.toLocaleString(
                           "ko-KR",
                         )}{" "}
-                        <span className="text-xs font-normal text-muted">
+                        <span className="sr-only">
                           BugCoin
                         </span>
                       </span>
@@ -189,7 +204,7 @@ export function CoinHistoryContent({
               </ul>
             )}
             {totalPages > 1 && (
-              <div className="mt-4 flex justify-end">
+              <div className="mt-2 flex justify-center border-t border-line pt-4 [&_nav]:gap-3 [&_button]:min-h-10 [&_button]:min-w-10 [&_button]:rounded-lg [&_button]:border [&_button]:border-line [&_button]:text-foreground">
                 <Pagination
                   compact
                   page={page}
