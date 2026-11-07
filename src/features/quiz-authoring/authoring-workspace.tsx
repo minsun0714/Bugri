@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Conversation } from "@/features/quiz-authoring/conversation";
+import { Creation } from "@/features/quiz-authoring/creation";
 import { useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
@@ -57,7 +56,6 @@ function Workspace({
 }: {
   mode: "create" | "manage" | "results";
 }) {
-  const router = useRouter();
   const search = useSyncExternalStore(
     subscribe,
     () => window.location.search,
@@ -83,14 +81,7 @@ function Workspace({
     userId,
     "generationBatch",
     { batchId },
-    mode === "results" && !!batchId,
-  );
-  const conversation = useAuthoringQuery(
-    api,
-    userId,
-    "authoringConversation",
-    {},
-    mode === "create",
+    mode !== "manage" && !!batchId,
   );
   const list = useAuthoringQuery(
     api,
@@ -115,20 +106,16 @@ function Workspace({
   );
   const error =
     apiQuery.error ??
-    (mode === "create"
-      ? conversation.error
-      : mode === "results"
-        ? batch.error
-        : (list.error ?? review.error ?? tags.error));
+    (mode !== "manage"
+      ? batch.error
+      : (list.error ?? review.error ?? tags.error));
   const createHref = `/quizzes/authoring?user=${encodeURIComponent(userId)}`;
 
   useUnsavedWarning(dirty);
 
   function showResults({ batchId }: GenerationBatch) {
     setDirty(false);
-    router.push(
-      `/quizzes/authoring/results?batch=${encodeURIComponent(batchId)}&user=${encodeURIComponent(userId)}`,
-    );
+    setLocationParam("batch", batchId);
   }
   function closeReview() {
     setDirty(false);
@@ -145,18 +132,16 @@ function Workspace({
   async function retry() {
     await Promise.all([
       apiQuery.refetch(),
-      ...(mode === "create"
-        ? [conversation.refetch()]
-        : mode === "results"
-          ? batchId
-            ? [batch.refetch()]
-            : []
-          : [
-              list.refetch(),
-              ...(quizId
-                ? [review.refetch(), tags.refetch()]
-                : []),
-            ]),
+      ...(mode !== "manage"
+        ? batchId
+          ? [batch.refetch()]
+          : []
+        : [
+            list.refetch(),
+            ...(quizId
+              ? [review.refetch(), tags.refetch()]
+              : []),
+          ]),
     ]);
   }
 
@@ -183,8 +168,7 @@ function Workspace({
     );
   if (
     !api ||
-    (mode === "create" && !conversation.data) ||
-    (mode === "results" && batchId && !batch.data) ||
+    (mode !== "manage" && batchId && !batch.data) ||
     (mode === "manage" && !list.data) ||
     (mode === "manage" &&
       quizId &&
@@ -192,13 +176,13 @@ function Workspace({
   )
     return <Skeleton />;
 
-  if (mode === "create" && conversation.data)
+  if (mode === "create")
     return (
-      <Conversation
+      <Creation
         key={userId}
         api={api}
         userId={userId}
-        initialConversation={conversation.data}
+        initialBatch={batch.data}
         onGenerated={showResults}
         onDirty={setDirty}
       />

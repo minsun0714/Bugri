@@ -79,6 +79,7 @@ const allowed: Record<Operation, string[]> = {
   generate: ["sourceContent"],
   generationBatch: ["batchId"],
   refineCandidate: ["batchId", "candidateId", "prompt"],
+  editCandidate: ["batchId", "candidateId", "content"],
   saveBatch: ["batchId", "mode", "candidateId"],
   quizzes: ["scope"],
   reviewQuiz: ["quizId"],
@@ -478,11 +479,15 @@ export function execute<K extends Operation>(
     case "generationBatch":
       return getBatch();
 
+    case "editCandidate":
+
     case "refineCandidate": {
       const batch = getBatch();
 
       text(r.candidateId, "candidateId");
-      text(r.prompt, "prompt");
+
+      if (operation === "refineCandidate")
+        text(r.prompt, "prompt");
 
       const candidate = batch.candidates.find(
         ({ candidateId }) => candidateId === r.candidateId,
@@ -499,6 +504,16 @@ export function execute<K extends Operation>(
         candidate.savedQuizId === null,
         "저장한 퀴즈는 검토 화면에서 수정하세요.",
       );
+
+      if (operation === "editCandidate") {
+        validateContent(r.content, tagIds);
+        candidate.content = r.content;
+        candidate.candidateId = id();
+
+        return batch;
+      }
+
+      text(r.prompt, "prompt");
 
       const [content] = generate(
         {

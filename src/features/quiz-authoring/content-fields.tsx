@@ -17,7 +17,9 @@ export function ContentFields({
   errors,
   onChange,
   onSource,
+  showSource = true,
 }: {
+  showSource?: boolean;
   content: QuizContent;
   source: string;
   tags: Hashtag[];
@@ -51,15 +53,17 @@ export function ContentFields({
           })
         }
       />
-      <div>
-        <MarkdownEditor
-          label="원래 학습 내용"
-          value={source}
-          preserveOverflow
-          onChange={onSource}
-        />
-        {fieldError("source")}
-      </div>
+      {showSource && (
+        <div>
+          <MarkdownEditor
+            label="원래 학습 내용"
+            value={source}
+            preserveOverflow
+            onChange={onSource}
+          />
+          {fieldError("source")}
+        </div>
+      )}
       <div>
         <MarkdownEditor
           label="문제"

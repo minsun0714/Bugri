@@ -1,5 +1,7 @@
 "use client";
 
+import { ContentFields } from "@/features/quiz-authoring/content-fields";
+import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring-api";
 import { Button, Card, TextField } from "@/components/ui";
 import { Tooltip } from "@/components/ui/tooltip";
 import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
@@ -14,6 +16,10 @@ import {
 export function Generation(props: GenerationProps) {
   const {
     batch,
+    editing,
+    edit,
+    cancelEdit,
+    applyEdit,
     candidate,
     selectedIndex,
     setSelectedIndex,
@@ -26,6 +32,12 @@ export function Generation(props: GenerationProps) {
     reload,
     save,
   } = useGeneration(props);
+  const tags = useAuthoringQuery(
+    props.api,
+    props.userId ?? "learner",
+    "discoverHashtags",
+    {},
+  );
   const manageHref = `/quizzes/authoring/manage?user=${encodeURIComponent(props.userId ?? "learner")}`;
 
   return (
@@ -34,20 +46,22 @@ export function Generation(props: GenerationProps) {
       className={styles.stack}
       aria-label="생성 결과 상세"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">
-          생성 결과
-        </h1>
-        <a
-          className="text-sm font-semibold text-primary"
-          href={`/quizzes/authoring?user=${encodeURIComponent(props.userId ?? "learner")}`}
-        >
-          대화로 돌아가기
-        </a>
-      </div>
+      {!props.embedded && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-xl font-semibold tracking-tight">
+            생성 결과
+          </h1>
+          <a
+            className="text-sm font-semibold text-primary"
+            href={`/quizzes/authoring?user=${encodeURIComponent(props.userId ?? "learner")}`}
+          >
+            대화로 돌아가기
+          </a>
+        </div>
+      )}
       <details className="rounded-2xl border border-line bg-surface p-4">
         <summary className="cursor-pointer text-sm font-semibold text-muted">
-          생성에 사용한 대화
+          학습 내용
         </summary>
         <div className="mt-4">
           <MarkdownContent>
@@ -86,7 +100,7 @@ export function Generation(props: GenerationProps) {
                     : "secondary"
                 }
                 aria-pressed={selectedIndex === index}
-                disabled={busy}
+                disabled={busy || !!editing}
                 onClick={() => setSelectedIndex(index)}
               >
                 퀴즈 {index + 1}
@@ -94,92 +108,158 @@ export function Generation(props: GenerationProps) {
               </Button>
             ))}
           </div>
-          {!!candidate.history?.length && (
-            <ol
-              className="grid gap-3"
-              aria-label="추가 요청 기록"
-            >
-              {candidate.history.map(
-                ({ prompt: sent, content }, index) => (
-                  <li key={index} className="grid gap-2">
-                    <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
-                      {sent}
-                    </p>
-                    <details className="text-sm text-muted">
-                      <summary className="cursor-pointer">
-                        응답 {index + 1} · {content.title}
-                      </summary>
-                      <div className="mt-3">
-                        <ContentPreview content={content} />
-                      </div>
-                    </details>
-                  </li>
-                ),
+          <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(260px,1fr)]">
+            <div className="order-2 min-w-0 lg:order-2">
+              <h2 className="mb-3 text-sm font-semibold">
+                버그리와 대화
+              </h2>
+              {!candidate.history?.length && (
+                <p className="text-sm text-muted">
+                  어떤 부분을 바꿔볼까요?
+                </p>
               )}
-            </ol>
-          )}
-          <Card className="grid gap-4">
-            <h2 className="text-lg">
-              {candidate.content.title}
-            </h2>
-            <ContentPreview content={candidate.content} />
-            <div className={styles.actions}>
-              <Button
-                disabled={
-                  busy ||
-                  !!candidate.savedQuizId ||
-                  !!prompt.trim()
-                }
-                onClick={() => save(candidate.candidateId)}
-              >
-                {candidate.savedQuizId
-                  ? "저장 완료"
-                  : "개별 저장"}
-              </Button>
-              {candidate.savedQuizId && (
-                <a
-                  className="text-sm text-primary underline"
-                  href={`${manageHref}&quiz=${encodeURIComponent(candidate.savedQuizId)}`}
+              {!!candidate.history?.length && (
+                <ol
+                  className="grid gap-3"
+                  aria-label="추가 요청 기록"
                 >
-                  검토·승인
-                </a>
+                  {candidate.history.map(
+                    ({ prompt: sent, content }, index) => (
+                      <li
+                        key={index}
+                        className="grid gap-2"
+                      >
+                        <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
+                          {sent}
+                        </p>
+                        <details className="text-sm text-muted">
+                          <summary className="cursor-pointer">
+                            응답 {index + 1} ·{" "}
+                            {content.title}
+                          </summary>
+                          <div className="mt-3">
+                            <ContentPreview
+                              content={content}
+                            />
+                          </div>
+                        </details>
+                      </li>
+                    ),
+                  )}
+                </ol>
+              )}
+              {!candidate.savedQuizId && (
+                <form
+                  className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    refine();
+                  }}
+                >
+                  <div className="min-w-0 flex-1">
+                    <TextField
+                      label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
+                      placeholder="예시를 추가해줘"
+                      value={prompt}
+                      disabled={busy || !!editing}
+                      onChange={(event) =>
+                        changePrompt(event.target.value)
+                      }
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    loading={busy}
+                    disabled={!prompt.trim() || !!editing}
+                  >
+                    요청 보내기
+                  </Button>
+                </form>
               )}
             </div>
-          </Card>
-          {!candidate.savedQuizId && (
-            <form
-              className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                refine();
-              }}
-            >
-              <div className="min-w-0 flex-1">
-                <TextField
-                  label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
-                  placeholder="예시를 추가해줘"
-                  value={prompt}
-                  disabled={busy}
-                  onChange={(event) =>
-                    changePrompt(event.target.value)
-                  }
-                />
-              </div>
-              <Button
-                type="submit"
-                loading={busy}
-                disabled={!prompt.trim()}
-              >
-                요청 보내기
-              </Button>
-            </form>
-          )}
+            <div className="order-1 min-w-0 lg:order-1">
+              <Card className="grid gap-4">
+                <h2 className="text-lg">
+                  {candidate.content.title}
+                </h2>
+                {editing ? (
+                  <fieldset
+                    disabled={busy}
+                    className="min-w-0"
+                  >
+                    <ContentFields
+                      content={editing}
+                      source={batch.sourceContent}
+                      showSource={false}
+                      tags={tags.data ?? []}
+                      errors={{}}
+                      onChange={edit}
+                      onSource={() => {}}
+                    />
+                    <div className="mt-4 flex gap-3">
+                      <Button
+                        onClick={applyEdit}
+                        loading={busy}
+                      >
+                        수정 반영
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={cancelEdit}
+                      >
+                        수정 취소
+                      </Button>
+                    </div>
+                  </fieldset>
+                ) : (
+                  <ContentPreview
+                    content={candidate.content}
+                  />
+                )}
+                {!candidate.savedQuizId && !editing && (
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => edit(candidate.content)}
+                  >
+                    직접 수정
+                  </Button>
+                )}
+                <div className={styles.actions}>
+                  <Button
+                    disabled={
+                      busy ||
+                      !!editing ||
+                      !!candidate.savedQuizId ||
+                      !!prompt.trim()
+                    }
+                    onClick={() =>
+                      save(candidate.candidateId)
+                    }
+                  >
+                    {candidate.savedQuizId
+                      ? "저장 완료"
+                      : "개별 저장"}
+                  </Button>
+                  {candidate.savedQuizId && (
+                    <a
+                      className="text-sm text-primary underline"
+                      href={`${manageHref}&quiz=${encodeURIComponent(candidate.savedQuizId)}`}
+                    >
+                      검토·승인
+                    </a>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
           <div className={styles.actions}>
             <Button
               variant="secondary"
               disabled={
                 busy ||
                 hasDrafts ||
+                !!editing ||
                 batch.candidates.every(
                   ({ savedQuizId }) => savedQuizId,
                 )

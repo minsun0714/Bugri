@@ -47,13 +47,19 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 생성 후보는 작성자 전용 `GenerationBatch`다. `saveBatch`의 SINGLE은 한 후보, ALL은 후보별 독립 PENDING 퀴즈를 저장한다. 이미 저장된 후보는 같은 퀴즈를 반환하여 재전송이 복제하지 않는다. 저장 후 삭제한 후보의 재저장은 409로 거부한다.
 
-### 학습 대화와 명시적 생성
+### 기존 학습 대화 계약
+
+아래 대화 전용 계약은 기존 데이터 호환을 위해 유지한다. 현재 작성 UI는 `generate`로 작업 모달을 열고 `refineCandidate`·`editCandidate`로 후보를 다듬는다.
 
 - `authoringConversation({})`: GET /authoring/conversation. 사용자별 대화의 version, messages, draft, latestBatchId를 반환한다.
 - `sendAuthoringMessage({ content, expectedVersion })`: POST /authoring/conversation/messages. 사용자 메시지와 검증된 Mock 답변을 함께 저장한다. 퀴즈는 생성하지 않는다.
 - `generateFromConversation({ draft, expectedVersion })`: POST /authoring/conversation/generate. 보낸 메시지와 답변을 원문으로 후보를 생성하고, 미전송 draft는 복귀용으로만 보존한다. conversation과 batch를 반환하며 퀴즈 저장·승인은 하지 않는다.
 
 대화 변경 시 version을 증가시키고 오래된 버전은 VERSION_CONFLICT로 거부한다. 입력·답변·생성에 사용한 전체 대화는 각각 기존 10,000자 검증을 적용한다. 실패 시 저장 상태를 유지한다. 기존 schemaVersion 1 데이터의 선택적 authoringConversation 필드가 없으면 빈 대화로 읽는다. UI는 API로 복원하며 대화 키에도 사용자 식별자를 포함한다. 실제 AI 호출이나 여러 대화 목록은 구현하지 않는다.
+
+### 저장 전 후보의 직접 편집
+
+`editCandidate({ batchId, candidateId, content })`는 POST /generation-batches/{id}/edit 계약이다. 작성자의 미저장 후보에 QuizContent 전체 검증을 적용하고 후보 ID를 교체한다. 오래된 ID는 VERSION_CONFLICT, 저장된 후보는 VALIDATION_ERROR, 타인의 batch는 NOT_FOUND다. 원문·다른 후보·이전 대화 이력은 유지하고 자동 저장·승인은 하지 않는다. 이후 추가 요청은 직접 수정한 현재 내용을 사용한다. 실패 시 후보를 바꾸지 않는다.
 
 ### 저장 전 후보의 추가 요청
 

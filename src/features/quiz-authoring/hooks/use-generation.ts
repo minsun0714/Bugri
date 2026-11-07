@@ -1,12 +1,16 @@
 import { useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
-import type { GenerationBatch } from "@/api/contracts";
+import type {
+  GenerationBatch,
+  QuizContent,
+} from "@/api/contracts";
 import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
 
 export interface GenerationProps {
   api: ApiClient;
   userId?: string;
   initialBatch: GenerationBatch;
+  embedded?: boolean;
   onBatch: (batch: GenerationBatch) => void;
   onSaved: () => void;
   onDirty?: (dirty: boolean) => void;
@@ -28,6 +32,8 @@ export function useGeneration({
   const [prompts, setPrompts] = useState<
     Record<number, string>
   >({});
+  const [editing, setEditing] =
+    useState<QuizContent | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const locked = useRef(false);
@@ -60,6 +66,32 @@ export function useGeneration({
       setBusy(false);
       onBusy(false);
     }
+  }
+
+  function edit(content: QuizContent) {
+    setEditing(content);
+    onDirty(true);
+  }
+
+  function cancelEdit() {
+    setEditing(null);
+    onDirty(
+      Object.values(prompts).some((value) => !!value),
+    );
+  }
+
+  function applyEdit() {
+    if (!editing || !candidate) return;
+    void run(async () => {
+      accept(
+        await api.request("editCandidate", {
+          batchId: batch.batchId,
+          candidateId: candidate.candidateId,
+          content: editing,
+        }),
+      );
+      cancelEdit();
+    });
   }
 
   function refine() {
@@ -130,6 +162,10 @@ export function useGeneration({
 
   return {
     batch,
+    editing,
+    edit,
+    cancelEdit,
+    applyEdit,
     candidate,
     selectedIndex,
     setSelectedIndex,

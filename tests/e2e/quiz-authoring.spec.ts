@@ -15,23 +15,19 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     .fill(
       "타입스크립트\n```ts\n  const value = 1;\n```\n😀",
     );
+  await expect(page.getByRole("dialog")).not.toBeVisible();
   await page
-    .getByRole("button", { name: "보내기", exact: true })
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
     .click();
   await expect(
-    page.getByRole("list", { name: "대화 기록" }),
-  ).toContainText("타입스크립트");
-  await expect(
-    page.getByRole("region", { name: "생성 후보" }),
-  ).toHaveCount(0);
-  await page
-    .getByRole("textbox", { name: /학습 내용/ })
-    .fill("이어서 물어볼 질문");
-  await page
-    .getByRole("button", { name: "이 대화로 퀴즈 만들기" })
-    .click();
-  await expect(page).toHaveURL(/authoring\/results\?/);
-  const resultUrl = page.url();
+    page.getByRole("dialog", {
+      name: "버그리와 퀴즈 다듬기",
+    }),
+  ).toBeVisible();
+  await expect(page).not.toHaveURL(/authoring\/results/);
   const candidates = page.getByRole("region", {
     name: "생성 후보",
   });
@@ -57,15 +53,31 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("예시 추가");
   await page
-    .getByRole("link", { name: "대화로 돌아가기" })
+    .getByRole("button", { name: "직접 수정" })
+    .click();
+  await page
+    .getByRole("textbox", { name: "제목", exact: true })
+    .fill("직접 다듬은 퀴즈");
+  await page
+    .getByRole("button", { name: "수정 반영" })
+    .click();
+  await expect(
+    candidates.getByRole("article"),
+  ).toContainText("직접 다듬은 퀴즈");
+  await page
+    .getByRole("button", { name: "닫기", exact: true })
     .click();
   await expect(
     page.getByRole("textbox", { name: /학습 내용/ }),
-  ).toHaveValue("이어서 물어볼 질문");
+  ).toHaveValue(
+    "타입스크립트\n```ts\n  const value = 1;\n```\n😀",
+  );
+  await page
+    .getByRole("button", { name: "작업 이어가기" })
+    .click();
   await expect(
-    page.getByRole("list", { name: "대화 기록" }),
-  ).toContainText("타입스크립트");
-  await page.goto(resultUrl);
+    candidates.getByRole("article"),
+  ).toContainText("직접 다듬은 퀴즈");
   const management = await page.context().newPage();
   await management.goto("/quizzes/authoring/manage");
   await expect(
@@ -120,12 +132,11 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
       "```ts\n  const n = 1;\n```\n<script>alert(1)</script>",
     );
   await page
-    .getByRole("button", { name: "보내기", exact: true })
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
     .click();
-  await page
-    .getByRole("button", { name: "이 대화로 퀴즈 만들기" })
-    .click();
-  await expect(page).toHaveURL(/authoring\/results\?/);
   await page
     .getByRole("button", { name: "개별 저장", exact: true })
     .first()
@@ -315,13 +326,13 @@ test("supplementary help opens on hover, focus and mobile tap", async ({
 }) => {
   await page.goto("/quizzes/authoring");
   const help = page.getByRole("button", {
-    name: "대화 도움말",
+    name: "퀴즈 만들기 도움말",
   });
   await expect(help).toBeVisible();
   await expect(page.getByRole("tooltip")).toHaveCount(0);
   await help.hover();
   await expect(page.getByRole("tooltip")).toContainText(
-    "예시 답변",
+    "Mock 퀴즈",
   );
   await page.keyboard.press("Escape");
   await expect(page.getByRole("tooltip")).toHaveCount(0);
@@ -338,7 +349,7 @@ test("supplementary help opens on hover, focus and mobile tap", async ({
   );
   await page
     .getByRole("heading", {
-      name: "버그리와 퀴즈 만들기",
+      name: "퀴즈 만들기",
       exact: true,
     })
     .click();
@@ -380,41 +391,42 @@ test("management dropdown retains keyboard and mobile dismissal", async ({
   await expect(page.getByRole("listbox")).toHaveCount(0);
 });
 
-test("conversation modal retains drafts on Escape and fills the mobile viewport", async ({
+test("workshop preserves pending requests when closed on mobile", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/quizzes/authoring");
+  await page
+    .getByRole("textbox", { name: /학습 내용/ })
+    .fill("클로저");
+  await page
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
+    .click();
   const dialog = page.getByRole("dialog", {
-    name: "버그리와 퀴즈 만들기",
+    name: "버그리와 퀴즈 다듬기",
   });
   await expect(dialog).toBeVisible();
   await page
-    .getByRole("textbox", { name: /학습 내용/ })
-    .fill("남겨둔 질문");
+    .getByLabel("퀴즈 1에 추가 요청")
+    .fill("더 어렵게");
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
   await page
-    .getByRole("button", { name: "버그리와 대화하기" })
+    .getByRole("button", { name: "작업 이어가기" })
     .click();
   await expect(
-    page.getByRole("textbox", { name: /학습 내용/ }),
-  ).toHaveValue("남겨둔 질문");
+    page.getByLabel("퀴즈 1에 추가 요청"),
+  ).toHaveValue("더 어렵게");
   const bounds = await dialog.boundingBox();
   expect(bounds?.width).toBe(390);
   expect(bounds?.height).toBe(844);
-  await expect(
-    dialog.getByRole("button", {
-      name: "이 대화로 퀴즈 만들기",
-    }),
-  ).toBeInViewport();
   await page
-    .getByRole("button", { name: "보내기", exact: true })
+    .getByRole("button", { name: "요청 보내기" })
     .click();
   await expect(
-    page.getByRole("list", { name: "대화 기록" }),
-  ).toContainText("남겨둔 질문");
-  await expect(
-    dialog.getByRole("textbox"),
-  ).toBeInViewport();
+    page.getByRole("list", { name: "추가 요청 기록" }),
+  ).toContainText("더 어렵게");
 });
