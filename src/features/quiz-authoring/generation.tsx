@@ -181,7 +181,7 @@ export function Generation(props: GenerationProps) {
         </p>
       )}
       <form
-        className="flex shrink-0 flex-wrap items-end justify-end gap-3 border-t border-line bg-surface px-1 pt-4 pb-1"
+        className="flex shrink-0 flex-wrap items-end justify-end gap-3 border-t border-line bg-surface px-2 pt-4 pb-2"
         onSubmit={(event) => {
           event.preventDefault();
           refine();

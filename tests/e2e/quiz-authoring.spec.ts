@@ -43,9 +43,10 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     name: "버그리와 대화",
   });
   await expect(chat).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "퀴즈 작업 본문" }),
-  ).toHaveCSS("overflow-y", "hidden");
+  const workspace = page.getByRole("region", {
+    name: "퀴즈 작업 본문",
+  });
+  await expect(workspace).toHaveCSS("overflow-y", "hidden");
   await expect(
     chat.getByRole("log", { name: "대화 내용" }),
   ).toHaveCSS("overflow-y", "auto");
@@ -56,14 +57,22 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   );
   await prompt.focus();
   const promptBox = await prompt.boundingBox();
-  const dialogBox = await page
-    .getByRole("dialog")
-    .boundingBox();
+  const workspaceBox = await workspace.boundingBox();
   expect(promptBox).not.toBeNull();
-  expect(dialogBox).not.toBeNull();
+  expect(workspaceBox).not.toBeNull();
+  expect(promptBox!.x - 7).toBeGreaterThanOrEqual(
+    workspaceBox!.x,
+  );
+  expect(
+    promptBox!.x + promptBox!.width + 7,
+  ).toBeLessThanOrEqual(
+    workspaceBox!.x + workspaceBox!.width,
+  );
   expect(
     promptBox!.y + promptBox!.height + 7,
-  ).toBeLessThanOrEqual(dialogBox!.y + dialogBox!.height);
+  ).toBeLessThanOrEqual(
+    workspaceBox!.y + workspaceBox!.height,
+  );
   await expect(
     page.getByRole("tablist", { name: "퀴즈 선택" }),
   ).toHaveCount(0);
