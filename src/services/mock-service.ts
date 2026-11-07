@@ -1137,7 +1137,7 @@ export function execute<K extends Operation>(
 
       requireValue(
         validTransform(category, r.transform),
-        "상판 위 위치와 회전값을 확인하세요.",
+        "상품의 위치, 높이와 회전값을 확인하세요.",
       );
 
       if (

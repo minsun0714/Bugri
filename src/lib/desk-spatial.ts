@@ -26,52 +26,18 @@ export const defaultTransforms: Record<
   },
 };
 
-/** Conservative footprints include the complete model, not only the stand. */
-const footprints: Record<
-  MovableCategory,
-  [number, number]
-> = {
-  KEYBOARD: [1.35, 0.52],
-  MONITOR: [1.7, 0.5],
-  ACCESSORY: [0.62, 0.62],
-  DESK: [4, 2.4],
-};
-
 export function constrainTransform(
   category: MovableCategory,
   input: DeskTransform,
 ): DeskTransform {
   const rotationY =
     ((Math.round(input.rotationY) % 360) + 360) % 360;
-  const angle = (rotationY * Math.PI) / 180;
-  const [width, depth] = footprints[category];
-  const extentX =
-    (Math.abs(Math.cos(angle)) * width +
-      Math.abs(Math.sin(angle)) * depth) /
-    2;
-  const extentZ =
-    (Math.abs(Math.sin(angle)) * width +
-      Math.abs(Math.cos(angle)) * depth) /
-    2;
-  const limitX =
-    Math.floor(
-      ((category === Category.DESK ? 4 : 2) - extentX) *
-        1000,
-    ) / 1000;
-  const limitZ =
-    Math.floor(
-      ((category === Category.DESK ? 4 : 1.2) - extentZ) *
-        1000,
-    ) / 1000;
-  const round = (v: number, limit: number) =>
-    Math.max(
-      -limit,
-      Math.min(limit, Math.round(v * 1000) / 1000),
-    );
+  const round = (value: number) =>
+    Math.round(value * 1000) / 1000;
   return {
-    x: round(input.x, limitX),
+    x: round(input.x),
     y: category === Category.DESK ? 0 : tableHeight,
-    z: round(input.z, limitZ),
+    z: round(input.z),
     rotationY,
   };
 }

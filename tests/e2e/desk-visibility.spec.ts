@@ -82,14 +82,21 @@ for (const width of [1100, 390]) {
     };
     await page.mouse.move(center.x, center.y);
     await page.mouse.down();
-    // Sweep all four clamped corners without releasing the pointer.
-    for (const [dx, dy] of [
-      [0, -150],
-      [150, -150],
-      [150, 150],
-      [-150, 150],
-      [-150, -150],
+    // Visit the same tabletop corners explicitly: free placement no longer clamps drags.
+    const zoom = Math.min(
+      box.width / 850,
+      box.height / 570,
+    );
+    for (const [x, z] of [
+      [-1.325, -0.94],
+      [1.325, -0.94],
+      [1.325, 0.94],
+      [-1.325, 0.94],
     ]) {
+      const dx =
+        (x + 0.45 - (z - 0.65)) * Math.SQRT1_2 * zoom * 100;
+      const dy =
+        (x + 0.45 + (z - 0.65)) * Math.SQRT1_2 * zoom * 50;
       await page.mouse.move(center.x + dx, center.y + dy, {
         steps: 8,
       });

@@ -42,6 +42,7 @@ export function createDeskEngine(
     y: number;
     yaw: number;
     pitch: number;
+    zoom: number;
     category: MovableCategory | null;
     transform: DeskTransform | null;
     next: DeskTransform | null;
@@ -56,7 +57,7 @@ export function createDeskEngine(
     const { equipment } = state;
     if (equipment.BACKGROUND)
       model(content, equipment.BACKGROUND);
-    // The camera remains above the tabletop and items are constrained to it.
+    // The camera remains above the tabletop and items retain its height.
     // Sort the furniture internally, then the objects above it: a distant
     // tabletop item must never be painted behind the table's centre point.
     const desk = new Zdog.Group({ addTo: content });
@@ -84,16 +85,40 @@ export function createDeskEngine(
     }
     const { width, height } = host.getBoundingClientRect();
     illustration.setSize(width || 600, height || 420);
-    zoom = Math.min(
-      (width || 600) / 850,
-      (height || 420) / 570,
-    );
+    if (!drag || drag.tool === DeskTool.CAMERA) {
+      const desk =
+        state.transforms.DESK ?? defaultTransforms.DESK;
+      let radius = 2.5;
+      for (const category of anchors.keys()) {
+        if (category === Category.DESK) continue;
+        const value =
+          state.transforms[category] ??
+          defaultTransforms[category];
+        radius = Math.max(
+          radius,
+          Math.hypot(value.x, value.z) + 1,
+        );
+      }
+      radius += Math.hypot(desk.x, desk.z);
+      const spanX = Math.max(850, radius * 200 + 80);
+      const spanY = Math.max(
+        570,
+        radius * 200 * Math.sin(radians(pitch)) +
+          300 * Math.cos(radians(pitch)) +
+          80,
+      );
+      zoom = Math.min(
+        (width || 600) / spanX,
+        (height || 420) / spanY,
+      );
+    }
     illustration.zoom = zoom;
     scene.rotate.set({
       x: -radians(pitch),
       y: radians(yaw),
     });
-    illustration.translate.y = 55 * zoom;
+    illustration.translate.y =
+      150 * Math.cos(radians(pitch)) * zoom;
     anchors.forEach((anchor, category) => {
       const value =
         state.transforms[category] ??
@@ -150,6 +175,7 @@ export function createDeskEngine(
       y: event.clientY,
       yaw,
       pitch,
+      zoom,
       category,
       transform,
       next: null,
@@ -193,9 +219,12 @@ export function createDeskEngine(
       next.rotationY += dx * 0.6;
     else {
       const cameraAngle = radians(drag.yaw);
-      const screenX = dx / zoom / 100;
+      const screenX = dx / drag.zoom / 100;
       const screenZ =
-        dy / zoom / 100 / Math.sin(radians(drag.pitch));
+        dy /
+        drag.zoom /
+        100 /
+        Math.sin(radians(drag.pitch));
       let x =
         Math.cos(cameraAngle) * screenX +
         Math.sin(cameraAngle) * screenZ;

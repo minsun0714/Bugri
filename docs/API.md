@@ -104,12 +104,12 @@ import 별칭, `as const`, 구조 분해 할당, 빈 줄·객체 줄바꿈 및 �
 
 ## 3D 데스크 배치 (P08-3D)
 
-`transformEquipment`는 `PUT /me/desk/transform`에 `{ category, productId, transform: { x, y, z, rotationY } }`를 보내고 카테고리별 `DeskTransforms`를 반환한다. Y는 높이, rotationY는 수직축 회전 각도(0~359도)다. 책상 폭은 4, 깊이는 2.4, 상판 높이는 1.55이며 상품 좌표는 책상 로컬 좌표다. 책상 자체는 바닥 Y=0에 놓고 방 안에서 이동/회전한다. 책상을 움직이면 자식 상품이 함께 움직인다.
+`transformEquipment`는 `PUT /me/desk/transform`에 `{ category, productId, transform: { x, y, z, rotationY } }`를 보내고 카테고리별 `DeskTransforms`를 반환한다. Y는 높이, rotationY는 수직축 회전 각도(0~359도)다. 책상 폭은 4, 깊이는 2.4, 상판 높이는 1.55이며 상품 좌표는 책상 로컬 좌표다. 책상 자체는 바닥 Y=0을 유지하며 이동/회전한다. 책상을 움직이면 자식 상품이 함께 움직인다.
 
-공통 `src/lib/desk-spatial.ts`는 상품의 회전된 외곽 폭·깊이로 상판 경계를 계산한다. UI는 0.001 단위로 위치를 맞추고 API는 비유한·범위 밖·공중/지하 좌표와 잘못된 회전을 거부한다(400 VALIDATION_ERROR). 현재 구매·장착한 productId가 아니면 403 FORBIDDEN이다. 같은 상품의 재장착 요청은 배치를 유지하며 교체·해제는 해당 카테고리의 배치만 제거한다. 아이템 간 충돌/쌓기는 이 작업에서 구현하지 않는다.
+공통 `src/lib/desk-spatial.ts`는 x/z를 0.001 단위로 맞추며 상판/방 외곽으로 제한하지 않는다. 책상 밖에서도 기존 높이(상품 1.55, 책상 0)를 유지하며 회전할 수 있다. API는 비유한 좌표·정규화되지 않은 정밀도·변경된 높이·잘못된 회전을 거부한다(400 VALIDATION_ERROR). 현재 구매·장착한 productId가 아니면 403 FORBIDDEN이다. 같은 상품의 재장착 요청은 배치를 유지하며 교체·해제는 해당 카테고리의 배치만 제거한다. 아이템 간 충돌/쌓기는 이 작업에서 구현하지 않는다.
 
 Inventory/PublicProfile에 `transforms`를 추가했다. 공개 프로필은 사용자·장착 ID·배치만 제공하고 잔액·원장·구매·보관함은 포함하지 않는다. 변경 성공 시 보관함·공개 프로필 캐시를 갱신한다. 저장 실패는 이전 저장 상태를 유지하고 UI는 이동·회전 초안을 유지해 재시도할 수 있다.
 
-기존 v1의 구매·장착과 2D `positions`는 삭제하지 않는다. `transforms`가 없는 스냅샷을 읽을 때 기존 2D x/y 이동량을 1/100 단위로 기본 3D x/z에 더하고 상판 범위에 맞춘다. 회전은 0도, 높이는 상판/바닥으로 설정한다. 변환되지 않는 손상된 저장 데이터는 STORAGE_CORRUPT로 거부하며 초기화하지 않는다. 기존 `moveEquipment`/`PUT /me/desk/position`은 호환 목적으로 유지하고 성공 시 해당 3D 배치도 변환한다. 신규 화면은 transformEquipment만 호출한다.
+기존 v1의 구매·장착과 2D `positions`는 삭제하지 않는다. `transforms`가 없는 스냅샷을 읽을 때 기존 2D x/y 이동량을 1/100 단위로 기본 3D x/z에 더하고 0.001 단위로 맞춘다. 회전은 0도, 높이는 상판/바닥으로 설정한다. 변환되지 않는 손상된 저장 데이터는 STORAGE_CORRUPT로 거부하며 초기화하지 않는다. 기존 `moveEquipment`/`PUT /me/desk/position`은 호환 목적으로 유지하고 성공 시 해당 3D 배치도 변환한다. 신규 화면은 transformEquipment만 호출한다.
 
 카메라 시점은 뷰어 상태이고 상품 배치 API에 저장하지 않는다. 공개 데스크도 시점 회전은 가능하며 편집 도구/배치 API는 제공하지 않는다. Three.js의 OrbitControls와 TransformControls를 사용하고, React 컴포넌트가 언마운트되면 WebGL 렌더러·컨트롤·기하·재질 자원을 정리한다. 카드 이미지는 화면에 들어올 때만 같은 3D 모델로 생성한다.

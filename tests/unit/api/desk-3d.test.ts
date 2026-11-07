@@ -63,13 +63,12 @@ test("saves spatial position and rotation, restores them publicly and isolates o
   ).toEqual({});
 });
 
-test("rejects hovering, underground, rotated overhang, nonfinite values and unowned edits", async () => {
+test("rejects changed height, underground, nonfinite values and unowned edits", async () => {
   const api = await owned();
 
   for (const transform of [
     { ...placement, y: -1 },
     { ...placement, y: 3 },
-    { ...placement, x: 1.8, rotationY: 90 },
     { ...placement, z: NaN },
     { ...placement, rotationY: 360 },
   ])
@@ -162,4 +161,44 @@ test("preserves persisted 3D placement on write failure and clears only removed 
   expect(
     (await api.request("inventory", {})).transforms,
   ).toEqual({});
+});
+
+test("saves and restores lavender keyboard outside the table without changing its height", async () => {
+  const api = make();
+
+  await api.request("purchase", {
+    productId: "keyboard-2",
+    requestKey: "free-lavender",
+  });
+
+  await api.request("equip", {
+    category: Category.KEYBOARD,
+    productId: "keyboard-2",
+  });
+
+  const transform = {
+    x: 6.25,
+    y: 1.55,
+    z: -4.5,
+    rotationY: 90,
+  };
+
+  await api.request("transformEquipment", {
+    category: Category.KEYBOARD,
+    productId: "keyboard-2",
+    transform,
+  });
+
+  expect(
+    (await make().request("inventory", {})).transforms
+      .KEYBOARD,
+  ).toEqual(transform);
+
+  expect(
+    (
+      await make("friend").request("publicProfile", {
+        publicId: "bugri-learner",
+      })
+    ).transforms.KEYBOARD,
+  ).toEqual(transform);
 });
