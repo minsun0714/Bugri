@@ -108,76 +108,8 @@ export function Generation(props: GenerationProps) {
               </Button>
             ))}
           </div>
-          <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(260px,1fr)]">
-            <div className="order-2 min-w-0 lg:order-2">
-              <h2 className="mb-3 text-sm font-semibold">
-                버그리와 대화
-              </h2>
-              {!candidate.history?.length && (
-                <p className="text-sm text-muted">
-                  어떤 부분을 바꿔볼까요?
-                </p>
-              )}
-              {!!candidate.history?.length && (
-                <ol
-                  className="grid gap-3"
-                  aria-label="추가 요청 기록"
-                >
-                  {candidate.history.map(
-                    ({ prompt: sent, content }, index) => (
-                      <li
-                        key={index}
-                        className="grid gap-2"
-                      >
-                        <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
-                          {sent}
-                        </p>
-                        <details className="text-sm text-muted">
-                          <summary className="cursor-pointer">
-                            응답 {index + 1} ·{" "}
-                            {content.title}
-                          </summary>
-                          <div className="mt-3">
-                            <ContentPreview
-                              content={content}
-                            />
-                          </div>
-                        </details>
-                      </li>
-                    ),
-                  )}
-                </ol>
-              )}
-              {!candidate.savedQuizId && (
-                <form
-                  className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    refine();
-                  }}
-                >
-                  <div className="min-w-0 flex-1">
-                    <TextField
-                      label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
-                      placeholder="예시를 추가해줘"
-                      value={prompt}
-                      disabled={busy || !!editing}
-                      onChange={(event) =>
-                        changePrompt(event.target.value)
-                      }
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    loading={busy}
-                    disabled={!prompt.trim() || !!editing}
-                  >
-                    요청 보내기
-                  </Button>
-                </form>
-              )}
-            </div>
-            <div className="order-1 min-w-0 lg:order-1">
+          <div className="grid min-w-0 gap-5">
+            <div className="min-w-0">
               <Card className="grid gap-4">
                 <h2 className="text-lg">
                   {candidate.content.title}
@@ -251,6 +183,74 @@ export function Generation(props: GenerationProps) {
                   )}
                 </div>
               </Card>
+            </div>
+            <div className="min-w-0">
+              <h2 className="mb-3 text-sm font-semibold">
+                버그리와 대화
+              </h2>
+              {!candidate.history?.length && (
+                <p className="text-sm text-muted">
+                  어떤 부분을 바꿔볼까요?
+                </p>
+              )}
+              {!!candidate.history?.length && (
+                <ol
+                  className="grid gap-3"
+                  aria-label="추가 요청 기록"
+                >
+                  {candidate.history.map(
+                    ({ prompt: sent, content }, index) => (
+                      <li
+                        key={index}
+                        className="grid gap-2"
+                      >
+                        <p className="max-w-[90%] justify-self-end whitespace-pre-wrap break-words rounded-2xl bg-primary/10 px-4 py-3 text-sm">
+                          {sent}
+                        </p>
+                        <details className="text-sm text-muted">
+                          <summary className="cursor-pointer">
+                            응답 {index + 1} ·{" "}
+                            {content.title}
+                          </summary>
+                          <div className="mt-3">
+                            <ContentPreview
+                              content={content}
+                            />
+                          </div>
+                        </details>
+                      </li>
+                    ),
+                  )}
+                </ol>
+              )}
+              {!candidate.savedQuizId && (
+                <form
+                  className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    refine();
+                  }}
+                >
+                  <div className="min-w-0 flex-1">
+                    <TextField
+                      label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
+                      placeholder="예시를 추가해줘"
+                      value={prompt}
+                      disabled={busy || !!editing}
+                      onChange={(event) =>
+                        changePrompt(event.target.value)
+                      }
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    loading={busy}
+                    disabled={!prompt.trim() || !!editing}
+                  >
+                    요청 보내기
+                  </Button>
+                </form>
+              )}
             </div>
           </div>
           <div className={styles.actions}>
