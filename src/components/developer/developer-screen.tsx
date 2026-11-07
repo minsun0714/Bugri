@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import Link from "next/link";
 import {
   useParams,
@@ -25,6 +30,92 @@ interface Filters {
   tagPage: number;
   tagQuery: string;
   hashtagId: string | null;
+}
+
+function TagSubscriptionMenu({
+  name,
+  subscribed,
+  busy,
+  onToggle,
+}: {
+  name: string;
+  subscribed: boolean;
+  busy: boolean;
+  onToggle: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function closeOutside(event: PointerEvent) {
+      if (!root.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function closeWithKeyboard(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+
+      setOpen(false);
+      root.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    }
+
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeWithKeyboard);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeWithKeyboard);
+    };
+  }, [open]);
+
+  return (
+    <div ref={root} className="relative">
+      <Button
+        className="!size-7 !min-h-0 !rounded-full !border-0 !p-0 !shadow-none"
+        size="sm"
+        variant="ghost"
+        disabled={busy}
+        aria-label={`${name} 구독 메뉴`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="size-4"
+        >
+          <circle cx="5" cy="12" r="1.5" />
+          <circle cx="12" cy="12" r="1.5" />
+          <circle cx="19" cy="12" r="1.5" />
+        </svg>
+      </Button>
+      {open && (
+        <div
+          role="menu"
+          aria-label={`${name} 구독 관리`}
+          className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-28 rounded-xl border border-line bg-surface p-1 shadow-lg"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            disabled={busy}
+            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold whitespace-nowrap hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-45"
+            onClick={() => {
+              onToggle();
+              setOpen(false);
+            }}
+          >
+            {subscribed ? "구독 해제" : "구독하기"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function PageControls({
@@ -266,13 +357,11 @@ function Catalog({
                           ({quizCount})
                         </span>
                       </button>
-                      <Button
-                        className={`!min-h-0 !rounded-full !border-0 !px-2 !py-1 !shadow-none ${subscribed ? "disabled:!opacity-100" : ""}`}
-                        size="sm"
-                        variant="ghost"
-                        disabled={busy}
-                        aria-label={`${data.user.displayName}의 ${name} ${subscribed ? "구독 해제" : "구독하기"}`}
-                        onClick={() =>
+                      <TagSubscriptionMenu
+                        name={name}
+                        subscribed={subscribed}
+                        busy={busy}
+                        onToggle={() =>
                           subscribe.mutate({
                             target: {
                               type: "PERSON_HASHTAG",
@@ -283,24 +372,7 @@ function Catalog({
                             subscribed,
                           })
                         }
-                      >
-                        {subscribed ? (
-                          <svg
-                            aria-hidden="true"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="size-4"
-                          >
-                            <path d="m5 12 4 4L19 6" />
-                          </svg>
-                        ) : (
-                          "태그 구독"
-                        )}
-                      </Button>
+                      />
                     </li>
                   ),
                 )}

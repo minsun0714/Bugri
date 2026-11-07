@@ -33,16 +33,27 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
   );
   fireEvent.click(
     await screen.findByRole("button", {
-      name: "타입 개발자의 TypeScript 구독하기",
+      name: "TypeScript 구독 메뉴",
     }),
+  );
+  fireEvent.click(
+    screen.getByRole("menuitem", { name: "구독하기" }),
   );
   await waitFor(() =>
     expect(
       screen.getByRole("button", {
-        name: "타입 개발자의 TypeScript 구독 해제",
+        name: "TypeScript 구독 메뉴",
       }),
     ).toBeEnabled(),
   );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "TypeScript 구독 메뉴",
+    }),
+  );
+  expect(
+    screen.getByRole("menuitem", { name: "구독 해제" }),
+  ).toBeVisible();
   expect(push).not.toHaveBeenCalled();
   fireEvent.click(
     screen.getByRole("button", { name: "개발자 구독하기" }),

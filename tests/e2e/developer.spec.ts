@@ -88,28 +88,52 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     quizzes.getByRole("link", { name: "타입 선언" }),
   ).toBeVisible();
   const url = page.url();
-  await tags
-    .getByRole("button", {
-      name: "타입 개발자의 TypeScript 구독하기",
-      exact: true,
-    })
-    .click();
-  const subscribedTypeScript = tags.getByRole("button", {
-    name: "타입 개발자의 TypeScript 구독 해제",
+  const subscriptionMenuTrigger = tags.getByRole("button", {
+    name: "TypeScript 구독 메뉴",
+    exact: true,
+  });
+  const triggerBounds = await subscriptionMenuTrigger.boundingBox();
+  const dotsBounds = await subscriptionMenuTrigger
+    .locator("svg")
+    .boundingBox();
+
+  expect(triggerBounds).not.toBeNull();
+  expect(dotsBounds).not.toBeNull();
+  expect(
+    Math.abs(
+      triggerBounds!.y +
+        triggerBounds!.height / 2 -
+        (dotsBounds!.y + dotsBounds!.height / 2),
+    ),
+  ).toBeLessThan(1);
+  await subscriptionMenuTrigger.click();
+  const typeScriptMenu = tags.getByRole("menu", {
+    name: "TypeScript 구독 관리",
     exact: true,
   });
 
-  await expect(subscribedTypeScript).toBeEnabled();
-  await expect(subscribedTypeScript).toHaveText("");
+  await expect(typeScriptMenu).toBeVisible();
+  await typeScriptMenu
+    .getByRole("menuitem", { name: "구독하기" })
+    .click();
+  await expect(typeScriptMenu).toHaveCount(0);
   await expect(page).toHaveURL(url);
   await page.reload();
   await expect(quizzes.getByRole("link")).toHaveCount(1);
+  await tags
+    .getByRole("button", {
+      name: "TypeScript 구독 메뉴",
+      exact: true,
+    })
+    .click();
   await expect(
-    tags.getByRole("button", {
-      name: "타입 개발자의 TypeScript 구독 해제",
+    tags.getByRole("menuitem", {
+      name: "구독 해제",
       exact: true,
     }),
-  ).toBeEnabled();
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(tags.getByRole("menu")).toHaveCount(0);
   await tags.getByRole("searchbox").fill("web");
   await tags.getByRole("searchbox").press("Enter");
   await expect(
@@ -126,13 +150,19 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
   ).toHaveCount(0);
   await tags
     .getByRole("button", {
-      name: "타입 개발자의 Web 구독하기",
+      name: "Web 구독 메뉴",
+      exact: true,
+    })
+    .click();
+  await tags
+    .getByRole("menuitem", {
+      name: "구독하기",
       exact: true,
     })
     .click();
   await expect(
     tags.getByRole("button", {
-      name: "타입 개발자의 Web 구독 해제",
+      name: "Web 구독 메뉴",
       exact: true,
     }),
   ).toBeEnabled();
