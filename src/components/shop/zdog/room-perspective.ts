@@ -53,6 +53,7 @@ export function createRoomEnvironment() {
     yaw: number,
     pitch: number,
     zoom: number,
+    baseZoom: number,
     verticalOffset: number,
   ) => {
     const { width, height } = target.canvas;
@@ -68,7 +69,9 @@ export function createRoomEnvironment() {
     const tilt = (pitch * Math.PI) / 180;
     const cosine = Math.cos(angle);
     const sine = Math.sin(angle);
-    const distance = (width * 0.35) / zoom;
+    // Room geometry uses the automatic fit only. User zoom scales this
+    // fixed geometry and the furnishings together instead of resizing the room.
+    const distance = (width * 0.35) / baseZoom;
     const radius = distance * 1.4;
     const near = distance * 0.02;
     const rotate = ({ x, y, z }: Point): Point => ({
@@ -137,11 +140,41 @@ export function createRoomEnvironment() {
       { x: radius, z: radius },
       { x: -radius, z: radius },
     ];
-    // All enclosing walls are seen from inside. Near-plane clipping allows
-    // both side walls to remain visible when looking straight at the back wall.
-    for (let index = 0; index < corners.length; index++) {
-      const a = corners[index];
+    const wallDepths = corners.map((a, index) => {
       const b = corners[(index + 1) % corners.length];
+      return rotate({
+        x: (a.x + b.x) / 2,
+        y: 0,
+        z: (a.z + b.z) / 2,
+      }).z;
+    });
+    const nearest = Math.max(...wallDepths);
+    const open = wallDepths.map(
+      (depth) => nearest - depth < radius * 0.000001,
+    );
+    // Open the camera-facing side of the rectangular room. Continue the
+    // adjoining side walls past the viewport instead of showing the near
+    // corners as extra folds when the field of view widens on zoom-out.
+    for (let index = 0; index < corners.length; index++) {
+      if (open[index]) continue;
+      const originalA = corners[index];
+      const originalB =
+        corners[(index + 1) % corners.length];
+      const extend = (
+        a: { x: number; z: number },
+        b: { x: number; z: number },
+      ) => ({
+        x: a.x + (a.x - b.x) * 100,
+        z: a.z + (a.z - b.z) * 100,
+      });
+      const a = open[
+        (index + corners.length - 1) % corners.length
+      ]
+        ? extend(originalA, originalB)
+        : originalA;
+      const b = open[(index + 1) % corners.length]
+        ? extend(originalB, originalA)
+        : originalB;
       polygon(
         [
           { ...a, y: 0 },
@@ -171,7 +204,10 @@ export function createRoomEnvironment() {
         z: -radius + 1,
       },
     ].map(rotate);
-    if (frame.every(({ z }) => z < distance - near)) {
+    if (
+      !open[0] &&
+      frame.every(({ z }) => z < distance - near)
+    ) {
       const projected = frame.map(project);
       const left = Math.max(
         0,

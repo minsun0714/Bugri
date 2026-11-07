@@ -477,6 +477,7 @@ export function createDeskEngine(
         yaw,
         pitch,
         pixelZoom,
+        pixelZoom / userZoom,
         illustration.translate.y * pixelZoom,
       );
     }
