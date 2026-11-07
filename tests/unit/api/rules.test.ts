@@ -771,6 +771,7 @@ test("purchase errors do not mutate balance, key reuse conflicts and equipment c
     },
     positions: {},
     transforms: {},
+    order: [],
   });
 
   expect(

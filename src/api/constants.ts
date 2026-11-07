@@ -70,3 +70,13 @@ export const DeskObject = { BUGRI: "BUGRI" } as const;
 
 export type DeskObject =
   (typeof DeskObject)[keyof typeof DeskObject];
+
+export const LayerAction = {
+  FORWARD: "FORWARD",
+  BACKWARD: "BACKWARD",
+  FRONT: "FRONT",
+  BACK: "BACK",
+} as const;
+
+export type LayerAction =
+  (typeof LayerAction)[keyof typeof LayerAction];

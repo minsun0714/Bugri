@@ -22,7 +22,8 @@ function Profile({ publicId }: { publicId: string }) {
         </Button>
       </div>
     );
-  const { user, equipment, transforms } = profile.data;
+  const { user, equipment, transforms, order } =
+    profile.data;
   return (
     <>
       <p className="mb-3 text-xs font-bold tracking-[.2em] text-primary">
@@ -39,6 +40,7 @@ function Profile({ publicId }: { publicId: string }) {
           tool={DeskTool.CAMERA}
           equipment={equipment}
           transforms={transforms}
+          layerOrder={order}
           label={`${user.displayName}의 데스크`}
         />
       </div>

@@ -1,3 +1,13 @@
+import {
+  deskItems,
+  normalizeOrder,
+  changeOrder,
+} from "@/lib/desk-order";
+import {
+  SceneObject,
+  type SceneTarget,
+} from "@/components/shop/zdog/scene-state";
+import type { LayerAction } from "@/api/constants";
 import { artworkNames } from "@/components/shop/artwork";
 import {
   useRef,
@@ -11,6 +21,7 @@ import {
   type SpatialTarget,
 } from "@/lib/desk-spatial";
 import type {
+  DeskOrder,
   DeskTransform,
   DeskTransforms,
   Equipment,
@@ -28,10 +39,16 @@ export function useProductTrial({
   pending,
   equip,
   move,
+  order,
+  saveOrder,
 }: {
   product: Product;
   equipment: Equipment;
   transforms: DeskTransforms;
+  order: DeskOrder;
+  saveOrder: (
+    request: Request<"reorderDesk">,
+  ) => Promise<unknown>;
   pending: boolean;
   equip: (request: Request<"equip">) => Promise<unknown>;
   move: (
@@ -43,7 +60,11 @@ export function useProductTrial({
   const [space] = useState(() => ({
     equipment: { ...equipment },
     transforms: { ...transforms },
+    order: [...order],
   }));
+  const [localOrder, setLocalOrder] = useState<
+    SceneTarget[]
+  >(space.order);
   const [spaceLocal, setSpaceLocal] = useState(
     space.transforms,
   );
@@ -181,6 +202,7 @@ export function useProductTrial({
         : {},
     );
     setSpaceLocal(space.transforms);
+    setLocalOrder(space.order);
     setPreviewSelected(true);
     setApplied(null);
     setError("");
@@ -200,15 +222,28 @@ export function useProductTrial({
     ? (previewEditor.effective[movable] ??
       defaultTransforms[movable])
     : null;
-  const signature = JSON.stringify(current);
+  const available: SceneTarget[] = [
+    ...deskItems(space.equipment),
+    ...(movable ? [SceneObject.PREVIEW] : []),
+  ];
+  function reorder(
+    target: SceneTarget,
+    action: LayerAction,
+  ) {
+    setLocalOrder((previous) =>
+      changeOrder(previous, available, target, action),
+    );
+  }
+  const signature = JSON.stringify([current, localOrder]);
   const unchanged =
     equipment[category] === productId &&
     (applied === signature ||
       (applied === null &&
+        localOrder.length === 0 &&
         JSON.stringify(
           transforms[category as keyof DeskTransforms] ??
             null,
-        ) === signature));
+        ) === JSON.stringify(current)));
 
   async function apply() {
     if (lock.current || pending) return;
@@ -227,6 +262,28 @@ export function useProductTrial({
           productId,
           transform,
         });
+      if (movable && localOrder.length) {
+        const trialOrder = normalizeOrder(
+          localOrder,
+          available,
+        ).filter((target) => target !== movable);
+        const previewIndex = trialOrder.indexOf(
+          SceneObject.PREVIEW,
+        );
+        const actualOrder = normalizeOrder(
+          space.order,
+          deskItems({
+            ...space.equipment,
+            [movable]: productId,
+          }),
+        ).filter((target) => target !== movable);
+        actualOrder.splice(
+          Math.min(previewIndex, actualOrder.length),
+          0,
+          movable,
+        );
+        await saveOrder({ order: actualOrder });
+      }
       setApplied(signature);
       setMessage("장착과 배치를 저장했어요.");
     } catch (error) {
@@ -243,6 +300,8 @@ export function useProductTrial({
 
   return {
     editor,
+    layerOrder: localOrder,
+    reorder,
     keyDown,
     reset,
     revision,

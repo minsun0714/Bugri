@@ -47,6 +47,7 @@ function ShopContent({
     equip,
     move,
     moveBugri,
+    reorder,
   } = useShop(userId);
   const [category, setCategory] = useState<Category | null>(
     null,
@@ -175,6 +176,8 @@ function ShopContent({
             transforms={inventory.data?.transforms ?? {}}
             save={move.mutateAsync}
             saveBugri={moveBugri.mutateAsync}
+            order={inventory.data?.order ?? []}
+            saveOrder={reorder.mutateAsync}
             disabled={pending || loading || Boolean(error)}
           />
           <p className="pb-3 text-center text-xs text-muted">
@@ -410,6 +413,8 @@ function ShopContent({
             buy={() => buy(trial.productId)}
             equip={equip.mutateAsync}
             move={move.mutateAsync}
+            order={inventory.data?.order ?? []}
+            saveOrder={reorder.mutateAsync}
           />
           {message && (
             <p role="status" className="mt-3">

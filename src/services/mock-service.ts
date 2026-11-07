@@ -1,4 +1,9 @@
 import {
+  deskItems,
+  normalizeOrder,
+  validOrder,
+} from "@/lib/desk-order";
+import {
   migratePosition,
   validTransform,
 } from "@/lib/desk-spatial";
@@ -111,6 +116,7 @@ const allowed: Record<Operation, string[]> = {
   inventory: [],
   equip: ["category", "productId"],
   moveEquipment: ["category", "productId", "position"],
+  reorderDesk: ["order"],
   transformBugri: ["transform"],
   transformEquipment: [
     "category",
@@ -1040,6 +1046,7 @@ export function execute<K extends Operation>(
         equipment: s.equipment,
         positions: s.positions,
         transforms: s.transforms,
+        order: s.order,
       };
 
     case "equip": {
@@ -1086,6 +1093,12 @@ export function execute<K extends Operation>(
         s.equipment[category] = r.productId;
       }
 
+      if (s.order.length)
+        s.order = normalizeOrder(
+          s.order,
+          deskItems(s.equipment),
+        );
+
       return s.equipment;
     }
 
@@ -1125,6 +1138,17 @@ export function execute<K extends Operation>(
       );
 
       return s.positions;
+    }
+
+    case "reorderDesk": {
+      requireValue(
+        validOrder(r.order, deskItems(s.equipment)),
+        "현재 공간의 아이템 순서를 확인하세요.",
+      );
+
+      s.order = [...r.order];
+
+      return s.order;
     }
 
     case "transformBugri": {
@@ -1189,6 +1213,9 @@ export function execute<K extends Operation>(
         equipment: allStates.find(
           (state) => state.userId === user.userId,
         )!.equipment,
+        order: allStates.find(
+          (state) => state.userId === user.userId,
+        )!.order,
         transforms: allStates.find(
           (state) => state.userId === user.userId,
         )!.transforms,

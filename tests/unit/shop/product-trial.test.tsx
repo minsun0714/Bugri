@@ -40,6 +40,8 @@ test("keeps a failed placement draft after equipment succeeds and retries withou
     .mockResolvedValue({});
   render(
     <ProductTrial
+      order={[]}
+      saveOrder={jest.fn()}
       product={product}
       equipment={{}}
       transforms={{}}
@@ -100,6 +102,8 @@ test("does not send placement if equipping fails", async () => {
   const move = jest.fn();
   render(
     <ProductTrial
+      order={[]}
+      saveOrder={jest.fn()}
       product={product}
       equipment={{}}
       transforms={{}}
@@ -139,6 +143,8 @@ test("existing items are temporary and applying a same-category trial saves only
     },
     equipment: { KEYBOARD: "keyboard-1" },
     transforms: { KEYBOARD: original },
+    order: [],
+    saveOrder: jest.fn(),
     owned: true,
     pending: false,
     buy: jest.fn(),
@@ -202,6 +208,8 @@ test("reset restores existing and added placement without saving or selection bu
   const move = jest.fn();
   render(
     <ProductTrial
+      order={[]}
+      saveOrder={jest.fn()}
       product={product}
       equipment={{ KEYBOARD: "keyboard-2" }}
       transforms={{}}

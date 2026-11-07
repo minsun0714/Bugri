@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  deskItems,
+  normalizeOrder,
+} from "@/lib/desk-order";
 import { roomTheme } from "@/components/shop/room-theme";
 
 import { defaultTransforms } from "@/lib/desk-spatial";
@@ -25,6 +29,8 @@ import {
   DeskView,
   DeskTool,
   Category,
+  DeskObject,
+  type LayerAction,
 } from "@/api/constants";
 import { Button } from "@/components/ui";
 import { artworkNames } from "@/components/shop/artwork";
@@ -35,6 +41,10 @@ type Props = Omit<
   "onError" | "onCamera"
 > & {
   onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
+  onReorder?: (
+    target: import("@/components/shop/zdog/scene-state").SceneTarget,
+    action: LayerAction,
+  ) => void;
   label?: string;
   showViewPresets?: boolean;
 };
@@ -200,6 +210,16 @@ export function ThreeView(props: Props) {
           !props.readOnly &&
           !failed && (
             <SelectionOverlay
+              key={selection.category}
+              onReorder={
+                props.onReorder
+                  ? (action) =>
+                      props.onReorder?.(
+                        selection.category,
+                        action,
+                      )
+                  : undefined
+              }
               bounds={selection}
               disabled={props.disabled}
               onStart={(event, tool) => {
@@ -219,6 +239,22 @@ export function ThreeView(props: Props) {
         {props.onKeyDown &&
           " Home 키로 첫 상품을 선택하고 PageDown/PageUp 키로 상품을 바꿉니다. 방향키로 이동하고 Alt와 방향키로 회전합니다."}
       </p>
+      <output aria-label="겹침 순서" className="sr-only">
+        {normalizeOrder(props.layerOrder ?? [], [
+          ...deskItems(props.equipment),
+          ...(props.preview ? [SceneObject.PREVIEW] : []),
+        ])
+          .map((target) =>
+            target === SceneObject.PREVIEW
+              ? artworkNames[props.preview!.productId]
+              : target === DeskObject.BUGRI
+                ? "버그리"
+                : (artworkNames[
+                    props.equipment[target] ?? ""
+                  ] ?? "기본 데스크"),
+          )
+          .join(" · ")}
+      </output>
       <ul aria-label="3D 배치 정보" className="sr-only">
         {Object.entries(props.equipment).map(
           ([category, id]) => {

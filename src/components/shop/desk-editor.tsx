@@ -1,5 +1,8 @@
+import { useDeskOrder } from "@/components/shop/use-desk-order";
+import { SceneObject } from "@/components/shop/zdog/scene-state";
 import type {
   Equipment,
+  DeskOrder,
   DeskTransforms,
   Request,
 } from "@/api/contracts";
@@ -19,6 +22,8 @@ export function DeskEditor({
   transforms,
   save,
   saveBugri,
+  order,
+  saveOrder,
   disabled,
 }: {
   equipment: Equipment;
@@ -29,8 +34,18 @@ export function DeskEditor({
   saveBugri: (
     request: Request<"transformBugri">,
   ) => Promise<unknown>;
+  order: DeskOrder;
+  saveOrder: (
+    request: Request<"reorderDesk">,
+  ) => Promise<unknown>;
   disabled: boolean;
 }) {
+  const layers = useDeskOrder({
+    order,
+    equipment,
+    save: saveOrder,
+    disabled,
+  });
   const editor = useSpatialEditor({
     equipment: { ...equipment, BUGRI: "bugri" },
     transforms,
@@ -38,12 +53,17 @@ export function DeskEditor({
       category === DeskObject.BUGRI
         ? saveBugri({ transform })
         : save({ category, productId, transform }),
-    disabled,
+    disabled: disabled || layers.saving,
   });
   return (
     <div>
       <ThreeView
         equipment={equipment}
+        layerOrder={layers.effective}
+        onReorder={(target, action) => {
+          if (target !== SceneObject.PREVIEW)
+            void layers.reorder(target, action);
+        }}
         transforms={editor.effective}
         selected={editor.selected}
         tool={editor.tool}
@@ -182,6 +202,28 @@ export function DeskEditor({
       >
         {editor.saving ? "배치 저장 중…" : editor.message}
       </div>
+      {layers.error && (
+        <div
+          role="alert"
+          className="p-2 text-sm text-coral"
+        >
+          겹침 순서를 저장하지 못했어요. 변경한 순서는
+          유지됩니다.
+          <Button
+            size="sm"
+            onClick={() => void layers.retry()}
+          >
+            순서 다시 저장
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={layers.cancel}
+          >
+            순서 변경 취소
+          </Button>
+        </div>
+      )}
       {editor.error && (
         <p role="alert" className="p-2 text-sm text-coral">
           3D 배치를 저장하지 못했어요. 변경한 위치와 회전은

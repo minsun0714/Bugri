@@ -117,3 +117,7 @@ Inventory/PublicProfile에 `transforms`를 추가했다. 공개 프로필은 사
 ### 버그리 배치
 
 `transformBugri`는 `PUT /me/desk/bugri`에 `{ transform: { x, y, z, rotationY } }`를 보내고 `DeskTransforms`를 반환한다. 상품 구매/장착과 별개인 기본 캐릭터이므로 productId·category·대상 사용자 필드를 받지 않는다. 현재 더미 사용자의 `transforms.BUGRI`만 갱신하며 잔액·구매 내역·equipment는 바꾸지 않는다. 유한 좌표·Y>=0·0~359도 회전·0.001 위치 정밀도를 검증한다. 실패 시 기존 저장값은 유지한다. `inventory`와 `publicProfile`에 같은 배치를 반환한다. 저장되지 않은 기존 스냅샷은 기본 좌표 `{ x: -2.3, y: 0, z: 1.8, rotationY: 0 }`로 렌더한다. 신규 DB/인증은 도입하지 않는다. 장착해보기의 버그리 이동은 로컬 초안이며 API를 호출하지 않는다.
+
+### 겹침 순서
+
+`reorderDesk`는 `PUT /me/desk/order`에 `{ order: DeskItem[] }`를 보내고 저장된 배열을 반환한다. 배열은 뒤에서 앞으로 순서이며 `BUGRI`, 기본/장착 `DESK`, 현재 장착한 KEYBOARD/MONITOR/ACCESSORY를 각각 한 번 포함한다. BACKGROUND와 미리보기 식별자는 허용하지 않는다. 빈 배열은 기본 깊이 정렬이다. 중복·누락·미장착 대상은 400으로 거부하고 기존 순서를 유지한다. 현재 더미 사용자의 순서만 변경하며 좌표·높이·잔액은 바꾸지 않는다. 장착/해제 시 기존 상대 순서를 유지하며 새 대상을 추가하거나 해제 대상을 제거한다. `inventory`/`publicProfile`의 `order`로 복원하며 기존 v1 스냅샷에는 빈 배열을 보충한다. 미리보기 기존 상품의 변경은 저장하지 않고, 실제 장착 시 추가 상품의 순서만 저장된 기존 순서에 삽입한다.

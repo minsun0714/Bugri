@@ -22,6 +22,7 @@ export interface DeskSceneState extends Omit<
   "selected" | "onSelect" | "onPreview" | "onCommit"
 > {
   selected: SpatialTarget | null;
+  layerOrder?: readonly SceneTarget[];
   /** Frozen item coordinate frame while the trial desk moves independently. */
   itemFrame?: DeskTransform;
   previewSelected?: boolean;

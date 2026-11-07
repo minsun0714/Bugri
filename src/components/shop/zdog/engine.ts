@@ -1,3 +1,5 @@
+import { normalizeOrder } from "@/lib/desk-order";
+import { paintLayers } from "@/components/shop/zdog/layers";
 import { lightRoomObjects } from "@/components/shop/zdog/room";
 import * as Zdog from "zdog";
 import { bugri } from "@/components/shop/zdog/bugri";
@@ -403,7 +405,30 @@ export function createDeskEngine(
     if (rotationHandle && state.tool === DeskTool.HEIGHT)
       rotationHandle.scale.y =
         1 / Math.max(0.2, Math.cos(radians(pitch)));
-    illustration.updateRenderGraph();
+    const order = state.layerOrder?.length
+      ? normalizeOrder(state.layerOrder, [
+          ...anchors.keys(),
+          ...(state.preview ? [SceneObject.PREVIEW] : []),
+        ])
+      : [];
+    if (order.length) {
+      illustration.updateGraph();
+      const context = canvas.getContext("2d")!;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.save();
+      context.translate(
+        canvas.width / 2,
+        canvas.height / 2,
+      );
+      context.scale(
+        (zoom * canvas.width) / (width || 600),
+        (zoom * canvas.height) / (height || 420),
+      );
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      paintLayers(illustration, context, owners, order);
+      context.restore();
+    } else illustration.updateRenderGraph();
     if (state.directManipulation && !state.readOnly) {
       const bounds = picker.render(
         illustration,
@@ -414,6 +439,7 @@ export function createDeskEngine(
         state.selected && state.previewSelected
           ? SceneObject.PREVIEW
           : state.selected,
+        order,
       );
       state.onSelectionBounds?.(bounds);
     } else state.onSelectionBounds?.(null);

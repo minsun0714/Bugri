@@ -1,3 +1,4 @@
+import { paintLayers } from "@/components/shop/zdog/layers";
 import * as Zdog from "zdog";
 import { Category, DeskObject } from "@/api/constants";
 import {
@@ -56,10 +57,12 @@ export function createPicker() {
     height: number,
     zoom: number,
     selected: SceneTarget | null,
+    order: readonly SceneTarget[],
   ): SelectionBounds | null {
     canvas.width = Math.max(1, Math.round(width));
     canvas.height = Math.max(1, Math.round(height));
     const restore: (() => void)[] = [];
+    let selectionData: Uint8ClampedArray | null = null;
     function visit(
       node: Zdog.Anchor,
       owner: SceneTarget | null,
@@ -89,21 +92,52 @@ export function createPicker() {
       context!.scale(zoom, zoom);
       context!.lineCap = "round";
       context!.lineJoin = "round";
-      // Bypass Illustration's renderer bound to the visible canvas.
-      Zdog.Anchor.prototype.renderGraphCanvas.call(
-        illustration,
-        context!,
-      );
+      paintLayers(illustration, context!, owners, order);
+      data = context!.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      ).data;
+      let selectedVisible = false;
+      if (selected) {
+        for (
+          let offset = 0;
+          offset < data.length;
+          offset += 4
+        )
+          if (categoryAt(data, offset) === selected) {
+            selectedVisible = true;
+            break;
+          }
+        // A keyboard-selected hidden object still needs its ordering controls.
+        // Keep the original hit map so clicks never pass through covering items.
+        if (!selectedVisible) {
+          context!.save();
+          context!.setTransform(1, 0, 0, 1, 0, 0);
+          context!.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+          );
+          context!.restore();
+          paintLayers(illustration, context!, owners, [
+            selected,
+          ]);
+          selectionData = context!.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+          ).data;
+        }
+      }
     } finally {
       context!.restore();
       restore.reverse().forEach((reset) => reset());
     }
-    data = context!.getImageData(
-      0,
-      0,
-      canvas.width,
-      canvas.height,
-    ).data;
+    const boundsData = selectionData ?? data;
     if (!selected) return null;
     let left = canvas.width;
     let top = canvas.height;
@@ -111,10 +145,11 @@ export function createPicker() {
     let bottom = -1;
     for (
       let offset = 0;
-      offset < data.length;
+      offset < boundsData.length;
       offset += 4
     ) {
-      if (categoryAt(data, offset) !== selected) continue;
+      if (categoryAt(boundsData, offset) !== selected)
+        continue;
       const pixel = offset / 4;
       const x = pixel % canvas.width;
       const y = Math.floor(pixel / canvas.width);

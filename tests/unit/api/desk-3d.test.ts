@@ -282,3 +282,66 @@ test("rejects invalid Bugri transforms without losing its saved placement", asyn
       .BUGRI,
   ).toEqual(transform);
 });
+
+test("persists validated object order separately from transforms and isolates users", async () => {
+  const api = make();
+  const order = [Category.DESK, "BUGRI" as const];
+
+  await api.request("reorderDesk", { order });
+
+  expect(
+    (await make().request("inventory", {})).order,
+  ).toEqual(order);
+
+  expect(
+    (await make("friend").request("inventory", {})).order,
+  ).toEqual([]);
+
+  expect(
+    (
+      await make("friend").request("publicProfile", {
+        publicId: "bugri-learner",
+      })
+    ).order,
+  ).toEqual(order);
+
+  expect(
+    (await api.request("inventory", {})).transforms,
+  ).toEqual({});
+
+  for (const invalid of [
+    [Category.DESK],
+    [Category.DESK, Category.DESK],
+    [Category.KEYBOARD, "BUGRI" as const],
+  ])
+    await expect(
+      api.request("reorderDesk", { order: invalid }),
+    ).rejects.toMatchObject({ status: 400 });
+
+  expect(
+    (await api.request("inventory", {})).order,
+  ).toEqual(order);
+
+  await api.request("purchase", {
+    productId: "keyboard-1",
+    requestKey: "layer-keyboard",
+  });
+
+  await api.request("equip", {
+    category: Category.KEYBOARD,
+    productId: "keyboard-1",
+  });
+
+  expect(
+    (await api.request("inventory", {})).order,
+  ).toEqual([...order, Category.KEYBOARD]);
+
+  await api.request("equip", {
+    category: Category.KEYBOARD,
+    productId: null,
+  });
+
+  expect(
+    (await api.request("inventory", {})).order,
+  ).toEqual(order);
+});

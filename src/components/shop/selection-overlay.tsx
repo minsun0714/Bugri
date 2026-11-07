@@ -1,9 +1,12 @@
-import type {
-  CSSProperties,
-  PointerEvent,
-  KeyboardEvent,
+import {
+  useState,
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type PointerEvent,
+  type KeyboardEvent,
 } from "react";
-import { DeskTool } from "@/api/constants";
+import { DeskTool, LayerAction } from "@/api/constants";
 import { Button } from "@/components/ui";
 import type { SelectionBounds } from "@/components/shop/zdog/scene-state";
 
@@ -12,7 +15,9 @@ export function SelectionOverlay({
   disabled,
   onStart,
   onStep,
+  onReorder,
 }: {
+  onReorder?: (action: LayerAction) => void;
   bounds: SelectionBounds;
   disabled: boolean;
   onStart: (
@@ -21,6 +26,67 @@ export function SelectionOverlay({
   ) => void;
   onStep: (tool: DeskTool, direction: number) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    menu.current
+      ?.querySelector<HTMLButtonElement>("[role=menuitem]")
+      ?.focus();
+    const outside = (event: globalThis.PointerEvent) => {
+      if (
+        !menu.current?.contains(event.target as Node) &&
+        !trigger.current?.contains(event.target as Node)
+      )
+        setOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () =>
+      document.removeEventListener("pointerdown", outside);
+  }, [open]);
+  function closeMenu() {
+    setOpen(false);
+    trigger.current?.focus();
+  }
+  function menuKeyDown(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeMenu();
+      return;
+    }
+    if (event.key === "Tab") {
+      setOpen(false);
+      return;
+    }
+    if (
+      !["ArrowUp", "ArrowDown", "Home", "End"].includes(
+        event.key,
+      )
+    )
+      return;
+    event.preventDefault();
+    event.stopPropagation();
+    const items = Array.from(
+      menu.current?.querySelectorAll<HTMLButtonElement>(
+        "[role=menuitem]",
+      ) ?? [],
+    );
+    const index = items.findIndex(
+      (item) => item === document.activeElement,
+    );
+    const next =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? items.length - 1
+          : (index +
+              (event.key === "ArrowDown" ? 1 : -1) +
+              items.length) %
+            items.length;
+    items[next]?.focus();
+  }
   function keyDown(event: KeyboardEvent, tool: DeskTool) {
     if (
       ![
@@ -41,13 +107,29 @@ export function SelectionOverlay({
         : 1,
     );
   }
+  const controlX = Math.max(
+    4,
+    Math.min(
+      bounds.viewportWidth - 32,
+      bounds.x + bounds.width - 14,
+    ),
+  );
+  const controlY = Math.max(
+    4,
+    Math.min(bounds.viewportHeight - 32, bounds.y - 32),
+  );
+  const menuButtonX =
+    controlX >= 36 ? controlX - 32 : controlX + 32;
   const position = {
+    "--menu-button-x": `${menuButtonX}px`,
+    "--menu-x": `${Math.max(4, Math.min(bounds.viewportWidth - 180, menuButtonX - 148))}px`,
+    "--menu-y": `${Math.max(4, Math.min(bounds.viewportHeight - 168, controlY + 32))}px`,
     "--selection-x": `${bounds.x}px`,
     "--selection-y": `${bounds.y}px`,
     "--selection-width": `${bounds.width}px`,
     "--selection-height": `${bounds.height}px`,
-    "--controls-x": `${Math.max(4, Math.min(bounds.viewportWidth - 32, bounds.x + bounds.width - 14))}px`,
-    "--controls-y": `${Math.max(4, Math.min(bounds.viewportHeight - 32, bounds.y - 32))}px`,
+    "--controls-x": `${controlX}px`,
+    "--controls-y": `${controlY}px`,
   } as CSSProperties;
 
   return (
@@ -94,6 +176,63 @@ export function SelectionOverlay({
           </svg>
         </Button>
       </div>
+      {onReorder && (
+        <>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label="선택 아이템 메뉴"
+            aria-haspopup="menu"
+            aria-expanded={open}
+            disabled={disabled}
+            className="pointer-events-auto absolute left-[var(--menu-button-x)] top-[var(--controls-y)] !h-7 !min-h-0 !w-7 !rounded-full !p-0 !text-lg !shadow-none"
+            onClick={(event) => {
+              trigger.current = event.currentTarget;
+              setOpen((value) => !value);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                trigger.current = event.currentTarget;
+                setOpen(true);
+              }
+            }}
+          >
+            …
+          </Button>
+          {open && (
+            <div
+              ref={menu}
+              role="menu"
+              aria-label="겹침 순서 변경"
+              onKeyDown={menuKeyDown}
+              className="pointer-events-auto absolute left-[var(--menu-x)] top-[var(--menu-y)] z-50 w-44 rounded-xl border border-line bg-surface p-1 shadow-lg"
+            >
+              {[
+                [LayerAction.FORWARD, "앞으로 가져오기"],
+                [LayerAction.BACKWARD, "뒤로 보내기"],
+                [LayerAction.FRONT, "맨 앞으로 보내기"],
+                [LayerAction.BACK, "맨 뒤로 보내기"],
+              ].map(([action, label]) => (
+                <Button
+                  key={action}
+                  role="menuitem"
+                  size="sm"
+                  variant="ghost"
+                  className="w-full justify-start !rounded-lg"
+                  disabled={disabled}
+                  onClick={() => {
+                    closeMenu();
+                    onReorder(action as LayerAction);
+                  }}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

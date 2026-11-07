@@ -3,6 +3,7 @@ import type {
   Equipment,
   DeskPositions,
   DeskTransforms,
+  DeskOrder,
   GenerationBatch,
   LedgerEntry,
   LearningQuery,
@@ -51,4 +52,5 @@ export interface UserState {
   equipment: Equipment;
   positions: DeskPositions;
   transforms: DeskTransforms;
+  order: DeskOrder;
 }

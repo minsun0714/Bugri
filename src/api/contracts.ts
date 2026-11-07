@@ -177,6 +177,12 @@ export type DeskPositions = Partial<
   Record<Category, DeskPosition>
 >;
 
+export type DeskItem =
+  | Exclude<Category, typeof Category.BACKGROUND>
+  | DeskObject;
+
+export type DeskOrder = DeskItem[];
+
 export interface DeskTransform {
   x: number;
   y: number;
@@ -214,6 +220,7 @@ export interface Inventory {
   equipment: Equipment;
   positions: DeskPositions;
   transforms: DeskTransforms;
+  order: DeskOrder;
 }
 
 export interface PublicProfile {
@@ -221,6 +228,7 @@ export interface PublicProfile {
   equipment: Equipment;
   positions: DeskPositions;
   transforms: DeskTransforms;
+  order: DeskOrder;
 }
 
 export interface VersionRequest {
@@ -371,6 +379,10 @@ export interface ApiOperations {
       position: DeskPosition;
     };
     response: DeskPositions;
+  };
+  reorderDesk: {
+    request: { order: DeskOrder };
+    response: DeskOrder;
   };
   transformBugri: {
     request: { transform: DeskTransform };

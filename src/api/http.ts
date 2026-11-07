@@ -144,6 +144,10 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "PUT",
     path: "/me/desk/position",
   },
+  reorderDesk: {
+    method: "PUT",
+    path: "/me/desk/order",
+  },
   transformBugri: {
     method: "PUT",
     path: "/me/desk/bugri",

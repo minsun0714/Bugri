@@ -55,6 +55,12 @@ export function useShop(userId: string) {
     onError: refresh,
     retry: false,
   });
+  const reorder = useMutation({
+    mutationFn: async (request: Request<"reorderDesk">) =>
+      (await api()).request("reorderDesk", request),
+    onSuccess: refresh,
+    retry: false,
+  });
   const moveBugri = useMutation({
     mutationFn: async (
       request: Request<"transformBugri">,
@@ -72,6 +78,7 @@ export function useShop(userId: string) {
   });
   return {
     moveBugri,
+    reorder,
     move,
     products,
     wallet,

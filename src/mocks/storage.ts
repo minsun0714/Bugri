@@ -1,3 +1,4 @@
+import { deskItems, validOrder } from "@/lib/desk-order";
 import {
   migratePosition,
   validTransform,
@@ -66,6 +67,7 @@ export function initialState(userId: string): UserState {
     equipment: {},
     positions: {},
     transforms: {},
+    order: [],
     ledger: [
       {
         id: `seed-balance-${userId}`,
@@ -114,6 +116,13 @@ function validateState(
   object(value.equipment);
 
   const { selection, equipment } = value;
+
+  if (value.order === undefined) value.order = [];
+
+  requireValue(
+    validOrder(value.order, deskItems(equipment)),
+    "겹침 순서가 손상되었습니다.",
+  );
 
   // Additive v1 migration: existing purchases/equipment are never reset.
   if (value.positions === undefined) value.positions = {};

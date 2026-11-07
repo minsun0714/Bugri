@@ -164,6 +164,8 @@ test("successful height stays visible until refreshed props arrive, then accepts
   const save = jest.fn(async () => undefined);
   const view = render(
     <DeskEditor
+      order={[]}
+      saveOrder={jest.fn()}
       equipment={equipment}
       transforms={transforms}
       save={save}
@@ -192,6 +194,8 @@ test("successful height stays visible until refreshed props arrive, then accepts
   ).not.toBeInTheDocument();
   view.rerender(
     <DeskEditor
+      order={[]}
+      saveOrder={jest.fn()}
       equipment={equipment}
       transforms={{ KEYBOARD: { ...initial, y: 0.3 } }}
       save={save}

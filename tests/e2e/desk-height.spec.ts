@@ -96,15 +96,16 @@ test("height adjustment persists and the tabletop occludes a lowered keyboard", 
     .getByRole("button", { name: "위에서", exact: true })
     .click();
   await expect.poll(() => visibleKeyboard(canvas)).toBe(0);
-  await expect(page.getByLabel("선택 테두리")).toHaveCount(
-    0,
-  );
+  // Hidden selected objects retain bounds so their layer menu can bring them forward.
+  await expect(
+    page.getByLabel("선택 테두리"),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", {
       name: "선택 상품 회전",
       exact: true,
     }),
-  ).toHaveCount(0);
+  ).toBeVisible();
   await page
     .getByRole("button", {
       name: "책상 위에 놓기",

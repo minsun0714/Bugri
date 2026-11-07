@@ -1,5 +1,6 @@
 import type {
   DeskTransforms,
+  DeskOrder,
   Equipment,
   Product,
   Request,
@@ -12,6 +13,10 @@ export function ProductTrial(props: {
   product: Product;
   equipment: Equipment;
   transforms: DeskTransforms;
+  order: DeskOrder;
+  saveOrder: (
+    request: Request<"reorderDesk">,
+  ) => Promise<unknown>;
   owned: boolean;
   pending: boolean;
   buy: () => Promise<unknown>;
@@ -23,6 +28,8 @@ export function ProductTrial(props: {
   const { product, owned, buy } = props;
   const {
     editor,
+    layerOrder,
+    reorder,
     reset,
     revision,
     keyDown,
@@ -60,6 +67,8 @@ export function ProductTrial(props: {
         preview={preview}
         previewSelected={previewSelected}
         allowDefaultDesk
+        layerOrder={layerOrder}
+        onReorder={reorder}
         wheelZoom
         selected={editor.selected}
         tool={editor.tool}
