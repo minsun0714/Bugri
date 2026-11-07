@@ -21,7 +21,7 @@ for (const width of [1280, 390]) {
     await expect(page.getByLabel("내 잔액")).toContainText(
       "70",
     );
-    await page.goto("/my?user=learner");
+    await page.goto("/coin-history?user=learner");
     const region = page.getByRole("region", {
       name: "BugCoin 내역",
     });
@@ -50,7 +50,7 @@ for (const width of [1280, 390]) {
     await expect(region.getByRole("listitem")).toHaveCount(
       5,
     );
-    await page.goto("/my?user=friend");
+    await page.goto("/coin-history?user=friend");
     await expect(
       region.getByLabel("내 잔액"),
     ).toContainText("100");
@@ -65,7 +65,7 @@ for (const width of [1280, 390]) {
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/my?user=learner");
+    await page.goto("/coin-history?user=learner");
     await expect(page.getByLabel("내 잔액")).toBeVisible();
     await page.evaluate(() => {
       const key = "bugri:mock:v1:learner";
@@ -130,7 +130,7 @@ for (const width of [1280, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/my?user=learner");
+    await page.goto("/coin-history?user=learner");
     const region = page.getByRole("region", {
       name: "BugCoin 내역",
     });
@@ -169,7 +169,7 @@ for (const width of [1280, 390]) {
     await expect(page.getByLabel("내 잔액")).toContainText(
       "70",
     );
-    await page.goto("/my?user=learner");
+    await page.goto("/coin-history?user=learner");
     await region
       .getByRole("tab", { name: "전체", exact: true })
       .focus();
@@ -205,5 +205,52 @@ for (const width of [1280, 390]) {
           innerWidth,
       ),
     ).toBe(true);
+  });
+}
+
+for (const width of [1280, 390]) {
+  test(`coin route and legacy redirect at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/my?user=author");
+    await expect(page).toHaveURL(
+      /\/coin-history\?user=author$/,
+    );
+    await expect(
+      page.getByRole("heading", {
+        name: "코인 내역",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "풀이 기록",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", {
+        name: "학습 시간대 설정",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await page
+      .getByRole("button", {
+        name: "내 프로필",
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("link", { name: "코인 내역", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      /\/coin-history\?user=author$/,
+    );
+    await expect(
+      page.getByRole("navigation", {
+        name: "내 프로필 메뉴",
+      }),
+    ).toHaveCount(0);
   });
 }
