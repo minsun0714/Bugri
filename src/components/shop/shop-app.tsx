@@ -50,6 +50,12 @@ const sortOptions = [
   { value: ProductSort.NAME, label: "이름순" },
 ] as const;
 
+const userOptions = [
+  { value: "learner", label: "학습자" },
+  { value: "author", label: "타입 개발자" },
+  { value: "friend", label: "웹 개발자" },
+] as const;
+
 function ShopContent({
   userId,
   editing,
@@ -226,7 +232,7 @@ function ShopContent({
         </section>
       )}
       <section id="collection" aria-label="상품 컬렉션">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+        <div className="flex flex-col gap-4 border-b border-line pb-4 lg:flex-row lg:items-end lg:justify-between">
           <h2
             ref={collectionHeading}
             tabIndex={-1}
@@ -234,36 +240,11 @@ function ShopContent({
           >
             {editing ? "보유 상품" : "상품 목록"}
           </h2>
-          <span className="text-xs text-muted">
-            {visible.length}개의 오브젝트
-          </span>
-        </div>
-        <div className="my-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div
-            className="flex flex-wrap gap-2"
-            aria-label="상품 카테고리"
-          >
-            <Tag
-              selected={!category}
-              onClick={() => setCategory(null)}
-            >
-              전체
-            </Tag>
-            {Object.entries(categories).map(
-              ([value, label]) => (
-                <Tag
-                  key={value}
-                  selected={category === value}
-                  onClick={() =>
-                    setCategory(value as Category)
-                  }
-                >
-                  {label}
-                </Tag>
-              ),
-            )}
-          </div>
-          {!editing && (
+          {editing ? (
+            <span className="text-xs text-muted">
+              {visible.length}개의 오브젝트
+            </span>
+          ) : (
             <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_180px] lg:w-[460px]">
               <TextField
                 type="search"
@@ -283,6 +264,30 @@ function ShopContent({
                 }
               />
             </div>
+          )}
+        </div>
+        <div
+          className="my-5 flex flex-wrap gap-2"
+          aria-label="상품 카테고리"
+        >
+          <Tag
+            selected={!category}
+            onClick={() => setCategory(null)}
+          >
+            전체
+          </Tag>
+          {Object.entries(categories).map(
+            ([value, label]) => (
+              <Tag
+                key={value}
+                selected={category === value}
+                onClick={() =>
+                  setCategory(value as Category)
+                }
+              >
+                {label}
+              </Tag>
+            ),
           )}
         </div>
         <div
@@ -572,26 +577,20 @@ export function ShopApp({
       >
         <div className="mb-7 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
           <Link href="/">← Bugri 홈</Link>
-          <label className="flex items-center gap-2">
-            더미 사용자
-            <select
-              aria-label="더미 사용자"
-              value={userId}
-              onChange={(event) => {
-                setUserId(event.target.value);
-                window.history.replaceState(
-                  null,
-                  "",
-                  `${editing ? "/my" : "/shop"}?user=${event.target.value}`,
-                );
-              }}
-              className="rounded-xl border border-line bg-surface px-3 py-2 text-foreground"
-            >
-              <option value="learner">학습자</option>
-              <option value="author">타입 개발자</option>
-              <option value="friend">웹 개발자</option>
-            </select>
-          </label>
+          <Select
+            layout="inline"
+            label="더미 사용자"
+            options={userOptions}
+            value={userId}
+            onChange={(event) => {
+              setUserId(event.target.value);
+              window.history.replaceState(
+                null,
+                "",
+                `${editing ? "/my" : "/shop"}?user=${event.target.value}`,
+              );
+            }}
+          />
         </div>
         <ShopContent
           key={userId}

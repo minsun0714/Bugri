@@ -157,10 +157,12 @@ export function TextArea({
 export function Select({
   label,
   options,
+  layout = "stacked",
   id,
   ...props
 }: {
   label: string;
+  layout?: "stacked" | "inline";
   options: readonly {
     label: string;
     value: string;
@@ -170,7 +172,13 @@ export function Select({
   const fieldId = id ?? generated;
 
   return (
-    <div className={styles["ui-field"]}>
+    <div
+      className={
+        layout === "inline"
+          ? styles["ui-select-inline"]
+          : styles["ui-field"]
+      }
+    >
       <label htmlFor={fieldId}>{label}</label>
       <select {...props} id={fieldId}>
         {options.map((option) => (

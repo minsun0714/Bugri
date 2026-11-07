@@ -5,6 +5,7 @@ import {
 } from "@testing-library/react";
 import {
   Button,
+  Select,
   TextField,
   Tag,
   Switch,
@@ -64,4 +65,31 @@ test("tag and switch expose selection and call controlled callbacks", () => {
     screen.getByRole("switch", { name: "공개" }),
   );
   expect(toggle).toHaveBeenCalledWith(true);
+});
+
+test("select supports controlled values in an inline layout", () => {
+  const change = jest.fn();
+
+  render(
+    <Select
+      layout="inline"
+      label="사용자"
+      options={[
+        { value: "learner", label: "학습자" },
+        { value: "author", label: "작성자" },
+      ]}
+      value="learner"
+      onChange={change}
+    />,
+  );
+  const select = screen.getByLabelText("사용자");
+
+  expect(select).toHaveValue("learner");
+  expect(select.parentElement).toHaveClass(
+    "ui-select-inline",
+  );
+  fireEvent.change(select, {
+    target: { value: "author" },
+  });
+  expect(change).toHaveBeenCalledTimes(1);
 });

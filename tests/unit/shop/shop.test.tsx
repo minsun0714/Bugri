@@ -113,6 +113,19 @@ it("searches, sorts and resets the product catalog", async () => {
   });
 
   const search = screen.getByLabelText("상품 검색");
+  const catalogHeading = screen.getByRole("heading", {
+    name: "상품 목록",
+  });
+
+  expect(catalogHeading.parentElement).toContainElement(
+    search,
+  );
+  expect(catalogHeading.parentElement).toContainElement(
+    screen.getByLabelText("상품 정렬"),
+  );
+  expect(
+    screen.queryByText("10개의 오브젝트"),
+  ).not.toBeInTheDocument();
 
   fireEvent.change(search, {
     target: { value: "타이머" },
