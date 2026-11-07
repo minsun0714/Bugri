@@ -88,11 +88,13 @@ function DiscoveryResults({
         <Button
           size="sm"
           variant="secondary"
-          disabled={busy || subscribed}
-          aria-label={`${name} ${subscribed ? "구독 중" : "구독하기"}`}
-          onClick={() => subscribe.mutate(target)}
+          disabled={busy}
+          aria-label={`${name} ${subscribed ? "구독 해제" : "구독하기"}`}
+          onClick={() =>
+            subscribe.mutate({ target, subscribed })
+          }
         >
-          {subscribed ? "구독 중" : "구독하기"}
+          {subscribed ? "구독 해제" : "구독하기"}
         </Button>
         {subscribed && (
           <Button
@@ -245,39 +247,43 @@ function DiscoveryResults({
               바꿔 보세요.
             </p>
           )}
-          <nav
-            aria-label="검색 결과 페이지"
-            className="flex flex-wrap items-center justify-end gap-4"
-          >
-            <Button
-              variant="secondary"
-              disabled={request.page <= 1 || busy}
-              onClick={() =>
-                onSearch({
-                  ...request,
-                  page: request.page - 1,
-                })
-              }
+          {totalPages > 1 && (
+            <nav
+              aria-label="검색 결과 페이지"
+              className="flex flex-wrap items-center justify-end gap-4"
             >
-              이전 페이지
-            </Button>
-            <span>
-              {data.page} /{" "}
-              {Math.max(totalPages, data.page)}
-            </span>
-            <Button
-              variant="secondary"
-              disabled={request.page >= totalPages || busy}
-              onClick={() =>
-                onSearch({
-                  ...request,
-                  page: request.page + 1,
-                })
-              }
-            >
-              다음 페이지
-            </Button>
-          </nav>
+              <Button
+                variant="secondary"
+                disabled={request.page <= 1 || busy}
+                onClick={() =>
+                  onSearch({
+                    ...request,
+                    page: request.page - 1,
+                  })
+                }
+              >
+                이전 페이지
+              </Button>
+              <span>
+                {data.page} /{" "}
+                {Math.max(totalPages, data.page)}
+              </span>
+              <Button
+                variant="secondary"
+                disabled={
+                  request.page >= totalPages || busy
+                }
+                onClick={() =>
+                  onSearch({
+                    ...request,
+                    page: request.page + 1,
+                  })
+                }
+              >
+                다음 페이지
+              </Button>
+            </nav>
+          )}
         </section>
       )}
     </div>

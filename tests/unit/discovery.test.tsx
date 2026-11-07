@@ -109,9 +109,9 @@ it("finds developers and all registered tags without subscribing on search", asy
   await waitFor(() =>
     expect(
       screen.getByRole("button", {
-        name: "타입 개발자 구독 중",
+        name: "타입 개발자 구독 해제",
       }),
-    ).toBeDisabled(),
+    ).toBeEnabled(),
   );
   expect(learn).not.toHaveBeenCalled();
   fireEvent.click(
@@ -126,6 +126,16 @@ it("finds developers and all registered tags without subscribing on search", asy
       authorUserId: "author",
     }),
   ]);
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "타입 개발자 구독 해제",
+    }),
+  );
+  await waitFor(async () =>
+    expect(await api.request("subscriptions", {})).toEqual(
+      [],
+    ),
+  );
 });
 
 it("displays a character with distinct happy and encouraging expressions", () => {
@@ -169,6 +179,19 @@ it("renders only one requested page and navigates with bounded controls", async 
   ).toBeDisabled();
 });
 
+it("hides pagination when all results fit on one page", async () => {
+  render(<Harness onLearn={jest.fn()} />);
+
+  expect(
+    await screen.findByText("타입 개발자", { exact: true }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("navigation", {
+      name: "검색 결과 페이지",
+    }),
+  ).not.toBeInTheDocument();
+});
+
 it("adds multiple tags without navigating or losing the current search", async () => {
   const learn = jest.fn();
   render(<Harness onLearn={learn} />);
@@ -188,8 +211,10 @@ it("adds multiple tags without navigating or losing the current search", async (
   );
   await waitFor(() =>
     expect(
-      screen.getByRole("button", { name: "Java 구독 중" }),
-    ).toBeDisabled(),
+      screen.getByRole("button", {
+        name: "Java 구독 해제",
+      }),
+    ).toBeEnabled(),
   );
   fireEvent.click(
     screen.getByRole("button", {
@@ -199,9 +224,9 @@ it("adds multiple tags without navigating or losing the current search", async (
   await waitFor(() =>
     expect(
       screen.getByRole("button", {
-        name: "JavaScript 구독 중",
+        name: "JavaScript 구독 해제",
       }),
-    ).toBeDisabled(),
+    ).toBeEnabled(),
   );
   expect(screen.getByRole("searchbox")).toHaveValue("Java");
   expect(learn).not.toHaveBeenCalled();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Answer, Question } from "@/api/contracts";
 import {
   Button,
@@ -12,13 +12,22 @@ import {
 export function AnswerForm({
   question,
   onSubmit,
+  onDirtyChange,
   pending,
 }: {
   question: Question;
   onSubmit: (answer: Answer) => void;
+  onDirtyChange?: (dirty: boolean) => void;
   pending: boolean;
 }) {
   const [answer, setAnswer] = useState<Answer | null>(null);
+  const dirty = answer
+    ? answer.type === "MULTIPLE_CHOICE"
+      ? answer.choiceIds.length > 0
+      : answer.type === "SHORT_ANSWER"
+        ? answer.text.length > 0
+        : true
+    : false;
   const valid =
     answer &&
     (answer.type === "SHORT_ANSWER"
@@ -26,6 +35,10 @@ export function AnswerForm({
       : answer.type === "MULTIPLE_CHOICE"
         ? answer.choiceIds.length > 0
         : true);
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 
   return (
     <form

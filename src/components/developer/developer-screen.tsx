@@ -33,7 +33,6 @@ function PageControls({
   total,
   pageSize,
   busy,
-  hideSinglePage = false,
   onPage,
 }: {
   label: string;
@@ -41,12 +40,11 @@ function PageControls({
   total: number;
   pageSize: number;
   busy: boolean;
-  hideSinglePage?: boolean;
   onPage: (page: number) => void;
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
-  if (hideSinglePage && pages <= 1) return null;
+  if (pages <= 1) return null;
 
   return (
     <nav
@@ -174,16 +172,19 @@ function Catalog({
         <Button
           className="ml-auto"
           variant="secondary"
-          disabled={busy || data.subscribed}
+          disabled={busy}
           onClick={() =>
             subscribe.mutate({
-              type: "PERSON",
-              authorUserId: data.user.userId,
+              target: {
+                type: "PERSON",
+                authorUserId: data.user.userId,
+              },
+              subscribed: data.subscribed,
             })
           }
         >
           {data.subscribed
-            ? "개발자 구독 중"
+            ? "개발자 구독 해제"
             : "개발자 구독하기"}
         </Button>
       </header>
@@ -227,11 +228,6 @@ function Catalog({
               })
             }
           />
-          {hashtagId && (
-            <p className="mb-2 text-sm text-muted">
-              선택한 태그: {hashtagId}
-            </p>
-          )}
           {tags.isPending && <Skeleton />}
           {tags.error && (
             <div role="alert">
@@ -250,13 +246,13 @@ function Catalog({
                   ({ id, name, quizCount, subscribed }) => (
                     <li
                       key={id}
-                      className="flex w-fit max-w-full items-center gap-1 rounded-full border border-line bg-canvas/40 py-0.5 pl-3 pr-1"
+                      className={`flex w-fit max-w-full items-center gap-1 rounded-full border py-0.5 pl-3 pr-1 ${hashtagId === id ? "border-primary/30 bg-primary/10" : "border-line bg-canvas/40"}`}
                     >
                       <button
                         type="button"
                         disabled={busy}
                         aria-pressed={hashtagId === id}
-                        className="min-w-0 break-all text-left font-medium text-primary underline-offset-4 aria-pressed:underline"
+                        className="min-w-0 break-all text-left font-medium text-primary"
                         onClick={() =>
                           onChange({
                             ...filters,
@@ -274,13 +270,17 @@ function Catalog({
                         className={`!min-h-0 !rounded-full !border-0 !px-2 !py-1 !shadow-none ${subscribed ? "disabled:!opacity-100" : ""}`}
                         size="sm"
                         variant="ghost"
-                        disabled={busy || subscribed}
-                        aria-label={`${data.user.displayName}의 ${name} ${subscribed ? "구독 중" : "구독하기"}`}
+                        disabled={busy}
+                        aria-label={`${data.user.displayName}의 ${name} ${subscribed ? "구독 해제" : "구독하기"}`}
                         onClick={() =>
                           subscribe.mutate({
-                            type: "PERSON_HASHTAG",
-                            authorUserId: data.user.userId,
-                            hashtagId: id,
+                            target: {
+                              type: "PERSON_HASHTAG",
+                              authorUserId:
+                                data.user.userId,
+                              hashtagId: id,
+                            },
+                            subscribed,
                           })
                         }
                       >
@@ -316,7 +316,6 @@ function Catalog({
                 total={tags.data.total}
                 pageSize={10}
                 busy={busy}
-                hideSinglePage
                 onPage={(next) =>
                   onChange({ ...filters, tagPage: next })
                 }

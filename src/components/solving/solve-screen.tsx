@@ -96,8 +96,30 @@ function Session({
     location;
   const flow = useQuizSolving(location);
   const { attempt, submit, tags, busy, empty } = flow;
-  const [celebrate, setCelebrate] = useState(false);
+  const [answerDirty, setAnswerDirty] = useState(false);
   const data = attempt.data;
+
+  function changeLearningTag(value: string) {
+    if (
+      answerDirty &&
+      !window.confirm(
+        "작성 중인 답안이 사라집니다. 학습 태그를 바꿀까요?",
+      )
+    ) {
+      return;
+    }
+
+    setAnswerDirty(false);
+    router.push(
+      solvingUrl({
+        ...location,
+        attemptId: null,
+        hashtagId: value || null,
+        mode: LearningMode.UNSOLVED,
+      }),
+      { scroll: false },
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -118,17 +140,7 @@ function Session({
                 label: name,
               })) ?? []),
             ]}
-            onValueChange={(value) =>
-              router.push(
-                solvingUrl({
-                  ...location,
-                  attemptId: null,
-                  hashtagId: value || null,
-                  mode: LearningMode.UNSOLVED,
-                }),
-                { scroll: false },
-              )
-            }
+            onValueChange={changeLearningTag}
           />
         </div>
       )}
@@ -215,31 +227,17 @@ function Session({
                   <div className="mt-4 flex flex-wrap items-center gap-6 rounded-xl bg-primary/5 p-5">
                     <Bugri
                       mood={
-                        celebrate
-                          ? "complete"
-                          : data.correct
-                            ? "happy"
-                            : "encouraging"
+                        data.correct
+                          ? "happy"
+                          : "encouraging"
                       }
                     />
                     <p className="text-lg font-bold">
-                      {celebrate
-                        ? "끝까지 풀었어!"
-                        : data.correct
-                          ? "잘했어!"
-                          : "해설을 읽고 다시 도전해보자."}
+                      {data.correct
+                        ? "잘했어!"
+                        : "해설을 읽고 다시 도전해보자."}
                     </p>
                   </div>
-                  {!celebrate && (
-                    <div className="flex justify-end">
-                      <Button
-                        variant="ghost"
-                        onClick={() => setCelebrate(true)}
-                      >
-                        완료 확인
-                      </Button>
-                    </div>
-                  )}
                 </div>
               )}
               {data.quiz ? (
@@ -279,8 +277,12 @@ function Session({
                       <AnswerForm
                         question={data.quiz.question}
                         pending={submit.isPending}
+                        onDirtyChange={setAnswerDirty}
                         onSubmit={(answer) =>
-                          submit.mutate(answer)
+                          submit.mutate(answer, {
+                            onSuccess: () =>
+                              setAnswerDirty(false),
+                          })
                         }
                       />
                     )
@@ -297,7 +299,10 @@ function Session({
                 (data.completedAt || !data.quiz)) ? (
                 <div className="flex items-center justify-end gap-3">
                   {data.quiz && data.result && (
-                    <Button onClick={flow.restart}>
+                    <Button
+                      variant="secondary"
+                      onClick={flow.restart}
+                    >
                       다시 풀기
                     </Button>
                   )}

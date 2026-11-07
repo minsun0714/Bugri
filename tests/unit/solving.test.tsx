@@ -80,3 +80,29 @@ it("submits multiple selections and allows deselection", () => {
     choiceIds: ["b"],
   });
 });
+
+it("reports whether an unsubmitted answer would be lost", () => {
+  const onDirtyChange = jest.fn();
+
+  render(
+    <AnswerForm
+      question={{
+        type: "MULTIPLE_CHOICE",
+        prompt: "선택",
+        choices: [
+          { id: "a", text: "let" },
+          { id: "b", text: "const" },
+        ],
+      }}
+      onSubmit={jest.fn()}
+      onDirtyChange={onDirtyChange}
+      pending={false}
+    />,
+  );
+
+  expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+  fireEvent.click(screen.getByLabelText("let"));
+  expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+  fireEvent.click(screen.getByLabelText("let"));
+  expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+});

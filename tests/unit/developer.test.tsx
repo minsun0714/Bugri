@@ -39,9 +39,9 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
   await waitFor(() =>
     expect(
       screen.getByRole("button", {
-        name: "타입 개발자의 TypeScript 구독 중",
+        name: "타입 개발자의 TypeScript 구독 해제",
       }),
-    ).toBeDisabled(),
+    ).toBeEnabled(),
   );
   expect(push).not.toHaveBeenCalled();
   fireEvent.click(
@@ -50,9 +50,9 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
   await waitFor(() =>
     expect(
       screen.getByRole("button", {
-        name: "개발자 구독 중",
+        name: "개발자 구독 해제",
       }),
-    ).toBeDisabled(),
+    ).toBeEnabled(),
   );
   expect(push).not.toHaveBeenCalled();
   fireEvent.click(

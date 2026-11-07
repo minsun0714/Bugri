@@ -68,7 +68,22 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     )
     .not.toContain("underline");
   await typeScriptTag.click();
+  await expect(typeScriptTag).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(typeScriptTag.locator("..")).toHaveClass(
+    /bg-primary\/10/,
+  );
+  await expect(tags.getByText(/선택한 태그:/)).toHaveCount(
+    0,
+  );
   await expect(quizzes.getByRole("link")).toHaveCount(1);
+  await expect(
+    quizzes.getByRole("navigation", {
+      name: "퀴즈 페이지",
+    }),
+  ).toHaveCount(0);
   await expect(
     quizzes.getByRole("link", { name: "타입 선언" }),
   ).toBeVisible();
@@ -80,21 +95,21 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     })
     .click();
   const subscribedTypeScript = tags.getByRole("button", {
-    name: "타입 개발자의 TypeScript 구독 중",
+    name: "타입 개발자의 TypeScript 구독 해제",
     exact: true,
   });
 
-  await expect(subscribedTypeScript).toBeDisabled();
+  await expect(subscribedTypeScript).toBeEnabled();
   await expect(subscribedTypeScript).toHaveText("");
   await expect(page).toHaveURL(url);
   await page.reload();
   await expect(quizzes.getByRole("link")).toHaveCount(1);
   await expect(
     tags.getByRole("button", {
-      name: "타입 개발자의 TypeScript 구독 중",
+      name: "타입 개발자의 TypeScript 구독 해제",
       exact: true,
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await tags.getByRole("searchbox").fill("web");
   await tags.getByRole("searchbox").press("Enter");
   await expect(
@@ -117,10 +132,10 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     .click();
   await expect(
     tags.getByRole("button", {
-      name: "타입 개발자의 Web 구독 중",
+      name: "타입 개발자의 Web 구독 해제",
       exact: true,
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   const subscriptions = await page.evaluate(
     () =>
       JSON.parse(

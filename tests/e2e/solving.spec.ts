@@ -113,15 +113,24 @@ test("four formats, restoration, next, exhaustion and replay on home", async ({
       page.getByText("정답입니다", { exact: true }),
     ).toBeVisible();
     await expect(page).toHaveURL(url);
-    await page
-      .getByRole("button", {
+    await expect(
+      page.getByRole("button", {
         name: "완료 확인",
         exact: true,
-      })
-      .click();
+      }),
+    ).toHaveCount(0);
     await expect(
-      page.getByText(/끝까지 풀었어/),
-    ).toBeVisible();
+      page.getByRole("button", {
+        name: "다시 풀기",
+        exact: true,
+      }),
+    ).toHaveClass(/secondary/);
+    await expect(
+      page.getByRole("button", {
+        name: "다음 문제",
+        exact: true,
+      }),
+    ).toHaveClass(/primary/);
     await page
       .getByRole("button", {
         name: "다음 문제",
@@ -656,10 +665,10 @@ test("empty state opens discovery page with URL search and explicit subscription
     .click();
   await expect(
     page.getByRole("button", {
-      name: "Web 구독 중",
+      name: "Web 구독 해제",
       exact: true,
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(page).toHaveURL(/\/discover\?.*query=Web/);
   await expect(search).toHaveValue("Web");
   await search.fill("Java");
@@ -674,10 +683,10 @@ test("empty state opens discovery page with URL search and explicit subscription
     .click();
   await expect(
     page.getByRole("button", {
-      name: "Java 구독 중",
+      name: "Java 구독 해제",
       exact: true,
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await page
     .getByRole("button", {
       name: "JavaScript 구독하기",
@@ -686,10 +695,10 @@ test("empty state opens discovery page with URL search and explicit subscription
     .click();
   await expect(
     page.getByRole("button", {
-      name: "JavaScript 구독 중",
+      name: "JavaScript 구독 해제",
       exact: true,
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(page).toHaveURL(searchUrl);
   await expect(search).toHaveValue("Java");
   const saved = await page.evaluate(() =>
@@ -723,14 +732,12 @@ test("empty state opens discovery page with URL search and explicit subscription
   await expect(
     page.getByRole("img", { name: "응원하는 버그리" }),
   ).toBeVisible();
-  // The result replaces the submitted form beneath the mouse; leave its hover edge before clicking.
-  await page.mouse.move(0, 0);
-  await page
-    .getByRole("button", { name: "완료 확인", exact: true })
-    .click();
   await expect(
-    page.getByRole("img", { name: "축하하는 버그리" }),
-  ).toBeVisible();
+    page.getByRole("button", {
+      name: "완료 확인",
+      exact: true,
+    }),
+  ).toHaveCount(0);
   expect(
     await page.evaluate(
       () =>
@@ -778,4 +785,47 @@ test("learning tag dropdown supports mobile dismissal and keyboard selection", a
         document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+
+test("changing the learning tag warns before discarding an answer", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/");
+  await page.getByLabel("number", { exact: true }).check();
+  const tag = page.getByRole("combobox", {
+    name: "학습 태그",
+    exact: true,
+  });
+
+  page.once("dialog", async (dialog) => {
+    expect(dialog.message()).toContain(
+      "작성 중인 답안이 사라집니다",
+    );
+    await dialog.dismiss();
+  });
+  await tag.click();
+  await page
+    .getByRole("option", {
+      name: "JavaScript",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByLabel("number", { exact: true }),
+  ).toBeChecked();
+  await expect(tag).toHaveText("전체");
+
+  page.once("dialog", async (dialog) => {
+    await dialog.accept();
+  });
+  await tag.click();
+  await page
+    .getByRole("option", {
+      name: "JavaScript",
+      exact: true,
+    })
+    .click();
+  await expect(page).toHaveURL(/tag=javascript/);
+  await expect(tag).toHaveText("JavaScript");
 });
