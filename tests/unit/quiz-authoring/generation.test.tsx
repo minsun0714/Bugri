@@ -45,7 +45,7 @@ async function setup() {
   return { api, onSaved };
 }
 
-test("detail saves one then all without duplicates or automatic approval", async () => {
+test("detail saves each candidate individually without automatic approval", async () => {
   const { api, onSaved } = await setup();
   expect(
     await api.request("quizzes", { scope: QuizScope.OWN }),
@@ -62,14 +62,22 @@ test("detail saves one then all without duplicates or automatic approval", async
   await waitFor(() =>
     expect(onSaved).toHaveBeenCalledTimes(1),
   );
-  fireEvent.click(
-    screen.getByRole("button", {
+  expect(
+    screen.queryByRole("button", {
       name: "남은 후보 모두 저장",
     }),
-  );
-  await waitFor(() =>
-    expect(onSaved).toHaveBeenCalledTimes(2),
-  );
+  ).not.toBeInTheDocument();
+  for (let index = 2; index <= 4; index += 1) {
+    fireEvent.click(
+      screen.getByRole("tab", { name: `퀴즈 ${index}` }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "임시저장" }),
+    );
+    await waitFor(() =>
+      expect(onSaved).toHaveBeenCalledTimes(index),
+    );
+  }
   const quizzes = await api.request("quizzes", {
     scope: QuizScope.OWN,
   });
@@ -209,10 +217,10 @@ test("keeps separate unconfirmed edits across quiz tabs and only clears the appl
     ).not.toBeInTheDocument(),
   );
   expect(
-    screen.getByRole("button", {
+    screen.queryByRole("button", {
       name: "남은 후보 모두 저장",
     }),
-  ).toBeDisabled();
+  ).not.toBeInTheDocument();
   fireEvent.click(
     screen.getByRole("tab", { name: "퀴즈 1" }),
   );

@@ -34,7 +34,6 @@ export function Generation(props: GenerationProps) {
     selectedIndex,
     setSelectedIndex,
     prompt,
-    hasDrafts,
     changePrompt,
     error,
     busy,
@@ -102,32 +101,6 @@ export function Generation(props: GenerationProps) {
           className={styles.stack}
           aria-label="생성 후보"
         >
-          {!editing && (
-            <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-muted">
-              <span>
-                {
-                  batch.candidates.filter(
-                    ({ savedQuizId }) => savedQuizId,
-                  ).length
-                }{" "}
-                / {batch.candidates.length}개 저장됨
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={
-                  busy ||
-                  hasDrafts ||
-                  batch.candidates.every(
-                    ({ savedQuizId }) => !!savedQuizId,
-                  )
-                }
-                onClick={() => save()}
-              >
-                남은 후보 모두 저장
-              </Button>
-            </div>
-          )}
           <Tabs
             label="퀴즈 선택"
             items={tabLabels}

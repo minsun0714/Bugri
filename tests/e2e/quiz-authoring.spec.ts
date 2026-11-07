@@ -100,9 +100,23 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   await expect(
     candidates.getByText("저장 완료", { exact: true }),
   ).toBeVisible();
-  await candidates
-    .getByRole("button", { name: "남은 후보 모두 저장" })
-    .click();
+  for (let index = 2; index <= 4; index += 1) {
+    await candidates
+      .getByRole("tab", {
+        name: `퀴즈 ${index}`,
+        exact: true,
+      })
+      .click();
+    await candidates
+      .getByRole("button", {
+        name: "임시저장",
+        exact: true,
+      })
+      .click();
+    await expect(
+      candidates.getByText("저장 완료", { exact: true }),
+    ).toBeVisible();
+  }
   await expect(
     candidates.getByRole("tab", {
       name: /^퀴즈 [1-4] · 저장됨$/,
@@ -560,7 +574,7 @@ test("quiz tabs support keyboard selection and editing and saving are immediatel
     page.getByRole("button", {
       name: "남은 후보 모두 저장",
     }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await expect(
     page.getByRole("list", { name: "선택지" }),
   ).toBeVisible();
@@ -619,7 +633,7 @@ test("unconfirmed direct edits survive mode and quiz tab changes", async ({
     page.getByRole("button", {
       name: "남은 후보 모두 저장",
     }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await quizzes
     .getByRole("tab", { name: "퀴즈 1", exact: true })
     .click();
