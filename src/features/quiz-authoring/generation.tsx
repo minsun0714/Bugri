@@ -359,7 +359,6 @@ export function Generation(props: GenerationProps) {
                         <div className="flex items-center gap-1">
                           <Button
                             size="sm"
-                            variant="ghost"
                             disabled={
                               busy || !!prompt.trim()
                             }
@@ -367,7 +366,7 @@ export function Generation(props: GenerationProps) {
                               save(candidate.candidateId)
                             }
                           >
-                            개별 저장
+                            임시저장
                           </Button>
                           <Tooltip label="저장 도움말">
                             공개하지 않고 검토할 퀴즈로

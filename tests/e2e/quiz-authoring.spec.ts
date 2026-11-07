@@ -95,7 +95,7 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     management.getByText("저장한 퀴즈가 없습니다"),
   ).toBeVisible();
   await candidates
-    .getByRole("button", { name: "개별 저장", exact: true })
+    .getByRole("button", { name: "임시저장", exact: true })
     .click();
   await expect(
     candidates.getByText("저장 완료", { exact: true }),
@@ -149,7 +149,7 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     })
     .click();
   await page
-    .getByRole("button", { name: "개별 저장", exact: true })
+    .getByRole("button", { name: "임시저장", exact: true })
     .first()
     .click();
   await page
@@ -552,7 +552,7 @@ test("quiz tabs support keyboard selection and editing and saving are immediatel
 
   await expect(
     page.getByRole("button", {
-      name: "개별 저장",
+      name: "임시저장",
       exact: true,
     }),
   ).toBeVisible();
