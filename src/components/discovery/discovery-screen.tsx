@@ -12,9 +12,12 @@ import {
 import { DiscoveryKind } from "@/api/constants";
 import type { DiscoveryQuery } from "@/api/contracts";
 import { DiscoverySearch } from "@/components/discovery/search-results";
+import { useDemoSession } from "@/components/navigation/demo-session";
+import { FeatureSectionShell } from "@/components/navigation/feature-section-shell";
 
 export function DiscoveryScreen() {
   const params = useSearchParams();
+  const { signedIn } = useDemoSession();
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
   const userId = params.get("user") ?? "learner";
@@ -39,6 +42,12 @@ export function DiscoveryScreen() {
     <QueryClientProvider client={client}>
       <div className="space-y-6">
         <h1 className="text-3xl">개발자·태그 탐색</h1>
+        {signedIn && (
+          <FeatureSectionShell
+            id="subscriptions"
+            title="내 구독"
+          />
+        )}
         <DiscoverySearch
           key={userId}
           userId={userId}
