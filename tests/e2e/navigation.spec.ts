@@ -240,7 +240,7 @@ for (const width of [1280, 390]) {
     );
     await expect(
       page.getByRole("heading", {
-        name: "타입 개발자",
+        name: "@bugri-author",
       }),
     ).toBeVisible();
     await expect(

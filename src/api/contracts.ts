@@ -1,3 +1,4 @@
+import type { ProfileLinkKind } from "@/api/constants";
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 import {
   Category,
@@ -239,6 +240,17 @@ export interface Inventory {
   positions: DeskPositions;
   transforms: DeskTransforms;
   order: DeskOrder;
+}
+
+export interface ProfileLink {
+  kind: ProfileLinkKind;
+  url: string;
+  label?: string;
+}
+
+export interface ProfileAbout {
+  biography: string;
+  links: ProfileLink[];
 }
 
 export interface PublicProfile {
@@ -529,6 +541,14 @@ export interface ApiOperations {
       transform: DeskTransform;
     };
     response: DeskTransforms;
+  };
+  profileAbout: {
+    request: { publicId: string };
+    response: ProfileAbout;
+  };
+  updateProfileAbout: {
+    request: ProfileAbout;
+    response: ProfileAbout;
   };
   publicProfile: {
     request: { publicId: string };
