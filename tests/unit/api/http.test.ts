@@ -1,4 +1,8 @@
-import { QuizStatus, LearningMode } from "@/api/constants";
+import {
+  DiscoveryKind,
+  QuizStatus,
+  LearningMode,
+} from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import { createHttpTransport, endpoints } from "@/api/http";
 import type { Request } from "@/api/contracts";
@@ -141,7 +145,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(37);
+  expect(Object.keys(endpoints)).toHaveLength(40);
 });
 
 // Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.
@@ -159,6 +163,48 @@ const invalidAnswer: Request<"answer"> = {
 
 void invalidSubscription;
 void invalidAnswer;
+
+test("discovery search sends server-side search and page parameters", async () => {
+  const fetcher = jest.fn().mockResolvedValue(
+    response({
+      data: {
+        items: [],
+        page: 2,
+        pageSize: 20,
+        total: 40,
+      },
+    }),
+  );
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await client.request("searchDiscovery", {
+    kind: DiscoveryKind.USER,
+    query: "개발자",
+    page: 2,
+    pageSize: 20,
+  });
+
+  const {
+    mock: { calls },
+  } = fetcher;
+
+  const [[url, options]] = calls;
+  const parsed = new URL(url, "https://example.test");
+
+  expect(parsed.pathname).toBe("/api/v1/discover/search");
+
+  expect(Object.fromEntries(parsed.searchParams)).toEqual({
+    kind: "USER",
+    query: "개발자",
+    page: "2",
+    pageSize: "20",
+  });
+
+  expect(options.body).toBeUndefined();
+});
 
 test("candidate refinement uses its batch path and explicit prompt body", async () => {
   const fetcher = jest.fn().mockResolvedValue(

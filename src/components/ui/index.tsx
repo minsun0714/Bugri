@@ -241,14 +241,23 @@ export function Switch({
 
 export function Checkbox({
   label,
+  variant = "inline",
+  checked,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & {
   label: string;
+  variant?: "inline" | "choice";
 }) {
   return (
-    <label className={styles["ui-check"]}>
-      <input {...props} type="checkbox" />
-      {label}
+    <label
+      className={
+        variant === "choice"
+          ? `${styles["ui-choice"]} ${checked ? "selected" : ""}`
+          : styles["ui-check"]
+      }
+    >
+      <input {...props} checked={checked} type="checkbox" />
+      <span className="min-w-0 break-words">{label}</span>
     </label>
   );
 }
@@ -386,6 +395,14 @@ export function Tabs({
 }) {
   const id = useId();
   const index = items.indexOf(value);
+  const pendingTabFocus = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (pendingTabFocus.current !== value) return;
+
+    document.getElementById(`${id}-${index}`)?.focus();
+    pendingTabFocus.current = null;
+  }, [id, index, value]);
 
   return (
     <div className={`min-w-0 ${className}`}>
@@ -403,9 +420,13 @@ export function Tabs({
             id={`${id}-${i}`}
             aria-controls={`${id}-panel`}
             aria-selected={item === value}
+            aria-disabled={disabled}
             tabIndex={item === value ? 0 : -1}
-            onClick={() => onChange(item)}
+            onClick={() => {
+              if (!disabled) onChange(item);
+            }}
             onKeyDown={(event) => {
+              if (disabled) return;
               let next = i;
 
               if (event.key === "ArrowRight")
@@ -418,6 +439,7 @@ export function Tabs({
                 next = items.length - 1;
               else return;
               event.preventDefault();
+              pendingTabFocus.current = items[next];
               onChange(items[next]);
               document
                 .getElementById(`${id}-${next}`)
@@ -446,6 +468,7 @@ export function Modal({
   onClose,
   title,
   children,
+  initialFocusSelector,
   layout = "default",
 }: {
   layout?: "default" | "conversation";
@@ -453,6 +476,7 @@ export function Modal({
   onClose: () => void;
   title: string;
   children: ReactNode;
+  initialFocusSelector?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -460,11 +484,16 @@ export function Modal({
   useEffect(() => {
     const { current: dialog } = ref;
 
-    if (open) dialog?.showModal();
-    else dialog?.close();
+    if (open) {
+      dialog?.showModal();
+      if (initialFocusSelector)
+        dialog
+          ?.querySelector<HTMLElement>(initialFocusSelector)
+          ?.focus();
+    } else dialog?.close();
 
     return () => dialog?.close();
-  }, [open]);
+  }, [open, initialFocusSelector]);
 
   return (
     <dialog

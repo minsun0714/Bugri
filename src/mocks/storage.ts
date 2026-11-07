@@ -34,6 +34,7 @@ export function clone<T>(value: T): T {
 export function initialState(userId: string): UserState {
   return clone({
     schemaVersion: 1,
+    learningDemoVersion: 1,
     userId,
     quizzes: quizzes
       .filter((q) => q.ownerUserId === userId)
@@ -42,7 +43,12 @@ export function initialState(userId: string): UserState {
         deletedAt: null,
       })),
     batches: [],
-    subscriptions: [...subscriptions],
+    subscriptions: (subscriptions[userId] ?? []).map(
+      (target, index) => ({
+        ...target,
+        subscriptionId: `seed-subscription-${userId}-${index + 1}`,
+      }),
+    ),
     attempts: [...attempts],
     days: [...learningDays],
     timeZone: null,
@@ -75,6 +81,12 @@ function validateState(
   requireValue(
     value.schemaVersion === 1 && value.userId === userId,
     "저장 버전/사용자가 다릅니다.",
+  );
+
+  requireValue(
+    value.learningDemoVersion === undefined ||
+      value.learningDemoVersion === 1,
+    "학습 예시 데이터 버전이 호환되지 않습니다.",
   );
 
   for (const key of [

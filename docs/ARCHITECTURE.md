@@ -94,24 +94,25 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 
 REST 교체 시 기본 경로는 `/api/v1`이며 요청·응답 타입을 1단계부터 정의한다. 아래 경로는 계약이며 1단계 브라우저 어댑터에 실제 HTTP 호출을 강제하지 않는다. 성공은 `{ data: ... }`, 오류는 `{ error: { code, message, fieldErrors?, requestId } }` 형식을 쓴다. `sourceContent`는 언어 지정 코드 블록을 포함해 유니코드 코드 포인트 최대 10,000자이며 공백뿐이면 거부한다. UI는 `현재 / 10,000자`를 즉시 표시한다. Mock·실제 API 모두 출력 퀴즈 1~5개와 퀴즈당 태그 3개 상한을 검증한다.
 
-| 경로                                                                                                            | 1단계 Mock API 응답                                                              | 2단계 REST API                                    |
-| --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
-| POST /quizzes/generate, GET /generation-batches/{id}                                                            | 더미 퀴즈 후보 1~5개·저장 여부                                                   | 실제 생성 결과·영속 후보 조회                     |
-| POST /generation-batches/{id}/save                                                                              | SINGLE(candidateId) 또는 ALL; 독립 PENDING 퀴즈 반환                             | 중복 저장 방지·영속화                             |
-| GET /quizzes, GET /quizzes/{id}/review, PUT /quizzes/{id}/pending                                               | 더미 사용자별 목록·작성자 검토                                                   | JWT·내부 User ID 소유권 검사                      |
-| POST /quizzes/{id}/regenerate, POST /quizzes/{id}/approve, PATCH /quizzes/{id}/visibility, DELETE /quizzes/{id} | 수정본·승인·공개 범위·삭제 UX                                                    | 버전 검사·영속화·실제 권한 검사                   |
-| GET/POST/DELETE /subscriptions                                                                                  | 3종 구독 Mock 상태                                                               | 인증된 사용자 구독 영속화                         |
-| GET /discover/users, GET /discover/hashtags                                                                     | 더미 개발자·태그 탐색                                                            | 실제 공개 데이터 탐색                             |
-| GET /learning/tags                                                                                              | 구독 범위의 더미 기술 태그 선택지                                                | 실제 구독 조건에 맞는 PUBLIC 퀴즈의 태그          |
-| GET /learning/quiz                                                                                              | hashtagId?(전체면 생략), mode(UNSOLVED/REPLAY); 현재 문제 또는 빈 상태·소진 여부 | 구독·태그·완료 기록으로 후보 조회                 |
-| POST /learning/next                                                                                             | 현재 선택 hashtagId?, mode; 다음 문제에도 같은 태그 유지                         | 새 후보 조회·접근 검사                            |
-| GET /learning/day                                                                                               | 사용자 시간대·학습일·당일 완료 조건                                              | 서버 UTC 완료 기록과 사용자 시간대 기준 조회      |
-| GET/PATCH /me/learning-timezone                                                                                 | IANA 시간대 조회·변경·사용자별 localStorage 저장                                 | 인증된 사용자 설정 검증·저장; 과거 기록/보상 유지 |
-| POST /quizzes/{id}/attempts, GET /attempts/{id}, POST /attempts/{id}/answer                                     | 풀이·채점 UX, 미제출 정답 비노출                                                 | JWT·버전별 채점·풀이 영속화                       |
-| GET /shop/products, GET /me/bugcoin, POST /shop/purchases                                                       | 상품·더미 잔액·구매 결과와 부족/중복 오류                                        | 실제 BugCoin 잔액·원장·구매 트랜잭션              |
-| GET /me/inventory, PUT /me/desk/equipment, GET /users/{publicId}                                                | 보관함·장착·타인 데스크 UX                                                       | 소유권 검사·영속화                                |
-| POST /admin/shop/products                                                                                       | 1단계 필수 아님; 필요하면 더미 관리자 화면만                                     | 내부 User 관리자 권한으로 직접 상품 등록          |
-| GET /auth/google/start, GET /auth/google/callback, GET /auth/me, POST /auth/logout                              | 실제 인증 경로 없음; 더미 사용자 상태만 제공                                     | Google OAuth2·JWT 발급/검증·로그아웃              |
+| 경로                                                                                                            | 1단계 Mock API 응답                                                                            | 2단계 REST API                                    |
+| --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| POST /quizzes/generate, GET /generation-batches/{id}                                                            | 더미 퀴즈 후보 1~5개·저장 여부                                                                 | 실제 생성 결과·영속 후보 조회                     |
+| POST /generation-batches/{id}/save                                                                              | SINGLE(candidateId) 또는 ALL; 독립 PENDING 퀴즈 반환                                           | 중복 저장 방지·영속화                             |
+| GET /quizzes, GET /quizzes/{id}/review, PUT /quizzes/{id}/pending                                               | 더미 사용자별 목록·작성자 검토                                                                 | JWT·내부 User ID 소유권 검사                      |
+| POST /quizzes/{id}/regenerate, POST /quizzes/{id}/approve, PATCH /quizzes/{id}/visibility, DELETE /quizzes/{id} | 수정본·승인·공개 범위·삭제 UX                                                                  | 버전 검사·영속화·실제 권한 검사                   |
+| GET/POST/DELETE /subscriptions                                                                                  | 3종 구독 Mock 상태                                                                             | 인증된 사용자 구독 영속화                         |
+| GET /discover/users, GET /discover/hashtags                                                                     | 더미 개발자·태그 탐색                                                                          | 실제 공개 데이터 탐색                             |
+| GET /discover/search                                                                                            | kind·query·page·pageSize로 검색·페이지 조회, 결과별 구독 여부와 total 반환. 화면은 20개씩 표시 | 서버 검색·정렬·페이지 조회                        |
+| GET /learning/tags                                                                                              | 구독 범위의 더미 기술 태그 선택지                                                              | 실제 구독 조건에 맞는 PUBLIC 퀴즈의 태그          |
+| GET /learning/quiz                                                                                              | hashtagId?(전체면 생략), mode(UNSOLVED/REPLAY); 현재 문제 또는 빈 상태·소진 여부               | 구독·태그·완료 기록으로 후보 조회                 |
+| POST /learning/next                                                                                             | 현재 선택 hashtagId?, mode; 다음 문제에도 같은 태그 유지                                       | 새 후보 조회·접근 검사                            |
+| GET /learning/day                                                                                               | 사용자 시간대·학습일·당일 완료 조건                                                            | 서버 UTC 완료 기록과 사용자 시간대 기준 조회      |
+| GET/PATCH /me/learning-timezone                                                                                 | IANA 시간대 조회·변경·사용자별 localStorage 저장                                               | 인증된 사용자 설정 검증·저장; 과거 기록/보상 유지 |
+| POST /quizzes/{id}/attempts, GET /attempts/{id}, POST /attempts/{id}/answer                                     | 풀이·채점 UX, 미제출 정답 비노출                                                               | JWT·버전별 채점·풀이 영속화                       |
+| GET /shop/products, GET /me/bugcoin, POST /shop/purchases                                                       | 상품·더미 잔액·구매 결과와 부족/중복 오류                                                      | 실제 BugCoin 잔액·원장·구매 트랜잭션              |
+| GET /me/inventory, PUT /me/desk/equipment, GET /users/{publicId}                                                | 보관함·장착·타인 데스크 UX                                                                     | 소유권 검사·영속화                                |
+| POST /admin/shop/products                                                                                       | 1단계 필수 아님; 필요하면 더미 관리자 화면만                                                   | 내부 User 관리자 권한으로 직접 상품 등록          |
+| GET /auth/google/start, GET /auth/google/callback, GET /auth/me, POST /auth/logout                              | 실제 인증 경로 없음; 더미 사용자 상태만 제공                                                   | Google OAuth2·JWT 발급/검증·로그아웃              |
 
 `ReviewQuiz`와 생성 후보는 정답·해설을 포함하는 작성자용 DTO다. `AttemptView`·`LearningQuizView`·공개 목록에는 미제출 정답·해설·원본 학습 내용을 넣지 않는다. 제출 후 결과에만 정답·해설을 제공한다. PUBLIC은 다른 사용자가 풀 수 있고 PRIVATE는 작성자만 푸는 흐름을 1단계에서 모사하며, 실제 접근 통제는 2단계에서 보장한다. 홈 구독 피드 API는 두 단계의 현재 범위에 없다.
 
@@ -136,6 +137,7 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 - 확정: 1단계 Next.js·TypeScript·Mock API·더미 사용자·Jest·Playwright·Vercel, DB·실제 인증 제외. 2단계 Spring Boot·Java 21·MySQL 8.4·Spring Data JPA·Google OAuth2·JWT·실제 REST API.
 - 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부·시간대 변경 전후 일일 보상 중복 판정 세부 기준, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, BugCoin 지급량, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
 
+- 개발자 공개 목록: `/developers/[publicId]/quizzes` → TanStack Query → typed API `developerQuizzes/developerTags` → 공개 목록 서비스. 브라우저 Mock은 사용자별 구독과 전체 작성자의 저장된 공개 상태를 읽으며, HTTP 전환은 GET `/developers/{publicId}/quizzes` 및 `/developers/{publicId}/tags` 계약을 사용한다. 작성자 CRUD·전체 프로필/데스크와 독립된 공개 퀴즈·태그 조회 화면이다.
 
 ## 비로그인 홈 체험 — 문서 합의, 구현 별도
 

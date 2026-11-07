@@ -144,27 +144,6 @@ test("browser generation → review → subscription → solve/replay → purcha
         },
       });
 
-      const second = await learner.request(
-        "learningNext",
-        {},
-      );
-
-      const nextAttempt = await learner.request(
-        "startAttempt",
-        {
-          quizId: second.quiz!.quizId,
-          context: "LEARNING",
-        },
-      );
-
-      await learner.request("answer", {
-        attemptId: nextAttempt.attemptId,
-        answer: {
-          type: "SINGLE_CHOICE",
-          choiceId: "b",
-        },
-      });
-
       const exhausted = await learner.request(
         "learningNext",
         {},
@@ -208,7 +187,8 @@ test("browser generation → review → subscription → solve/replay → purcha
 
       return {
         exhausted: exhausted.state,
-        tag: second.hashtagId,
+        exhaustedQuiz: exhausted.quiz,
+        tag: exhausted.hashtagId,
         selected,
         firstId: first.attemptId,
         replayId: replay.attemptId,
@@ -219,6 +199,7 @@ test("browser generation → review → subscription → solve/replay → purcha
   );
 
   expect(outcome.exhausted).toBe(LearningState.EXHAUSTED);
+  expect(outcome.exhaustedQuiz).toBeNull();
   expect(outcome.tag).toBe("typescript");
   expect(outcome.replayId).not.toBe(outcome.firstId);
   expect(outcome.day.completedDates).toHaveLength(1);

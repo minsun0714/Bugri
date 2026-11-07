@@ -35,6 +35,14 @@ export const QuizScope = {
 export type QuizScope =
   (typeof QuizScope)[keyof typeof QuizScope];
 
+export const DiscoveryKind = {
+  USER: "USER",
+  HASHTAG: "HASHTAG",
+} as const;
+
+export type DiscoveryKind =
+  (typeof DiscoveryKind)[keyof typeof DiscoveryKind];
+
 export const ConversationRole = {
   USER: "USER",
   ASSISTANT: "ASSISTANT",

@@ -18,6 +18,11 @@ import type {
   Subscription,
   Visibility,
 } from "@/api/contracts";
+import {
+  developerQuizzes,
+  developerTags,
+} from "@/services/developer-quizzes";
+import { searchDiscovery } from "@/services/discovery";
 import { hashtags, users } from "@/mocks/users";
 import { shopItems } from "@/mocks/shop-items";
 import type {
@@ -29,6 +34,7 @@ import {
   candidates,
   localDate,
   publicView,
+  questionKey,
   streak,
 } from "@/services/learning";
 import {
@@ -99,6 +105,14 @@ const allowed: Record<Operation, string[]> = {
   subscriptions: [],
   subscribe: ["type", "authorUserId", "hashtagId"],
   unsubscribe: ["subscriptionId"],
+  developerQuizzes: [
+    "publicId",
+    "page",
+    "pageSize",
+    "hashtagId",
+  ],
+  developerTags: ["publicId", "page", "pageSize", "query"],
+  searchDiscovery: ["kind", "query", "page", "pageSize"],
   discoverUsers: [],
   discoverHashtags: [],
   learningTags: ["authorUserId"],
@@ -951,18 +965,39 @@ export function execute<K extends Operation>(
         deleted: true,
       };
 
+    case "developerQuizzes":
+      return developerQuizzes(
+        {
+          users,
+          hashtags,
+          quizzes: allQuizzes,
+          subscriptions: s.subscriptions,
+        },
+        input as ApiOperations["developerQuizzes"]["request"],
+      );
+
+    case "developerTags":
+      return developerTags(
+        {
+          users,
+          hashtags,
+          quizzes: allQuizzes,
+          subscriptions: s.subscriptions,
+        },
+        input as ApiOperations["developerTags"]["request"],
+      );
+
+    case "searchDiscovery":
+      return searchDiscovery(
+        { users, hashtags, subscriptions: s.subscriptions },
+        input as ApiOperations["searchDiscovery"]["request"],
+      );
+
     case "discoverUsers":
       return users;
 
     case "discoverHashtags":
-      return hashtags.filter((t) =>
-        allQuizzes.some(
-          (q) =>
-            q.status === QuizStatus.PUBLIC &&
-            !q.deletedAt &&
-            q.active?.hashtagIds.includes(t.id),
-        ),
-      );
+      return [...hashtags];
 
     case "learningTags": {
       if (r.authorUserId !== undefined)
@@ -1016,16 +1051,27 @@ export function execute<K extends Operation>(
         hashtagId,
       );
 
+      const completedAttempts = s.attempts.filter(
+        ({ completedAt }) => completedAt,
+      );
+
       const completed = new Set(
-        s.attempts
-          .filter((a) => a.completedAt)
-          .map((a) => a.quizId),
+        completedAttempts.map(({ quizId }) => quizId),
+      );
+
+      const completedQuestions = new Set(
+        completedAttempts.map(({ revision }) =>
+          questionKey(revision.question),
+        ),
       );
 
       const pool = qs.filter((q) =>
         mode === LearningMode.REPLAY
           ? completed.has(q.quizId)
-          : !completed.has(q.quizId),
+          : !completed.has(q.quizId) &&
+            !completedQuestions.has(
+              questionKey(q.active!.question),
+            ),
       );
 
       const previousIndex = pool.findIndex(
@@ -1036,8 +1082,13 @@ export function execute<K extends Operation>(
         hashtagId === s.selection.hashtagId &&
         mode === s.selection.mode;
 
-      const selected =
-        sameFilter && previousIndex >= 0
+      const replayFinished =
+        operation === "learningNext" &&
+        mode === LearningMode.REPLAY;
+
+      const selected = replayFinished
+        ? undefined
+        : sameFilter && previousIndex >= 0
           ? pool[
               operation === "learningNext"
                 ? (previousIndex + 1) % pool.length
@@ -1045,20 +1096,25 @@ export function execute<K extends Operation>(
             ]
           : pool[0];
 
+      const selectionMode = replayFinished
+        ? LearningMode.UNSOLVED
+        : mode;
+
       s.selection = {
         hashtagId,
-        mode,
+        mode: selectionMode,
         quizId: selected?.quizId ?? null,
       };
 
       const result: LearningSelection = {
         hashtagId,
-        mode,
+        mode: selectionMode,
         state: !qs.length
           ? LearningState.EMPTY
           : selected
             ? LearningState.AVAILABLE
-            : mode === LearningMode.UNSOLVED
+            : mode === LearningMode.UNSOLVED ||
+                replayFinished
               ? LearningState.EXHAUSTED
               : LearningState.NO_REPLAY,
         quiz: selected ? publicView(selected) : null,

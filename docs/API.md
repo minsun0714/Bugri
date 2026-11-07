@@ -26,6 +26,21 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 
 `api.request()`는 성공 DTO를 반환하고 실패 시 `ApiClientError`를 던진다. `status`, `detail.code`, `detail.message`, `detail.fieldErrors?`, `detail.requestId`로 처리한다. 하위 transport의 성공은 `{ data }`, 실패는 `{ error: { code, message, fieldErrors?, requestId } }`이며 HTTP status는 envelope 외부에 둔다. 모든 요청·응답 타입은 `ApiOperations`, HTTP 메서드·경로는 `src/api/http.ts`의 `endpoints`가 정의한다. GET의 경로 변수를 제외한 요청은 query, 그 외는 JSON body다. 경로 변수는 URL 인코딩하고 body에서 제외한다. HTTP 어댑터는 응답 envelope를 검증하며 실제 서버의 DTO 필드 검증은 2단계 통합 대상이다.
 
+## P05·P07 홈 풀이 연결
+
+- `/`: 구독 조건과 선택 태그에 맞는 문제 하나를 즉시 표시한다. 공개 퀴즈 목록이나 시작 버튼을 거치지 않는다. 학습자(learner)는 3종 예시 구독으로 네 형식을 바로 체험한다. 작성자(author)·친구(friend)는 구독 없는 빈 상태로 시작한다. 구독이 없는 사용자에게는 탐색·구독 안내를 제공하며 임의 추천을 추가하지 않는다.
+- `/?user={userId}&attempt={attemptId}&tag={hashtagId}`: 풀이·완료 결과와 단일 태그를 복원한다. `tag` 생략은 전체, `mode=REPLAY`는 완료 문제 다시 풀기다. 미제출 답안 입력 자체는 새로고침 시 복원하지 않는다.
+- `/solve?user=author&quiz={quizId}`: 작성자 화면 등에서 특정 퀴즈로 직접 진입하는 경로. 목록 없이 해당 퀴즈를 바로 표시하며 API가 PRIVATE/PUBLIC 접근을 판단한다. 결과 URL은 `/solve?user={userId}&attempt={attemptId}`다. 인자 없는 `/solve`는 홈으로 이동한다.
+- 홈의 문제 선택은 `learningQuiz`/`learningNext` → `startAttempt(context: LEARNING)` 순서다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다. 특정 퀴즈 직접 풀이는 DIRECT를 사용한다. 태그 변경은 구독을 수정하지 않고, 다음 문제는 현재 태그·모드를 유지한다.
+- 마지막 결과 화면의 ‘다음 문제’는 `learningNext`를 호출하고, 남은 문제가 없으면 새 Attempt 없이 소진 화면으로 전환한다. 빈 상태·소진 상태의 ‘태그 탐색’은 `/discover?user={userId}` 전용 탐색 페이지로 이동한다. 재생 모드에서도 결과 직후에는 다음 문제를 표시하되 이를 누르면 완료 문제를 순환하지 않고 소진 화면으로 전환한다. 개발자·태그는 공통 밑줄 탭으로 전환하며 좌우 화살표·Home/End 키를 지원한다. 검색 대상, 검색어, 페이지 번호는 `kind`, `query`, `page` URL 매개변수로 복원한다. 검색 버튼/Enter로 검색하고 조건 변경 시 1페이지부터 조회한다. 키는 `['discovery', userId, request]`이며 이전 조건의 결과를 새 조건의 목록으로 표시하지 않는다.
+- 페이지는 `searchDiscovery`(`GET /discover/search`)만 호출한다. 요청은 `{ kind: USER|HASHTAG, query, page, pageSize }`, 응답은 `{ items, page, pageSize, total }`이다. 화면은 20개씩 표시하며 API는 page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 코드 포인트를 검증한다. Mock 서비스에서 검색 후 ID 순으로 정렬·페이지 처리하며 결과별 구독 여부만 포함한다. UI로 전체 사용자·태그·구독 목록을 내려보내지 않는다.
+- 검색 대상은 모든 더미 개발자와 등록 태그다. 공개 퀴즈가 아직 없는 태그도 검색하며 이름·공개 ID·태그 ID/이름은 대소문자 구분 없이 검색한다. 기존 `discoverUsers`/`discoverHashtags` 배열 계약은 다른 작업과의 호환성을 위해 유지하지만 새 페이지에서는 사용하지 않는다. `learningTags`는 기존대로 현재 구독에 맞는 공개 퀴즈 태그만 반환한다.
+- 검색 결과의 ‘구독하기/구독 해제’는 PERSON 또는 HASHTAG 구독을 현재 페이지에서 전환하고 성공 토스트를 표시한다. 성공해도 현재 페이지·검색어·검색 대상을 유지하므로 여러 항목을 연속 변경할 수 있다. 등록된 항목에는 ‘구독 해제’와 별도의 ‘학습하기’를 제공한다. 사용자가 ‘학습하기’를 눌렀을 때만 개발자는 전체 태그, 태그는 해당 단일 태그로 홈에 이동한다. 공개 퀴즈가 없는 태그는 빈 상태를 유지한다. 구독 변경 후 discovery/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다. 검색 결과가 한 페이지뿐이면 페이지 이동 컨트롤은 숨긴다.
+- 결과 화면은 정오·제출 답안·정답·해설과 다음 행동만 표시하며 `Bugri` 캐릭터나 별도 반응 문구를 표시하지 않는다.
+- TanStack Query Provider는 풀이 화면에 한 번 생성한다. Attempt 키는 `['solving', userId, 'attempt', attemptId]`, 태그 키는 `['learningTags', userId]`다. 사용자·Attempt·필터 변경 시 입력과 mutation 화면을 새로 만든다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
+- 제출 성공 시 Attempt 캐시를 응답으로 교체하고 `[resource, userId]` 형태의 `learningDay`, `learningQuiz`, `wallet`, `history`를 무효화한다. 해당 후속 화면을 통합할 때 Provider와 키를 맞춰야 한다. 현재 다른 제품 화면의 캐시가 구현되었다는 의미는 아니다.
+- 기존 API·Mock 채점/보상 정책을 유지한다. 시간대 감지 실패에는 오류 안내를 제공하며, 임의 기본 시간대나 BugCoin 지급량을 추가하지 않는다. 구독 관리와 시간대 설정 UI는 각각 P06/P02T 범위다.
+
 ## 상태·모드 상수
 
 `src/api/constants.ts`에 `QuizStatus`, `LearningMode`, `LearningState`, `QuizScope`를 `as const` 객체로 정의하고 같은 이름의 타입을 값에서 추출한다. `src/api/contracts.ts`에서도 다시 내보내므로 UI는 계약 진입점에서 가져올 수 있다. 예: `QuizStatus.PUBLIC`, `LearningState.EXHAUSTED`. 공개 목록 범위는 별도 개념인 `QuizScope.PUBLIC`을 사용한다.
@@ -91,13 +106,13 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 구독 대상은 PERSON(authorUserId), HASHTAG(hashtagId), PERSON_HASHTAG(authorUserId, hashtagId)다. 같은 구독의 재등록은 기존 구독을 반환한다. 공개 퀴즈 중 직접 구독에 맞는 퀴즈만 후보이며 quizId로 중복되지 않는다. 태그 선택지는 이 후보들의 태그다. 구독이 없으면 빈 상태이며 추천 퀴즈를 넣지 않는다.
 
-`learningQuiz`에서 hashtagId 생략/null은 전체, mode 생략은 UNSOLVED다. `learningNext`는 생략된 필터를 저장된 선택에서 가져온다. 명시적 null은 전체로 바꾼다. 선택·기록은 사용자별로 복원되며 태그 변경은 구독·완료 기록을 변경하지 않는다. UNSOLVED는 완료한 quizId를 제외하고 REPLAY는 완료한 quizId만 사용한다. 가능한 경우 현재 퀴즈 다음 후보를 고르며 미제출 문제를 건너뛰어도 완료로 처리하지 않는다.
+`learningQuiz`에서 hashtagId 생략/null은 전체, mode 생략은 UNSOLVED다. `learningNext`는 생략된 필터를 저장된 선택에서 가져온다. 명시적 null은 전체로 바꾼다. 선택·기록은 사용자별로 복원되며 태그 변경은 구독·완료 기록을 변경하지 않는다. UNSOLVED는 완료한 quizId와 문제 형식·본문·선택지가 같은 완료 문제를 제외하고 REPLAY는 완료한 quizId만 사용한다. 가능한 경우 현재 퀴즈 다음 후보를 고르며 미제출 문제를 건너뛰어도 완료로 처리하지 않는다.
 
 | state     | 의미                                                        |
 | --------- | ----------------------------------------------------------- |
 | AVAILABLE | 문제 있음                                                   |
 | EMPTY     | 조건에 맞는 공개 후보 자체가 없음. 탐색·구독·다른 태그 안내 |
-| EXHAUSTED | 미풀이 소진. 다시 풀기·다른 태그 안내                       |
+| EXHAUSTED | 미풀이 소진. 완료 문제를 반복하지 않고 태그 탐색 안내       |
 | NO_REPLAY | 후보는 있지만 완료한 문제가 없어 다시 풀 수 없음            |
 
 `startAttempt`의 context는 DIRECT 또는 LEARNING이다. DIRECT는 PUBLIC/작성자 PRIVATE 접근, LEARNING은 현재 구독·태그 조건까지 검사한다. 각 시작은 새 Attempt다. 제출 답은 형식별 Answer이며 시작 당시 revision으로 채점한다. 동일 답 재전송은 최초 결과를 반환하며 답 변경은 409 ALREADY_ANSWERED다.
@@ -118,6 +133,10 @@ BugCoin 지급량은 미결정이므로 자동 보상 기본값은 0이고 fixtu
 
 localStorage 키는 `bugri:mock:v1:{userId}`다. 각 사용자의 작성 퀴즈·후보·구독·풀이·날짜·원장·구매·장착·시간대를 한 스냅샷으로 저장한다. 모든 요청은 최신 저장소를 다시 읽어 다른 더미 사용자의 공개 범위·삭제·장착을 반영하고 요청자 자신의 키만 변경한다. 변경된 스냅샷은 단일 setItem으로 저장한 후 성공을 반환한다. 손상/버전 불일치는 STORAGE_CORRUPT, 접근/용량 오류는 STORAGE_UNAVAILABLE이며 기존 데이터를 자동 초기화하지 않는다.
 
+학습자 예시 구독은 author 개발자 전체, 모든 작성자의 web 태그, friend 개발자의 javascript 태그다. 이 세 조건으로 기존 퀴즈 4개를 모두 학습한다. author/friend의 초기 구독은 비어 있다. `src/mocks/subscriptions.ts`에 사용자별 읽기 전용 fixture를 둔다.
+
+기존 v1 저장 데이터는 요청한 사용자만 `learningDemoVersion: 1`로 한 번 갱신한다. learner에는 예시 구독을 기존 구독과 대상 기준으로 중복 없이 추가하고, 풀이·작성 퀴즈·구매·잔액·장착·시간대는 유지한다. marker가 저장된 뒤 해제한 구독은 다시 자동 추가하지 않는다. 최초 보완은 이 프로토타입의 더미 데이터 준비 요청에 따른 것이며 실제 서비스의 신규 사용자 자동 구독 정책이 아니다. marker와 요청 결과는 같은 스냅샷으로 저장하며 저장 실패 시 기존 스냅샷을 유지한다.
+
 더미 사용자는 learner/author/friend다. 데이터는 실제 보안 경계가 아니며 브라우저에서 열람·변조 가능하다. localStorage 삭제 시 seed로 돌아가고 다른 브라우저/기기와 공유하지 않는다. 동시 탭의 경합을 직렬화하는 DB 거래 보장은 없으며 2단계에서 구현한다. seed 파일·서버 메모리·Vercel 파일에 사용자 변경을 쓰지 않는다.
 
 ## 검증 범위
@@ -130,6 +149,13 @@ Jest는 계약·생성 검증·리비전·권한 UX·구독/태그/재도전·�
 
 import 별칭, `as const`, 구조 분해 할당, 빈 줄·객체 줄바꿈 및 범위 제한 자동 수정 명령은 [코딩 규칙](CODING_CONVENTIONS.md)을 따른다. API 의미와 직렬화 계약은 이 문서와 `src/api/contracts.ts`를 기준으로 유지한다.
 
+### 개발자의 공개 퀴즈 페이지
+
+- 탐색 결과의 이름은 `/developers/{publicId}/quizzes?user={viewerId}`로 연결한다. `tag/page/tagQuery/tagPage`로 퀴즈 필터와 태그 검색·페이지를 복원한다.
+- `developerQuizzes`: GET `/developers/{publicId}/quizzes`, 요청 `{publicId,page,pageSize,hashtagId?}`, 응답 `{user,subscribed,items:[{quizId,title,hashtagIds,updatedAt}],page,pageSize,total}`.
+- `developerTags`: GET `/developers/{publicId}/tags`, 요청 `{publicId,page,pageSize,query}`, 응답 `{items:[{id,name,quizCount,subscribed}],page,pageSize,total}`.
+- 두 조회는 지정 개발자의 삭제되지 않은 PUBLIC active 퀴즈만 사용한다. 태그는 이 퀴즈에서 사용된 등록 태그만 포함한다. ID 오름차순, page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 코드 포인트. 미등록 개발자는 NOT_FOUND(404). 화면은 퀴즈 20개/태그 10개씩 표시한다. 목록에는 문제·정답·해설·원문을 포함하지 않는다.
+- 개발자 구독은 PERSON, 태그 구독은 PERSON_HASHTAG(authorUserId,hashtagId)이며 기존 subscribe 계약을 사용한다. 개발자 페이지에서 미구독 태그를 누르면 해당 태그를 구독하면서 퀴즈 필터를 적용하고 성공 토스트를 표시한다. 미구독 태그에는 말줄임표 메뉴를 표시하지 않고, 구독 태그의 메뉴에서만 해제와 성공 토스트를 제공한다. 개발자 구독이 완료되면 페이지의 구독 버튼은 숨기며 이 위치에서는 해제를 제공하지 않는다. 성공 후 URL·검색 조건을 유지하고 developerQuizzes/developerTags/discovery/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다. 퀴즈 제목을 누를 때만 기존 직접 풀이로 이동한다.
 
 ## 비로그인 홈 체험 — 문서 합의, 구현 별도
 

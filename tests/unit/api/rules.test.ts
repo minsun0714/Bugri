@@ -16,7 +16,11 @@ import {
   type MockOptions,
 } from "@/mocks/adapter";
 import { generatedContents } from "@/mocks/quizzes";
-import { storageKey } from "@/mocks/storage";
+import {
+  clone,
+  initialState,
+  storageKey,
+} from "@/mocks/storage";
 import { localDate, streak } from "@/services/learning";
 
 const api = (
@@ -77,6 +81,17 @@ async function approve({
 }
 
 beforeEach(() => localStorage.clear());
+
+function seedUnsubscribedLearner() {
+  const state = initialState("learner");
+
+  state.subscriptions = [];
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify(state),
+  );
+}
 
 test.each(["", "   ", "😀".repeat(10_001)])(
   "rejects invalid source length/blank",
@@ -541,6 +556,8 @@ test.each([
 ] as const)(
   "subscription filters %j",
   async (target, count) => {
+    seedUnsubscribedLearner();
+
     const client = api();
 
     await client.request("subscribe", target);
@@ -553,6 +570,8 @@ test.each([
 );
 
 test("overlapping subscriptions deduplicate, tag changes preserve records, unsubscribe rechecks start", async () => {
+  seedUnsubscribedLearner();
+
   const client = api();
 
   expect(
@@ -603,8 +622,12 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
   });
 
   expect(
-    (await client.request("learningNext", {})).state,
-  ).toBe(LearningState.EXHAUSTED);
+    await client.request("learningNext", {}),
+  ).toMatchObject({
+    state: LearningState.EXHAUSTED,
+    mode: LearningMode.UNSOLVED,
+    quiz: null,
+  });
 
   const subs = await client.request("subscriptions", {});
 
@@ -628,6 +651,10 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
     ).state,
   ).toBe(LearningState.AVAILABLE);
 
+  expect(
+    (await client.request("learningNext", {})).state,
+  ).toBe(LearningState.EXHAUSTED);
+
   expect(await client.request("subscriptions", {})).toEqual(
     subs,
   );
@@ -650,6 +677,59 @@ test("overlapping subscriptions deduplicate, tag changes preserve records, unsub
       code: "QUIZ_UNAVAILABLE",
     },
   });
+});
+
+test("learning next skips the same completed question saved under another quiz id", async () => {
+  seedUnsubscribedLearner();
+
+  const author = initialState("author");
+
+  const original = author.quizzes.find(
+    ({ quizId }) => quizId === "seed-quiz-1",
+  )!;
+
+  author.quizzes.push({
+    ...clone(original),
+    quizId: "duplicate-type-question",
+    active: {
+      ...clone(original.active!),
+      revisionId: "duplicate-type-revision",
+    },
+  });
+
+  localStorage.setItem(
+    storageKey("author"),
+    JSON.stringify(author),
+  );
+
+  const client = api();
+
+  await client.request("subscribe", {
+    type: "PERSON",
+    authorUserId: "author",
+  });
+
+  await client.request("learningQuiz", {
+    hashtagId: "typescript",
+  });
+
+  const attempt = await client.request("startAttempt", {
+    quizId: "seed-quiz-1",
+    context: "LEARNING",
+  });
+
+  await client.request("answer", {
+    attemptId: attempt.attemptId,
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "a",
+    },
+  });
+
+  const next = await client.request("learningNext", {});
+
+  expect(next.state).toBe(LearningState.EXHAUSTED);
+  expect(next.quiz).toBeNull();
 });
 
 test("unknown fields, quiz subscription and wrong answer shapes are rejected", async () => {

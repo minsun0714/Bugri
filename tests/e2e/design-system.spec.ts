@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("showcase interactions, modal keyboard behavior and mobile layout", async ({
   page,
 }, testInfo) => {
-  await page.goto("/");
+  await page.goto("/ui-preview");
   await expect(
     page.getByRole("heading", {
       name: "컴포넌트",
@@ -11,6 +11,23 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
     }),
   ).toBeVisible();
   await expect(page.getByRole("banner")).toBeVisible();
+  const nonPointerControls = await page
+    .locator(
+      "a[href], button:not(:disabled), select:not(:disabled), summary, input[type='checkbox']:not(:disabled), input[type='radio']:not(:disabled), label:has(input[type='checkbox']:not(:disabled)), label:has(input[type='radio']:not(:disabled))",
+    )
+    .evaluateAll((elements) =>
+      elements
+        .filter(
+          (element) => element.getClientRects().length > 0,
+        )
+        .filter(
+          (element) =>
+            getComputedStyle(element).cursor !== "pointer",
+        )
+        .map((element) => element.outerHTML.slice(0, 120)),
+    );
+
+  expect(nonPointerControls).toEqual([]);
   await page
     .getByRole("navigation", { name: "컴포넌트 섹션" })
     .getByRole("link", { name: "03 입력과 폼" })
@@ -19,7 +36,10 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
   await page
     .getByRole("link", { name: "Bugri 홈", exact: true })
     .click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(
+    (url) => url.pathname === "/",
+  );
+  await page.goto("/ui-preview");
   await page.screenshot({
     path: testInfo.outputPath("desktop.png"),
     fullPage: true,
@@ -105,6 +125,24 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
   ).toBe(true);
 });
 
+test("header logo returns to home from learning and discovery pages", async ({
+  page,
+}) => {
+  for (const path of [
+    "/discover",
+    "/solve?quiz=seed-quiz-1",
+    "/developers/bugri-author/quizzes",
+  ]) {
+    await page.goto(path);
+    await page
+      .getByRole("link", { name: "Bugri 홈", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      (url) => url.pathname === "/",
+    );
+  }
+});
+
 test("header logo returns from authoring to home", async ({
   page,
 }) => {
@@ -112,11 +150,7 @@ test("header logo returns from authoring to home", async ({
   await page
     .getByRole("link", { name: "Bugri 홈", exact: true })
     .click();
-  await expect(page).toHaveURL("/");
-  await expect(
-    page.getByRole("heading", {
-      name: "컴포넌트",
-      exact: true,
-    }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(
+    (url) => url.pathname === "/",
+  );
 });

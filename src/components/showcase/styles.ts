@@ -20,14 +20,6 @@ export const styles = {
     "art-caption [font:italic_14px_Georgia] text-[#7e51ba] [transform:rotate(-8deg)] absolute bottom-1 max-[760px]:hidden",
   "art-spark":
     "art-spark absolute text-[#ff925c] [&.one]:left-1.5 [&.one]:top-6.75 [&.one]:text-[36px] [&.one]:text-[#fa8d9e] [&.one]:[transform:rotate(12deg)] [&.two]:right-3 [&.two]:bottom-11 [&.two]:text-[30px] [&.two]:text-[#8a59dc] max-[760px]:hidden",
-  "bugri-pet":
-    'bugri-pet relative w-29 h-25.75 bg-[#c5ed66] border-2 border-[#503a85] [border-radius:45%_45%_38%_38%] [box-shadow:inset_-10px_-7px_0_#a7d34c,_4px_5px_0_#503a851a] [transform:rotate(-7deg)] border-3 [&_>_i]:absolute [&_>_i]:top-[-19px] [&_>_i]:left-6.25 [&_>_i]:w-0.75 [&_>_i]:h-6 [&_>_i]:bg-[#503a85] [&_>_i]:[transform:rotate(-25deg)] [&_>_i:nth-child(2)]:left-auto [&_>_i:nth-child(2)]:right-6.25 [&_>_i:nth-child(2)]:[transform:rotate(25deg)] [&_>_i::before]:[content:""] [&_>_i::before]:absolute [&_>_i::before]:top-[-3px] [&_>_i::before]:left-[-3px] [&_>_i::before]:w-2.25 [&_>_i::before]:h-2.25 [&_>_i::before]:rounded-full [&_>_i::before]:bg-[#503a85] [&.small]:[zoom:0.6]',
-  "pet-eye":
-    "pet-eye absolute top-9.75 w-1.75 h-2.5 bg-[#463065] rounded-[8px] [&.left]:left-8 [&.right]:right-8",
-  "pet-mouth":
-    "pet-mouth absolute top-13.5 left-12.25 w-3.5 h-2.25 border-b-2 border-b-[#463065] rounded-full",
-  "pet-cheek":
-    "pet-cheek absolute top-13.5 left-5.25 w-3.75 h-1.75 rounded-full bg-[#ff969e] [box-shadow:54px_0_#ff969e]",
   "preview-note":
     "preview-note flex items-center gap-2.25 border-t border-t-line border-b border-b-line py-3.75 px-0 text-[11px] text-[#6c5487] mt-6 [&_>_span:last-child]:ml-auto [&_>_span:last-child]:text-[#8e7d9e] [&_>_span:last-child]:text-[10px] max-[760px]:[&_>_span:last-child]:hidden",
   "status-dot":

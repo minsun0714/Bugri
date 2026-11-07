@@ -5,6 +5,7 @@ import {
   type LearningMode,
   type LearningState,
   type QuizScope,
+  DiscoveryKind,
 } from "@/api/constants";
 
 export {
@@ -233,6 +234,62 @@ export type PendingRequest = VersionRequest &
     | { action: "MARK_REVIEWED" }
   );
 
+export interface DiscoveryQuery {
+  kind: DiscoveryKind;
+  query: string;
+  page: number;
+  pageSize: number;
+}
+
+export type DiscoveryItem =
+  | {
+      type: typeof DiscoveryKind.USER;
+      user: User;
+      subscribed: boolean;
+    }
+  | {
+      type: typeof DiscoveryKind.HASHTAG;
+      hashtag: Hashtag;
+      subscribed: boolean;
+    };
+
+export interface DiscoveryPage {
+  items: DiscoveryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface DeveloperPageQuery {
+  publicId: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface DeveloperQuizzesPage {
+  user: User;
+  subscribed: boolean;
+  items: {
+    quizId: string;
+    title: string;
+    hashtagIds: string[];
+    updatedAt: string;
+  }[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface DeveloperTagsPage {
+  items: (Hashtag & {
+    quizCount: number;
+    subscribed: boolean;
+  })[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface ApiOperations {
   authoringConversation: {
     request: Record<string, never>;
@@ -334,6 +391,20 @@ export interface ApiOperations {
   unsubscribe: {
     request: { subscriptionId: string };
     response: { deleted: true };
+  };
+  developerQuizzes: {
+    request: DeveloperPageQuery & {
+      hashtagId?: string | null;
+    };
+    response: DeveloperQuizzesPage;
+  };
+  developerTags: {
+    request: DeveloperPageQuery & { query: string };
+    response: DeveloperTagsPage;
+  };
+  searchDiscovery: {
+    request: DiscoveryQuery;
+    response: DiscoveryPage;
   };
   discoverUsers: {
     request: Record<string, never>;
