@@ -15,7 +15,6 @@ export function useDiscovery(
   userId: string,
   request: DiscoveryQuery,
 ) {
-  const cache = useQueryClient();
   const discovery = useQuery({
     queryKey: ["discovery", userId, request],
     queryFn: async () => {
@@ -28,7 +27,14 @@ export function useDiscovery(
     },
     retry: false,
   });
-  const subscribe = useMutation({
+  const subscribe = useSubscribe(userId);
+
+  return { discovery, subscribe };
+}
+
+export function useSubscribe(userId: string) {
+  const cache = useQueryClient();
+  return useMutation({
     mutationFn: async (target: SubscriptionTarget) => {
       const api = await createBrowserApi({
         mode: "mock",
@@ -42,6 +48,8 @@ export function useDiscovery(
       await Promise.all(
         [
           "discovery",
+          "developerQuizzes",
+          "developerTags",
           "subscriptions",
           "learningTags",
           "learningQuiz",
@@ -53,6 +61,4 @@ export function useDiscovery(
       );
     },
   });
-
-  return { discovery, subscribe };
 }

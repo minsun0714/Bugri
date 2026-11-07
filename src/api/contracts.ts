@@ -245,6 +245,36 @@ export interface DiscoveryPage {
   total: number;
 }
 
+export interface DeveloperPageQuery {
+  publicId: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface DeveloperQuizzesPage {
+  user: User;
+  subscribed: boolean;
+  items: {
+    quizId: string;
+    title: string;
+    hashtagIds: string[];
+    updatedAt: string;
+  }[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface DeveloperTagsPage {
+  items: (Hashtag & {
+    quizCount: number;
+    subscribed: boolean;
+  })[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface ApiOperations {
   generate: {
     request: { sourceContent: string };
@@ -300,6 +330,16 @@ export interface ApiOperations {
   unsubscribe: {
     request: { subscriptionId: string };
     response: { deleted: true };
+  };
+  developerQuizzes: {
+    request: DeveloperPageQuery & {
+      hashtagId?: string | null;
+    };
+    response: DeveloperQuizzesPage;
+  };
+  developerTags: {
+    request: DeveloperPageQuery & { query: string };
+    response: DeveloperTagsPage;
   };
   searchDiscovery: {
     request: DiscoveryQuery;

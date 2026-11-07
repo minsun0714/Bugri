@@ -95,6 +95,12 @@ it("finds developers and all registered tags without subscribing on search", asy
   expect(
     await screen.findByText("타입 개발자", { exact: true }),
   ).toBeVisible();
+  expect(
+    screen.getByRole("link", { name: "타입 개발자" }),
+  ).toHaveAttribute(
+    "href",
+    "/developers/bugri-author/quizzes?user=friend",
+  );
   fireEvent.click(
     screen.getByRole("button", {
       name: "타입 개발자 구독하기",

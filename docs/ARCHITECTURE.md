@@ -120,3 +120,5 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 - 2단계: Spring Boot 서비스·REST 계약·MySQL 통합 테스트로 Google OAuth2·JWT·내부 User ID 소유권, 저장 복원, 학습일 중복 집계 방지, 중복 구매·BugCoin 차감의 원자성을 확인한다. 1단계 테스트 통과를 실제 보안·영속성 검증으로 간주하지 않는다.
 - 확정: 1단계 Next.js·TypeScript·Mock API·더미 사용자·Jest·Playwright·Vercel, DB·실제 인증 제외. 2단계 Spring Boot·Java 21·MySQL 8.4·Spring Data JPA·Google OAuth2·JWT·실제 REST API.
 - 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부·시간대 변경 전후 일일 보상 중복 판정 세부 기준, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, BugCoin 지급량, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
+
+- 개발자 공개 목록: `/developers/[publicId]/quizzes` → TanStack Query → typed API `developerQuizzes/developerTags` → 공개 목록 서비스. 브라우저 Mock은 사용자별 구독과 전체 작성자의 저장된 공개 상태를 읽으며, HTTP 전환은 GET `/developers/{publicId}/quizzes` 및 `/developers/{publicId}/tags` 계약을 사용한다. 작성자 CRUD·전체 프로필/데스크와 독립된 공개 퀴즈·태그 조회 화면이다.

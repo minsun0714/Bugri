@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { DiscoveryKind } from "@/api/constants";
 import type {
@@ -189,7 +190,12 @@ function DiscoveryResults({
                       className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface p-5"
                     >
                       <div className="min-w-0 break-all">
-                        <strong>{displayName}</strong>
+                        <Link
+                          href={`/developers/${encodeURIComponent(publicId)}/quizzes?user=${encodeURIComponent(userId)}`}
+                          className="font-bold text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary"
+                        >
+                          {displayName}
+                        </Link>
                         <div className="text-sm text-muted">
                           @{publicId}
                         </div>

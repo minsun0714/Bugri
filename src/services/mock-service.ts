@@ -15,6 +15,10 @@ import type {
   Subscription,
   Visibility,
 } from "@/api/contracts";
+import {
+  developerQuizzes,
+  developerTags,
+} from "@/services/developer-quizzes";
 import { searchDiscovery } from "@/services/discovery";
 import { hashtags, users } from "@/mocks/users";
 import { shopItems } from "@/mocks/shop-items";
@@ -86,6 +90,13 @@ const allowed: Record<Operation, string[]> = {
   subscriptions: [],
   subscribe: ["type", "authorUserId", "hashtagId"],
   unsubscribe: ["subscriptionId"],
+  developerQuizzes: [
+    "publicId",
+    "page",
+    "pageSize",
+    "hashtagId",
+  ],
+  developerTags: ["publicId", "page", "pageSize", "query"],
   searchDiscovery: ["kind", "query", "page", "pageSize"],
   discoverUsers: [],
   discoverHashtags: [],
@@ -656,6 +667,28 @@ export function execute<K extends Operation>(
       return {
         deleted: true,
       };
+
+    case "developerQuizzes":
+      return developerQuizzes(
+        {
+          users,
+          hashtags,
+          quizzes: allQuizzes,
+          subscriptions: s.subscriptions,
+        },
+        input as ApiOperations["developerQuizzes"]["request"],
+      );
+
+    case "developerTags":
+      return developerTags(
+        {
+          users,
+          hashtags,
+          quizzes: allQuizzes,
+          subscriptions: s.subscriptions,
+        },
+        input as ApiOperations["developerTags"]["request"],
+      );
 
     case "searchDiscovery":
       return searchDiscovery(

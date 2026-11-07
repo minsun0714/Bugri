@@ -120,3 +120,11 @@ Jest는 계약·생성 검증·리비전·권한 UX·구독/태그/재도전·�
 ## 코드 작성·정리 규칙
 
 import 별칭, `as const`, 구조 분해 할당, 빈 줄·객체 줄바꿈 및 범위 제한 자동 수정 명령은 [코딩 규칙](CODING_CONVENTIONS.md)을 따른다. API 의미와 직렬화 계약은 이 문서와 `src/api/contracts.ts`를 기준으로 유지한다.
+
+### 개발자의 공개 퀴즈 페이지
+
+- 탐색 결과의 이름은 `/developers/{publicId}/quizzes?user={viewerId}`로 연결한다. `tag/page/tagQuery/tagPage`로 퀴즈 필터와 태그 검색·페이지를 복원한다.
+- `developerQuizzes`: GET `/developers/{publicId}/quizzes`, 요청 `{publicId,page,pageSize,hashtagId?}`, 응답 `{user,subscribed,items:[{quizId,title,hashtagIds,updatedAt}],page,pageSize,total}`.
+- `developerTags`: GET `/developers/{publicId}/tags`, 요청 `{publicId,page,pageSize,query}`, 응답 `{items:[{id,name,quizCount,subscribed}],page,pageSize,total}`.
+- 두 조회는 지정 개발자의 삭제되지 않은 PUBLIC active 퀴즈만 사용한다. 태그는 이 퀴즈에서 사용된 등록 태그만 포함한다. ID 오름차순, page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 코드 포인트. 미등록 개발자는 NOT_FOUND(404). 화면은 퀴즈 20개/태그 10개씩 표시한다. 목록에는 문제·정답·해설·원문을 포함하지 않는다.
+- 개발자 구독은 PERSON, 태그 구독은 PERSON_HASHTAG(authorUserId,hashtagId)이며 기존 subscribe 계약을 사용한다. 성공 후 URL·검색 조건을 유지하고 developerQuizzes/developerTags/discovery/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다. 퀴즈 제목을 누를 때만 기존 직접 풀이로 이동한다.
