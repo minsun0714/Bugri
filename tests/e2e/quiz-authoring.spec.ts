@@ -79,7 +79,7 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     "타입스크립트\n```ts\n  const value = 1;\n```\n😀",
   );
   await page
-    .getByRole("button", { name: "작업 이어가기" })
+    .getByRole("button", { name: "퀴즈 만들기", exact: true })
     .click();
   await expect(
     candidates.getByRole("article"),
@@ -424,7 +424,7 @@ test("workshop preserves pending requests when closed on mobile", async ({
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
   await page
-    .getByRole("button", { name: "작업 이어가기" })
+    .getByRole("button", { name: "퀴즈 만들기", exact: true })
     .click();
   await expect(
     page.getByLabel("퀴즈 1에 추가 요청"),

@@ -79,9 +79,12 @@ test("outside input generates an editable candidate in the same modal", async ()
   fireEvent.click(
     screen.getByRole("button", { name: "닫기" }),
   );
+  expect(
+    screen.queryByRole("button", { name: "작업 이어가기" }),
+  ).not.toBeInTheDocument();
   expect(screen.getByRole("textbox")).toHaveValue("클로저");
   fireEvent.click(
-    screen.getByRole("button", { name: "작업 이어가기" }),
+    screen.getByRole("button", { name: "퀴즈 만들기" }),
   );
   expect(screen.getByRole("article")).toHaveTextContent(
     "수정한 문제",

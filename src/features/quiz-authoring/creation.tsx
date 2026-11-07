@@ -36,6 +36,13 @@ export function Creation({
 
   async function generate() {
     if (locked.current) return;
+    if (
+      batch &&
+      (editing || source === batch.sourceContent)
+    ) {
+      setOpen(true);
+      return;
+    }
     if (!source.trim() || [...source].length > 10000) {
       setError(
         new Error("학습 내용을 1~10,000자로 입력하세요."),
@@ -93,19 +100,10 @@ export function Creation({
       <div className="flex flex-wrap gap-3">
         <Button
           onClick={() => void generate()}
-          disabled={editing}
           loading={busy}
         >
           퀴즈 만들기
         </Button>
-        {batch && (
-          <Button
-            variant="secondary"
-            onClick={() => setOpen(true)}
-          >
-            작업 이어가기
-          </Button>
-        )}
       </div>
       {!open && <RequestError error={error} />}
       <Modal
