@@ -44,27 +44,29 @@ export function DiscoverySearch({
     tag: string | null,
     subscribed: boolean,
   ) {
-    const label = subscribed
-      ? "학습하기"
-      : "구독하고 학습하기";
-
     return (
-      <Button
-        size="sm"
-        variant="secondary"
-        loading={subscribe.isPending}
-        disabled={navigating}
-        aria-label={`${name} ${label}`}
-        onClick={() => {
-          if (subscribed) onLearn(tag);
-          else
-            subscribe.mutate(target, {
-              onSuccess: () => onLearn(tag),
-            });
-        }}
-      >
-        {label}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={busy || subscribed}
+          aria-label={`${name} ${subscribed ? "구독 중" : "구독하기"}`}
+          onClick={() => subscribe.mutate(target)}
+        >
+          {subscribed ? "구독 중" : "구독하기"}
+        </Button>
+        {subscribed && (
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy}
+            aria-label={`${name} 학습하기`}
+            onClick={() => onLearn(tag)}
+          >
+            학습하기
+          </Button>
+        )}
+      </div>
     );
   }
 

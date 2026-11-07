@@ -605,7 +605,7 @@ test("empty state opens discovery page with URL search and explicit subscription
   });
   await page
     .getByRole("button", {
-      name: "Web 구독하고 학습하기",
+      name: "Web 구독하기",
       exact: true,
     })
     .click();
@@ -622,7 +622,60 @@ test("empty state opens discovery page with URL search and explicit subscription
   });
   await page
     .getByRole("button", {
-      name: "Web 구독하고 학습하기",
+      name: "Web 구독하기",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: "Web 구독 중",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(page).toHaveURL(/\/discover\?.*query=Web/);
+  await expect(search).toHaveValue("Web");
+  await search.fill("Java");
+  await search.press("Enter");
+  await expect(page).toHaveURL(/query=Java/);
+  const searchUrl = page.url();
+  await page
+    .getByRole("button", {
+      name: "Java 구독하기",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: "Java 구독 중",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", {
+      name: "JavaScript 구독하기",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: "JavaScript 구독 중",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(page).toHaveURL(searchUrl);
+  await expect(search).toHaveValue("Java");
+  const saved = await page.evaluate(() =>
+    JSON.parse(
+      localStorage.getItem("bugri:mock:v1:friend")!,
+    ),
+  );
+  expect(saved.subscriptions).toHaveLength(3);
+  expect(saved.attempts).toHaveLength(0);
+  await search.fill("Web");
+  await search.press("Enter");
+  await page
+    .getByRole("button", {
+      name: "Web 학습하기",
       exact: true,
     })
     .click();

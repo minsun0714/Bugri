@@ -98,12 +98,23 @@ it("finds developers and all registered tags without subscribing on search", asy
   ).toBeVisible();
   fireEvent.click(
     screen.getByRole("button", {
-      name: "타입 개발자 구독하고 학습하기",
+      name: "타입 개발자 구독하기",
     }),
   );
   await waitFor(() =>
-    expect(learn).toHaveBeenCalledWith(null),
+    expect(
+      screen.getByRole("button", {
+        name: "타입 개발자 구독 중",
+      }),
+    ).toBeDisabled(),
   );
+  expect(learn).not.toHaveBeenCalled();
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "타입 개발자 학습하기",
+    }),
+  );
+  expect(learn).toHaveBeenCalledWith(null);
   expect(await api.request("subscriptions", {})).toEqual([
     expect.objectContaining({
       type: "PERSON",
@@ -151,4 +162,51 @@ it("renders only one requested page and navigates with bounded controls", async 
   expect(
     screen.getByRole("button", { name: "다음 페이지" }),
   ).toBeDisabled();
+});
+
+it("adds multiple tags without navigating or losing the current search", async () => {
+  const learn = jest.fn();
+  render(<Harness onLearn={learn} />);
+  fireEvent.click(
+    screen.getByRole("button", { name: "태그" }),
+  );
+  fireEvent.change(screen.getByRole("searchbox"), {
+    target: { value: "Java" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "검색" }),
+  );
+  fireEvent.click(
+    await screen.findByRole("button", {
+      name: "Java 구독하기",
+    }),
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Java 구독 중" }),
+    ).toBeDisabled(),
+  );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "JavaScript 구독하기",
+    }),
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", {
+        name: "JavaScript 구독 중",
+      }),
+    ).toBeDisabled(),
+  );
+  expect(screen.getByRole("searchbox")).toHaveValue("Java");
+  expect(learn).not.toHaveBeenCalled();
+  const api = createApiClient(
+    createMockTransport({
+      userId: "friend",
+      storage: localStorage,
+    }),
+  );
+  expect(
+    await api.request("subscriptions", {}),
+  ).toHaveLength(2);
 });
