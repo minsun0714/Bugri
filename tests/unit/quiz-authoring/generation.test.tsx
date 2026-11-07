@@ -178,8 +178,8 @@ test("switches the workspace to chat and preserves drafts when returning to the 
     screen.getByRole("button", { name: "LLM으로 수정" }),
   ).toBeEnabled();
   expect(
-    screen.getByRole("list", { name: "선택지" }),
-  ).toBeVisible();
+    screen.queryByRole("list", { name: "선택지" }),
+  ).not.toBeInTheDocument();
   fireEvent.change(
     screen.getByRole("textbox", { name: "제목" }),
     { target: { value: "임시 제목" } },

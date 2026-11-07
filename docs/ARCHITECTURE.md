@@ -31,6 +31,8 @@ UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID�
 
 Modal 자체는 `overflow-hidden`을 유지한다. 작성 작업 본문도 외부 스크롤을 만들지 않으며, LLM 대화 화면의 메시지 컨테이너와 일반 후보 화면의 후보 컨테이너가 각각 내부 스크롤을 담당한다.
 
+직접 수정 mode에서는 `ContentPreview`를 렌더링하지 않고 후보별 `ContentFields`만 렌더링한다. 초안 반영·취소와 mode 전환 상태는 기존 `useGeneration` 경계를 유지한다.
+
 ### UI 스타일링
 
 Tailwind CSS v4를 `@tailwindcss/postcss`로 Next.js 빌드에 연결한다. `src/app/globals.css`의 `@theme`에서 색상·폰트·애니메이션 토큰을 정의하고, 컴포넌트는 Tailwind 유틸리티로 레이아웃·상태·반응형을 표현한다. 긴 클래스 조합은 해당 디렉터리의 `styles.ts`에 완성된 문자열로 둔다. 이는 빌드 시 추출되는 클래스 목록이며 CSS-in-JS 런타임이 아니다.

@@ -333,9 +333,11 @@ export function Generation(props: GenerationProps) {
                       않았습니다.
                     </p>
                   )}
-                  <ContentPreview
-                    content={candidate.content}
-                  />
+                  {mode !== "직접 수정" && (
+                    <ContentPreview
+                      content={candidate.content}
+                    />
+                  )}
                   <div
                     id="candidate-editing"
                     className={

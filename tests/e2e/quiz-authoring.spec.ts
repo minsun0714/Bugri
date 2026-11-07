@@ -101,6 +101,9 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   await page
     .getByRole("button", { name: "직접 수정" })
     .click();
+  await expect(
+    page.getByRole("list", { name: "선택지" }),
+  ).toHaveCount(0);
   await page
     .getByRole("textbox", { name: "제목", exact: true })
     .fill("직접 다듬은 퀴즈");
