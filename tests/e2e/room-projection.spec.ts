@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 for (const width of [1100, 390]) {
@@ -86,7 +86,7 @@ for (const width of [1100, 390]) {
     await card("새싹 키보드")
       .getByRole("button", { name: "장착해 보기" })
       .click();
-    const controls = await selectTrialProduct(
+    const controls = await selectSceneProduct(
       dialog,
       "새싹 키보드",
     );

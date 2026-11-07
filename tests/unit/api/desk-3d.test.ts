@@ -345,3 +345,141 @@ test("persists validated object order separately from transforms and isolates us
     (await api.request("inventory", {})).order,
   ).toEqual(order);
 });
+
+test("moving the default desk independently preserves items and Bugri through public reload", async () => {
+  const api = await owned();
+  const transform = { x: 2, y: 0, z: 1, rotationY: 90 };
+
+  await api.request("transformDesk", {
+    productId: null,
+    transform,
+  });
+
+  const { transforms } = await make().request(
+    "inventory",
+    {},
+  );
+
+  expect(transforms.DESK).toEqual(transform);
+
+  // Inverse desk frame keeps the original world placement and orientation.
+  expect(transforms.KEYBOARD).toEqual({
+    x: 0.35,
+    y: 1.55,
+    z: -2.45,
+    rotationY: 270,
+  });
+
+  expect(transforms.BUGRI).toEqual({
+    x: -0.8,
+    y: 0,
+    z: -4.3,
+    rotationY: 270,
+  });
+
+  expect(
+    (
+      await make("friend").request("publicProfile", {
+        publicId: "bugri-learner",
+      })
+    ).transforms,
+  ).toEqual(transforms);
+
+  expect(
+    (await make("friend").request("inventory", {}))
+      .transforms,
+  ).toEqual({});
+});
+
+test("independent desk edits reject invalid or stale desks and fail atomically", async () => {
+  const api = await owned();
+  const before = await api.request("inventory", {});
+
+  await expect(
+    api.request("transformDesk", {
+      productId: null,
+      transform: { x: 0, y: 1, z: 0, rotationY: 0 },
+    }),
+  ).rejects.toMatchObject({ status: 400 });
+
+  await expect(
+    api.request("transformDesk", {
+      productId: "desk-1",
+      transform: { x: 1, y: 0, z: 0, rotationY: 0 },
+    }),
+  ).rejects.toMatchObject({ status: 403 });
+
+  const broken = createApiClient(
+    createMockTransport({
+      userId: "learner",
+      storage: {
+        getItem: (key) => localStorage.getItem(key),
+        setItem: () => {
+          throw new Error("quota");
+        },
+      },
+    }),
+  );
+
+  await expect(
+    broken.request("transformDesk", {
+      productId: null,
+      transform: { x: 1, y: 0, z: 0, rotationY: 0 },
+    }),
+  ).rejects.toMatchObject({ status: 503 });
+
+  expect(await api.request("inventory", {})).toEqual(
+    before,
+  );
+});
+
+test("an owned desk moves independently and a stale default desk request cannot change it", async () => {
+  const api = await owned();
+
+  await api.request("purchase", {
+    productId: "desk-3",
+    requestKey: "independent-desk",
+  });
+
+  await api.request("equip", {
+    category: Category.DESK,
+    productId: "desk-3",
+  });
+
+  await api.request("transformDesk", {
+    productId: "desk-3",
+    transform: { x: 2, y: 0, z: 1, rotationY: 90 },
+  });
+
+  await api.request("transformDesk", {
+    productId: "desk-3",
+    transform: { x: 0, y: 0, z: 0, rotationY: 0 },
+  });
+
+  const { transforms } = await api.request("inventory", {});
+
+  expect(transforms.KEYBOARD).toEqual({
+    x: -0.45,
+    y: 1.55,
+    z: 0.65,
+    rotationY: 0,
+  });
+
+  expect(transforms.BUGRI).toEqual({
+    x: -2.3,
+    y: 0,
+    z: 1.8,
+    rotationY: 0,
+  });
+
+  await expect(
+    api.request("transformDesk", {
+      productId: null,
+      transform: { x: 1, y: 0, z: 0, rotationY: 0 },
+    }),
+  ).rejects.toMatchObject({ status: 403 });
+
+  expect(
+    (await api.request("inventory", {})).transforms,
+  ).toEqual(transforms);
+});

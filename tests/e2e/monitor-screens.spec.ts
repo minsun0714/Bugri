@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   rotateTo,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 test("distinct monitor screen artwork stays on the front face", async ({
@@ -50,7 +50,7 @@ test("distinct monitor screen artwork stays on the front face", async ({
       }, color);
     }
     await expect.poll(screenPixels).toBeGreaterThan(10);
-    await selectTrialProduct(dialog, name);
+    await selectSceneProduct(dialog, name);
     await rotateTo(dialog, name, 180);
     await expect.poll(screenPixels).toBe(0);
     await rotateTo(dialog, name, 0);

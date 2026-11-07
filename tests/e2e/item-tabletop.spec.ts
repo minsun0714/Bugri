@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 const products: {
@@ -33,7 +33,7 @@ for (const width of [1100, 390]) {
       const dialog = page.getByRole("dialog");
       const canvas = dialog.locator("canvas");
       const lowerOutside = async () => {
-        const surface = await selectTrialProduct(
+        const surface = await selectSceneProduct(
           dialog,
           name,
         );
@@ -85,7 +85,7 @@ for (const width of [1100, 390]) {
         steps: 12,
       });
       await page.mouse.up();
-      await selectTrialProduct(dialog, name);
+      await selectSceneProduct(dialog, name);
       await expect(
         dialog.getByLabel("선택 상품 배치"),
       ).toHaveText(placed!);
@@ -127,22 +127,12 @@ for (const width of [1100, 390]) {
           })
           .click();
         await page.goto("/my/desk");
-        await page
-          .getByRole("button", {
-            name: `${name} 선택`,
-            exact: true,
-          })
-          .click();
+        await selectSceneProduct(page, name);
         await expect(
           page.getByLabel("선택 상품 배치"),
         ).toHaveText(placed!);
         await page.reload();
-        await page
-          .getByRole("button", {
-            name: `${name} 선택`,
-            exact: true,
-          })
-          .click();
+        await selectSceneProduct(page, name);
         await expect(
           page.getByLabel("선택 상품 배치"),
         ).toHaveText(placed!);
@@ -153,7 +143,7 @@ for (const width of [1100, 390]) {
             exact: true,
           })
           .click();
-        await selectTrialProduct(dialog, name);
+        await selectSceneProduct(dialog, name);
         await expect(
           dialog.getByLabel("선택 상품 배치"),
         ).not.toHaveText(placed!);

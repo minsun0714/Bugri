@@ -1453,6 +1453,14 @@
 - 단순 표현 변경으로 TDD 생략. 변경파일 lint/포맷, PC/mobile 실제 화면, 독립 UX/UI 리뷰와 기존 관련 단위검사를 수행한다.
 - 결과: scoped lint/Prettier·기존 Jest5개 통과. 1280/390/320 화면 배치와 guest/본인/타인의 키보드 풀이 이동 확인. 독립 UX/UI R0 문제0개·수정0회. [근거·미확인 범위](ux-reviews/PROFILE-QUIZ-CARDS.md). 전체 verify는 실행하지 않았다.
 
+## P08-DESK-SIMPLIFY — 내 데스크 화면 정리
+
+- 상태: DONE(로컬 변경 검증). 사용자 요청: `/my/desk` 이웃의 데스크 영역·메뉴와 시점 프리셋 버튼 제거. REQ-09/AC-09e 데스크 편집·저장과 공개 프로필 조회 유지.
+- Node v22.23.3. 변경 파일 ESLint/Prettier·전체 typecheck·Jest shop 8개 파일/37개 테스트 통과. 관련 E2E 11개 통과(최종 helper 변경 영향 10개 재실행 + helper를 사용하지 않는 my-desk 1개 성공 재사용). 전체 verify는 이 로컬 소규모 변경 단계에서 미실행.
+- 최초 TDD는 이웃 영역 잔존으로 의도한 실패. RTL 테스트 옵션 타입 오류 수정 후 타입 검사 통과. E2E 드래그의 화면 밖 시작 좌표를 canvas 재스크롤로 수정 후 관련 10개 통과. 앱 코드 실패를 테스트 완화로 덮지 않았다.
+- [독립 UX/UI R0](ux-reviews/P08-DESK-SIMPLIFY.md): PC/모바일 캡처 검토·독립 코드 리뷰, 필수 문제 없음·UI 수정 0회. 드래그/저장/공개 프로필 복원은 구현자 E2E로 확인; 독립 키보드·오류·스크린리더 조작은 미확인.
+- 후속 사용자 요청: 최신 origin/dev 통합과 충돌 해결. 통합 이후 전체 검증 결과는 별도 기록한다.
+
 ## PR23-TASKS-CONFLICT — 태그 작업 통합 후 기록 충돌 해결
 
 - 상태: 충돌 해결 완료, 통합 검증 미완료. origin/dev9a7d573 통합에서 TASKS의 두 추가 블록을 양쪽 모두 보존했다. 독립 정적 리뷰에서 양쪽 비어 있지 않은 줄 보존·중복 제목 없음·상점 label/태그 경로 보존 확인. 충돌마커·미해결 인덱스 없음, diff check 통과.
@@ -1478,3 +1486,27 @@
 ## MY-QUIZ-PR — 공개 프로필 및 구독 관리 PR
 
 - 상태: DONE(게시전최종검증). 사용자PR요청에따라 dev76d1dcd 대상 최종fc6d257 전체검증을실행했다. Node v22.23.3 `npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest54 suites/266개·도구3개·production build·E2E165개전부통과. 로그 `/tmp/my-quiz-pr-verify.log`. 이전기록의Enter실패는요구변경전역사로남기며최종click흐름포함전체통과와구분한다. 검증후변경은이기록뿐이며성공결과를재사용한다. 기존독립UX/UI·코드리뷰근거유지. feat/my-quiz를push하고dev대상PR을생성하며병합은하지않는다.
+
+## DESK-DEV-INTEGRATION — 최신 dev 통합
+
+- 상태: 충돌 해결 완료, 전체 통합 검증 미완료. origin/dev 76d1dcd 병합. TASKS 양쪽 기록과 shop 컴포넌트 테스트 두 블록 보존. 독립 코드 리뷰에서 최신 사용자 전환·정렬 UI와 데스크 이웃 제거 보존 확인. 통합 후 PC/모바일 독립 UX/UI 캡처 리뷰도 회귀 없음.
+- Node v22.23.3 전체 `npm run verify`: lint·typecheck·Jest 53 suites/264 tests·도구 3개·production build 통과. E2E 160개 통과/3개 실패. 로그 `/tmp/bugri-desk-integration-verify.log`.
+- 실패 2개는 변경하지 않은 developer-discovery-repair의 모바일 구독 해제/모달 테스트(121,307행) 30초 시간 초과. 기존 PR22/23 기록에도 구독관리 흐름 미해결 기록이 있으며 이번 데스크·충돌 해결에서 해당 코드를 수정하지 않았다. 실패를 제외하거나 통과로 기록하지 않는다.
+- 나머지 shop E2E는 삭제한 이웃 링크 클릭을 기다린 실패다. 요청된 UI 제거에 맞춰 이웃 영역 부재 확인 후 타인 공개 프로필 직접 방문으로 변경하고, 장착 표시·잔액/편집 비공개 검증을 유지했다. 관련 shop E2E 재검증 결과는 아래에 기록한다. 전체 verify 성공으로 표현하지 않는다.
+- 마지막 shop.spec.ts 변경 파일 ESLint/Prettier·production E2E 8개 통과(`/tmp/bugri-desk-integration-shop.log`). 독립 리뷰가 타인 공개 프로필 검증 보존과 요청에 맞춘 동선 갱신을 확인했다. 최종 앱 코드는 전체 검사 때와 동일하고 후속 변경은 테스트1개와 기록뿐이다. 구독 E2E2개 미해결로 전체 통합 검증 완료/병합 준비 완료는 선언하지 않는다.
+
+## P08-DESK-SHARED — 장착 미리보기와 내 데스크 조작 통일
+
+- 상태: IN_PROGRESS(요청 범위 구현·관련 검증 완료, 전체 검증 미통과). 사용자 확정: 장착해보기와 동일 직접 조작, 하단 선택/높이/일반 저장/안내 제거, 보유 상품 목록 유지, 책상·아이템 독립 이동.
+- EditableDeskScene·sceneKeyDown 공유로 직접 선택/이동/회전/겹침 메뉴/휠 확대와 키보드 조작을 통일했다. 일반 저장 상태는 sr-only, 오류 시에만 재시도·취소를 표시한다. 기본 책상도 편집 가능하다.
+- transformDesk API와 공통 순수 좌표 보정으로 다른 아이템·버그리의 실제 위치/방향을 유지하며 단일 Mock 상태 쓰기로 저장한다. 이전 상대좌표·공개 응답 호환, 기본책상 transform 복원, 실패 원자성·현재 책상 검증·사용자 격리를 확인했다. 실제 서버 트랜잭션 보장은 2단계다.
+- TDD: 캔버스 키보드 선택 미연결/독립 책상 API 미구현 실패를 확인 후 구현. 기본책상 저장 검증 누락 수정, 새 HTTP operation 수 기대값 갱신, scoped lint/format 수정 후 관련 12 suites/72 tests·typecheck 통과. 관련 E2E 16개 통과(`/tmp/bugri-desk-shared-e2e.log`). 삭제한 버튼 동선은 캔버스 키보드 선택/Enter로 바꾸고 저장·공개 복원·가림·높이·회전 기대를 유지했다.
+- [독립 UX/UI 리뷰](ux-reviews/P08-DESK-SHARED.md): R0→C1/R1 수정 1회. UI 오류문 대비2.61→14.85 및 모바일 어절 줄바꿈 해결. 독립 UX가 기본책상 키보드 편집·저장·복원을 직접 확인했고 두 역할이 PC/모바일 최신 캡처 재검토. 독립 터치·다수 아이템 모서리·스크린리더 음성은 미확인.
+- 최종 Node v22.23.3 `npm run verify`: lint·typecheck·Jest53 suites/268 tests·도구3개·production build 통과. E2E163개 통과/2개 실패. 데스크/상점 관련은 모두 통과. 로그 `/tmp/bugri-desk-shared-verify.log`.
+- 미통과: 변경하지 않은 developer-discovery-repair.spec.ts:65 구독 해제 후 버튼 포커스 복원 실패, navigation.spec.ts:148 화면 캡처30초 시간 초과. 구독 관리 경로는 기존 통합 기록에도 미해결 이력이 있다. 이 두 경로의 코드/기대값을 수정하거나 실패를 제외하지 않았다. 전체 통과/DONE/병합 준비 완료로 기록하지 않는다.
+- 마지막 앱 코드 이후 변경은 리뷰·검증 기록뿐이다. 변경 코드 Prettier·git diff --check 확인. push/PR 생성 없음.
+
+## PR25-DEV-INTEGRATION — dev 병합 및 키보드 테스트 제거 유지
+
+- 상태: DONE(충돌해결·전체검증). 사용자 요청으로 최신dev119c929의데스크조작과PR25프로필카드/스트릭을통합한다. 문서3개는양쪽추가내용보존, HTTP엔드포인트검사는transformDesk/publicLearningDay를모두반영해51개로통합한다. 앞서제거한구독관리customEscape/rAF초점복원·전용단위테스트를복원하지않고클릭기준E2E를유지한다. 전체검증·독립통합리뷰후PR25를갱신하고사용자요청에따라dev에병합한다.
+- 독립정적통합리뷰: 양쪽API/서비스·문서보존, 구독관리삭제코드/테스트미복원및clickE2E유지, 중복제목/충돌마커/미해결인덱스없음. Node v22.23.3 `npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest54 suites/271개·도구3개·production build·E2E167개통과. 로그 `/tmp/pr25-dev-integration-verify.log`. 검증대상은b52d922+dev119c929통합코드이며이후변경은결과기록뿐이다. PR25를갱신하고사용자요청에따라dev에병합한다.

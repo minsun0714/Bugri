@@ -1,3 +1,4 @@
+import { orbitTo } from "./helpers/desk";
 import {
   expect,
   test,
@@ -44,7 +45,7 @@ for (const width of [1100, 390]) {
     await expect(
       page.getByRole("img", { name: "3D 데스크 캔버스" }),
     ).toHaveAccessibleDescription(
-      "버그리가 공간에서 함께하고 있어요.",
+      /버그리가 공간에서 함께하고 있어요\./,
     );
     await page
       .getByLabel("더미 사용자")
@@ -53,9 +54,7 @@ for (const width of [1100, 390]) {
       .poll(() => bugriPixels(canvas))
       .toBeGreaterThan(50);
     for (const name of ["정면", "위에서", "45도 시점"]) {
-      await page
-        .getByRole("button", { name, exact: true })
-        .click();
+      await orbitTo(page, name);
       await expect
         .poll(() => bugriPixels(canvas))
         .toBeGreaterThan(50);

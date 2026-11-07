@@ -61,6 +61,12 @@ export function useShop(userId: string) {
     onSuccess: refresh,
     retry: false,
   });
+  const moveDesk = useMutation({
+    mutationFn: async (request: Request<"transformDesk">) =>
+      (await api()).request("transformDesk", request),
+    onSuccess: refresh,
+    retry: false,
+  });
   const moveBugri = useMutation({
     mutationFn: async (
       request: Request<"transformBugri">,
@@ -77,6 +83,7 @@ export function useShop(userId: string) {
     retry: false,
   });
   return {
+    moveDesk,
     moveBugri,
     reorder,
     move,

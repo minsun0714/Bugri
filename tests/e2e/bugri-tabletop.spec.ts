@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 for (const width of [1100, 390]) {
@@ -31,7 +31,7 @@ for (const width of [1100, 390]) {
     ).toContainText("Y 1.55");
     await expect(
       page.getByText("3D 배치를 저장했어요."),
-    ).toBeVisible();
+    ).toHaveCount(1);
     const saved = await page
       .getByLabel("선택 상품 배치")
       .textContent();
@@ -55,12 +55,7 @@ for (const width of [1100, 390]) {
       ).toHaveText(publicPosition!);
     }
     await page.reload();
-    await page
-      .getByRole("button", {
-        name: "버그리 선택",
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, "버그리");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText(saved!);
@@ -88,7 +83,7 @@ for (const width of [1100, 390]) {
       .click();
     const dialog = page.getByRole("dialog");
     const canvas = dialog.locator("canvas");
-    const surface = await selectTrialProduct(
+    const surface = await selectSceneProduct(
       dialog,
       "기본 데스크",
     );
@@ -131,7 +126,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "초기화", exact: true })
       .click();
-    await selectTrialProduct(dialog, "버그리");
+    await selectSceneProduct(dialog, "버그리");
     await expect(
       dialog.getByLabel("선택 상품 배치"),
     ).toContainText("Y 0.00");
@@ -139,12 +134,7 @@ for (const width of [1100, 390]) {
       .getByRole("button", { name: "닫기", exact: true })
       .click();
     await page.goto("/my/desk");
-    await page
-      .getByRole("button", {
-        name: "버그리 선택",
-        exact: true,
-      })
-      .click();
+    await selectSceneProduct(page, "버그리");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText("X -2.30 · Y 0.00 · Z 1.80 · 회전 0°");

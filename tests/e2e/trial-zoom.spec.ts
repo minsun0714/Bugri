@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   productPoint,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 for (const width of [1100, 390]) {
@@ -20,7 +20,7 @@ for (const width of [1100, 390]) {
       .getByRole("button", { name: "장착해 보기" })
       .click();
     const dialog = page.getByRole("dialog");
-    await selectTrialProduct(dialog, "새싹 키보드");
+    await selectSceneProduct(dialog, "새싹 키보드");
     const canvas = dialog.locator("canvas");
     const frame = dialog.getByLabel("선택 테두리");
     const frameWidth = async () =>
@@ -76,7 +76,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "초기화", exact: true })
       .click();
-    await selectTrialProduct(dialog, "새싹 키보드");
+    await selectSceneProduct(dialog, "새싹 키보드");
     await expect.poll(frameWidth).toBe(originalWidth);
     await expect(position).toHaveText(originalPosition!);
     await dialog
@@ -85,7 +85,7 @@ for (const width of [1100, 390]) {
     await card
       .getByRole("button", { name: "장착해 보기" })
       .click();
-    await selectTrialProduct(dialog, "새싹 키보드");
+    await selectSceneProduct(dialog, "새싹 키보드");
     await expect.poll(frameWidth).toBe(originalWidth);
     await expect(page.getByLabel("내 잔액")).toContainText(
       "100",
@@ -110,7 +110,7 @@ for (const width of [1100, 390]) {
       .getByRole("button", { name: "장착해 보기" })
       .click();
     const dialog = page.getByRole("dialog");
-    await selectTrialProduct(dialog, "새싹 키보드");
+    await selectSceneProduct(dialog, "새싹 키보드");
     const rotation = dialog.getByRole("button", {
       name: "선택 상품 회전",
       exact: true,
@@ -187,7 +187,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "초기화", exact: true })
       .click();
-    await selectTrialProduct(dialog, "새싹 키보드");
+    await selectSceneProduct(dialog, "새싹 키보드");
     await expect(position).toContainText("회전 0°");
   });
 }

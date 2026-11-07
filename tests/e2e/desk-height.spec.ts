@@ -1,3 +1,5 @@
+import { selectSceneProduct } from "./helpers/desk";
+import { orbitTo } from "./helpers/desk";
 import {
   expect,
   test,
@@ -63,33 +65,30 @@ test("height adjustment persists and the tabletop occludes a lowered keyboard", 
     .getByRole("button", { name: "닫기", exact: true })
     .click();
   await page.goto("/my/desk");
-  await page
-    .getByRole("button", {
-      name: "새싹 키보드 선택",
-      exact: true,
-    })
-    .click();
+  await selectSceneProduct(page, "새싹 키보드");
   const canvas = page
     .getByRole("main")
     .locator('[data-renderer="canvas"] canvas');
+  for (let i = 0; i < 16; i++)
+    await page
+      .getByRole("img", {
+        name: "3D 데스크 캔버스",
+        exact: true,
+      })
+      .press("Shift+ArrowDown");
   await page
-    .getByRole("button", {
-      name: "바닥에 놓기",
+    .getByRole("img", {
+      name: "3D 데스크 캔버스",
       exact: true,
     })
-    .click();
-  await page
-    .getByRole("button", { name: "배치 저장", exact: true })
-    .click();
+    .press("Enter");
   await expect(
     page.getByLabel("선택 상품 배치"),
   ).toContainText("Y 0.00");
   await expect
     .poll(() => visibleKeyboard(canvas))
     .toBeGreaterThan(50);
-  await page
-    .getByRole("button", { name: "위에서", exact: true })
-    .click();
+  await orbitTo(page, "위에서");
   await expect.poll(() => visibleKeyboard(canvas)).toBe(0);
   // Hidden selected objects retain bounds so their layer menu can bring them forward.
   await expect(
@@ -101,34 +100,42 @@ test("height adjustment persists and the tabletop occludes a lowered keyboard", 
       exact: true,
     }),
   ).toBeVisible();
-  await page
-    .getByRole("button", {
-      name: "책상 위에 놓기",
-      exact: true,
-    })
-    .click();
-  await expect(page.getByLabel("아이템 높이")).toHaveValue(
-    "1.55",
-  );
+  for (let i = 0; i < 16; i++)
+    await page
+      .getByRole("img", {
+        name: "3D 데스크 캔버스",
+        exact: true,
+      })
+      .press("Shift+ArrowUp");
+  await expect(
+    page.getByLabel("선택 상품 배치"),
+  ).toContainText("Y 1.60");
   await expect
     .poll(() => visibleKeyboard(canvas))
     .toBeGreaterThan(50);
-  await page
-    .getByRole("button", { name: "45도 시점", exact: true })
-    .click();
+  await orbitTo(page, "45도 시점");
   await expect(
     page.getByRole("button", {
       name: "선택 상품 높이",
       exact: true,
     }),
   ).toHaveCount(0);
-  await page.getByLabel("높이 직접 입력").fill("0.7");
+  for (let i = 0; i < 9; i++)
+    await page
+      .getByRole("img", {
+        name: "3D 데스크 캔버스",
+        exact: true,
+      })
+      .press("Shift+ArrowDown");
   await page
-    .getByRole("button", { name: "배치 저장", exact: true })
-    .click();
+    .getByRole("img", {
+      name: "3D 데스크 캔버스",
+      exact: true,
+    })
+    .press("Enter");
   await expect(
     page.getByText("3D 배치를 저장했어요."),
-  ).toBeVisible();
+  ).toHaveCount(1);
   const placement = page.getByLabel("선택 상품 배치");
   await expect
     .poll(async () =>
@@ -145,12 +152,7 @@ test("height adjustment persists and the tabletop occludes a lowered keyboard", 
   expect(saved).toContain("X -0.45");
   expect(saved).toContain("Z 0.65");
   await page.reload();
-  await page
-    .getByRole("button", {
-      name: "새싹 키보드 선택",
-      exact: true,
-    })
-    .click();
+  await selectSceneProduct(page, "새싹 키보드");
   await expect(placement).toHaveText(saved);
   await page.goto("/users/bugri-learner");
   await expect(

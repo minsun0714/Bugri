@@ -6,7 +6,7 @@ import {
 import {
   productPoint,
   rotateTo,
-  selectTrialProduct,
+  selectSceneProduct,
 } from "./helpers/desk";
 
 // Compare the silhouette bounds, not a median painted pixel whose position can
@@ -114,7 +114,7 @@ for (const width of [1100, 390]) {
         ).toBeLessThanOrEqual(1);
     }
     await page.mouse.up();
-    await selectTrialProduct(dialog, "기본 데스크");
+    await selectSceneProduct(dialog, "기본 데스크");
     await rotateTo(dialog, "기본 데스크", 90);
     for (const [index, color] of colors.entries()) {
       const after = await itemBounds(canvas, color);
@@ -126,7 +126,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "초기화", exact: true })
       .click();
-    await selectTrialProduct(dialog, "기본 데스크");
+    await selectSceneProduct(dialog, "기본 데스크");
     await expect(
       dialog.getByLabel("선택 상품 배치"),
     ).toHaveText("X 0.00 · Y 0.00 · Z 0.00 · 회전 0°");
@@ -134,9 +134,7 @@ for (const width of [1100, 390]) {
       .getByRole("button", { name: "닫기", exact: true })
       .click();
     await page.goto("/my/desk");
-    await page
-      .getByRole("button", { name: "새싹 키보드 선택" })
-      .click();
+    await selectSceneProduct(page, "새싹 키보드");
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toHaveText("X -0.45 · Y 1.55 · Z 0.65 · 회전 0°");

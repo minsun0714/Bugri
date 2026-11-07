@@ -146,7 +146,12 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(50);
+  expect(Object.keys(endpoints)).toHaveLength(51);
+
+  expect(endpoints.transformDesk).toEqual({
+    method: "PUT",
+    path: "/me/desk/table",
+  });
 
   expect(endpoints.publicLearningDay).toEqual({
     method: "GET",
@@ -344,6 +349,31 @@ test("candidate deletion uses its batch path and candidate body", async () => {
       body: JSON.stringify({
         candidateId: "candidate-1",
       }),
+    }),
+  );
+});
+
+test("independent desk transforms use a typed table endpoint and preserve the expected desk", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(response({ data: {} }));
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  const request = {
+    productId: null,
+    transform: { x: 1, y: 0, z: 0, rotationY: 15 },
+  };
+
+  await client.request("transformDesk", request);
+
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/me/desk/table",
+    expect.objectContaining({
+      method: "PUT",
+      body: JSON.stringify(request),
     }),
   );
 });

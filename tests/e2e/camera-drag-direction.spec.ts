@@ -1,3 +1,4 @@
+import { orbitTo } from "./helpers/desk";
 import {
   expect,
   test,
@@ -46,12 +47,7 @@ for (const width of [1100, 390]) {
     ]) {
       await page.goto(path);
       if (path === "/my/desk") {
-        await page
-          .getByRole("button", {
-            name: "정면",
-            exact: true,
-          })
-          .click();
+        await orbitTo(page, "정면");
       }
       const canvas = page.locator(
         '[data-renderer="canvas"] canvas',

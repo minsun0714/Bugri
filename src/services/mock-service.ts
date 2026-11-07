@@ -1,3 +1,4 @@
+import { moveDeskIndependently } from "@/lib/desk-independent";
 import { tagQuizzes } from "@/services/tag-quizzes";
 import { validateProfileAbout } from "@/lib/profile-about";
 import {
@@ -15,6 +16,7 @@ import {
 } from "@/lib/desk-layout";
 import {
   DeskObject,
+  Category,
   QuizStatus,
   ConversationRole,
   LearningMode,
@@ -159,6 +161,7 @@ const allowed: Record<Operation, string[]> = {
   equip: ["category", "productId"],
   moveEquipment: ["category", "productId", "position"],
   reorderDesk: ["order"],
+  transformDesk: ["productId", "transform"],
   transformBugri: ["transform"],
   transformEquipment: [
     "category",
@@ -1578,6 +1581,39 @@ export function execute<K extends Operation>(
       s.order = [...r.order];
 
       return s.order;
+    }
+
+    case "transformDesk": {
+      if (r.productId !== null) text(r.productId);
+
+      requireValue(
+        validTransform(Category.DESK, r.transform),
+        "책상의 위치와 회전값을 확인하세요.",
+      );
+
+      if (r.productId !== (s.equipment.DESK ?? null))
+        throw new ServiceError(
+          "FORBIDDEN",
+          "현재 내 책상만 이동할 수 있습니다.",
+          403,
+        );
+
+      const transforms = moveDeskIndependently(
+        s.equipment,
+        s.transforms,
+        r.transform,
+      );
+
+      requireValue(
+        deskItems(s.equipment).every((category) =>
+          validTransform(category, transforms[category]),
+        ),
+        "아이템의 위치와 회전값을 확인하세요.",
+      );
+
+      s.transforms = transforms;
+
+      return s.transforms;
     }
 
     case "transformBugri": {

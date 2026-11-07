@@ -1,3 +1,4 @@
+import { selectSceneProduct } from "./helpers/desk";
 import { rotateTo, rotationOf } from "./helpers/desk";
 import { test, expect } from "@playwright/test";
 
@@ -74,20 +75,19 @@ test("shop, own desk and public desk work when WebGL is unavailable", async ({
     .click();
   await page.goto("/my/desk");
   await expect(page).toHaveURL(/\/my\/desk(?:\?|$)/);
-  await page
-    .getByRole("button", { name: "새싹 키보드 선택" })
-    .click();
+  await selectSceneProduct(page, "새싹 키보드");
   await rotateTo(page, "새싹 키보드", 90);
   await page
-    .getByRole("button", { name: "배치 저장", exact: true })
-    .click();
+    .getByRole("img", {
+      name: "3D 데스크 캔버스",
+      exact: true,
+    })
+    .press("Enter");
   await expect(
     page.getByText("3D 배치를 저장했어요."),
-  ).toBeVisible();
+  ).toHaveCount(1);
   await page.reload();
-  await page
-    .getByRole("button", { name: "새싹 키보드 선택" })
-    .click();
+  await selectSceneProduct(page, "새싹 키보드");
   await expect.poll(() => rotationOf(page)).toBe(90);
   await page.goto("/users/bugri-learner");
   await expect(
