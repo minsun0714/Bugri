@@ -1,3 +1,4 @@
+import { DemoSessionProvider } from "@/components/navigation/demo-session";
 import type { Metadata } from "next";
 import "@/app/globals.css";
 
@@ -12,7 +13,11 @@ export default function RootLayout({
 }: LayoutProps<"/">) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <DemoSessionProvider>
+          {children}
+        </DemoSessionProvider>
+      </body>
     </html>
   );
 }

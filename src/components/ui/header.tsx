@@ -1,8 +1,9 @@
+import { ProductHeader } from "@/components/navigation/product-header";
 import Link from "next/link";
 import { Badge } from "@/components/ui/index";
 import { MobileNavigation } from "@/components/ui/mobile-navigation";
 
-export function Header({
+export function ShowcaseHeader({
   sections,
 }: {
   sections: string[][];
@@ -51,5 +52,17 @@ export function Header({
         ))}
       </nav>
     </header>
+  );
+}
+
+export function Header({
+  sections,
+}: {
+  sections?: string[][];
+}) {
+  return sections ? (
+    <ShowcaseHeader sections={sections} />
+  ) : (
+    <ProductHeader />
   );
 }

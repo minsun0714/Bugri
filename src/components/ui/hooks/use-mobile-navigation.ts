@@ -29,8 +29,8 @@ export function useMobileNavigation() {
       }
     };
     const desktop = window.matchMedia("(min-width: 640px)");
-    const resize = () => {
-      if (desktop.matches) setOpen(false);
+    const resize = (event: MediaQueryListEvent) => {
+      if (event.matches) setOpen(false);
     };
 
     document.addEventListener("pointerdown", outside);
