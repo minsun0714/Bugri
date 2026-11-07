@@ -146,6 +146,11 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "POST",
     path: "/learning/next",
   },
+  publicLearningDay: {
+    method: "GET",
+    path: "/users/{id}/learning-day",
+    pathKey: "publicId",
+  },
   learningDay: {
     method: "GET",
     path: "/learning/day",

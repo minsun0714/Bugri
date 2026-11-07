@@ -146,7 +146,13 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(49);
+  expect(Object.keys(endpoints)).toHaveLength(50);
+
+  expect(endpoints.publicLearningDay).toEqual({
+    method: "GET",
+    path: "/users/{id}/learning-day",
+    pathKey: "publicId",
+  });
 
   expect(endpoints.tagQuizzes).toEqual({
     method: "GET",

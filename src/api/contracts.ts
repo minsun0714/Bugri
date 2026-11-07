@@ -503,6 +503,10 @@ export interface ApiOperations {
     request: LearningQuery;
     response: LearningSelection;
   };
+  publicLearningDay: {
+    request: { publicId: string };
+    response: LearningDay;
+  };
   learningDay: {
     request: Record<string, never>;
     response: LearningDay;

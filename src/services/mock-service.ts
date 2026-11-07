@@ -146,6 +146,7 @@ const allowed: Record<Operation, string[]> = {
   learningQuiz: ["hashtagId", "mode"],
   learningNext: ["hashtagId", "mode"],
   learningDay: [],
+  publicLearningDay: ["publicId"],
   learningTimezone: [],
   updateTimezone: ["timeZone"],
   startAttempt: ["quizId", "context"],
@@ -1210,24 +1211,52 @@ export function execute<K extends Operation>(
         timeZone: s.timeZone,
       };
 
+    case "publicLearningDay":
+
     case "learningDay": {
-      if (!s.timeZone)
+      let learningState = s;
+
+      if (operation === "publicLearningDay") {
+        text(r.publicId);
+
+        const owner = users.find(
+          ({ publicId }) => publicId === r.publicId,
+        );
+
+        if (!owner)
+          throw new ServiceError(
+            "NOT_FOUND",
+            "사용자를 찾을 수 없습니다.",
+            404,
+          );
+
+        learningState = allStates.find(
+          ({ userId }) => userId === owner.userId,
+        )!;
+      }
+
+      if (!learningState.timeZone)
         throw new ServiceError(
           "TIMEZONE_REQUIRED",
           "학습 시간대를 설정하세요.",
           409,
         );
 
-      const date = localDate(now, s.timeZone);
-      const dates = s.days.map((d) => d.learningDate);
+      const date = localDate(now, learningState.timeZone);
+
+      const dates = learningState.days.map(
+        (d) => d.learningDate,
+      );
 
       return {
-        timeZone: s.timeZone,
+        timeZone: learningState.timeZone,
         learningDate: date,
         completed: dates.includes(date),
         streak: streak(dates, date),
         completedDates: [...dates].sort(),
-        dailyCounts: dailyQuizCounts(s.attempts),
+        dailyCounts: dailyQuizCounts(
+          learningState.attempts,
+        ),
       };
     }
 

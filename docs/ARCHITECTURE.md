@@ -181,3 +181,7 @@ PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따
 `ProfileAbout`은 공개 프로필 정보 묶음의 공개 ID와 방문자 구독 동작을 ReactNode로 받아 소개와 함께 조립한다. 편집 상태·조회 오류·포커스 복귀는 같은 경계에 두며 사용자/로그인 상태 key로 초기화한다. 본인 편집 동작은 같은 styles.ts의 보조 액션 스타일, 외부 링크는 ProfileLinkIcon과 별도 링크 스타일을 사용한다. API·저장 데이터 계약은 바꾸지 않는다.
 
 프로필 편집은 MarkdownEditor의 선택형 compact 밀도 및 Dropdown/TextField의 선택형 숨김 라벨을 사용한다. 다른 호출자의 기본 UI는 유지한다. useProfileForm은 필드별 오류를 보존하고 행 삭제 시 인덱스를 재연결하며, validationAttempt로 저장 검증 시에만 첫 오류 포커스를 요청한다.
+
+### 공개 프로필 스트릭
+
+공개 프로필은 홈 StreakSummary와 ActivityPeriods를 재사용한다. publicId가 주어지면 publicLearningDay typed API와 publicId별 TanStack Query 캐시로 주인의 공개 집계만 조회한다. 개인 learningDay와 같은 서비스 계산을 사용하며 공개 조회에서는 Mock 시간대 초기화·마이그레이션·저장을 하지 않는다. 시간대 미설정은 오류 상태로 유지한다. 공개 화면은 행동 촉구 대신 주인의 현재 학습 상태를 설명한다.

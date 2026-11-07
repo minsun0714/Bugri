@@ -237,3 +237,7 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - 모든 작성자의 활성 PUBLIC 퀴즈 중 태그에 해당하는 항목을 최근 공개 시각 내림차순·동률 quizId 오름차순으로 정렬한다. PRIVATE/PENDING/삭제/비활성은 제외한다. 정답·해설·문제 본문·원문은 반환하지 않는다.
 - `subscribed`는 현재 더미 사용자의 직접 HASHTAG 구독이다. 방문자 UI는 이 값을 개인 상태로 표시하지 않는다. 목록 조회는 구독을 변경하지 않는다. 기존 subscribe/unsubscribe 성공 시 `tagQuizzes` 사용자별 캐시도 무효화한다.
 - 화면 `/tags/[hashtagId]/quizzes`는 탐색의 query/discoveryPage/subscribed 조건을 보존해 돌아간다. 목록 page와 탐색 discoveryPage는 분리한다. URL user가 없으면 링크·검색으로 임의 사용자를 추가하지 않는다.
+
+### 공개 프로필 학습 활동
+
+`publicLearningDay({ publicId })` → `GET /users/{id}/learning-day`는 프로필 주인의 `LearningDay` 집계(시간대·현지 오늘·오늘 완료·현재 스트릭·완료 날짜·일별 퀴즈 수)만 반환한다. 홈과 동일한 계산을 재사용하며 문제 ID·답안·정오·원문·보상 내역은 포함하지 않는다. 방문자/본인/타인 모두 동일한 공개 집계를 조회한다. Mock 조회는 사용자 시간대 초기화나 마이그레이션·저장을 수행하지 않는다. 없는 publicId는404, 주인의 시간대가 없으면409 TIMEZONE_REQUIRED이며 방문자 시간대를 대신 적용하지 않는다. 캐시 키는 publicId별 분리, 화면 복귀/60초 주기로 재조회한다. 실제 인증·동의 설정은 이번 단계의 구현 범위가 아니다.
