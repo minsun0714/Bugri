@@ -627,12 +627,24 @@ export function createDeskEngine(
       const cameraAngle = radians(drag.yaw);
       const screenX = dx / drag.zoom / 100;
       const sine = Math.sin(radians(drag.pitch));
-      const screenZ =
-        dy /
-        drag.zoom /
-        100 /
-        ((Math.sign(sine) || 1) *
-          Math.max(0.1, Math.abs(sine)));
+      // Near the horizon, a ground-plane inverse amplifies tiny drags.
+      // Use a vertical plane at the grabbed depth for movable objects instead.
+      const vertical =
+        category !== Category.DESK &&
+        Math.abs(drag.pitch) <= 20;
+      if (vertical)
+        next.y -=
+          dy /
+          drag.zoom /
+          100 /
+          Math.cos(radians(drag.pitch));
+      const screenZ = vertical
+        ? 0
+        : dy /
+          drag.zoom /
+          100 /
+          ((Math.sign(sine) || 1) *
+            Math.max(0.1, Math.abs(sine)));
       let x =
         Math.cos(cameraAngle) * screenX +
         Math.sin(cameraAngle) * screenZ;
@@ -678,7 +690,8 @@ export function createDeskEngine(
     if (
       !drag ||
       !drag.category ||
-      drag.category === Category.DESK
+      drag.category === Category.DESK ||
+      Math.abs(drag.pitch) <= 20
     )
       return null;
     const { category } = drag;
