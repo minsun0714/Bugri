@@ -34,6 +34,7 @@ test("Markdown preview preserves code and safely ignores raw HTML", async ({
   await page
     .getByRole("tab", { name: "작성", exact: true })
     .click();
+  await page.setViewportSize({ width: 390, height: 844 });
   await input.fill("설명");
   await input.evaluate((element: HTMLTextAreaElement) =>
     element.setSelectionRange(2, 2),
@@ -44,9 +45,25 @@ test("Markdown preview preserves code and safely ignores raw HTML", async ({
       exact: true,
     })
     .click();
+  const language = page.getByRole("combobox", {
+    name: "삽입할 코드 언어",
+  });
+  await language.click();
   await page
-    .getByLabel("삽입할 코드 언어")
-    .selectOption("java");
+    .getByRole("option", { name: "java", exact: true })
+    .click();
+  await expect(language).toContainText("java");
+  await language.click();
+  await page.keyboard.press("Escape");
+  await expect(language).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  await expect(language).toBeFocused();
+  await expect(page.locator("body")).toHaveJSProperty(
+    "scrollWidth",
+    390,
+  );
   await page
     .getByRole("button", { name: "삽입", exact: true })
     .click();

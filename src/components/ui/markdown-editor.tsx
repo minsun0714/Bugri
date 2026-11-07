@@ -1,5 +1,6 @@
 "use client";
 
+import { Dropdown } from "@/components/ui/dropdown";
 import { styles } from "@/components/ui/styles";
 import { useId } from "react";
 import { useMarkdownEditor } from "@/components/ui/hooks/use-markdown-editor";
@@ -56,17 +57,11 @@ export function MarkdownEditor({
       </div>
       {picker && (
         <div className={styles["editor-picker"]}>
-          <label htmlFor={`${id}-language`}>
-            삽입할 코드 언어
-          </label>
-          <select
-            id={`${id}-language`}
+          <Dropdown
+            label="삽입할 코드 언어"
             value={language}
-            onChange={(event) =>
-              setLanguage(event.target.value)
-            }
-          >
-            {[
+            onValueChange={setLanguage}
+            options={[
               "typescript",
               "javascript",
               "java",
@@ -77,10 +72,8 @@ export function MarkdownEditor({
               "json",
               "bash",
               "text",
-            ].map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
+            ].map((value) => ({ value, label: value }))}
+          />
           <Button size="sm" onClick={insertCode}>
             삽입
           </Button>

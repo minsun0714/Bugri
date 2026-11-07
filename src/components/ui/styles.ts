@@ -59,7 +59,7 @@ export const styles = {
   "editor-tools":
     "editor-tools flex items-center justify-end flex-wrap gap-2 py-2.5 px-0",
   "editor-picker":
-    "editor-picker flex gap-2.5 items-center flex-wrap bg-[#f4f1f9] p-3 rounded-[8px] mb-2.5 text-[11px] [&_select]:p-1.75 [&_select]:border [&_select]:border-line [&_select]:rounded-[6px] [&_select]:bg-white [&_select]:text-foreground",
+    "editor-picker grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-end bg-canvas p-3 rounded-2xl mb-3",
   "editor-footer":
     "editor-footer flex justify-between gap-2.5 flex-wrap mt-2.5 text-[10px] text-muted",
   "markdown-preview":
