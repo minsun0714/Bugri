@@ -53,7 +53,6 @@ async function submit(page: Page, labels: string[]) {
 test("home immediately shows a subscribed question without a list or start button", async ({
   page,
 }) => {
-  await seed(page);
   await page.goto("/");
   await expect(
     page.getByRole("heading", {
@@ -232,7 +231,7 @@ test("tag filtering persists through next and reload without changing subscripti
 test("no subscriptions means empty state, never public recommendations", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/?user=friend");
   await expect(
     page.getByText("학습할 퀴즈가 없습니다", {
       exact: true,
@@ -469,4 +468,39 @@ test("retrying a failed direct restart stays on that quiz", async ({
       exact: true,
     }),
   ).toBeDisabled();
+});
+
+test("existing empty learner snapshot receives demo subscriptions on reload", async ({
+  page,
+}) => {
+  const state = initialState("learner");
+  delete state.learningDemoVersion;
+  state.subscriptions = [];
+  await page.addInitScript((value) => {
+    if (!localStorage.getItem("bugri:mock:v1:learner"))
+      localStorage.setItem(
+        "bugri:mock:v1:learner",
+        JSON.stringify(value),
+      );
+  }, state);
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", {
+      name: "타입 선언",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await submit(page, ["number"]);
+  await page.reload();
+  await expect(
+    page.getByText("정답입니다", { exact: true }),
+  ).toBeVisible();
+  const saved = await page.evaluate(() =>
+    JSON.parse(
+      localStorage.getItem("bugri:mock:v1:learner")!,
+    ),
+  );
+  expect(saved.learningDemoVersion).toBe(1);
+  expect(saved.subscriptions).toHaveLength(3);
+  expect(saved.attempts).toHaveLength(1);
 });

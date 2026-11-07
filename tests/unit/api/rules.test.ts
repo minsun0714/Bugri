@@ -16,7 +16,7 @@ import {
   type MockOptions,
 } from "@/mocks/adapter";
 import { generatedContents } from "@/mocks/quizzes";
-import { storageKey } from "@/mocks/storage";
+import { initialState, storageKey } from "@/mocks/storage";
 import { localDate, streak } from "@/services/learning";
 
 const api = (
@@ -77,6 +77,17 @@ async function approve({
 }
 
 beforeEach(() => localStorage.clear());
+
+function seedUnsubscribedLearner() {
+  const state = initialState("learner");
+
+  state.subscriptions = [];
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify(state),
+  );
+}
 
 test.each(["", "   ", "😀".repeat(10_001)])(
   "rejects invalid source length/blank",
@@ -541,6 +552,8 @@ test.each([
 ] as const)(
   "subscription filters %j",
   async (target, count) => {
+    seedUnsubscribedLearner();
+
     const client = api();
 
     await client.request("subscribe", target);
@@ -553,6 +566,8 @@ test.each([
 );
 
 test("overlapping subscriptions deduplicate, tag changes preserve records, unsubscribe rechecks start", async () => {
+  seedUnsubscribedLearner();
+
   const client = api();
 
   expect(

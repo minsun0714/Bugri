@@ -8,6 +8,7 @@ import type {
 import {
   execute,
   type MockGenerator,
+  type ServiceContext,
 } from "@/services/mock-service";
 import {
   requireValue,
@@ -22,6 +23,7 @@ import {
 } from "@/mocks/storage";
 import { generatedContents } from "@/mocks/quizzes";
 import { users } from "@/mocks/users";
+import { subscriptions } from "@/mocks/subscriptions";
 
 export interface MockOptions {
   userId: string;
@@ -134,7 +136,7 @@ export function createMockTransport(
             : (fallbackTimeZone ?? null);
         }
 
-        const data = execute(operation, clone(request), {
+        const context: ServiceContext = {
           state,
           allStates,
           allQuizzes: allStates.flatMap(
@@ -144,7 +146,24 @@ export function createMockTransport(
           id: () => globalThis.crypto.randomUUID(),
           generate: options.generate ?? defaultGenerate,
           dailyReward: dailyReward ?? 0,
-        });
+        };
+
+        // Upgrade only the actor's legacy snapshot. Service-level subscribe deduplicates targets.
+        // Commit the marker with the requested operation so a failed write never partially migrates.
+        if (state.learningDemoVersion === undefined) {
+          for (const target of subscriptions[userId] ??
+            []) {
+            execute("subscribe", clone(target), context);
+          }
+
+          state.learningDemoVersion = 1;
+        }
+
+        const data = execute(
+          operation,
+          clone(request),
+          context,
+        );
 
         // One setItem commits the complete mutation; failure leaves persisted state unchanged.
         if (JSON.stringify(state) !== before)
