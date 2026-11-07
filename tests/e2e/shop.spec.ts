@@ -51,15 +51,45 @@ test("mobile search and price sorting narrow the catalog without overflow", asyn
   await page.goto("/shop");
 
   await page.getByLabel("상품 검색").fill("모니터");
-  await expect(page.getByRole("article")).toHaveCount(2);
+  await expect(page.getByRole("article")).toHaveCount(3);
+  const sorting = page.getByRole("combobox", {
+    name: "상품 정렬",
+  });
+  await sorting.click();
   await page
-    .getByLabel("상품 정렬")
-    .selectOption("PRICE_DESC");
+    .getByRole("option", { name: "가격 높은순" })
+    .click();
+  await expect(sorting).toBeFocused();
+  await sorting.press("Home");
+  await sorting.press("ArrowDown");
+  await sorting.press("Enter");
+  await expect(
+    page
+      .getByRole("article")
+      .getByRole("heading", { level: 3 }),
+  ).toHaveText([
+    "스카이 모니터",
+    "집중 모니터",
+    "미드나잇 모니터",
+  ]);
+  await sorting.press("Enter");
+  await sorting.press("ArrowDown");
+  await sorting.press("Enter");
+  await expect(sorting).toHaveText("가격 높은순");
+  await sorting.press("Enter");
+  await sorting.press("Escape");
+  await expect(
+    page.getByRole("listbox", { name: "상품 정렬" }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("article").getByRole("heading", {
       level: 3,
     }),
-  ).toHaveText(["미드나잇 모니터", "집중 모니터"]);
+  ).toHaveText([
+    "미드나잇 모니터",
+    "집중 모니터",
+    "스카이 모니터",
+  ]);
   expect(
     await page.evaluate(
       () =>
@@ -126,9 +156,10 @@ test("purchase, equip, restore, switch users and view a public desk", async ({
   await expect(
     page.getByText("아직 보관한 상품이 없어요"),
   ).toBeVisible();
-  await page
-    .getByRole("link", { name: "학습자의 데스크 ↗" })
-    .click();
+  await expect(
+    page.getByRole("heading", { name: "이웃의 데스크" }),
+  ).toHaveCount(0);
+  await page.goto("/users/bugri-learner?user=friend");
   await expect(
     page.getByRole("group", {
       name: "학습자의 데스크 · 새싹 키보드",
@@ -186,3 +217,102 @@ test("mobile categories, insufficient balance and empty public desk", async ({
     }),
   ).toBeVisible();
 });
+
+for (const width of [1280, 390]) {
+  test(`shop uses header account switching at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/shop?user=learner");
+    await expect(
+      page.getByRole("link", { name: "← Bugri 홈" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByLabel("더미 사용자"),
+    ).toHaveCount(0);
+    const card = page.getByRole("article").filter({
+      has: page.getByRole("heading", {
+        name: "새싹 키보드",
+        exact: true,
+      }),
+    });
+    await card
+      .getByRole("button", {
+        name: "구매하기",
+        exact: true,
+      })
+      .click();
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "70",
+    );
+    await expect(
+      page.getByRole("button", { name: /^데모:/ }),
+    ).toHaveCount(0);
+    const profile = page.getByRole("button", {
+      name: "내 프로필",
+    });
+    await profile.click();
+    await page
+      .getByRole("button", {
+        name: "데모 사용자 전환",
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("dialog", { name: "데모 사용자 선택" })
+      .press("Escape");
+    await expect(profile).toBeFocused();
+    await profile.press("Enter");
+    await page
+      .getByRole("button", {
+        name: "데모 사용자 전환",
+        exact: true,
+      })
+      .click();
+    const dialog = page.getByRole("dialog", {
+      name: "데모 사용자 선택",
+    });
+    await dialog
+      .getByRole("combobox", { name: "더미 사용자" })
+      .click();
+    await dialog
+      .getByRole("option", { name: "친구", exact: true })
+      .click();
+    await dialog
+      .getByRole("button", { name: "선택한 사용자로 시작" })
+      .click();
+    await expect(page).toHaveURL(/user=friend/);
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "100",
+    );
+    await expect(
+      card.getByRole("button", {
+        name: "구매하기",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "100",
+    );
+    await page.goBack();
+    await expect(page).toHaveURL(/user=learner/);
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "70",
+    );
+    await expect(
+      card.getByRole("button", {
+        name: "보유 중",
+        exact: true,
+      }),
+    ).toBeDisabled();
+    await page
+      .getByRole("link", { name: "Bugri 홈", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      (url) =>
+        url.pathname === "/" &&
+        url.searchParams.get("user") === "learner",
+    );
+  });
+}

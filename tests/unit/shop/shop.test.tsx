@@ -124,7 +124,7 @@ it("searches, sorts and resets the product catalog", async () => {
     screen.getByLabelText("상품 정렬"),
   );
   expect(
-    screen.queryByText("10개의 오브젝트"),
+    screen.queryByText("15개의 오브젝트"),
   ).not.toBeInTheDocument();
 
   fireEvent.change(search, {
@@ -138,14 +138,17 @@ it("searches, sorts and resets the product catalog", async () => {
   fireEvent.change(search, {
     target: { value: "모니터" },
   });
-  expect(screen.getAllByRole("article")).toHaveLength(2);
+  expect(screen.getAllByRole("article")).toHaveLength(3);
   expect(
     screen.queryByRole("heading", { name: "새싹 키보드" }),
   ).not.toBeInTheDocument();
 
-  fireEvent.change(screen.getByLabelText("상품 정렬"), {
-    target: { value: "PRICE_DESC" },
-  });
+  fireEvent.click(
+    screen.getByRole("combobox", { name: "상품 정렬" }),
+  );
+  fireEvent.click(
+    screen.getByRole("option", { name: "가격 높은순" }),
+  );
   expect(
     screen
       .getAllByRole("article")
@@ -154,7 +157,11 @@ it("searches, sorts and resets the product catalog", async () => {
           within(card).getByRole("heading", { level: 3 })
             .textContent,
       ),
-  ).toEqual(["미드나잇 모니터", "집중 모니터"]);
+  ).toEqual([
+    "미드나잇 모니터",
+    "집중 모니터",
+    "스카이 모니터",
+  ]);
 
   fireEvent.click(
     screen.getByRole("button", { name: "키보드" }),
@@ -166,13 +173,13 @@ it("searches, sorts and resets the product catalog", async () => {
   fireEvent.click(
     screen.getByRole("button", { name: "필터 초기화" }),
   );
-  expect(screen.getAllByRole("article")).toHaveLength(10);
+  expect(screen.getAllByRole("article")).toHaveLength(15);
   expect(screen.getByLabelText("상품 검색")).toHaveValue(
     "",
   );
-  expect(screen.getByLabelText("상품 정렬")).toHaveValue(
-    "DEFAULT",
-  );
+  expect(
+    screen.getByRole("combobox", { name: "상품 정렬" }),
+  ).toHaveTextContent("기본순");
 });
 
 it("replaces equipment in the same category while keeping both purchases", async () => {
@@ -277,7 +284,7 @@ it("shows the catalog directly without shop or inventory tabs", async () => {
   expect(
     screen.queryByRole("button", { name: "보관함" }),
   ).not.toBeInTheDocument();
-  expect(screen.getAllByRole("article")).toHaveLength(10);
+  expect(screen.getAllByRole("article")).toHaveLength(15);
   expect(
     screen.queryByRole("heading", {
       name: "이웃의 데스크",
@@ -328,4 +335,52 @@ it("keeps the own desk focused on editing without neighbors or view presets", as
   expect(
     screen.getByRole("img", { name: "3D 데스크 캔버스" }),
   ).toBeInTheDocument();
+});
+
+it("follows the layout user when switching shop accounts", async () => {
+  const shop = render(
+    <ShopApp embedded initialUser="learner" />,
+  );
+  const title = await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
+  fireEvent.click(
+    within(title.closest("article")!).getByRole("button", {
+      name: "구매하기",
+    }),
+  );
+  await screen.findByText("구매 완료 · 보관함에 담았어요.");
+  expect(
+    screen.getByLabelText("내 잔액"),
+  ).toHaveTextContent("70");
+  shop.rerender(<ShopApp embedded initialUser="friend" />);
+  await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
+  expect(
+    within(
+      screen
+        .getByRole("heading", { name: "새싹 키보드" })
+        .closest("article")!,
+    ).getByRole("button", { name: "구매하기" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByLabelText("내 잔액"),
+  ).toHaveTextContent("100");
+  expect(
+    screen.queryByText("구매 완료 · 보관함에 담았어요."),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByLabelText("더미 사용자"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", { name: "← Bugri 홈" }),
+  ).not.toBeInTheDocument();
+  shop.rerender(<ShopApp embedded initialUser="learner" />);
+  expect(
+    await screen.findByRole("button", { name: "보유 중" }),
+  ).toBeDisabled();
+  expect(
+    screen.getByLabelText("내 잔액"),
+  ).toHaveTextContent("70");
 });

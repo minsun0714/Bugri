@@ -154,6 +154,19 @@ export function HeaderNavigation({
                   >
                     마이페이지
                   </Link>
+                  {pathname === "/shop" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        profileTrigger.current?.focus();
+                        setProfileOpen(false);
+                        onSignIn?.();
+                      }}
+                      className="rounded-xl px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                    >
+                      데모 사용자 전환
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -205,7 +218,7 @@ function ConnectedHeader() {
         onSignIn={signIn}
         onSignOut={signOut}
       />
-      {userId && (
+      {userId && pathname !== "/shop" && (
         <div className="border-b border-line bg-canvas px-5 py-1 text-center text-xs text-muted">
           <button
             className="min-h-8 rounded px-2 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-primary"
