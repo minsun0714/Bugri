@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-for (const width of [1280, 375]) {
+for (const width of [1280, 375, 320]) {
   test(`missing URL and route crash recover at ${width}px`, async ({
     page,
   }, testInfo) => {
@@ -10,7 +10,7 @@ for (const width of [1280, 375]) {
     );
     await expect(
       page.getByRole("heading", {
-        name: "페이지를 찾을 수 없습니다",
+        name: "페이지를 찾지 못했어요",
       }),
     ).toBeVisible();
     await page.screenshot({
@@ -26,7 +26,7 @@ for (const width of [1280, 375]) {
       .click();
     await expect(
       page.getByRole("heading", {
-        name: "화면을 불러오지 못했습니다",
+        name: "앗, 잠깐 문제가 생겼어요",
       }),
     ).toBeVisible();
     await expect(
@@ -35,6 +35,13 @@ for (const width of [1280, 375]) {
     await page.screenshot({
       path: testInfo.outputPath(`error-${width}.png`),
     });
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          window.innerWidth,
+      ),
+    ).toBe(true);
     await page
       .getByRole("button", { name: "다시 시도" })
       .focus();

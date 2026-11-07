@@ -1578,3 +1578,9 @@
 
 - 독립 통합 코드리뷰: 양쪽 TASKS 기록 보존(기능상태3줄은 검증결과에 맞춰DONE 정리), 중복제목·충돌마커·미해결인덱스 없음. 개발자QueryClient와중복모달제거·코인경로·헤더선택·테스트 보존 확인. 기존UX/UI 근거와 미확인한계 유지.
 - 최종 Node22.23.3 `npm run verify -- -- --workers=2` exit0: lint·전체타입·Jest57 suites/288개·도구3개·production build·E2E175개 통과. 로그 `/tmp/bugri-error-integration-verify.log`. 검증대상0365b72+dev b08085b 통합코드이며 이후변경은본기록뿐이다. origin/dev가 b08085b로유지됨을확인했고 통합커밋·push·dev대상PR생성까지수행한다. PR병합은수행하지않는다.
+
+## ERROR-CUTE — 전체 오류 화면 버그리 연출
+
+- 상태: IN_PROGRESS. 사용자 후속 요청으로 404와 전체 렌더/global 오류 화면만 깜찍한 버그리 장면으로 바꾼다. 404는 접힌 지도, 전체 오류는 컴퓨터·작은 공구를 배치하고 제목을 부드럽게 변경한다. 부분 Query 오류·API·복구 동작은 유지한다.
+- 기존 Bugri·Button·토큰을 재사용하며 장면은 aria-hidden 정적 HTML/SVG로 구현한다. 새 이미지·provider·애니메이션 의존성을 추가하지 않는다. 독립 UI 설계 후 PC/375/320px 캡처·기존 복구 테스트·독립 UX/UI 리뷰, PR 갱신 전 전체검증을 수행한다. 시각·문구 변경이라 새 TDD는 강제하지 않고 기존 동작 검증을 유지한다.
+- 관련검증: Node22.23.3 단위4개·전체타입·scoped lint/format·production오류E2E7개 통과. 초기320px min-content넘침1건을 min-w-0로해결했다. 사용자피드백으로404의미소를o입,전체오류는일자입으로수정하고7개E2E재검증통과. [독립UX/UI기록](ux-reviews/ERROR-CUTE.md).

@@ -12,7 +12,7 @@ test("missing pages offer a home link without a futile retry", () => {
   render(<NotFound />);
   expect(
     screen.getByRole("heading", { level: 1 }),
-  ).toHaveTextContent("페이지를 찾을 수 없습니다");
+  ).toHaveTextContent("페이지를 찾지 못했어요");
   expect(
     screen.getByRole("link", { name: "홈으로 이동" }),
   ).toHaveAttribute("href", "/");
@@ -44,7 +44,7 @@ test("global fallback supplies a Korean document without session providers", () 
   );
   expect(html).toContain('<html lang="ko">');
   expect(html).toContain("<body>");
-  expect(html).toContain("화면을 불러오지 못했습니다");
+  expect(html).toContain("앗, 잠깐 문제가 생겼어요");
   expect(html).not.toContain("private detail");
 });
 
