@@ -72,9 +72,20 @@ for (const width of [1100, 390]) {
       box.y + box.height / 2,
       { steps: 8 },
     );
-    await expect.poll(() => rotationOf(dialog)).not.toBe(0);
+    await expect.poll(() => rotationOf(dialog)).toBe(324);
     await page.mouse.up();
-    await expect.poll(() => rotationOf(dialog)).not.toBe(0);
+    await expect.poll(() => rotationOf(dialog)).toBe(324);
+    const movedHandle = (await handle.boundingBox())!;
+    const handleX = movedHandle.x + movedHandle.width / 2;
+    const handleY = movedHandle.y + movedHandle.height / 2;
+    await page.mouse.move(handleX, handleY);
+    await page.mouse.down();
+    await page.mouse.move(handleX - 30, handleY, {
+      steps: 8,
+    });
+    await expect.poll(() => rotationOf(dialog)).toBe(342);
+    await page.mouse.up();
+    await expect.poll(() => rotationOf(dialog)).toBe(342);
     const rotation = await rotationOf(dialog);
     await handle.focus();
     await page.keyboard.press("ArrowRight");

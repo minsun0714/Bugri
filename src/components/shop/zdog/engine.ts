@@ -456,7 +456,8 @@ export function createDeskEngine(
       return;
     let next = { ...transform };
     if (drag.tool === DeskTool.ROTATE)
-      next.rotationY += dx * 0.6;
+      // Rendering negates the stored angle, so rightward drag subtracts it.
+      next.rotationY -= dx * 0.6;
     else if (drag.tool === DeskTool.HEIGHT) {
       if (category === Category.DESK) return;
       next.y -=
