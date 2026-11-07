@@ -1,3 +1,5 @@
+import { DemoSessionProvider } from "@/components/navigation/demo-session";
+import { createBrowserApi } from "@/api/browser";
 import {
   fireEvent,
   render,
@@ -70,4 +72,49 @@ test("author catalog filters explicitly and refreshes subscriptions without navi
     "/developers/bugri-author/quizzes?user=friend&page=1&tagPage=1&tag=typescript",
     { scroll: false },
   );
+});
+
+test("public profile previews quizzes without filters and requires login before subscription", async () => {
+  const api = await createBrowserApi({
+    mode: "mock",
+    userId: "friend",
+  });
+  const before = await api.request("subscriptions", {});
+  render(
+    <DemoSessionProvider>
+      <DeveloperScreen profile />
+    </DemoSessionProvider>,
+  );
+  expect(
+    await screen.findByRole("heading", {
+      name: "타입 개발자",
+    }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("searchbox"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "전체 보기 →" }),
+  ).toHaveAttribute(
+    "href",
+    "/developers/bugri-author/quizzes?user=friend",
+  );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "로그인하고 구독하기",
+    }),
+  );
+  expect(await api.request("subscriptions", {})).toEqual(
+    before,
+  );
+  fireEvent.click(
+    await screen.findByRole("button", {
+      name: "개발자 구독하기",
+    }),
+  );
+  expect(
+    await screen.findByRole("button", {
+      name: "개발자 구독 해제",
+    }),
+  ).toBeVisible();
 });

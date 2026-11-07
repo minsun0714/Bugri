@@ -9,7 +9,7 @@ for (const width of [1100, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/my");
+    await page.goto("/my/desk");
     const canvas = page.locator(
       '[data-renderer="canvas"] canvas',
     );
@@ -90,7 +90,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "닫기", exact: true })
       .click();
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await page
       .getByRole("button", {
         name: "버그리 선택",
@@ -109,7 +109,7 @@ for (const width of [1100, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/my");
+    await page.goto("/my/desk");
     const surface = page.getByRole("img", {
       name: "3D 데스크 캔버스",
       exact: true,
@@ -183,7 +183,7 @@ for (const width of [1100, 390]) {
         .getByRole("button", { name: "닫기", exact: true })
         .click();
     }
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await expect(surface).toBeVisible();
     await expect.poll(backdrop).toBe(previous);
     await page.reload();

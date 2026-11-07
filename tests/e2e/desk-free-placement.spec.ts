@@ -36,7 +36,7 @@ test("lavender keyboard can leave the table, rotate, save and remain visible", a
     .getByRole("dialog")
     .getByRole("button", { name: "닫기", exact: true })
     .click();
-  await page.goto("/my");
+  await page.goto("/my/desk");
   await page
     .getByRole("button", {
       name: "라벤더 키보드 선택",

@@ -69,6 +69,7 @@ export interface Revision extends QuizContent {
 }
 
 export interface ReviewQuiz {
+  publishedAt?: string;
   quizId: string;
   ownerUserId: string;
   status: QuizStatus;

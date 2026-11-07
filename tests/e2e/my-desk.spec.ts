@@ -72,8 +72,8 @@ test("shop, own desk and public desk work when WebGL is unavailable", async ({
     .getByRole("dialog")
     .getByRole("button", { name: "닫기", exact: true })
     .click();
-  await page.goto("/my");
-  await expect(page).toHaveURL(/\/my(?:\?|$)/);
+  await page.goto("/my/desk");
+  await expect(page).toHaveURL(/\/my\/desk(?:\?|$)/);
   await page
     .getByRole("button", { name: "새싹 키보드 선택" })
     .click();
@@ -103,6 +103,6 @@ test("shop, own desk and public desk work when WebGL is unavailable", async ({
     }),
   ).toHaveCount(0);
   await page.goto("/shop/zdog");
-  await expect(page).toHaveURL(/\/my$/);
+  await expect(page).toHaveURL(/\/my\/desk$/);
   expect(errors).toEqual([]);
 });

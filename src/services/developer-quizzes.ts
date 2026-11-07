@@ -86,7 +86,20 @@ export function developerQuizzes(
         !hashtagId ||
         active!.hashtagIds.includes(hashtagId),
     )
-    .sort((a, b) => compare(a.quizId, b.quizId));
+    .sort((a, b) => {
+      const publishedA = a.publishedAt
+        ? Date.parse(a.publishedAt)
+        : -Infinity;
+
+      const publishedB = b.publishedAt
+        ? Date.parse(b.publishedAt)
+        : -Infinity;
+
+      return (
+        publishedB - publishedA ||
+        compare(a.quizId, b.quizId)
+      );
+    });
 
   return {
     user,

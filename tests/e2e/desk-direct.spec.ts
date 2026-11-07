@@ -121,7 +121,7 @@ for (const width of [1100, 390]) {
       dialog.getByText("장착과 배치를 저장했어요."),
     ).toBeVisible();
     await page.keyboard.press("Escape");
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await page
       .getByRole("button", { name: "새싹 키보드 선택" })
       .click();

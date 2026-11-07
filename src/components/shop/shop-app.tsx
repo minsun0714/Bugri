@@ -74,6 +74,9 @@ function ShopContent({
     moveBugri,
     reorder,
   } = useShop(userId);
+  const currentUser = users.data?.find(
+    (user) => user.userId === userId,
+  );
   const [category, setCategory] = useState<Category | null>(
     null,
   );
@@ -189,6 +192,22 @@ function ShopContent({
           )}
         </div>
       </div>
+      {editing && currentUser && (
+        <Link
+          href={`/users/${encodeURIComponent(currentUser.publicId)}?${new URLSearchParams({ user: userId })}`}
+          className="mb-5 mr-5 inline-block rounded text-sm text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
+        >
+          내 공개 프로필 보기
+        </Link>
+      )}
+      {editing && users.error && (
+        <Button
+          variant="ghost"
+          onClick={() => void users.refetch()}
+        >
+          공개 프로필 링크 다시 불러오기
+        </Button>
+      )}
       {editing && (
         <Link
           href={`/shop?user=${userId}`}
@@ -596,7 +615,7 @@ export function ShopApp({
               window.history.replaceState(
                 null,
                 "",
-                `${editing ? "/my" : "/shop"}?user=${event.target.value}`,
+                `${editing ? "/my/desk" : "/shop"}?user=${event.target.value}`,
               );
             }}
           />

@@ -9,7 +9,7 @@ for (const width of [1100, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await page
       .getByRole("button", {
         name: "버그리 선택",

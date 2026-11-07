@@ -71,7 +71,7 @@ for (const width of [1100, 390]) {
       .getByRole("dialog")
       .getByRole("button", { name: "닫기", exact: true })
       .click();
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await page
       .getByRole("button", {
         name: "새싹 키보드 선택",

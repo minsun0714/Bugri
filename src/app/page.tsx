@@ -1,14 +1,10 @@
 import { ProductLayout } from "@/components/navigation/product-layout";
-import { Suspense } from "react";
-import { SolveScreen } from "@/components/solving/solve-screen";
-import { Skeleton } from "@/components/ui";
+import { HomeSections } from "@/components/navigation/home-sections";
 
 export default function Home() {
   return (
     <ProductLayout>
-      <Suspense fallback={<Skeleton />}>
-        <SolveScreen />
-      </Suspense>
+      <HomeSections />
       <a
         href="/shop"
         className="mt-8 inline-flex rounded-xl bg-primary px-5 py-3 text-sm text-white"

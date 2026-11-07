@@ -33,7 +33,7 @@ for (const width of [1100, 390]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/my");
+    await page.goto("/my/desk");
     const canvas = page
       .getByRole("main")
       .locator('[data-renderer="canvas"] canvas');

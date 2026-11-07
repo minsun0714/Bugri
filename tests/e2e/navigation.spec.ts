@@ -23,7 +23,13 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
   await expect(
     page.getByText("Design workspace · 0.1"),
   ).toHaveCount(0);
-  await nav.getByRole("link", { name: "내 퀴즈" }).click();
+  await page
+    .getByRole("button", { name: "내 프로필", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "내 프로필 메뉴" })
+    .getByRole("link", { name: "내 퀴즈" })
+    .click();
   await expect(page).toHaveURL(
     /\/quizzes\/authoring\/manage\?user=friend$/,
   );
@@ -37,7 +43,9 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
     .getByRole("button", { name: "Google 로그인 (데모)" })
     .click();
   await expect(
-    nav.getByRole("link", { name: "내 퀴즈" }),
+    page
+      .getByRole("navigation", { name: "현재 위치" })
+      .getByText("내 퀴즈"),
   ).toHaveAttribute("aria-current", "page");
   await page.screenshot({
     path: testInfo.outputPath("navigation-desktop.png"),
@@ -52,7 +60,9 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
   ).toHaveCount(0);
   await page.goBack();
   await expect(
-    nav.getByRole("link", { name: "내 퀴즈" }),
+    page
+      .getByRole("navigation", { name: "현재 위치" })
+      .getByText("내 퀴즈"),
   ).toHaveAttribute("aria-current", "page");
 });
 
@@ -89,10 +99,8 @@ test("mobile menu supports keyboard, dismissals, resize and navigation", async (
   await page.screenshot({
     path: testInfo.outputPath("navigation-mobile.png"),
   });
-  await mobile
-    .getByRole("link", { name: /내 퀴즈/ })
-    .click();
-  await expect(page).toHaveURL(/manage\?user=author$/);
+  await mobile.getByRole("link", { name: "Shop" }).click();
+  await expect(page).toHaveURL(/shop\?user=author$/);
   await expect(mobile).toHaveCount(0);
   await trigger.click();
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -154,13 +162,25 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     .getByRole("button", { name: "Google 로그인 (데모)" })
     .click();
   await expect(
-    nav.getByRole("link", { name: "내 퀴즈" }),
+    page.getByRole("button", {
+      name: "내 프로필",
+      exact: true,
+    }),
   ).toBeVisible();
-  await nav.getByRole("link", { name: "내 퀴즈" }).click();
+  await page
+    .getByRole("button", { name: "내 프로필", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "내 프로필 메뉴" })
+    .getByRole("link", { name: "내 퀴즈" })
+    .click();
   await expect(page).toHaveURL(/manage\?user=learner$/);
   await expect(
     page.getByRole("heading", { name: /내 퀴즈/ }),
   ).toBeVisible();
+  await page
+    .getByRole("button", { name: "내 프로필", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "로그아웃" }),
   ).toBeVisible();
@@ -176,3 +196,55 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     }),
   ).toBeVisible();
 });
+
+for (const width of [1280, 390]) {
+  test(`header opens own public profile directly at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/my?user=author");
+    await page
+      .getByRole("button", { name: "Google 로그인 (데모)" })
+      .click();
+    const trigger = page.getByRole("button", {
+      name: "내 프로필",
+      exact: true,
+    });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const link = page.getByRole("link", {
+      name: "공개 프로필 보기",
+      exact: true,
+    });
+    await expect(link).toHaveAttribute(
+      "href",
+      "/users/bugri-author?user=author",
+    );
+    await page.screenshot({
+      path: testInfo.outputPath("profile-menu.png"),
+    });
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+    await expect(link).toHaveCount(0);
+    await trigger.click();
+    await page
+      .getByRole("link", {
+        name: "공개 프로필 보기",
+        exact: true,
+      })
+      .click();
+    await expect(page).toHaveURL(
+      /\/users\/bugri-author\?user=author$/,
+    );
+    await expect(
+      page.getByRole("heading", {
+        name: "타입 개발자",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("navigation", {
+        name: "내 프로필 메뉴",
+      }),
+    ).toHaveCount(0);
+  });
+}

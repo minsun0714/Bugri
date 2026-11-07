@@ -70,7 +70,7 @@ for (const width of [1100, 390]) {
         exact: true,
       }),
     ).toBeEnabled();
-    await page.goto("/my");
+    await page.goto("/my/desk");
     await expect(
       page.getByText("아직 보관한 상품이 없어요"),
     ).toBeVisible();
@@ -151,7 +151,7 @@ test("trial purchase and equip are explicit and replacing a preview does not sav
   await dialog
     .getByRole("button", { name: "닫기", exact: true })
     .click();
-  await page.goto("/my");
+  await page.goto("/my/desk");
   await expect(
     page.getByRole("group", {
       name: "내 데스크 · 새싹 키보드",
