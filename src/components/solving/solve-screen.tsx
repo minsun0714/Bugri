@@ -265,9 +265,6 @@ function Session({
                       <QuizText>
                         {data.result.explanation}
                       </QuizText>
-                      <Button onClick={flow.restart}>
-                        다시 풀기
-                      </Button>
                     </section>
                   ) : (
                     !data.completedAt && (
@@ -287,12 +284,23 @@ function Session({
                   기록과 이미 획득한 성과는 유지됩니다.
                 </p>
               )}
-              {!direct &&
-                (data.completedAt || !data.quiz) && (
-                  <Button onClick={flow.next}>
-                    다음 문제
-                  </Button>
-                )}
+              {(data.quiz && data.result) ||
+              (!direct &&
+                (data.completedAt || !data.quiz)) ? (
+                <div className="flex items-center gap-3">
+                  {data.quiz && data.result && (
+                    <Button onClick={flow.restart}>
+                      다시 풀기
+                    </Button>
+                  )}
+                  {!direct &&
+                    (data.completedAt || !data.quiz) && (
+                      <Button onClick={flow.next}>
+                        다음 문제
+                      </Button>
+                    )}
+                </div>
+              ) : null}
             </Card>
           )}
         </>
