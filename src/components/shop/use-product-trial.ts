@@ -1,4 +1,6 @@
 import { useRef, useState } from "react";
+import { Category } from "@/api/constants";
+import { initialPreviewTransform } from "@/components/shop/preview-placement";
 import { defaultTransforms } from "@/lib/desk-spatial";
 import type {
   DeskTransforms,
@@ -29,7 +31,21 @@ export function useProductTrial({
 }) {
   const { category, productId } = product;
   const movable = isMovable(category) ? category : null;
-  const [local, setLocal] = useState(transforms);
+  const [space] = useState(() => ({
+    equipment: { ...equipment },
+    transforms: { ...transforms },
+  }));
+  const [local, setLocal] = useState<DeskTransforms>(() =>
+    movable
+      ? {
+          [movable]: initialPreviewTransform(
+            movable,
+            equipment,
+            transforms,
+          ),
+        }
+      : {},
+  );
   const [applying, setApplying] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -38,7 +54,7 @@ export function useProductTrial({
   );
   const lock = useRef(false);
   const editor = useSpatialEditor({
-    equipment: { ...equipment, [category]: productId },
+    equipment: { [category]: productId },
     transforms: local,
     disabled: pending || applying,
     save: async ({ category, transform }) => {
@@ -95,6 +111,18 @@ export function useProductTrial({
 
   return {
     editor,
+    space,
+    preview:
+      movable && current
+        ? {
+            category: movable,
+            productId,
+            transform: current,
+          }
+        : undefined,
+    replacesExisting:
+      category === Category.DESK ||
+      Boolean(space.equipment[category]),
     apply,
     unchanged,
     error,

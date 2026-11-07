@@ -11,7 +11,11 @@ import type {
 import { SelectionOverlay } from "@/components/shop/selection-overlay";
 import { constrainTransform } from "@/lib/desk-spatial";
 import type { createDeskEngine } from "@/components/shop/zdog/engine";
-import { DeskView, DeskTool } from "@/api/constants";
+import {
+  DeskView,
+  DeskTool,
+  Category,
+} from "@/api/constants";
 import { Button } from "@/components/ui";
 import { artworkNames } from "@/components/shop/artwork";
 
@@ -46,7 +50,10 @@ export function ThreeView(props: Props) {
     const { selected, transforms, disabled } = props;
     if (!selected || disabled) return;
     const current =
-      transforms[selected] ?? defaultTransforms[selected];
+      props.preview?.category === selected
+        ? props.preview.transform
+        : (transforms[selected] ??
+          defaultTransforms[selected]);
     const transform = constrainTransform(selected, {
       ...current,
       ...(tool === DeskTool.ROTATE
@@ -58,9 +65,21 @@ export function ThreeView(props: Props) {
   }
   const label = props.label ?? "내 데스크";
   const names =
-    Object.values(props.equipment)
-      .map((id) => artworkNames[id] ?? id)
-      .join(", ") || "기본 데스크";
+    [
+      ...Object.values(props.equipment).map(
+        (id) => artworkNames[id] ?? id,
+      ),
+      ...(props.preview?.category === Category.DESK &&
+      !props.equipment.DESK
+        ? ["기본 데스크"]
+        : []),
+      ...(props.preview
+        ? [
+            artworkNames[props.preview.productId] ??
+              props.preview.productId,
+          ]
+        : []),
+    ].join(", ") || "기본 데스크";
 
   useEffect(() => {
     latest.current = props;

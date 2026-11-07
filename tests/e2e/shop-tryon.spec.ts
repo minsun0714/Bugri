@@ -129,7 +129,7 @@ test("trial purchase and equip are explicit and replacing a preview does not sav
     .click();
   await expect(
     dialog.getByRole("group", {
-      name: "장착 미리보기 · 라벤더 키보드",
+      name: "장착 미리보기 · 새싹 키보드, 라벤더 키보드",
       exact: true,
     }),
   ).toBeVisible();

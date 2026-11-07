@@ -41,8 +41,10 @@ export function createDeskEngine(
     MovableCategory | null
   >();
   let content: Zdog.Anchor | null = null;
+  let previewAnchor: Zdog.Anchor | null = null;
   let rotationHandle: Zdog.Anchor | null = null;
   let framingHeight = 300;
+  let framingCenter = { x: 0, z: 0 };
   const anchors = new Map<MovableCategory, Zdog.Anchor>();
   let equipmentKey = "";
   let yaw = 45;
@@ -68,6 +70,7 @@ export function createDeskEngine(
     content = new Zdog.Anchor({ addTo: scene });
     anchors.clear();
     owners.clear();
+    previewAnchor = null;
     const { equipment } = state;
     if (equipment.BACKGROUND)
       model(content, equipment.BACKGROUND);
@@ -104,8 +107,21 @@ export function createDeskEngine(
         );
     }
     anchors.forEach((anchor, category) =>
-      owners.set(anchor, category),
+      owners.set(anchor, state.preview ? null : category),
     );
+    if (state.preview) {
+      const { category, productId, transform } =
+        state.preview;
+      previewAnchor = model(
+        category === Category.DESK
+          ? content
+          : transform.y >= tableHeight
+            ? upper
+            : lower,
+        productId,
+      );
+      owners.set(previewAnchor, category);
+    }
     createHandle();
   }
 
@@ -169,6 +185,11 @@ export function createDeskEngine(
     // tabletop or the selected gizmo changes, rather than reparent cached shapes.
     const key = JSON.stringify([
       state.equipment,
+      state.preview && [
+        state.preview.productId,
+        state.preview.category,
+        state.preview.transform.y >= tableHeight,
+      ],
       state.selected,
       state.tool,
       state.readOnly,
@@ -216,6 +237,63 @@ export function createDeskEngine(
         );
       }
       radius += Math.hypot(desk.x, desk.z);
+      if (state.preview) {
+        const { category, transform } = state.preview;
+        radius = Math.max(
+          radius,
+          Math.hypot(transform.x, transform.z) +
+            (category === Category.DESK
+              ? 3
+              : 1 + Math.hypot(desk.x, desk.z)),
+        );
+        framingHeight = Math.max(
+          framingHeight,
+          transform.y * 100 +
+            (category === Category.MONITOR
+              ? 138
+              : category === Category.ACCESSORY
+                ? 85
+                : 12),
+        );
+      }
+      framingCenter = { x: 0, z: 0 };
+      if (state.preview?.category === Category.DESK) {
+        const added = state.preview.transform;
+        framingCenter = {
+          x: (desk.x + added.x) / 2,
+          z: (desk.z + added.z) / 2,
+        };
+        const distance = (x: number, z: number) =>
+          Math.hypot(
+            x - framingCenter.x,
+            z - framingCenter.z,
+          );
+        radius = Math.max(
+          3.7,
+          distance(desk.x, desk.z) + 2.4,
+          distance(added.x, added.z) + 2.4,
+        );
+        const world = (x: number, z: number) =>
+          new Zdog.Vector({ x, z })
+            .rotate({ y: -radians(desk.rotationY) })
+            .add({ x: desk.x, z: desk.z });
+        const mascot = world(-2.3, 1.8);
+        radius = Math.max(
+          radius,
+          distance(mascot.x, mascot.z) + 0.7,
+        );
+        for (const category of anchors.keys()) {
+          if (category === Category.DESK) continue;
+          const value =
+            state.transforms[category] ??
+            defaultTransforms[category];
+          const point = world(value.x, value.z);
+          radius = Math.max(
+            radius,
+            distance(point.x, point.z) + 1,
+          );
+        }
+      }
       const spanX = Math.max(850, radius * 200 + 80);
       const spanY = Math.max(
         570,
@@ -233,6 +311,12 @@ export function createDeskEngine(
       x: -radians(pitch),
       y: radians(yaw),
     });
+    scene.translate.set(
+      new Zdog.Vector({
+        x: -framingCenter.x * 100,
+        z: -framingCenter.z * 100,
+      }).rotate(scene.rotate),
+    );
     illustration.translate.y =
       (framingHeight / 2) * Math.cos(radians(pitch)) * zoom;
     anchors.forEach((anchor, category) => {
@@ -246,6 +330,17 @@ export function createDeskEngine(
       });
       anchor.rotate.y = -radians(value.rotationY);
     });
+    if (previewAnchor && state.preview) {
+      const { transform } = state.preview;
+      previewAnchor.translate.set({
+        x: transform.x * 100,
+        y: -transform.y * 100,
+        z: transform.z * 100,
+      });
+      previewAnchor.rotate.y = -radians(
+        transform.rotationY,
+      );
+    }
     if (rotationHandle && state.tool === DeskTool.HEIGHT)
       rotationHandle.scale.y =
         1 / Math.max(0.2, Math.cos(radians(pitch)));
@@ -288,7 +383,8 @@ export function createDeskEngine(
         );
         category =
           hit &&
-          state.equipment[hit] &&
+          (state.preview?.category === hit ||
+            state.equipment[hit]) &&
           (!state.editableCategories ||
             state.editableCategories.includes(hit))
             ? hit
@@ -301,8 +397,10 @@ export function createDeskEngine(
     }
     if (!category && tool !== DeskTool.CAMERA) return;
     const transform = category
-      ? (state.transforms[category] ??
-        defaultTransforms[category])
+      ? state.preview?.category === category
+        ? state.preview.transform
+        : (state.transforms[category] ??
+          defaultTransforms[category])
       : null;
     drag = {
       id: event.pointerId,
@@ -350,7 +448,10 @@ export function createDeskEngine(
     if (
       !category ||
       !transform ||
-      !state.equipment[category]
+      !(
+        state.preview?.category === category ||
+        state.equipment[category]
+      )
     )
       return;
     let next = { ...transform };

@@ -1,3 +1,4 @@
+import type { DeskTransform } from "@/api/contracts";
 import type { SceneState } from "@/components/shop/three/engine";
 import type { MovableCategory } from "@/lib/desk-layout";
 
@@ -12,6 +13,11 @@ export interface SelectionBounds {
 }
 
 export interface DeskSceneState extends SceneState {
+  preview?: {
+    category: MovableCategory;
+    productId: string;
+    transform: DeskTransform;
+  };
   directManipulation?: boolean;
   editableCategories?: MovableCategory[];
   onDeselect?: () => void;

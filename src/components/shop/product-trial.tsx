@@ -20,9 +20,12 @@ export function ProductTrial(props: {
     request: Request<"transformEquipment">,
   ) => Promise<unknown>;
 }) {
-  const { product, equipment, owned, buy } = props;
+  const { product, owned, buy } = props;
   const {
     editor,
+    space,
+    preview,
+    replacesExisting,
     apply,
     unchanged,
     error,
@@ -34,11 +37,16 @@ export function ProductTrial(props: {
     <>
       <ThreeView
         label="장착 미리보기"
-        equipment={{
-          ...equipment,
-          [product.category]: product.productId,
-        }}
-        transforms={editor.effective}
+        equipment={
+          preview
+            ? space.equipment
+            : {
+                ...space.equipment,
+                [product.category]: product.productId,
+              }
+        }
+        transforms={space.transforms}
+        preview={preview}
         selected={editor.selected}
         tool={editor.tool}
         disabled={editor.blocked}
@@ -88,7 +96,9 @@ export function ProductTrial(props: {
                 ? "배치 다시 적용"
                 : unchanged
                   ? "장착 중"
-                  : "내 데스크에 장착"}
+                  : replacesExisting
+                    ? "기존 상품과 교체"
+                    : "내 데스크에 장착"}
             </Button>
           ) : (
             <Button
