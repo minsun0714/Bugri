@@ -116,20 +116,45 @@ for (const width of [1280, 390]) {
       name: "학습 활동",
       exact: true,
     });
-    await expect(activity.getByRole("alert")).toHaveText(
-      "학습 시간대를 확인할 수 없어요.",
+    await expect(activity.getByRole("alert")).toHaveCount(
+      0,
     );
+    await expect(activity.getByRole("table")).toBeVisible();
     await expect(
       activity.getByText("2일 연속"),
     ).toHaveCount(0);
     await expect(
-      activity.getByRole("button", { name: "다시 시도" }),
+      activity.getByText("총 0개"),
     ).toBeVisible();
     await activity.scrollIntoViewIfNeeded();
     await page.screenshot({
       path: testInfo.outputPath(
-        `activity-error-${width}.png`,
+        `activity-unset-${width}.png`,
       ),
     });
+  });
+}
+
+for (const query of ["", "?user=friend"]) {
+  test(`unselected demo owner activity is visible ${query || "as guest"}`, async ({
+    page,
+  }) => {
+    await page.goto(`/users/bugri-author${query}`);
+    const activity = page.getByRole("region", {
+      name: "학습 활동",
+      exact: true,
+    });
+    await expect(activity.getByRole("table")).toBeVisible();
+    await expect(activity.getByRole("alert")).toHaveCount(
+      0,
+    );
+    await expect(
+      activity.getByText("총 0개"),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(() =>
+        localStorage.getItem("bugri:mock:v1:author"),
+      ),
+    ).toBeNull();
   });
 }
