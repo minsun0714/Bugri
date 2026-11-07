@@ -1,3 +1,4 @@
+import { tabletopDrop } from "@/lib/desk-surface";
 import { normalizeOrder } from "@/lib/desk-order";
 import { paintLayers } from "@/components/shop/zdog/layers";
 import { lightRoomObjects } from "@/components/shop/zdog/room";
@@ -640,6 +641,38 @@ export function createDeskEngine(
         ...transform,
         y: transform.y + 0.1,
       });
+    }
+    if (
+      moved &&
+      next &&
+      tool === DeskTool.MOVE &&
+      category === DeskObject.BUGRI &&
+      !state.disabled
+    ) {
+      const { x, y, width, height } =
+        canvas.getBoundingClientRect();
+      const desk =
+        state.transforms.DESK ?? defaultTransforms.DESK;
+      const snapped = tabletopDrop({
+        screen: {
+          x:
+            (event.clientX - x - width / 2) /
+            drag.zoom /
+            100,
+          y:
+            ((event.clientY - y - height / 2) / drag.zoom -
+              illustration.translate.y) /
+            100,
+        },
+        yaw: drag.yaw,
+        pitch: drag.pitch,
+        center: framingCenter,
+        desk,
+        itemFrame: state.itemFrame ?? desk,
+        transform: next,
+      });
+
+      if (snapped) next = snapped;
     }
     drag = null;
     canvas.releasePointerCapture(event.pointerId);
