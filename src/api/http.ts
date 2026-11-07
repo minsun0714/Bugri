@@ -49,6 +49,11 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/generation-batches/{id}/refine",
     pathKey: "batchId",
   },
+  deleteCandidate: {
+    method: "DELETE",
+    path: "/generation-batches/{id}/candidates",
+    pathKey: "batchId",
+  },
   saveBatch: {
     method: "POST",
     path: "/generation-batches/{id}/save",

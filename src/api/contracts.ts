@@ -281,6 +281,13 @@ export interface ApiOperations {
     };
     response: GenerationBatch;
   };
+  deleteCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+    };
+    response: GenerationBatch;
+  };
   saveBatch: {
     request: { batchId: string } & (
       | { mode: "SINGLE"; candidateId: string }

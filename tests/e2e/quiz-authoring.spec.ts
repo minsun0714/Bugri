@@ -144,6 +144,9 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     candidates.getByText("임시저장됨", { exact: true }),
   ).toBeVisible();
   for (let index = 2; index <= 4; index += 1) {
+    await expect(
+      page.getByRole("link", { name: "검토·승인" }),
+    ).toHaveCount(0);
     await candidates
       .getByRole("tab", {
         name: `퀴즈 ${index}`,
@@ -165,6 +168,12 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
       name: /^퀴즈 [1-4] · 임시저장됨$/,
     }),
   ).toHaveCount(4);
+  await expect(
+    page.getByRole("link", { name: "검토·승인" }),
+  ).toBeVisible();
+  await expect(
+    candidates.getByRole("link", { name: "검토·승인" }),
+  ).toHaveCount(0);
   await management.reload();
   await expect(
     management
@@ -187,6 +196,17 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
       .getByRole("region", { name: "내 퀴즈 목록" })
       .getByRole("article"),
   ).toHaveCount(4);
+  page.once("dialog", (dialog) => dialog.accept());
+  await candidates
+    .getByRole("button", { name: "퀴즈 삭제" })
+    .click();
+  await expect(candidates.getByRole("tab")).toHaveCount(3);
+  await management.reload();
+  await expect(
+    management
+      .getByRole("region", { name: "내 퀴즈 목록" })
+      .getByRole("article"),
+  ).toHaveCount(3);
 });
 
 test("quiz tabs stay visible while only the candidate body scrolls", async ({
@@ -262,6 +282,20 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .getByRole("button", { name: "임시저장", exact: true })
     .first()
     .click();
+  for (let index = 2; index <= 4; index += 1) {
+    await page
+      .getByRole("tab", {
+        name: `퀴즈 ${index}`,
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("button", {
+        name: "임시저장",
+        exact: true,
+      })
+      .click();
+  }
   await page
     .getByRole("link", { name: "검토·승인" })
     .click();
@@ -388,13 +422,13 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     page
       .getByRole("region", { name: "내 퀴즈 목록" })
       .getByRole("article"),
-  ).toHaveCount(0);
+  ).toHaveCount(3);
   await page.reload();
   await expect(
     page
       .getByRole("region", { name: "내 퀴즈 목록" })
       .getByRole("article"),
-  ).toHaveCount(0);
+  ).toHaveCount(3);
 });
 
 test("stale tabs cannot overwrite and keep unsaved edits", async ({
@@ -611,6 +645,20 @@ test("initial results hide chat and publish only the displayed quiz", async ({
   await expect(
     dialog.getByText("공개됨", { exact: true }),
   ).toBeVisible();
+  for (let index = 2; index <= 4; index += 1) {
+    await dialog
+      .getByRole("tab", {
+        name: `퀴즈 ${index}`,
+        exact: true,
+      })
+      .click();
+    await dialog
+      .getByRole("button", {
+        name: "임시저장",
+        exact: true,
+      })
+      .click();
+  }
   await page.reload();
   await expect(
     dialog.getByRole("tab", { name: "퀴즈 1 · 공개됨" }),

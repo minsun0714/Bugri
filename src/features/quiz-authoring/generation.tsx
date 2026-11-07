@@ -7,6 +7,7 @@ import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring
 import {
   Button,
   Card,
+  EmptyState,
   TextArea,
   Tabs,
 } from "@/components/ui";
@@ -26,6 +27,7 @@ export function Generation(props: GenerationProps) {
   const {
     batch,
     publish,
+    removeCandidate,
     notice,
     editing,
     edit,
@@ -92,11 +94,24 @@ export function Generation(props: GenerationProps) {
       `퀴즈 ${index + 1}${savedLabels[index] ? ` · ${savedLabels[index]}` : ""}`,
   );
   const manageHref = `/quizzes/authoring/manage?user=${encodeURIComponent(props.userId ?? "learner")}`;
+  const allHandled =
+    batch.candidates.length > 0 &&
+    batch.candidates.every(
+      ({ savedQuizId }) => savedQuizId,
+    );
+  const [firstHandled] = batch.candidates;
+  const reviewHref = firstHandled?.savedQuizId
+    ? `${manageHref}&quiz=${encodeURIComponent(firstHandled.savedQuizId)}`
+    : manageHref;
   const closeChat = () =>
     setModes((current) => ({
       ...current,
       [selectedIndex]: "미리보기",
     }));
+  const deleteCurrent = () => {
+    setModes({});
+    removeCandidate();
+  };
   const chatWorkspace = candidate ? (
     <section
       className="flex min-h-0 flex-1 flex-col"
@@ -254,6 +269,16 @@ export function Generation(props: GenerationProps) {
           </Button>
         </div>
       )}
+      {allHandled && (
+        <div className="flex shrink-0 justify-end">
+          <a
+            href={reviewHref}
+            className="inline-flex min-h-10 items-center justify-center rounded-xl border-2 border-[#4b30ac] bg-primary px-4 py-2 text-sm font-semibold text-white shadow-[0_3px_0_#4b30ac]"
+          >
+            검토·승인
+          </a>
+        </div>
+      )}
       {batch && candidate && chatOpen && chatWorkspace}
       {batch && candidate && !chatOpen && (
         <section
@@ -299,9 +324,9 @@ export function Generation(props: GenerationProps) {
                         {candidate.content.title}
                       </h2>
                     </div>
-                    {!candidate.savedQuizId && (
-                      <div className="ml-auto flex flex-wrap justify-end gap-1">
-                        {["직접 수정", "LLM으로 수정"].map(
+                    <div className="ml-auto flex flex-wrap justify-end gap-1">
+                      {!candidate.savedQuizId &&
+                        ["직접 수정", "LLM으로 수정"].map(
                           (label) => (
                             <Button
                               key={label}
@@ -336,8 +361,23 @@ export function Generation(props: GenerationProps) {
                             </Button>
                           ),
                         )}
-                      </div>
-                    )}
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        disabled={busy}
+                        onClick={() => {
+                          if (
+                            !window.confirm(
+                              `“${candidate.content.title}” 퀴즈를 삭제할까요?${candidate.savedQuizId ? " 저장하거나 공개한 퀴즈도 목록에서 사라집니다." : ""}`,
+                            )
+                          )
+                            return;
+                          deleteCurrent();
+                        }}
+                      >
+                        퀴즈 삭제
+                      </Button>
+                    </div>
                   </div>
                   {mode !== "직접 수정" && (
                     <ContentPreview
@@ -394,12 +434,6 @@ export function Generation(props: GenerationProps) {
                         <span>
                           {savedLabels[selectedIndex]}
                         </span>
-                        <a
-                          className="font-semibold text-primary underline"
-                          href={`${manageHref}&quiz=${encodeURIComponent(candidate.savedQuizId)}`}
-                        >
-                          검토·승인
-                        </a>
                       </div>
                     ) : (
                       <div className="flex flex-wrap items-center justify-end gap-3">
@@ -434,6 +468,12 @@ export function Generation(props: GenerationProps) {
             </div>
           </Tabs>
         </section>
+      )}
+      {batch && !candidate && (
+        <EmptyState
+          title="남은 퀴즈가 없습니다"
+          description="새 퀴즈를 만들면 다시 다듬을 수 있습니다."
+        />
       )}
     </section>
   );

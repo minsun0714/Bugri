@@ -363,3 +363,9 @@
 - 검토 미리보기의 `추가 프롬프트로 재생성`을 `직접 수정`과 같은 버튼 그룹으로 옮기고, 공통 Modal의 textarea에서 수정 요청을 입력하도록 변경했다. 기존 독립 재생성 카드는 제거했다.
 - 재생성 실패 시 모달과 입력을 유지하고 성공 시 모달을 닫아 새 PENDING 미리보기로 돌아간다. 버튼 위계·모달 입력 보존 테스트의 의도한 실패를 확인한 뒤 검토 단위 테스트 8개와 검토·승인 E2E를 통과했으며 모바일 실화면을 확인했다.
 - Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 81개·production build·Playwright 16개. 독립 리뷰는 남아 있다.
+
+### A · 생성 후보 검토 진입·삭제 — DONE
+
+- 후보별 `검토·승인`을 제거하고, 남은 후보가 모두 임시저장 또는 바로 공개로 처리된 뒤에만 상단에 단일 검토 진입을 표시한다.
+- 현재 후보를 삭제하는 타입 API·Mock 서비스·UI를 추가했다. 이미 저장·공개한 후보는 연결 퀴즈도 soft delete하며, 삭제 후 탭·편집 초안 인덱스를 재정렬한다.
+- 의도한 단위 테스트 실패를 확인한 뒤 API 권한·충돌·HTTP 직렬화, UI 노출 조건·삭제, 검토 이동·새로고침 복원을 검증했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/84 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.

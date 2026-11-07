@@ -66,6 +66,9 @@ test("detail saves each candidate individually without automatic approval", asyn
       name: "남은 후보 모두 저장",
     }),
   ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", { name: "검토·승인" }),
+  ).not.toBeInTheDocument();
   for (let index = 2; index <= 4; index += 1) {
     fireEvent.click(
       screen.getByRole("tab", { name: `퀴즈 ${index}` }),
@@ -76,7 +79,16 @@ test("detail saves each candidate individually without automatic approval", asyn
     await waitFor(() =>
       expect(onSaved).toHaveBeenCalledTimes(index),
     );
+    if (index < 4)
+      expect(
+        screen.queryByRole("link", {
+          name: "검토·승인",
+        }),
+      ).not.toBeInTheDocument();
   }
+  expect(
+    screen.getByRole("link", { name: "검토·승인" }),
+  ).toBeVisible();
   const quizzes = await api.request("quizzes", {
     scope: QuizScope.OWN,
   });
@@ -84,6 +96,34 @@ test("detail saves each candidate individually without automatic approval", asyn
   expect(
     quizzes.every(({ status }) => status === "PENDING"),
   ).toBe(true);
+});
+
+test("deletes the current candidate and its saved quiz", async () => {
+  const { api } = await setup();
+  const confirm = jest
+    .spyOn(window, "confirm")
+    .mockReturnValue(true);
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "임시저장" }),
+  );
+  await screen.findByText("임시저장됨");
+  fireEvent.click(
+    screen.getByRole("button", { name: "퀴즈 삭제" }),
+  );
+
+  await waitFor(() =>
+    expect(
+      screen.getAllByRole("tab", { name: /^퀴즈/ }),
+    ).toHaveLength(3),
+  );
+  expect(
+    await api.request("quizzes", { scope: QuizScope.OWN }),
+  ).toHaveLength(0);
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "퀴즈를 삭제했습니다.",
+  );
+  confirm.mockRestore();
 });
 
 test("detail refinement preserves input on failure and retry updates only the candidate", async () => {

@@ -80,6 +80,7 @@ const allowed: Record<Operation, string[]> = {
   generationBatch: ["batchId"],
   refineCandidate: ["batchId", "candidateId", "prompt"],
   editCandidate: ["batchId", "candidateId", "content"],
+  deleteCandidate: ["batchId", "candidateId"],
   publishCandidate: ["batchId", "candidateId", "reviewed"],
   saveBatch: ["batchId", "mode", "candidateId"],
   quizzes: ["scope"],
@@ -595,6 +596,50 @@ export function execute<K extends Operation>(
 
       s.quizzes.push(quiz);
       candidate.savedQuizId = quiz.quizId;
+
+      return batch;
+    }
+
+    case "deleteCandidate": {
+      const batch = getBatch();
+
+      text(r.candidateId, "candidateId");
+
+      const index = batch.candidates.findIndex(
+        ({ candidateId }) => candidateId === r.candidateId,
+      );
+
+      if (index < 0)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
+          409,
+        );
+
+      const [candidate] = batch.candidates.slice(
+        index,
+        index + 1,
+      );
+
+      if (!candidate)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
+          409,
+        );
+
+      if (candidate.savedQuizId) {
+        const quiz = s.quizzes.find(
+          ({ quizId }) => quizId === candidate.savedQuizId,
+        );
+
+        if (quiz && !quiz.deletedAt) {
+          quiz.deletedAt = timestamp;
+          touch(quiz);
+        }
+      }
+
+      batch.candidates.splice(index, 1);
 
       return batch;
     }

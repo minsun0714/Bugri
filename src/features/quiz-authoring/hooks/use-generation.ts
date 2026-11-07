@@ -163,6 +163,60 @@ export function useGeneration({
     });
   }
 
+  function shiftDrafts<T>(
+    current: Record<number, T>,
+    removedIndex: number,
+  ) {
+    return Object.fromEntries(
+      Object.entries(current)
+        .filter(([key]) => Number(key) !== removedIndex)
+        .map(([key, value]) => [
+          Number(key) > removedIndex
+            ? Number(key) - 1
+            : Number(key),
+          value,
+        ]),
+    ) as Record<number, T>;
+  }
+
+  function removeCandidate() {
+    if (!candidate) return;
+
+    void run(async () => {
+      const removedIndex = selectedIndex;
+      const result = await api.request("deleteCandidate", {
+        batchId: batch.batchId,
+        candidateId: candidate.candidateId,
+      });
+      const nextEdits = shiftDrafts(edits, removedIndex);
+      const nextPrompts = shiftDrafts(
+        prompts,
+        removedIndex,
+      );
+
+      accept(result);
+      setSelectedIndex(
+        Math.max(
+          0,
+          Math.min(
+            removedIndex,
+            result.candidates.length - 1,
+          ),
+        ),
+      );
+      setEdits(nextEdits);
+      setPrompts(nextPrompts);
+      setNotice("퀴즈를 삭제했습니다.");
+      onDirty(
+        Object.keys(nextEdits).length > 0 ||
+          Object.values(nextPrompts).some(
+            (value) => !!value.trim(),
+          ),
+      );
+      onSaved();
+    });
+  }
+
   function save(candidateId?: string) {
     if (!batch) return;
     void run(async () => {
@@ -200,6 +254,7 @@ export function useGeneration({
   return {
     batch,
     publish,
+    removeCandidate,
     notice,
     editing,
     edit,
