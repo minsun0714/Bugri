@@ -61,6 +61,9 @@ for (const width of [1100, 390]) {
       box.y + box.height / 2,
       { steps: 8 },
     );
+    await expect(
+      dialog.getByLabel("아이템 회전"),
+    ).not.toHaveValue("0");
     await page.mouse.up();
     await expect(
       dialog.getByLabel("아이템 회전"),
@@ -76,7 +79,7 @@ for (const width of [1100, 390]) {
     await handle.click();
     await expect(
       dialog.getByLabel("아이템 회전"),
-    ).toHaveValue(String((rotation + 30) % 360));
+    ).toHaveValue(String((rotation + 15) % 360));
     const placed = await position.textContent();
     const previewRoom = (await canvas.boundingBox())!;
     await page.mouse.click(

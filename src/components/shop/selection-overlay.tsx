@@ -68,9 +68,9 @@ export function SelectionOverlay({
         <Button
           size="sm"
           variant="secondary"
-          className="!h-10 !w-10 !p-0 touch-none"
+          className="!h-10 !w-10 !p-0 touch-none !cursor-grab active:!cursor-grabbing"
           aria-label="선택 상품 회전"
-          title="클릭·방향키로 15도씩 회전 · 드래그하여 조절"
+          title="누른 채 좌우로 드래그해 회전 · 방향키로 15도씩 조절"
           disabled={disabled}
           onPointerDown={(event) =>
             onStart(event, DeskTool.ROTATE)
@@ -79,7 +79,13 @@ export function SelectionOverlay({
             keyDown(event, DeskTool.ROTATE)
           }
         >
-          ↻
+          <span
+            aria-hidden="true"
+            className="flex flex-col items-center leading-none"
+          >
+            <span className="text-base">↻</span>
+            <span className="mt-1 text-[9px]">드래그</span>
+          </span>
         </Button>
         {bounds.category !== Category.DESK && (
           <Button

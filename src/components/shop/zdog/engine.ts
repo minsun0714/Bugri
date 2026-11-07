@@ -332,6 +332,8 @@ export function createDeskEngine(
     const dx = event.clientX - drag.x;
     const dy = event.clientY - drag.y;
     drag.moved ||= Math.hypot(dx, dy) > 2;
+    if (drag.tool === DeskTool.ROTATE && !drag.moved)
+      return;
     if (drag.tool === DeskTool.CAMERA) {
       yaw = drag.yaw + dx * 0.5;
       pitch = Math.max(
@@ -412,12 +414,16 @@ export function createDeskEngine(
     const { category, moved, handle, transform, tool } =
       drag;
     let { next } = drag;
-    if (handle && !moved && category && transform) {
+    if (
+      handle &&
+      tool === DeskTool.HEIGHT &&
+      !moved &&
+      category &&
+      transform
+    ) {
       next = constrainTransform(category, {
         ...transform,
-        ...(tool === DeskTool.ROTATE
-          ? { rotationY: transform.rotationY + 15 }
-          : { y: transform.y + 0.1 }),
+        y: transform.y + 0.1,
       });
     }
     drag = null;

@@ -257,3 +257,11 @@
 - 실패 분석: 첫 구현 E2E에서 상품 선택 시 모달의 상세 영역이 생기며 Canvas가 위로 28px 이동해 다음 드래그가 빈 공간으로 인식됐다. 상세 영역 높이를 예약해 PC·모바일 모두 선택 전후 Canvas 위치 변화 0px을 확인했다. 테스트 기대값을 약화하지 않고 실제 보이는 상품 픽셀과 옆 핸들을 대상으로 변경했다.
 - 검증: 관련 단위 13개·배치 회귀 E2E 13개, 회전 핸들 클릭/방향키·선택 해제 후 저장까지 추가한 직접 조작 E2E 2개 통과. 마지막 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 13 suites/73 tests·도구 3 tests·build·Playwright 22 tests). 로그 `.bugri-hooks/direct-verify.log`. 자유 배치·회전·높이·터치 취소·상판 가림·저장/재조회·공개 보기·미리보기 격리 회귀와 PC/모바일 화면 확인, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
+
+## P08-ROTATE-DRAG 회전 드래그 핸들
+
+- 상태: IN_PROGRESS. 사용자 요청에 따라 회전 핸들의 클릭 15도 동작을 제거하고 누른 채 좌우 드래그하는 방식으로 표시한다. 드래그 안내와 잡기 커서를 추가하며 키보드 조절은 유지한다.
+- TDD: 단순 클릭 시 각도 유지 기대값으로 변경한 PC/모바일 E2E 2개가 기존 클릭 회전 때문에 실패함을 확인했다. 드래그 중 각도 변경·드롭 저장·새로고침 복원·단순 클릭 무변경을 검증한다.
+- 구현: 회전 핸들에 드래그 표시·잡기 커서를 추가하고 포인터 클릭 회전과 2px 이하 흔들림을 무시한다. 드래그 중 실시간 각도 반영·드롭 확정, 키보드 방향키 조절과 기존 높이 핸들 동작은 유지한다.
+- 검증: 관련 E2E 2개 통과 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 13 suites/73 tests·도구 3 tests·build·Playwright 22 tests). 로그 `.bugri-hooks/rotate-drag-verify.log`. `git diff --check` 통과.
+- 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
