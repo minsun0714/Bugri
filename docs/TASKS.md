@@ -1511,6 +1511,12 @@
 - 상태: DONE(충돌해결·전체검증). 사용자 요청으로 최신dev119c929의데스크조작과PR25프로필카드/스트릭을통합한다. 문서3개는양쪽추가내용보존, HTTP엔드포인트검사는transformDesk/publicLearningDay를모두반영해51개로통합한다. 앞서제거한구독관리customEscape/rAF초점복원·전용단위테스트를복원하지않고클릭기준E2E를유지한다. 전체검증·독립통합리뷰후PR25를갱신하고사용자요청에따라dev에병합한다.
 - 독립정적통합리뷰: 양쪽API/서비스·문서보존, 구독관리삭제코드/테스트미복원및clickE2E유지, 중복제목/충돌마커/미해결인덱스없음. Node v22.23.3 `npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest54 suites/271개·도구3개·production build·E2E167개통과. 로그 `/tmp/pr25-dev-integration-verify.log`. 검증대상은b52d922+dev119c929통합코드이며이후변경은결과기록뿐이다. PR25를갱신하고사용자요청에따라dev에병합한다.
 
+## DEMO-SELECTOR-CLEANUP — 중복 데모 전환 UI 제거
+
+- 상태: DONE. 헤더 우측 데모 사용자 선택을 유지하고 로그인 상태에도 노출한다. 헤더 하단 배너·상점 프로필 전환 항목·개발자 탐색 오류의 별도 선택 모달을 제거한다. 사용자별 저장과 기능 진입 시 사용자 선택은 유지한다. 관련 기준: PRD AC-13a 및 1단계 더미 사용자 규칙.
+- Node v22.23.3 최종 `npm run verify -- -- --workers=2` exit 0: lint·전체 타입·Jest 54 suites/273개·도구 3개·production build·E2E 167개 통과. 로그 `/tmp/demo-final-verify.log`. 변경 코드 Prettier·git diff --check 통과. 생성 타입 부재, 중간 시간 초과, 전역 선택 버튼 검사 실패는 [리뷰·검증 기록](ux-reviews/DEMO-SELECTOR-CLEANUP.md)에 보존했다. 최종 코드는 기대값 완화 없이 재검증했다.
+- 독립 UX/UI R0→C1/R1 수정 1회: 320px 헤더 레이블 줄바꿈 해결. UX가 모바일 전환·키보드 열기/닫기·방문자 복귀 직접 확인, UI가 1280/390/320px 캡처 확인. 필수 미해결 문제 없음. 오류 모바일·스크린리더·작성자/타인 상태의 독립 직접 조작은 미확인. 구현자 외 코드 리뷰 완료.
+
 ### COIN-ROUTE — 코인 내역 전용 페이지
 
 - 상태: DONE(로컬 검증). 사용자 요청에 따라 `/my`를 `/coin-history`로 변경하고 풀이 기록·학습 시간대 설정 자리표시자를 제거한다. REQ-09의 잔액·거래 내역 규칙은 유지한다.
@@ -1533,3 +1539,9 @@
 - `npm run verify`: lint·전체 TypeScript·Jest 54 suites/272개·도구 3개·production build 통과. E2E 최초 4 workers에서 159개 통과/10개 실패로 exit 1. 실패는 로딩/조작 시간 초과, WebGL canvas unavailable·미표시이며 실행 중 시스템 부하가 높았다. 환경 영향 가능성이 있으나 최초 실패를 성공으로 기록하지 않는다.
 - 코드·테스트·타임아웃 변경 없이 `npm run test:e2e -- --last-failed --workers=1` 재검증: 실패한 10개 전부 통과(exit 0). 동일 코드에서 전체 169개 E2E의 성공 결과 확보. 최초 로그 `/tmp/bugri-coin-pr-verify.log`, 재검증 로그 `/tmp/bugri-coin-pr-retry.log`.
 - 독립 UX/UI 및 코드 리뷰는 COIN-ROUTE/COIN-SOFT 기록을 재사용한다. 검증 후 변경은 이 문서뿐이다. `feat/coin-history`를 푸시하고 dev 대상 PR을 생성하며 병합은 수행하지 않는다.
+
+## PR27-DEV-INTEGRATION — 데모 선택 정리와 최신 dev 통합
+
+- 상태: DONE(충돌 해결·전체 통합 검증). PR #27 충돌 해결 요청으로 origin/dev a9045c8을 통합한다. TASKS의 데모 선택 정리·코인 내역 기록을 모두 보존하고, 헤더의 상시 데모 사용자 선택과 코인 내역 메뉴를 함께 유지한다.
+- 독립 통합 코드 리뷰에서 양쪽 기능·경로·테스트·문서 보존과 미해결 충돌 없음 확인. 새 UI 변경 없이 기존 UX/UI 리뷰를 유지한다.
+- Node v22.23.3 `npm run verify -- -- --workers=2` exit 0: lint·전체 타입·Jest 54 suites/274개·도구 3개·production build·E2E 169개 모두 통과. 로그 `/tmp/pr27-integration-verify.log`. 검증 대상은 5d03d14 + dev a9045c8 통합 코드이며 이후 변경은 이 기록뿐이다. PR #27 브랜치를 갱신하며 dev로의 최종 병합은 수행하지 않는다.

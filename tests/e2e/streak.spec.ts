@@ -133,7 +133,7 @@ test("home streak updates after submission, survives reload and isolates users",
 
   await page
     .getByRole("button", {
-      name: /데모: 학습자 · 사용자 전환/,
+      name: "데모 사용자 선택",
     })
     .click();
   const dialog = page.getByRole("dialog", {
@@ -309,7 +309,7 @@ test("date heading navigates monthly and yearly learning while preserving today'
     .click();
   await page
     .getByRole("button", {
-      name: /데모: 학습자 · 사용자 전환/,
+      name: "데모 사용자 선택",
     })
     .click();
   const dialog = page.getByRole("dialog", {
@@ -511,7 +511,7 @@ test("history navigation stops at the first learning month and resets for an emp
 
   await page
     .getByRole("button", {
-      name: /데모: 학습자 · 사용자 전환/,
+      name: "데모 사용자 선택",
     })
     .click();
   const dialog = page.getByRole("dialog", {
