@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { tagDiscoveryStyles } from "@/components/discovery/styles";
+import {
+  discoveryStyles,
+  tagDiscoveryStyles,
+} from "@/components/discovery/styles";
 import { SubscriptionMenu } from "@/components/discovery/subscription-menu";
 import { useEffect, useRef, useState } from "react";
 import { DiscoveryKind } from "@/api/constants";
@@ -138,7 +141,7 @@ export function DiscoverySearch({
               variant="ghost"
               className={
                 isTags
-                  ? tagDiscoveryStyles.learn
+                  ? `${discoveryStyles.subscriptionButton} ${discoveryStyles.unsubscribed}`
                   : "!min-h-11"
               }
               disabled={busy || publicQuizCount === 0}
@@ -162,7 +165,7 @@ export function DiscoverySearch({
             variant="secondary"
             className={
               isTags
-                ? tagDiscoveryStyles.subscribe
+                ? `${discoveryStyles.subscriptionButton} ${discoveryStyles.unsubscribed}`
                 : "!min-h-11"
             }
             disabled={busy}
@@ -401,65 +404,77 @@ export function DiscoverySearch({
                   ? showSubscriptions && storedSubscribed
                   : storedSubscribed;
 
+                const catalogHref = `/tags/${encodeURIComponent(id)}/quizzes?${new URLSearchParams({ ...(showSubscriptions ? { user: userId } : {}), ...(request.query ? { query: request.query } : {}), discoveryPage: String(request.page), ...(request.subscribedOnly ? { subscribed: "true" } : {}) })}`;
+
                 return (
                   <li
                     key={id}
-                    className={tagDiscoveryStyles.card}
+                    className={discoveryStyles.card}
                   >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link
-                        href={`/tags/${encodeURIComponent(id)}/quizzes?${new URLSearchParams({ ...(showSubscriptions ? { user: userId } : {}), ...(request.query ? { query: request.query } : {}), discoveryPage: String(request.page), ...(request.subscribedOnly ? { subscribed: "true" } : {}) })}`}
-                        className={`${tagDiscoveryStyles.label} underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-primary`}
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        aria-hidden="true"
+                        className={tagDiscoveryStyles.icon}
                       >
-                        #{name}
-                      </Link>
-                      {subscribed && (
-                        <span
+                        #
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={catalogHref}
                           className={
-                            tagDiscoveryStyles.subscribed
+                            discoveryStyles.personLink
                           }
                         >
-                          <svg
-                            aria-hidden="true"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className="size-3"
-                          >
-                            <path d="m3 8 3 3 7-7" />
-                          </svg>
-                          구독 중
-                        </span>
-                      )}
+                          {name}
+                        </Link>
+                        {subscribed && (
+                          <p className="text-xs font-medium text-primary">
+                            구독 중
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div
                       className={tagDiscoveryStyles.footer}
                     >
-                      <span
-                        className={tagDiscoveryStyles.count}
-                      >
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          className="size-4 shrink-0"
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={catalogHref}
+                          aria-label={`${name} 공개 퀴즈 ${publicQuizCount}개`}
+                          className={
+                            discoveryStyles.quizLink
+                          }
                         >
-                          <rect
-                            x="5"
-                            y="3"
-                            width="11"
-                            height="14"
-                            rx="2"
-                          />
-                          <path d="M5 6H3v10a2 2 0 0 0 2 2M8 7h5M8 10h5M8 13h3" />
-                        </svg>
-                        {publicQuizCount === 0
-                          ? "공개 퀴즈 없음"
-                          : `공개 퀴즈 ${publicQuizCount}개`}
-                      </span>
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            className="size-4 shrink-0"
+                          >
+                            <rect
+                              x="5"
+                              y="3"
+                              width="11"
+                              height="14"
+                              rx="2"
+                            />
+                            <path d="M5 6H3v10a2 2 0 0 0 2 2M8 7h5M8 10h5M8 13h3" />
+                          </svg>
+                          {publicQuizCount === 0 ? (
+                            "공개 퀴즈 없음"
+                          ) : (
+                            <>
+                              공개 퀴즈{" "}
+                              <span className="font-bold text-foreground">
+                                {publicQuizCount}
+                              </span>
+                              개
+                            </>
+                          )}
+                        </Link>
+                      </div>
                       {action(
                         name,
                         { type: "HASHTAG", hashtagId: id },

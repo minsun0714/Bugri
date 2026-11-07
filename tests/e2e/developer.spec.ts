@@ -1,324 +1,232 @@
 import { expect, test } from "@playwright/test";
-import { initialState } from "@/mocks/storage";
 
-test("developer quiz count opens scoped tags and quizzes; subscriptions stay on the page", async ({
+for (const width of [1280, 390]) {
+  test(`developer catalog separates filtering and subscriptions at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/discover/developers?user=friend");
+    await page
+      .getByRole("link", {
+        name: /타입 개발자 공개 퀴즈 \d+개/,
+      })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "타입 개발자의 퀴즈",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", {
+        name: "탐색으로 돌아가기",
+        exact: true,
+      }),
+    ).toHaveAttribute(
+      "href",
+      "/discover/developers?user=friend",
+    );
+    const tags = page.getByRole("region", {
+      name: "개발자의 태그",
+    });
+    const quizzes = page.getByRole("region", {
+      name: "개발자의 공개 퀴즈",
+    });
+    await expect(quizzes.getByRole("link")).toHaveCount(2);
+    const tag = tags.getByRole("button", {
+      name: "TypeScript (1)",
+      exact: true,
+    });
+    const subscriptions = () =>
+      page.evaluate(
+        () =>
+          JSON.parse(
+            localStorage.getItem("bugri:mock:v1:friend") ??
+              '{"subscriptions":[]}',
+          ).subscriptions,
+      );
+    const before = await subscriptions();
+    await tag.click();
+    await expect(tag).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(quizzes.getByRole("link")).toHaveCount(1);
+    expect(await subscriptions()).toEqual(before);
+    const filteredUrl = page.url();
+    await page
+      .getByRole("button", {
+        name: "구독 설정",
+        exact: true,
+      })
+      .click();
+    const panel = page.getByRole("dialog", {
+      name: "구독 설정",
+    });
+    const toggle = panel.getByRole("switch", {
+      name: "TypeScript 구독",
+    });
+    await toggle.click();
+    await expect(toggle).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await expect(panel).toBeVisible();
+    await expect(page).toHaveURL(filteredUrl);
+    expect(await subscriptions()).toEqual([
+      expect.objectContaining({
+        type: "PERSON_HASHTAG",
+        authorUserId: "author",
+        hashtagId: "typescript",
+      }),
+    ]);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+    await panel
+      .getByRole("switch", { name: "개발자 전체 구독" })
+      .click();
+    await expect(
+      panel.getByRole("switch", {
+        name: "개발자 전체 구독",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+    await panel
+      .getByRole("switch", { name: "개발자 전체 구독" })
+      .click();
+    await expect(
+      panel.getByRole("switch", {
+        name: "개발자 전체 구독",
+      }),
+    ).toHaveAttribute("aria-checked", "false");
+    await panel.getByRole("searchbox").fill("web");
+    await expect(
+      panel.getByRole("switch", { name: "Web 구독" }),
+    ).toBeVisible();
+    await expect(toggle).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(panel).not.toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: "구독 설정",
+        exact: true,
+      }),
+    ).toBeFocused();
+    await expect(page).toHaveURL(filteredUrl);
+    await tags
+      .getByRole("button", { name: "Web (1)", exact: true })
+      .click();
+    await expect(quizzes.getByRole("link")).toHaveCount(2);
+    await expect(page).toHaveURL(
+      (url) => url.searchParams.getAll("tag").length === 2,
+    );
+    await tag.click();
+    await expect(quizzes.getByRole("link")).toHaveCount(1);
+    await tag.click();
+    await expect(tag).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(quizzes.getByRole("link")).toHaveCount(2);
+    await tags
+      .getByRole("button", { name: "Web (1)", exact: true })
+      .click();
+    await expect(page).toHaveURL(filteredUrl);
+    await expect(quizzes.getByRole("link")).toHaveCount(1);
+    expect(await subscriptions()).toEqual(before);
+    await page.reload();
+    await expect(quizzes.getByRole("link")).toHaveCount(1);
+    await tags.getByRole("searchbox").fill("web");
+    await tags.getByRole("searchbox").press("Enter");
+    await expect(
+      tags.getByRole("button", {
+        name: "Web (1)",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(tag).toHaveCount(0);
+    await expect(
+      quizzes.getByRole("button", {
+        name: "typescript 필터 해제",
+      }),
+    ).toBeVisible();
+    await quizzes
+      .getByRole("button", {
+        name: "전체 퀴즈",
+        exact: true,
+      })
+      .click();
+    await expect(quizzes.getByRole("link")).toHaveCount(2);
+    expect(await subscriptions()).toEqual(before);
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          innerWidth,
+      ),
+    ).toBe(true);
+    await quizzes
+      .getByRole("link", { name: "타입 선언" })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "타입 선언",
+        exact: true,
+      }),
+    ).toBeVisible();
+  });
+}
+
+test("guest filtering stays anonymous and subscription requires explicit demo selection", async ({
   page,
 }) => {
-  const state = initialState("friend");
-  state.subscriptions = [
-    {
-      type: "PERSON_HASHTAG",
-      authorUserId: "author",
-      hashtagId: "typescript",
-      subscriptionId: "test-typescript",
-    },
-  ];
-  await page.addInitScript((value) => {
-    if (!localStorage.getItem("bugri:mock:v1:friend")) {
-      localStorage.setItem(
-        "bugri:mock:v1:friend",
-        JSON.stringify(value),
-      );
-    }
-  }, state);
-  await page.goto("/discover/developers?user=friend");
-  await page
-    .getByRole("link", {
-      name: /타입 개발자 공개 퀴즈 \d+개/,
-    })
-    .click();
-  await expect(
-    page.getByRole("link", {
-      name: "탐색으로 돌아가기",
-      exact: true,
-    }),
-  ).toHaveAttribute(
-    "href",
-    "/discover/developers?user=friend",
-  );
-  await expect(
-    page.getByRole("heading", {
-      name: "타입 개발자의 퀴즈",
-    }),
-  ).toBeVisible();
-  const quizzes = page.getByRole("region", {
-    name: "개발자의 공개 퀴즈",
-  });
+  await page.goto("/developers/bugri-author/quizzes");
   const tags = page.getByRole("region", {
     name: "개발자의 태그",
   });
-  const tagBounds = await tags.boundingBox();
-  const quizBounds = await quizzes.boundingBox();
-
-  expect(tagBounds).not.toBeNull();
-  expect(quizBounds).not.toBeNull();
-  expect(
-    tagBounds!.y + tagBounds!.height,
-  ).toBeLessThanOrEqual(quizBounds!.y);
-  expect(
-    Math.abs(tagBounds!.width - quizBounds!.width),
-  ).toBeLessThan(2);
-  expect(tagBounds!.height).toBeLessThan(260);
-  const tagSearch = tags.getByRole("searchbox");
-  const searchButton = tags.getByRole("button", {
-    name: "검색",
-    exact: true,
-  });
-  const searchBounds = await tagSearch.boundingBox();
-  const searchButtonBounds =
-    await searchButton.boundingBox();
-
-  expect(searchBounds).not.toBeNull();
-  expect(searchButtonBounds).not.toBeNull();
-  expect(
-    Math.abs(searchBounds!.y - searchButtonBounds!.y),
-  ).toBeLessThan(1);
-  await tagSearch.evaluate((element) => {
-    Object.assign(window, { tagSearchWasDisabled: false });
-    new MutationObserver((records) => {
-      if (
-        records.some(
-          ({ attributeName, oldValue }) =>
-            attributeName === "disabled" &&
-            oldValue === null,
-        )
-      ) {
-        Object.assign(window, {
-          tagSearchWasDisabled: true,
-        });
-      }
-    }).observe(element, {
-      attributes: true,
-      attributeOldValue: true,
-      attributeFilter: ["disabled"],
-    });
-  });
-  await expect(
-    tags.getByRole("navigation", { name: "태그 페이지" }),
-  ).toHaveCount(0);
-  const tagItems = tags.getByRole("listitem");
-  const itemBounds = await tagItems.evaluateAll((items) =>
-    items.map((item) => {
-      const { height, width, y } =
-        item.getBoundingClientRect();
-
-      return { height, width, y };
-    }),
-  );
-
-  expect(itemBounds).toHaveLength(3);
-  expect(
-    itemBounds.every(
-      ({ height, width }) => height < 40 && width < 250,
-    ),
-  ).toBe(true);
-  expect(new Set(itemBounds.map(({ y }) => y)).size).toBe(
-    1,
-  );
-  await expect(
-    page.getByRole("button", {
-      name: "전체 퀴즈",
-      exact: true,
-    }),
-  ).toHaveCount(0);
-  await expect(quizzes.getByRole("link")).toHaveCount(2);
-  const typeScriptTag = tags.getByRole("button", {
-    name: "TypeScript (1)",
-    exact: true,
-  });
-
-  await typeScriptTag.hover();
-  await expect
-    .poll(() =>
-      typeScriptTag.evaluate(
-        (element) =>
-          getComputedStyle(element).textDecorationLine,
-      ),
-    )
-    .not.toContain("underline");
-  await typeScriptTag.click();
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          (
-            window as typeof window & {
-              tagSearchWasDisabled: boolean;
-            }
-          ).tagSearchWasDisabled,
-      ),
-    )
-    .toBe(false);
-  await expect(typeScriptTag).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(
-    tags.getByRole("button", {
-      name: "전체 퀴즈",
-      exact: true,
-    }),
-  ).toHaveCount(0);
-  await expect(
-    quizzes.getByRole("button", {
-      name: "전체 퀴즈",
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(typeScriptTag.locator("..")).toHaveClass(
-    /ring-primary\/50/,
-  );
-  const subscribedBackground = await typeScriptTag
-    .locator("..")
-    .evaluate(
-      (element) =>
-        getComputedStyle(element).backgroundColor,
-    );
-  await expect(tags.getByText(/선택한 태그:/)).toHaveCount(
-    0,
-  );
-  await expect(quizzes.getByRole("link")).toHaveCount(1);
-  await expect(
-    quizzes.getByRole("navigation", {
-      name: "퀴즈 페이지",
-    }),
-  ).toHaveCount(0);
-  await expect(
-    quizzes.getByRole("link", { name: "타입 선언" }),
-  ).toBeVisible();
-  await quizzes
-    .getByRole("button", {
-      name: "전체 퀴즈",
-      exact: true,
-    })
-    .click();
-  await expect(quizzes.getByRole("link")).toHaveCount(2);
-  await expect(
-    quizzes.getByRole("button", {
-      name: "전체 퀴즈",
-      exact: true,
-    }),
-  ).toHaveCount(0);
-  await typeScriptTag.click();
-  await expect(quizzes.getByRole("link")).toHaveCount(1);
-  const url = page.url();
-  const subscriptionMenuTrigger = tags.getByRole("button", {
-    name: "TypeScript 구독 메뉴",
-    exact: true,
-  });
-  const triggerBounds =
-    await subscriptionMenuTrigger.boundingBox();
-  const dotsBounds = await subscriptionMenuTrigger
-    .locator("svg")
-    .boundingBox();
-
-  expect(triggerBounds).not.toBeNull();
-  expect(dotsBounds).not.toBeNull();
-  expect(
-    Math.abs(
-      triggerBounds!.y +
-        triggerBounds!.height / 2 -
-        (dotsBounds!.y + dotsBounds!.height / 2),
-    ),
-  ).toBeLessThan(1);
-  await subscriptionMenuTrigger.click();
-  const typeScriptMenu = tags.getByRole("menu", {
-    name: "TypeScript 구독 관리",
-    exact: true,
-  });
-
-  await expect(typeScriptMenu).toBeVisible();
-  await typeScriptMenu
-    .getByRole("menuitem", { name: "구독 해제" })
-    .click();
-  await expect(typeScriptMenu).toHaveCount(0);
-  await expect(
-    page.getByRole("status").filter({
-      hasText: "TypeScript 태그 구독을 취소했습니다.",
-    }),
-  ).toBeVisible();
-  await expect(subscriptionMenuTrigger).toHaveCount(0);
-  await expect(typeScriptTag.locator("..")).toHaveClass(
-    /bg-canvas\/40/,
-  );
-  await expect
-    .poll(() =>
-      typeScriptTag
-        .locator("..")
-        .evaluate(
-          (element) =>
-            getComputedStyle(element).backgroundColor,
-        ),
-    )
-    .not.toBe(subscribedBackground);
-  await expect(page).toHaveURL(url);
-  await page.reload();
-  await expect(quizzes.getByRole("link")).toHaveCount(1);
-  await expect(
-    tags.getByRole("button", {
-      name: "TypeScript 구독 메뉴",
-      exact: true,
-    }),
-  ).toHaveCount(0);
   await tags
     .getByRole("button", {
       name: "TypeScript (1)",
       exact: true,
     })
     .click();
+  await expect(page).toHaveURL(
+    (url) =>
+      url.searchParams.get("tag") === "typescript" &&
+      !url.searchParams.has("user"),
+  );
+  await page
+    .getByRole("button", { name: "구독 설정", exact: true })
+    .click();
+  await page
+    .getByRole("dialog", { name: "구독 설정" })
+    .getByRole("switch", { name: "TypeScript 구독" })
+    .click();
   await expect(
-    page.getByRole("status").filter({
-      hasText: "TypeScript 태그를 구독했습니다.",
+    page.getByRole("button", {
+      name: "선택한 사용자로 시작",
     }),
   ).toBeVisible();
-  await expect(
-    tags.getByRole("button", {
-      name: "TypeScript 구독 메뉴",
-      exact: true,
-    }),
-  ).toBeEnabled();
-  await tags.getByRole("searchbox").fill("web");
-  await tags.getByRole("searchbox").press("Enter");
-  await expect(
-    tags.getByRole("button", {
-      name: "Web (1)",
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(
-    tags.getByRole("button", {
-      name: "TypeScript (1)",
-      exact: true,
-    }),
-  ).toHaveCount(0);
-  await expect(
-    tags.getByRole("button", {
-      name: "Web 구독 메뉴",
-      exact: true,
-    }),
-  ).toHaveCount(0);
   const subscriptions = await page.evaluate(
     () =>
       JSON.parse(
-        localStorage.getItem("bugri:mock:v1:friend")!,
+        localStorage.getItem("bugri:mock:v1:learner") ??
+          '{"subscriptions":[]}',
       ).subscriptions,
   );
-  expect(subscriptions).toEqual([
-    expect.objectContaining({
-      type: "PERSON_HASHTAG",
-      authorUserId: "author",
-      hashtagId: "typescript",
-    }),
-  ]);
-  await quizzes
-    .getByRole("link", { name: "타입 선언" })
-    .click();
-  await expect(
-    page.getByRole("heading", {
-      name: "타입 선언",
-      exact: true,
-    }),
-  ).toBeVisible();
+  expect(
+    subscriptions.filter(
+      (item: {
+        type: string;
+        authorUserId?: string;
+        hashtagId?: string;
+      }) =>
+        item.type === "PERSON_HASHTAG" &&
+        item.authorUserId === "author" &&
+        item.hashtagId === "typescript",
+    ),
+  ).toHaveLength(0);
 });
 
 test("empty and unknown developer pages show distinct states on mobile", async ({
@@ -351,3 +259,55 @@ test("empty and unknown developer pages show distinct states on mobile", async (
     }),
   ).toBeVisible();
 });
+
+for (const width of [1280, 390]) {
+  test(`subscription panel keeps controls visible in a short viewport at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 500 });
+    await page.goto(
+      "/developers/bugri-author/quizzes?user=friend",
+    );
+    await page
+      .getByRole("button", {
+        name: "구독 설정",
+        exact: true,
+      })
+      .click();
+    const panel = page.getByRole("dialog", {
+      name: "구독 설정",
+    });
+    await expect(
+      panel.getByRole("switch", {
+        name: "TypeScript 구독",
+      }),
+    ).toBeAttached();
+    for (const control of [
+      panel.getByRole("searchbox"),
+      panel.getByRole("button", { name: "구독 설정 닫기" }),
+      panel.getByRole("navigation", {
+        name: "구독 태그 페이지",
+      }),
+    ]) {
+      const bounds = await control.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.y).toBeGreaterThanOrEqual(0);
+      expect(
+        bounds!.y + bounds!.height,
+      ).toBeLessThanOrEqual(500);
+    }
+    expect(
+      await panel.evaluate(
+        (element) =>
+          element.scrollHeight <= element.clientHeight,
+      ),
+    ).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(
+      page.getByRole("button", {
+        name: "구독 설정",
+        exact: true,
+      }),
+    ).toBeFocused();
+  });
+}

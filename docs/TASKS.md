@@ -1,5 +1,48 @@
 # Bugri 개발 단계와 작업 계획
 
+### QUIZ-UI-MERGE — 최신 오류 처리와 퀴즈 UI 통합
+
+- 상태: DONE. dev `2baec2e`를 통합한 `b298fea`에서 태그별 퀴즈 페이지의 import 충돌을 해결했다. 공통 QuizCard와 createQueryClient를 모두 보존하고 오류 처리·공개 학습 기록·다중 태그 필터 동작을 유지한다. 독립 통합 코드 리뷰에서 추가 문제 없음.
+- Node v22.23.3. `npm run verify -- -- --workers=1` exit 0: lint·타입·Jest59 suites/297개·도구3개·production build·E2E184개 모두 통과. 로그 `/tmp/bugri-tag-panel/verify-merge.log`. 검증 후 변경은 이 문서 기록뿐이다.
+
+### TAG-TITLE-CLEANUP — 태그 카드 제목 중복 기호 제거
+
+- 상태: DONE. 태그 탐색 카드의 별도 #아이콘은 유지하고 제목은 태그명만 표시한다. 기존 #검색 입력 및 태그별 페이지 제목은 유지한다. 링크·구독 동작 변경 없음.
+- Node v22.23.3. 변경 ESLint/Prettier·diff 검사, discovery 단위10개·태그 탐색/목록 E2E10개 통과. PC1280/mobile390 실제 캡처에서 아이콘과 제목 확인. 독립 diff 리뷰 추가 문제 없음. 단순 표시문구 수정으로 독립 UX/UI 반복 리뷰와 전체 재실행은 생략하며, 직전 aff5254의 전체 검증(281 unit/175 E2E)은 해당 코드 결과로만 기록한다.
+
+### DEVELOPER-TAG-PANEL — 다중 필터와 독립 구독 패널
+
+- 상태: DONE — 구현 및 독립 UX/UI 리뷰, 전체 검증 완료. AC-12j. 외부 라이브러리 없이 공통 ResponsivePopover(PC Popover/모바일 Drawer)와 FilterChips를 구현했다. 헤더에서 전체·태그 구독을 검색/페이지 단위로 관리하고 기존 위치의 필터는 펼친 다중 선택(OR)을 제공한다.
+- Node v22.23.3. API 다중 태그 선실패 후 통과, 관련 단위 13개 및 PC/mobile/guest/empty E2E 4개 통과. [독립 UX/UI 리뷰](ux-reviews/DEVELOPER-TAG-PANEL.md)는 C2/R2(수정 2회)에서 짧은 화면 페이지 조작 잘림 해결, 독립 코드 리뷰 추가 문제 없음. C2 production build 통과. 이후 짧은 화면 E2E 2개와 HTTP 직렬화 테스트를 추가했지만 전체 실행은 아래 lint에서 멈췄으므로 신규 테스트 통과를 주장하지 않는다.
+- 실패/재실행: (1) signIn 인자 타입 수정, (2) Testing Library의 미지원 exact 옵션 제거, (3) 다중 필터 navigation 직후 reload를 실행하던 E2E에 URL/결과 반영 대기 추가 후 관련 검사 통과. TDD 최초 실패는 제외한다.
+- 최초 전체 검증은 HTTP 테스트의 구조 분해/빈 줄 lint 2건으로 중단했다. 사용자 재개 지시로 `fetcher`의 `mock.calls`를 중첩 구조 분해하고 빈 줄을 수정했다. 수정 파일 정적 검사 통과 후 `npm run verify -- -- --workers=1` exit 0: lint·타입·Jest 56 suites/281개·도구 3개·production build·E2E 175개 모두 통과. 최종 전체 실행은 짧은 화면 E2E 2개 및 HTTP 반복 쿼리 테스트도 포함한다. 로그 `/tmp/bugri-tag-panel/verify-resumed.log`. 검증 후 변경은 문서 기록뿐이다.
+
+### QUIZ-UI-PR — 퀴즈 UI 변경 통합 검증
+
+- 카드 통일·태그 탐색 정리·공개 퀴즈 링크·개발자 퀴즈 상단 개선을 최신 `dev` (`b08085b`)와 통합했다. `PAGE_STRUCTURE.md` 충돌은 개발자 헤더와 코인 내역 경로 설명을 모두 보존하여 해결했다. 독립 코드 리뷰에서 추가 수정 사항은 없었다.
+- 검증 버전 `709fd44`, Node v22.23.3. `npm run verify -- -- --workers=1`: lint·타입·Jest 54 suites/275개·도구 3개·production build 통과. E2E 171/173개 통과, 모바일 구독 관리 클릭 안정화 및 상점 재로드 후 로딩 대기 시간 초과 2건으로 전체 명령 exit 1.
+- 코드·테스트·시간 제한 변경 없이 `npm run test:e2e -- tests/e2e/developer-discovery-repair.spec.ts tests/e2e/shop-extra-items.spec.ts --workers=1` 재실행 1회에서 관련 10개 모두 통과(19.1초). 실패 재현은 없었지만 최초 실패 기록을 유지하며 전체 명령 단일 성공으로 표현하지 않는다. 이후 변경은 이 검증 기록뿐이며 성공한 검사 결과를 재사용한다. 기존 독립 UX/UI 리뷰 기록은 아래 작업별 링크를 따른다.
+
+### DEVELOPER-CATALOG-HEADER — 개발자 퀴즈 상단 UX 정리
+
+- 상태: DONE. 사용자 요청 및 독립 UX/UI 설계에 따라 개발자 정보·구독 헤더와 태그 필터/검색을 정리한다. 최신 사용자 답변으로 기존 P06-TAG-CLICK-SUBSCRIBE를 대체하여 태그 선택은 필터만, 구독은 별도 버튼으로 분리한다. 전체 퀴즈 해제는 기존처럼 결과 제목 우측에 유지한다. 공개프로필과 기존 QuizCard는 변경하지 않는다. AC-08a/AC-12j, 방문자 명시 데모 선택 유지.
+- 검증: Node v22.23.3. 관련 단위14개/E2E12개 통과. 최종 verify의 lint·타입·Jest272개·도구3개·build 통과, E2E169/171통과 및 기존구독관리/프로필편집2개시간초과. 코드/기대값변경없이 관련2spec10개 workers1 재실행통과(1회); 전체명령단일성공과 구분한다. [독립 UX/UI 리뷰](ux-reviews/DEVELOPER-CATALOG-HEADER.md): 구분선/구독체크 C1/R1 후 UI-01해결, 수정1회. PC1280/mobile390·320 및 필터/구독/빈/게스트상태 확인. 이후문서기록만변경.
+
+### TAG-COUNT-LINK — 태그 공개 퀴즈 링크와 아이콘 색상
+
+- 상태: DONE. 공개 퀴즈 수를 기존 태그별 목록으로 연결하고 제목과 같은 사용자/검색/페이지/구독필터를 보존한다. 0개도 기존 빈 목록으로 연결한다(AC-12m). #아이콘은 최신 사용자 요청대로 개발자 탐색 학습자 아바타와 같은 테마 lime/55 배경으로 변경한다. 새 페이지/API는 필요하지 않다.
+- 검증: Node v22.23.3 링크 회귀 테스트 선실패 후 단위10개·E2E10개·변경정적검사·전체타입·diff 검사 통과. 신규 테스트 타입오류1회 수정/재검증. [독립 UX/UI 리뷰](ux-reviews/TAG-COUNT-LINK.md) PC1280/mobile390 확인, 사용자 농도수정 C1/R1 후 필수문제0개. 전체verify 대신 관련 검증으로 로컬 완료.
+
+### TAG-CARD-UNIFY — 태그 탐색 카드 통일
+
+- 상태: DONE. 사용자 최신 지시에 따라 `/discover/tags`의 태그 카드를 개발자 탐색 카드와 통일한다. discoveryStyles의 카드·제목·버튼, 48px 아이콘·구분선 footer·PC3열/태블릿2열/모바일1열을 적용한다. # 식별과 공개 퀴즈 수, 구독 상태·메뉴·학습 동작을 유지한다. 퀴즈 목록 4곳은 유지한다. AC-12i/AC-12m의 탐색·구독·공개목록 이동 계약은 변경하지 않는다.
+- 검증: Node v22.23.3 변경 파일 ESLint/Prettier·전체 타입·discovery 단위9개·태그탐색/목록 E2E8개 통과. E2E 최초 복구대기1개 실패 후 코드/기대값 변경없이 workers1 재실행 통과, 상세 [독립 UX/UI 리뷰 기록](ux-reviews/TAG-CARD-UNIFY.md). PC1280/mobile390·320 개발자/태그 실제비교 및 키보드 이동 확인. 사용자 방향수정 C1/R1 후 필수문제없음. 이번은 관련 검증으로 로컬 완료하며 전체verify를 실행한 것으로 보고하지 않는다.
+
+### QUIZ-CARD-UNIFY — 퀴즈 목록 카드 통일
+
+- 상태: DONE. 사용자 승인에 따라 프로필의 노트 아이콘·둥근 카드·하단 그림자·화살표를 공통 QuizCard로 추출해 프로필/개발자별/태그별/내 퀴즈에 적용한다. 프로필 2열, 다른 목록 세로 배치와 검색·필터·페이지 이동·작성자/상태/수정 시간·풀이/관리 동작을 유지한다. REQ-03 및 공개 탐색/프로필 요구사항을 변경하지 않는다.
+- 검증: Node v22.23.3 `npm run verify` exit 0 — lint·타입·Jest 54 suites/271개·도구 3개·production build·E2E 167개 통과. 변경 파일 ESLint/Prettier 및 diff 검사 통과. [독립 UX/UI 리뷰](ux-reviews/QUIZ-CARD-UNIFY.md): PC1280/mobile390의 4개 목록, 긴 제목·태그3개·공개/비공개/검토 상태 확인. 필수 문제 없음, 수정 0회. 검증 이후 문서 기록만 변경했다.
+
 ### STREAK-CALENDAR-VOLUME — 달력 학습량 시각 강조
 
 - 상태: DONE. 사용자 승인에 따라 완료일은 연두색 농도로 표시하고 개수는 크게, 날짜는 작게 표시한다. 0개도 단위를 붙여 0개로 표시하고 미래는 날짜만 표시한다. 오늘은 테두리 없이 보라색 날짜 띠와 흰 숫자로 구분한다. 날짜 띠는 라벤더색이고 옅은 연보라 구분선으로 개수 영역과 나눈다. 검정 테두리는 사용하지 않는다. 농도는 1개/2~4개/5개 이상으로 구분하는 표시용 기준이며 집계 정책은 변경하지 않는다.

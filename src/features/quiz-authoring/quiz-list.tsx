@@ -5,6 +5,7 @@ import {
   type QuizSummary,
 } from "@/api/contracts";
 import { Badge, Button, EmptyState } from "@/components/ui";
+import { QuizCard } from "@/components/ui/quiz-card";
 import { Dropdown } from "@/components/ui/dropdown";
 
 export const QuizListFilter = {
@@ -104,7 +105,7 @@ function StatusBadges({ quiz }: { quiz: QuizSummary }) {
   const review = needsReview(quiz);
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <span className="flex flex-wrap items-center gap-1.5">
       {quiz.status === QuizStatus.PUBLIC && (
         <Badge tone="success">공개 중</Badge>
       )}
@@ -118,7 +119,7 @@ function StatusBadges({ quiz }: { quiz: QuizSummary }) {
             : "수정본 검토 필요"}
         </Badge>
       )}
-    </div>
+    </span>
   );
 }
 
@@ -348,59 +349,40 @@ export function QuizList({
       )}
 
       {!!visible.length && (
-        <div className="grid overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="grid gap-4">
           {visible.map((quiz) => {
             const review = needsReview(quiz);
 
             return (
-              <article
+              <QuizCard
                 key={quiz.quizId}
-                aria-label={quiz.title}
-                className="border-b border-line last:border-b-0"
-              >
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => onOpen(quiz.quizId)}
-                  aria-label={`${quiz.title} ${review ? "검토하기" : "관리하기"}`}
-                  className="grid w-full gap-3 px-4 py-4 text-left transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-5"
-                >
-                  <span className="grid min-w-0 gap-2">
-                    <span className="flex min-w-0 flex-wrap items-center gap-2">
-                      <strong className="min-w-0 truncate text-sm">
-                        {quiz.title}
-                      </strong>
-                      <StatusBadges quiz={quiz} />
-                    </span>
-                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-                      <time
-                        dateTime={quiz.updatedAt}
-                        aria-label={`마지막 수정 ${exactTime(quiz.updatedAt)}`}
-                      >
-                        {relativeTime(quiz.updatedAt)}
-                      </time>
-                      {quiz.hashtagIds.map((hashtagId) => (
-                        <span key={hashtagId}>
-                          #{hashtagId}
-                        </span>
-                      ))}
-                    </span>
-                  </span>
-                  <span className="flex items-center justify-end gap-2 text-xs font-semibold text-primary">
-                    {review ? "검토하기" : "관리하기"}
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      className="size-4"
+                title={quiz.title}
+                label={quiz.title}
+                action={{
+                  onClick: () => onOpen(quiz.quizId),
+                  disabled: busy,
+                  label: `${quiz.title} ${review ? "검토하기" : "관리하기"}`,
+                }}
+                badges={<StatusBadges quiz={quiz} />}
+                metadata={
+                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <time
+                      dateTime={quiz.updatedAt}
+                      aria-label={`마지막 수정 ${exactTime(quiz.updatedAt)}`}
                     >
-                      <path d="m9 18 6-6-6-6" />
-                    </svg>
+                      {relativeTime(quiz.updatedAt)}
+                    </time>
+                    {quiz.hashtagIds.map((hashtagId) => (
+                      <span key={hashtagId}>
+                        #{hashtagId}
+                      </span>
+                    ))}
                   </span>
-                </button>
-              </article>
+                }
+                actionText={
+                  review ? "검토하기" : "관리하기"
+                }
+              />
             );
           })}
         </div>

@@ -69,22 +69,37 @@ const compare = (a: string, b: string) =>
 export function developerQuizzes(
   source: Source,
   request: DeveloperPageQuery & {
+    hashtagIds?: string[];
     hashtagId?: string | null;
   },
 ): DeveloperQuizzesPage {
   const { user, available } = catalog(source, request);
-  const { page, pageSize, hashtagId } = request;
+  const { page, pageSize, hashtagId, hashtagIds } = request;
 
   requireValue(
     hashtagId == null || typeof hashtagId === "string",
     "태그를 확인하세요.",
   );
 
+  requireValue(
+    hashtagIds === undefined ||
+      (Array.isArray(hashtagIds) &&
+        hashtagIds.every(
+          (id) => typeof id === "string" && !!id.trim(),
+        )),
+    "태그 목록을 확인하세요.",
+  );
+
+  const selected =
+    hashtagIds ?? (hashtagId ? [hashtagId] : []);
+
   const found = available
     .filter(
       ({ active }) =>
-        !hashtagId ||
-        active!.hashtagIds.includes(hashtagId),
+        !selected.length ||
+        selected.some((id) =>
+          active!.hashtagIds.includes(id),
+        ),
     )
     .sort((a, b) => {
       const publishedA = a.publishedAt

@@ -31,6 +31,14 @@ beforeEach(() => {
   localStorage.clear();
   push.mockClear();
   mockSearch = "user=friend";
+  window.matchMedia = jest.fn().mockReturnValue({
+    matches: true,
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  });
+  HTMLDialogElement.prototype.show = function () {
+    this.setAttribute("open", "");
+  };
   HTMLDialogElement.prototype.showModal = function () {
     this.setAttribute("open", "");
   };
@@ -39,56 +47,80 @@ beforeEach(() => {
   };
 });
 
-test("author catalog filters explicitly and refreshes subscriptions without navigating", async () => {
-  render(<DeveloperScreen />);
-  expect(
-    await screen.findByRole("heading", {
-      name: "타입 개발자의 퀴즈",
-    }),
-  ).toBeVisible();
-  expect(
-    screen.getByRole("link", { name: "타입 선언" }),
-  ).toHaveAttribute(
-    "href",
-    "/solve?user=friend&quiz=seed-quiz-1",
+test("catalog filters do not subscribe and independent panel stays open while saving", async () => {
+  render(
+    <DemoSessionProvider>
+      <DeveloperScreen />
+    </DemoSessionProvider>,
   );
-  expect(
-    screen.queryByRole("button", {
-      name: "TypeScript 구독 메뉴",
-    }),
-  ).not.toBeInTheDocument();
-  expect(push).not.toHaveBeenCalled();
+  await screen.findByRole("heading", {
+    name: "타입 개발자의 퀴즈",
+  });
   fireEvent.click(
-    screen.getByRole("button", { name: "개발자 구독하기" }),
-  );
-  await waitFor(() =>
-    expect(
-      screen.queryByRole("button", {
-        name: "개발자 구독하기",
-      }),
-    ).not.toBeInTheDocument(),
-  );
-  expect(
-    screen.getByText("타입 개발자님을 구독했습니다."),
-  ).toBeVisible();
-  expect(push).not.toHaveBeenCalled();
-  fireEvent.click(
-    screen.getByRole("button", {
+    await screen.findByRole("button", {
       name: "TypeScript (1)",
     }),
   );
-  await waitFor(() =>
-    expect(
-      screen.getByRole("button", {
-        name: "TypeScript 구독 메뉴",
-      }),
-    ).toBeEnabled(),
-  );
-  expect(
-    screen.getByText("TypeScript 태그를 구독했습니다."),
-  ).toBeVisible();
   expect(push).toHaveBeenCalledWith(
     "/developers/bugri-author/quizzes?user=friend&page=1&tagPage=1&tag=typescript",
+    { scroll: false },
+  );
+  const api = await createBrowserApi({
+    mode: "mock",
+    userId: "friend",
+  });
+  expect(await api.request("subscriptions", {})).toEqual(
+    [],
+  );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "구독 설정",
+    }),
+  );
+  const toggle = await screen.findByRole("switch", {
+    name: "TypeScript 구독",
+  });
+  fireEvent.click(toggle);
+  await waitFor(() =>
+    expect(toggle).toHaveAttribute("aria-checked", "true"),
+  );
+  expect(
+    screen.getByRole("dialog", { name: "구독 설정" }),
+  ).toBeVisible();
+  expect(await api.request("subscriptions", {})).toEqual([
+    expect.objectContaining({
+      type: "PERSON_HASHTAG",
+      hashtagId: "typescript",
+      authorUserId: "author",
+    }),
+  ]);
+  fireEvent.click(toggle);
+  await waitFor(() =>
+    expect(toggle).toHaveAttribute("aria-checked", "false"),
+  );
+  expect(push).toHaveBeenCalledTimes(1);
+});
+
+test("multiple URL tags restore union and clicking a selected tag removes only that filter", async () => {
+  mockSearch = "user=friend&tag=typescript&tag=web";
+  render(
+    <DemoSessionProvider>
+      <DeveloperScreen />
+    </DemoSessionProvider>,
+  );
+  expect(
+    await screen.findByRole("link", { name: "타입 선언" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("link", { name: "블록 스코프" }),
+  ).toBeVisible();
+  const tag = await screen.findByRole("button", {
+    name: "TypeScript (1)",
+  });
+  expect(tag).toHaveAttribute("aria-pressed", "true");
+  fireEvent.click(tag);
+  expect(push).toHaveBeenCalledWith(
+    "/developers/bugri-author/quizzes?user=friend&page=1&tagPage=1&tag=web",
     { scroll: false },
   );
 });

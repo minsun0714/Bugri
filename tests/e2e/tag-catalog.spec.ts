@@ -6,7 +6,7 @@ test("tag link preserves discovery conditions and supports explicit subscription
 }) => {
   await page.goto("/discover/tags?user=friend&query=Web");
   await page
-    .getByRole("link", { name: "#Web", exact: true })
+    .getByRole("link", { name: "Web", exact: true })
     .click();
   await expect(page).toHaveURL(/\/tags\/web\/quizzes/);
   await expect(
@@ -106,7 +106,7 @@ test("guest browsing stays anonymous and demo selection never automatically subs
     .click();
   await expect(page).not.toHaveURL(/user=/);
   await page
-    .getByRole("link", { name: "#Web", exact: true })
+    .getByRole("link", { name: "Web", exact: true })
     .click();
   await expect(page).not.toHaveURL(/user=/);
   await expect(

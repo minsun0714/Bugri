@@ -1,6 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+} from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
 import type { Request } from "@/api/contracts";
 import { useSubscribe } from "@/components/discovery/queries";
@@ -11,6 +14,7 @@ export function useDeveloper(
   tagsRequest: Request<"developerTags">,
 ) {
   const quizzes = useQuery({
+    placeholderData: keepPreviousData,
     queryKey: ["developerQuizzes", userId, quizzesRequest],
     queryFn: async () =>
       (

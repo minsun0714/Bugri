@@ -200,7 +200,7 @@ test("tag cards fit mobile and expose subscription and quiz availability", async
       .boundingBox();
     expect(box!.y - heading!.y).toBeLessThan(120);
     await expect(
-      page.getByText("#Web", { exact: true }),
+      page.getByRole("link", { name: "Web", exact: true }),
     ).toBeVisible();
     const menu = await page
       .getByRole("button", { name: "Web 구독 메뉴" })
@@ -213,3 +213,50 @@ test("tag cards fit mobile and expose subscription and quiz availability", async
     });
   }
 });
+
+for (const width of [1280, 390]) {
+  test(`public quiz count opens the tag catalog at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(
+      "/discover/tags?user=learner&query=Web&subscribed=true",
+    );
+    const count = page.getByRole("link", {
+      name: "Web 공개 퀴즈 2개",
+      exact: true,
+    });
+    await count.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(
+      (url) =>
+        url.pathname === "/tags/web/quizzes" &&
+        url.searchParams.get("user") === "learner" &&
+        url.searchParams.get("query") === "Web" &&
+        url.searchParams.get("discoveryPage") === "1" &&
+        url.searchParams.get("subscribed") === "true",
+    );
+    await expect(
+      page
+        .getByRole("region", { name: "태그의 공개 퀴즈" })
+        .getByRole("listitem"),
+    ).toHaveCount(2);
+    await page.goto("/discover/tags?query=Java");
+    await page
+      .getByRole("link", {
+        name: "Java 공개 퀴즈 0개",
+        exact: true,
+      })
+      .click();
+    await expect(page).toHaveURL(
+      (url) =>
+        url.pathname === "/tags/java/quizzes" &&
+        !url.searchParams.has("user"),
+    );
+    await expect(
+      page.getByText("공개된 퀴즈가 없습니다.", {
+        exact: true,
+      }),
+    ).toBeVisible();
+  });
+}

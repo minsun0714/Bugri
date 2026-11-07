@@ -124,7 +124,11 @@ export function getBreadcrumbs(
         label: "개발자 탐색",
         href: withDemoUser("/discover/developers", userId),
       },
-      { label: "개발자 프로필" },
+      {
+        label: pathname.startsWith("/developers/")
+          ? "개발자별 공개 퀴즈"
+          : "개발자 프로필",
+      },
     ];
   }
   if (/^\/attempts\/[^/]+$/.test(pathname))

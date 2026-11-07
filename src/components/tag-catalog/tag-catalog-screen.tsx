@@ -1,5 +1,6 @@
 "use client";
 
+import { QuizCard } from "@/components/ui/quiz-card";
 import { createQueryClient } from "@/api/query-client";
 
 import Link from "next/link";
@@ -246,82 +247,44 @@ function Catalog({
       >
         <h2 className="text-lg">공개 퀴즈</h2>
         {data.items.length ? (
-          <ul className="space-y-3 sm:space-y-4">
+          <ul className="space-y-4">
             {data.items.map(({ quizId, title, author }) => (
-              <li
-                key={quizId}
-                className={tagCatalogStyles.card}
-              >
-                <Link
-                  href={`/solve?${memberQuery}quiz=${encodeURIComponent(quizId)}`}
-                  onClick={(event) => {
-                    if (!signedIn) {
-                      event.preventDefault();
-                      signIn();
-                    }
+              <li key={quizId}>
+                <QuizCard
+                  title={title}
+                  action={{
+                    href: `/solve?${memberQuery}quiz=${encodeURIComponent(quizId)}`,
+                    onClick: (event) => {
+                      if (!signedIn) {
+                        event.preventDefault();
+                        signIn();
+                      }
+                    },
                   }}
-                  className={tagCatalogStyles.title}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={tagCatalogStyles.notebook}
-                  >
-                    <svg
-                      viewBox="0 0 28 28"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="size-7"
+                  footer={
+                    <Link
+                      href={`/users/${encodeURIComponent(author.publicId)}${signedIn ? `?user=${encodeURIComponent(userId)}` : ""}`}
+                      className={tagCatalogStyles.author}
                     >
-                      <rect
-                        x="6"
-                        y="4"
-                        width="17"
-                        height="21"
-                        rx="4"
-                        className="fill-surface"
-                      />
-                      <path d="M4 9h4m-4 6h4m-4 6h4M12 10h6m-6 5h6m-6 5h3" />
-                      <path
-                        d="m22 2 .7 2.3L25 5l-2.3.7L22 8l-.7-2.3L19 5l2.3-.7Z"
-                        className="fill-lime stroke-primary"
-                        strokeWidth="1.2"
-                      />
-                    </svg>
-                  </span>
-                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">
-                    {title}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={tagCatalogStyles.arrow}
-                  >
-                    →
-                  </span>
-                </Link>
-                <Link
-                  href={`/users/${encodeURIComponent(author.publicId)}${signedIn ? `?user=${encodeURIComponent(userId)}` : ""}`}
-                  className={tagCatalogStyles.author}
-                >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    className="size-4 shrink-0 text-primary/70"
-                  >
-                    <circle cx="10" cy="6" r="3" />
-                    <path d="M4 17v-1a6 6 0 0 1 12 0v1" />
-                  </svg>
-                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">
-                    {author.displayName} · @
-                    {author.publicId}
-                  </span>
-                </Link>
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        className="size-4 shrink-0 text-primary/70"
+                      >
+                        <circle cx="10" cy="6" r="3" />
+                        <path d="M4 17v-1a6 6 0 0 1 12 0v1" />
+                      </svg>
+                      <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+                        {author.displayName} · @
+                        {author.publicId}
+                      </span>
+                    </Link>
+                  }
+                />
               </li>
             ))}
           </ul>

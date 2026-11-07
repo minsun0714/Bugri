@@ -134,6 +134,7 @@ const allowed: Record<Operation, string[]> = {
     "page",
     "pageSize",
     "hashtagId",
+    "hashtagIds",
   ],
   developerTags: ["publicId", "page", "pageSize", "query"],
   searchDiscovery: [
