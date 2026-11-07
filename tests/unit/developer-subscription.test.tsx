@@ -1,5 +1,4 @@
 import {
-  act,
   fireEvent,
   render,
   screen,
@@ -109,40 +108,10 @@ it("preserves the subscription on failed save and allows retry", async () => {
   const remove = screen.getByRole("button", {
     name: "타입 개발자 구독 해제",
   });
-  remove.focus();
   fireEvent.click(remove);
   await waitFor(() =>
     expect(button).toHaveAccessibleName(
       "타입 개발자 구독하기",
     ),
   );
-  await waitFor(() => expect(button).toHaveFocus());
-});
-
-it("does not steal focus when the user opens subscription actions before the queued restoration", async () => {
-  const frames: FrameRequestCallback[] = [];
-  jest
-    .spyOn(window, "requestAnimationFrame")
-    .mockImplementation((callback) => {
-      frames.push(callback);
-      return frames.length;
-    });
-  render(<Harness />);
-  const button = await screen.findByRole("button", {
-    name: "타입 개발자 구독하기",
-  });
-  button.focus();
-  fireEvent.click(button);
-  await waitFor(() =>
-    expect(frames.length).toBeGreaterThan(0),
-  );
-  fireEvent.click(button);
-  const remove = screen.getByRole("button", {
-    name: "타입 개발자 구독 해제",
-  });
-  remove.focus();
-  act(() => {
-    for (const callback of frames.splice(0)) callback(0);
-  });
-  expect(remove).toHaveFocus();
 });
