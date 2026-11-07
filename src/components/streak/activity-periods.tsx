@@ -20,29 +20,20 @@ function Bar({
   count: number;
   maximum: number;
 }) {
-  const height = (count / Math.max(1, maximum)) * 32;
+  const width = (count / Math.max(1, maximum)) * 100;
   return (
     <svg
       aria-hidden="true"
-      viewBox="0 0 24 36"
-      className="h-9 w-6 shrink-0"
+      viewBox="0 0 100 8"
+      preserveAspectRatio="none"
+      className="h-2 min-w-0 flex-1 overflow-hidden rounded-full"
     >
-      {count > 0 ? (
-        <rect
-          x="4"
-          y={34 - height}
-          width="16"
-          height={height}
-          rx="3"
-          className="fill-primary"
-        />
-      ) : (
-        <path
-          d="M4 34h16"
-          className="stroke-line"
-          strokeWidth="2"
-        />
-      )}
+      <rect width="100" height="8" className="fill-line" />
+      <rect
+        width={width}
+        height="8"
+        className="fill-primary"
+      />
     </svg>
   );
 }
@@ -55,7 +46,7 @@ export function ActivityPeriods({
   const root = useRef<HTMLDivElement>(null);
   const focusMonth = useRef(false);
   const [view, setView] = useState<PeriodView>(
-    PeriodView.WEEK,
+    PeriodView.MONTH,
   );
   const [selected, setSelected] = useState<string | null>(
     null,
@@ -81,9 +72,6 @@ export function ActivityPeriods({
   const dayCount = (date: string) =>
     countByDate.get(date) ?? 0;
   const total = sumCounts(data, start, end);
-  const week = Array.from({ length: 7 }, (_, index) =>
-    shiftDays(start, index),
-  );
   const monthDays = Number(end.slice(8));
   const offset = new Date(`${start}T12:00:00Z`).getUTCDay();
   const year = Number(start.slice(0, 4));
@@ -96,10 +84,10 @@ export function ActivityPeriods({
       month: index + 1,
     };
   });
-  const maximum =
-    view === PeriodView.YEAR
-      ? Math.max(1, ...months.map(({ count }) => count))
-      : Math.max(1, ...week.map(dayCount));
+  const maximum = Math.max(
+    1,
+    ...months.map(({ count }) => count),
+  );
 
   useEffect(() => {
     if (focusMonth.current && view === PeriodView.MONTH) {
@@ -187,157 +175,118 @@ export function ActivityPeriods({
               disabled={isCurrent}
               onClick={() => setSelected(null)}
             >
-              {view === PeriodView.WEEK
-                ? "최근 7일"
-                : view === PeriodView.MONTH
-                  ? "이번 달"
-                  : "올해"}
+              {view === PeriodView.MONTH
+                ? "이번 달"
+                : "올해"}
             </Button>
           </div>
-          {view === PeriodView.WEEK ? (
-            <ol
-              aria-label="7일 학습량"
-              className="grid grid-cols-7 gap-2 sm:gap-3"
-            >
-              {week.map((date) => {
-                const count = dayCount(date);
-                const isToday = date === today;
-                return (
-                  <li
-                    key={date}
-                    aria-label={`${date}${isToday ? " 오늘" : ""} ${completedDates.includes(date) ? "학습 완료" : "미완료"}, ${count}개`}
-                    aria-current={
-                      isToday ? "date" : undefined
-                    }
-                    className="flex min-w-0 flex-col items-center gap-1.5"
-                  >
-                    <time
-                      dateTime={date}
-                      className={
-                        isToday
-                          ? "text-xs font-semibold"
-                          : "text-xs text-muted"
-                      }
-                    >
-                      {isToday
-                        ? "오늘"
-                        : weekdays[
-                            new Date(
-                              `${date}T12:00:00Z`,
-                            ).getUTCDay()
-                          ]}
-                    </time>
-                    <Bar count={count} maximum={maximum} />
-                    <span className="text-xs tabular-nums">
-                      {count.toLocaleString()}개
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
-          ) : view === PeriodView.MONTH ? (
-            <table
-              aria-label={`${title} 학습 달력`}
-              className="w-full table-fixed border-separate border-spacing-1 text-center"
-            >
-              <thead>
-                <tr>
-                  {weekdays.map((day) => (
-                    <th
-                      key={day}
-                      scope="col"
-                      className="pb-1 text-xs font-normal text-muted"
-                    >
-                      {day}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from(
-                  {
-                    length: 6,
-                  },
-                  (_, row) => (
-                    <tr key={row}>
-                      {Array.from(
-                        { length: 7 },
-                        (_, column) => {
-                          const number =
-                            row * 7 + column - offset + 1;
-                          if (
-                            number < 1 ||
-                            number > monthDays
-                          )
+          <div className="flex h-[292px] items-center sm:h-[340px]">
+            {view === PeriodView.MONTH ? (
+              <table
+                aria-label={`${title} 학습 달력`}
+                className="w-full table-fixed border-separate border-spacing-1 text-center"
+              >
+                <thead>
+                  <tr>
+                    {weekdays.map((day) => (
+                      <th
+                        key={day}
+                        scope="col"
+                        className="pb-1 text-xs font-normal text-muted"
+                      >
+                        {day}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from(
+                    {
+                      length: 6,
+                    },
+                    (_, row) => (
+                      <tr key={row}>
+                        {Array.from(
+                          { length: 7 },
+                          (_, column) => {
+                            const number =
+                              row * 7 + column - offset + 1;
+                            if (
+                              number < 1 ||
+                              number > monthDays
+                            )
+                              return (
+                                <td
+                                  key={column}
+                                  className="h-10 sm:h-12"
+                                />
+                              );
+                            const date = shiftDays(
+                              start,
+                              number - 1,
+                            );
+                            const future = date > today;
+                            const count = dayCount(date);
                             return (
                               <td
-                                key={column}
-                                className="h-10 sm:h-12"
-                              />
+                                key={date}
+                                aria-label={`${date}${date === today ? " 오늘" : ""}${completedDates.includes(date) ? " 학습 완료" : ""}, ${future ? "예정" : `${count}개`}`}
+                                aria-current={
+                                  date === today
+                                    ? "date"
+                                    : undefined
+                                }
+                                className={`h-10 rounded-lg px-0.5 py-0.5 text-xs sm:h-12 ${future ? "text-muted" : count > 0 ? "bg-primary/10 text-primary" : "bg-canvas text-muted"} ${date === today ? "ring-1 ring-inset ring-primary" : ""}`}
+                              >
+                                <time dateTime={date}>
+                                  {number}
+                                </time>
+                                <span className="mt-1 block font-medium tabular-nums">
+                                  {future
+                                    ? "—"
+                                    : `${count.toLocaleString()}개`}
+                                </span>
+                              </td>
                             );
-                          const date = shiftDays(
-                            start,
-                            number - 1,
-                          );
-                          const future = date > today;
-                          const count = dayCount(date);
-                          return (
-                            <td
-                              key={date}
-                              aria-label={`${date}${date === today ? " 오늘" : ""}, ${future ? "예정" : `${count}개`}`}
-                              aria-current={
-                                date === today
-                                  ? "date"
-                                  : undefined
-                              }
-                              className={`h-10 rounded-lg px-0.5 py-0.5 text-xs sm:h-12 ${future ? "text-muted" : count > 0 ? "bg-primary/10 text-primary" : "bg-canvas text-muted"} ${date === today ? "ring-1 ring-inset ring-primary" : ""}`}
-                            >
-                              <time dateTime={date}>
-                                {number}
-                              </time>
-                              <span className="mt-1 block font-medium tabular-nums">
-                                {future
-                                  ? "—"
-                                  : `${count.toLocaleString()}개`}
-                              </span>
-                            </td>
-                          );
-                        },
-                      )}
-                    </tr>
-                  ),
-                )}
-              </tbody>
-            </table>
-          ) : (
-            <div
-              aria-label={`${year}년 월별 학습량`}
-              className="grid grid-cols-6 gap-1 sm:grid-cols-12 sm:gap-2"
-            >
-              {months.map(({ value, count, month }) => (
-                <Button
-                  key={value}
-                  variant="ghost"
-                  disabled={value > today}
-                  aria-label={`${year}년 ${month}월, ${value > today ? "예정" : `${count}개, 월별 보기`}`}
-                  className="h-auto min-w-0 flex-col gap-1 rounded-lg px-1 py-2 text-xs"
-                  onClick={() => {
-                    focusMonth.current = true;
-                    setSelected(value);
-                    setView(PeriodView.MONTH);
-                  }}
-                >
-                  <span>{month}월</span>
-                  <Bar count={count} maximum={maximum} />
-                  <span className="tabular-nums">
-                    {value > today
-                      ? "—"
-                      : `${count.toLocaleString()}개`}
-                  </span>
-                </Button>
-              ))}
-            </div>
-          )}
+                          },
+                        )}
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
+            ) : (
+              <div
+                aria-label={`${year}년 월별 학습량`}
+                className="grid w-full grid-cols-2 gap-x-3 gap-y-1 sm:gap-x-6"
+              >
+                {months.map(({ value, count, month }) => (
+                  <Button
+                    key={value}
+                    variant="ghost"
+                    disabled={value > today}
+                    aria-label={`${year}년 ${month}월, ${value > today ? "예정" : `${count}개, 월별 보기`}`}
+                    className="h-11 min-w-0 gap-2 rounded-lg px-1 py-2 text-xs"
+                    onClick={() => {
+                      focusMonth.current = true;
+                      setSelected(value);
+                      setView(PeriodView.MONTH);
+                    }}
+                  >
+                    <span className="w-7 shrink-0 text-left tabular-nums">
+                      {month}월
+                    </span>
+                    <Bar count={count} maximum={maximum} />
+                    <span className="min-w-8 shrink-0 text-right tabular-nums">
+                      {value > today
+                        ? "—"
+                        : `${count.toLocaleString()}개`}
+                    </span>
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </Tabs>
     </div>

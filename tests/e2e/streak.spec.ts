@@ -15,9 +15,8 @@ test("home streak updates after submission, survives reload and isolates users",
   await expect(
     summary.getByText("오늘부터 시작"),
   ).toBeVisible();
-  await expect(summary.getByRole("listitem")).toHaveCount(
-    7,
-  );
+  await expect(summary.getByRole("table")).toBeVisible();
+  await expect(summary.getByRole("tab")).toHaveCount(2);
   await page.screenshot({
     path: testInfo.outputPath("streak-empty-desktop.png"),
   });
@@ -99,6 +98,9 @@ test("home streak updates after submission, survives reload and isolates users",
 test("a returning learner restarts without losing earlier completed days", async ({
   page,
 }, testInfo) => {
+  await page.clock.install({
+    time: new Date("2026-03-15T03:00:00Z"),
+  });
   await page.goto("/");
   await page
     .getByRole("heading", {
@@ -208,9 +210,9 @@ test("period tabs navigate monthly and yearly learning while preserving today's 
     summary.getByRole("tab", { name: "월", exact: true }),
   ).toBeFocused();
   await expect(summary.getByRole("table")).toBeVisible();
-  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("ArrowRight");
   await expect(
-    summary.getByRole("tab", { name: "7일", exact: true }),
+    summary.getByRole("tab", { name: "년", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   expect(
     await page.evaluate(
@@ -224,13 +226,13 @@ test("period tabs navigate monthly and yearly learning while preserving today's 
     })
     .click();
   await summary
-    .getByRole("tab", { name: "월", exact: true })
+    .getByRole("tab", { name: "년", exact: true })
     .click();
   await page
     .getByLabel("더미 사용자", { exact: true })
     .selectOption("friend");
   await expect(
-    summary.getByRole("tab", { name: "7일", exact: true }),
+    summary.getByRole("tab", { name: "월", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(
     summary.getByText("총 0개", { exact: true }),
@@ -311,6 +313,36 @@ test("learning cards keep their height across empty data and four, five and six 
       .click();
     const populatedYear = (await summary.boundingBox())!
       .height;
+    const months = summary.getByRole("button", {
+      name: /^2026년 \d+월,/,
+    });
+    await expect(months).toHaveCount(12);
+    const first = (await months.nth(0).boundingBox())!;
+    const second = (await months.nth(1).boundingBox())!;
+    const third = (await months.nth(2).boundingBox())!;
+    expect(
+      Math.abs(first.y - second.y),
+    ).toBeLessThanOrEqual(1);
+    expect(second.x).toBeGreaterThan(first.x);
+    expect(Math.abs(first.x - third.x)).toBeLessThanOrEqual(
+      1,
+    );
+    expect(third.y).toBeGreaterThan(first.y);
+
+    expect(
+      Math.abs(populatedYear - fiveWeeks),
+    ).toBeLessThanOrEqual(1);
+    await summary
+      .getByRole("tab", { name: "월", exact: true })
+      .click();
+    expect(
+      Math.abs(
+        (await summary.boundingBox())!.height - fiveWeeks,
+      ),
+    ).toBeLessThanOrEqual(1);
+    await summary
+      .getByRole("tab", { name: "년", exact: true })
+      .click();
     await summary
       .getByRole("button", { name: "이전 기간" })
       .click();

@@ -1,7 +1,6 @@
 import type { LearningDay } from "@/api/contracts";
 
 export const PeriodView = {
-  WEEK: "7일",
   MONTH: "월",
   YEAR: "년",
 } as const;
@@ -41,12 +40,6 @@ export function periodRange(
 ) {
   const year = Number(anchor.slice(0, 4));
   const month = Number(anchor.slice(5, 7));
-  if (view === PeriodView.WEEK)
-    return {
-      start: shiftDays(anchor, -6),
-      end: anchor,
-      title: `${shiftDays(anchor, -6).replaceAll("-", "/")}–${anchor.replaceAll("-", "/")}`,
-    };
   if (view === PeriodView.YEAR)
     return {
       start: monthDate(year, 1),
@@ -69,8 +62,6 @@ export function shiftPeriod(
   anchor: string,
   direction: number,
 ): string {
-  if (view === PeriodView.WEEK)
-    return shiftDays(anchor, direction * 7);
   const year = Number(anchor.slice(0, 4));
   const month = Number(anchor.slice(5, 7));
   if (view === PeriodView.YEAR)

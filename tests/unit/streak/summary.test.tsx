@@ -45,18 +45,24 @@ function setup(userId = "learner") {
   return { ...render(view(userId)), view, client };
 }
 
-test("keeps yesterday's streak and displays seven dated completion states across a year boundary", async () => {
+test("keeps yesterday's streak and navigates monthly completion states across a year boundary", async () => {
   setup();
   expect(await screen.findByText("2일 연속")).toBeVisible();
   expect(
     screen.getByText("오늘 한 문제로 이어가요"),
   ).toBeVisible();
-  expect(screen.getAllByRole("listitem")).toHaveLength(7);
+  expect(screen.getByRole("table")).toBeVisible();
+  fireEvent.click(
+    screen.getByRole("button", { name: "이전 기간" }),
+  );
   expect(
     screen.getByLabelText("2025-12-31 학습 완료, 3개"),
   ).toBeVisible();
+  fireEvent.click(
+    screen.getByRole("button", { name: "현재 기간" }),
+  );
   expect(
-    screen.getByLabelText("2026-01-02 오늘 미완료, 0개"),
+    screen.getByLabelText("2026-01-02 오늘, 0개"),
   ).toBeVisible();
   fireEvent.focus(
     screen.getByRole("button", {
@@ -126,6 +132,9 @@ test("returning learners keep their history and are invited to restart, not crea
   expect(
     screen.queryByText("한 문제 풀고 첫 기록"),
   ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "이전 기간" }),
+  );
   expect(
     screen.getByLabelText("2025-12-29 학습 완료, 0개"),
   ).toBeVisible();
@@ -133,7 +142,12 @@ test("returning learners keep their history and are invited to restart, not crea
 
 test("shows daily unique counts including zero alongside the learning dates", async () => {
   setup();
-  expect(await screen.findByText("3개")).toBeVisible();
-  expect(screen.getByText("1개")).toBeVisible();
-  expect(screen.getAllByText("0개")).toHaveLength(5);
+  expect(await screen.findByText("1개")).toBeVisible();
+  expect(
+    screen.getByLabelText("2026-01-02 오늘, 0개"),
+  ).toBeVisible();
+  fireEvent.click(
+    screen.getByRole("button", { name: "이전 기간" }),
+  );
+  expect(screen.getByText("3개")).toBeVisible();
 });

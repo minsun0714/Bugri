@@ -25,27 +25,23 @@ function tab(name: string) {
   fireEvent.click(screen.getByRole("tab", { name }));
 }
 
-test("defaults to seven days and navigates across a year boundary without offering future periods", () => {
+test("defaults to this month with only month and year tabs", () => {
   render(<ActivityPeriods data={data} />);
+  expect(screen.getAllByRole("tab")).toHaveLength(2);
   expect(
-    screen.getByRole("tab", { name: "7일" }),
+    screen.getByRole("tab", { name: "월" }),
   ).toHaveAttribute("aria-selected", "true");
-  expect(screen.getAllByRole("listitem")).toHaveLength(7);
+  expect(
+    screen.queryByRole("tab", { name: "7일" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("table", {
+      name: "2026년 1월 학습 달력",
+    }),
+  ).toBeVisible();
   expect(
     screen.getByRole("button", { name: "다음 기간" }),
   ).toBeDisabled();
-  fireEvent.click(
-    screen.getByRole("button", { name: "이전 기간" }),
-  );
-  expect(
-    screen.getByLabelText("2025-12-26 미완료, 0개"),
-  ).toBeVisible();
-  fireEvent.click(
-    screen.getByRole("button", { name: "현재 기간" }),
-  );
-  expect(
-    screen.getByLabelText("2026-01-02 오늘 미완료, 0개"),
-  ).toBeVisible();
 });
 
 test("monthly calendar distinguishes completed, empty and future dates and returns to this month", () => {
@@ -57,7 +53,9 @@ test("monthly calendar distinguishes completed, empty and future dates and retur
     }),
   ).toBeVisible();
   expect(
-    screen.getByRole("cell", { name: "2026-01-01, 1개" }),
+    screen.getByRole("cell", {
+      name: "2026-01-01 학습 완료, 1개",
+    }),
   ).toBeVisible();
   expect(
     screen.getByRole("cell", {
@@ -71,7 +69,9 @@ test("monthly calendar distinguishes completed, empty and future dates and retur
     screen.getByRole("button", { name: "이전 기간" }),
   );
   expect(
-    screen.getByRole("cell", { name: "2025-12-31, 3개" }),
+    screen.getByRole("cell", {
+      name: "2025-12-31 학습 완료, 3개",
+    }),
   ).toBeVisible();
   expect(screen.getByText("총 5개")).toBeVisible();
   fireEvent.click(
