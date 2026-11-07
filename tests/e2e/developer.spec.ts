@@ -107,7 +107,7 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     "true",
   );
   await expect(typeScriptTag.locator("..")).toHaveClass(
-    /ring-primary\/35/,
+    /ring-primary\/50/,
   );
   const unsubscribedBackground = await typeScriptTag
     .locator("..")
@@ -155,7 +155,7 @@ test("developer name opens scoped tags and quizzes; subscriptions stay on the pa
     .click();
   await expect(typeScriptMenu).toHaveCount(0);
   await expect(typeScriptTag.locator("..")).toHaveClass(
-    /bg-lime\/60/,
+    /bg-primary\/10/,
   );
   await expect
     .poll(() =>

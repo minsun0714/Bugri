@@ -338,7 +338,7 @@ function Catalog({
                   ({ id, name, quizCount, subscribed }) => (
                     <li
                       key={id}
-                      className={`flex w-fit max-w-full items-center gap-1 rounded-full border py-0.5 pl-3 pr-1 ${subscribed ? "border-primary/20 bg-lime/60" : "border-line bg-canvas/40"} ${hashtagId === id ? "ring-2 ring-primary/35 ring-offset-1 ring-offset-surface" : ""}`}
+                      className={`flex w-fit max-w-full items-center gap-1 rounded-full border py-0.5 pl-3 pr-1 ${subscribed ? "border-primary/25 bg-primary/10" : "border-line bg-canvas/40"} ${hashtagId === id ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-surface" : ""}`}
                     >
                       <button
                         type="button"
