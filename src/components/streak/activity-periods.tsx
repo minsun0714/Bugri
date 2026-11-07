@@ -282,6 +282,15 @@ export function ActivityPeriods({
                           );
                           const future = date > today;
                           const count = dayCount(date);
+                          const activityTone = future
+                            ? "text-muted"
+                            : count >= 5
+                              ? "bg-lime text-foreground"
+                              : count >= 2
+                                ? "bg-lime/70 text-foreground"
+                                : count > 0
+                                  ? "bg-lime/40 text-foreground"
+                                  : "bg-canvas text-muted";
                           return (
                             <td
                               key={date}
@@ -291,16 +300,33 @@ export function ActivityPeriods({
                                   ? "date"
                                   : undefined
                               }
-                              className={`h-10 rounded-lg px-0.5 py-0.5 text-xs sm:h-12 ${future ? "text-muted" : count > 0 ? "bg-primary/10 text-primary" : "bg-canvas text-muted"} ${date === today ? "ring-1 ring-inset ring-primary" : ""}`}
+                              className={`h-10 overflow-hidden rounded-lg p-0 text-xs sm:h-12 ${activityTone}`}
                             >
-                              <time dateTime={date}>
+                              <time
+                                dateTime={date}
+                                className={`flex h-4 items-center justify-center text-[10px] font-medium sm:h-5 sm:text-xs ${date === today ? "bg-primary text-surface" : future ? "text-muted" : "border-b border-line/60 bg-line text-muted"}`}
+                              >
                                 {number}
                               </time>
-                              <span className="mt-1 block font-medium tabular-nums">
-                                {future
-                                  ? "—"
-                                  : `${count.toLocaleString()}개`}
-                              </span>
+                              {future ? (
+                                <span
+                                  aria-hidden="true"
+                                  className="block h-6 sm:h-7"
+                                />
+                              ) : (
+                                <span
+                                  className={
+                                    count > 0
+                                      ? "flex h-6 items-center justify-center text-base font-bold leading-none tabular-nums sm:h-7 sm:text-lg"
+                                      : "flex h-6 items-center justify-center text-xs leading-none tabular-nums sm:h-7"
+                                  }
+                                >
+                                  {count.toLocaleString()}
+                                  <span className="ml-0.5 text-[10px] font-medium">
+                                    개
+                                  </span>
+                                </span>
+                              )}
                             </td>
                           );
                         },

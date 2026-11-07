@@ -142,12 +142,18 @@ test("returning learners keep their history and are invited to restart, not crea
 
 test("shows daily unique counts including zero alongside the learning dates", async () => {
   setup();
-  expect(await screen.findByText("1개")).toBeVisible();
+  expect(
+    await screen.findByLabelText(
+      "2026-01-01 학습 완료, 1개",
+    ),
+  ).toBeVisible();
   expect(
     screen.getByLabelText("2026-01-02 오늘, 0개"),
   ).toBeVisible();
   fireEvent.click(
     screen.getByRole("button", { name: "이전 기간" }),
   );
-  expect(screen.getByText("3개")).toBeVisible();
+  expect(
+    screen.getByLabelText("2025-12-31 학습 완료, 3개"),
+  ).toBeVisible();
 });
