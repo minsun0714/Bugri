@@ -51,3 +51,5 @@ npx prettier --write src/api src/mocks src/services tests/unit/api tests/e2e/moc
 첫 Prettier 실행으로 줄바꿈을 정리하고, ESLint로 선언·처리 단계 사이 빈 줄을 추가한 뒤 Prettier로 마무리한다. 포맷 후 lint와 Prettier 검사를 모두 확인한다. `.prettierrc.json`의 `printWidth: 60`, `objectWrap: preserve`를 따르며, `objectWrap`은 기존 객체 줄바꿈을 보존하는 옵션이다. 새 객체도 여러 줄로 작성한다.
 
 `padding-line-between-statements`는 패키지 변경 없이 설치된 ESLint 9 내장 규칙을 사용한다. 이 규칙은 deprecated 상태이므로 향후 ESLint 11 전환 시 `@stylistic/eslint-plugin` 이전을 검토한다. 검증 절차와 문서 전용 변경 예외는 [검증 지침](../.agents/skills/implement-feature/references/verification.md)을 따른다.
+
+- 실행 버튼 그룹은 기본적으로 컨테이너 오른쪽에 정렬하고 모바일에서는 줄바꿈을 허용한다. 제목·본문과 탭·선택지 같은 입력 탐색 요소의 정렬은 유지한다.

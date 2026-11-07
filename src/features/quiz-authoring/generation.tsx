@@ -86,7 +86,7 @@ export function Generation(props: GenerationProps) {
       )}
       <RequestError error={error} />
       {!!error && batch && (
-        <div>
+        <div className={styles.actions}>
           <Button
             size="sm"
             variant="ghost"
@@ -252,7 +252,7 @@ export function Generation(props: GenerationProps) {
                         {chatOpen &&
                           !candidate.savedQuizId && (
                             <form
-                              className="flex flex-wrap items-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
+                              className="flex flex-wrap items-end justify-end gap-3 rounded-2xl border border-primary/20 bg-surface p-4"
                               onSubmit={(event) => {
                                 event.preventDefault();
                                 refine();
@@ -301,7 +301,7 @@ export function Generation(props: GenerationProps) {
                             onChange={edit}
                             onSource={() => {}}
                           />
-                          <div className="mt-4 flex gap-3">
+                          <div className="mt-4 flex flex-wrap justify-end gap-3">
                             <Button
                               size="sm"
                               onClick={applyEdit}
@@ -327,7 +327,7 @@ export function Generation(props: GenerationProps) {
                   </Tabs>
                   {!editing &&
                     (candidate.savedQuizId ? (
-                      <div className="flex items-center gap-3 border-t border-line pt-3 text-xs text-muted">
+                      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-3 text-xs text-muted">
                         <span>저장 완료</span>
                         <a
                           className="font-semibold text-primary underline"
@@ -337,7 +337,7 @@ export function Generation(props: GenerationProps) {
                         </a>
                       </div>
                     ) : (
-                      <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex flex-wrap items-center justify-end gap-3">
                         <div className="flex items-center gap-1">
                           <Button
                             size="sm"

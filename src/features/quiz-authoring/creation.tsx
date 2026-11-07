@@ -92,7 +92,7 @@ export function Creation({
           }}
         />
       </fieldset>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap justify-end gap-3">
         <Button
           onClick={() => void generate()}
           loading={busy}
@@ -123,12 +123,14 @@ export function Creation({
           )}
           <RequestError error={error} />
           {!!error && (
-            <Button
-              disabled={busy}
-              onClick={() => void generate()}
-            >
-              다시 생성
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                disabled={busy}
+                onClick={() => void generate()}
+              >
+                다시 생성
+              </Button>
+            </div>
           )}
           {!busy && !error && batch && (
             <Generation

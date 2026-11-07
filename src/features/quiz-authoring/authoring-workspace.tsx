@@ -149,7 +149,7 @@ function Workspace({
     return (
       <div className={styles.stack}>
         <RequestError error={error} />
-        <div>
+        <div className={styles.actions}>
           <Button onClick={() => void retry()}>
             다시 불러오기
           </Button>
@@ -236,7 +236,7 @@ function Workspace({
       )}
       {review.data && quizId && (
         <>
-          <div>
+          <div className={styles.actions}>
             <Button
               variant="ghost"
               disabled={busy}
@@ -272,7 +272,7 @@ function Workspace({
           className={styles.stack}
           aria-label="내 퀴즈 목록"
         >
-          <div>
+          <div className={styles.actions}>
             <Button
               variant="ghost"
               disabled={list.isFetching}
@@ -320,7 +320,7 @@ function Workspace({
                     "ko-KR",
                   )}
                 </time>
-                <div>
+                <div className={styles.actions}>
                   <Button
                     variant="secondary"
                     disabled={busy}

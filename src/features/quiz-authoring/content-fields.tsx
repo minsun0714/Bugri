@@ -156,6 +156,7 @@ export function ContentFields({
                 />
               )}
               <Button
+                className="justify-self-end"
                 variant="ghost"
                 disabled={question.choices.length <= 2}
                 onClick={() =>
@@ -173,6 +174,7 @@ export function ContentFields({
             </div>
           ))}
           <Button
+            className="justify-self-end"
             variant="secondary"
             onClick={() =>
               onChange({
@@ -197,7 +199,7 @@ export function ContentFields({
           <legend className="mb-3 font-bold">
             OX 정답
           </legend>
-          <div className={styles.actions}>
+          <div className="flex flex-wrap items-center gap-3">
             {[true, false].map((value) => (
               <Choice
                 key={String(value)}

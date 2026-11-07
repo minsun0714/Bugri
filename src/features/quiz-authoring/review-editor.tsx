@@ -160,7 +160,7 @@ export function ReviewEditor({
       </div>
       {quiz.active && (
         <Card>
-          <div className={styles.actions}>
+          <div className="flex flex-wrap items-center gap-3">
             <h3>현재 서비스 중인 버전</h3>
             <Tooltip label="수정본 승인 도움말">
               수정본을 승인하기 전까지 기존 퀴즈가
@@ -232,7 +232,7 @@ export function ReviewEditor({
               ? " · 저장하지 않은 변경이 있습니다."
               : ""}
           </p>
-          <div>
+          <div className={styles.actions}>
             <Button
               disabled={busy || edited || reviewed}
               onClick={() =>
@@ -277,7 +277,7 @@ export function ReviewEditor({
               .join(" ") || "태그 없음"}{" "}
             · {visibility || "공개 범위 미선택"}
           </p>
-          <div>
+          <div className={styles.actions}>
             <Button
               disabled={
                 busy || dirty || !reviewed || !visibility
@@ -301,7 +301,7 @@ export function ReviewEditor({
         </Card>
       )}
       <Card className={styles.stack}>
-        <div className={styles.actions}>
+        <div className="flex flex-wrap items-center gap-3">
           <h3 className="text-xl">
             추가 프롬프트로 재생성
           </h3>
@@ -318,7 +318,7 @@ export function ReviewEditor({
             setPrompt(event.target.value)
           }
         />
-        <div>
+        <div className={styles.actions}>
           <Button
             disabled={busy || edited || !prompt.trim()}
             onClick={() =>
@@ -358,7 +358,7 @@ export function ReviewEditor({
               setNextVisibility(value as Visibility)
             }
           />
-          <div>
+          <div className={styles.actions}>
             <Button
               variant="secondary"
               disabled={
@@ -383,7 +383,7 @@ export function ReviewEditor({
           </div>
         </Card>
       )}
-      <div>
+      <div className={styles.actions}>
         <Button
           variant="danger"
           disabled={busy}
