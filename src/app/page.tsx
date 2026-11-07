@@ -15,7 +15,7 @@ export default function Home() {
       />
       <main
         id="top"
-        className="mx-auto w-full max-w-3xl flex-1 px-6 py-12 md:px-12"
+        className="mx-auto w-full max-w-[1220px] flex-1 px-5 py-12 md:px-12"
       >
         <Suspense fallback={<Skeleton />}>
           <SolveScreen />
