@@ -1322,3 +1322,16 @@
 - ProfileAbout 구조를 보존하면서 방문자 구독 버튼은 데모 모달만 열고 사용자 선택 후 별도 구독하도록 통합. API48개, 양쪽 작업 문서와 테스트를 보존한다. 프로필·탐색 E2E의 예전 로그인 진입을 URL 사용자 정책에 맞췄다. 연속 학습 내부 수정 없음.
 - 관련 단위5 suites/27 tests 통과. 독립 UX/UI 및 실제 PC/mobile 통합 검토와 최종 전체 verify를 수행한다.
 - 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3195 npm run verify -- -- --workers=1` 전체 통과: lint·TypeScript·Jest47 suites/229 tests·도구3개·build·E2E141개. 로그 `/tmp/pr19-merge-verify.log`. 관련 E2E18개·단위27개 통과. 독립 UX/UI 실제화면 검토 필수회귀0개. [검토·한계](ux-reviews/PR19-DEV-INTEGRATION.md). 사용자dev서버의 탐색 hydration mismatch는 최신production에서 미재현. 충돌해결 커밋을 PR19에 반영하며 PR 자체는 merge하지 않는다.
+
+## TAG-HASH-LABEL — 태그명 # 표시
+
+- 상태: DONE. 아래 TAG-DISCOVERY-CUTE에 포함해 완료했다. 사용자 요청에 따라 태그 탐색 카드의 표시 이름에만 #을 붙인다. 저장된 태그 이름/ID·검색·구독·학습 동작은 유지한다. 기존 화면 문구 검증을 새 표기에 맞춘다.
+- 단순 표시 변경으로 별도 UX 루프는 시작하지 않는다. 독립 리뷰·실제 화면 확인·Node v22.23.3 전체 verify 후 커밋한다.
+
+## TAG-DISCOVERY-CUTE — 홈 컨셉 태그 탐색 UI
+
+- 상태: DONE. TAG-HASH-LABEL 작업 중 사용자 후속 요청으로 # 표시를 포함해 홈의 둥근 형태·보라/라임 토큰·버그리를 참고한 시각 개선으로 범위를 확장했다. 앞선 # 전용 verify는 새 화면 변경을 반영할 수 없어 작업 소유 실행만 중단했다.
+- 태그 탐색에만 적용한다. #태그 이름·구독 중 배지·내 구독 필터·로그인 안내·검색/구독/학습·접근성·API는 보존한다. 홈·개발자 탐색 및 다른 워크트리 파일은 수정하지 않는다.
+- 별도 UI 설계 위임, 실제 홈/탐색 화면 비교 후 구현하고 새 컨텍스트 독립 UX/UI 리뷰와 최종 전체 검증을 수행한다.
+
+- 탐색용 돋보기 버그리와 `태그 이름 검색` placeholder 적용. 독립 UX/UI R2 완료. Node v22.23.3 전체 검증 lint·타입·Jest234개·도구3개·빌드·E2E145개 통과(`/tmp/bugri-tag-cute-final-verify.log`). 이후 placeholder 문구만 변경해 해당 파일 lint/Prettier와 dev3002 모바일 검색을 추가 확인했다. [리뷰·검증 범위](ux-reviews/TAG-DISCOVERY-CUTE.md).

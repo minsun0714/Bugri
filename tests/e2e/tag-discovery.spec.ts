@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("guest consent preserves search, requires explicit subscription, and manages own tags", async ({
   page,
 }) => {
-  await page.goto("/discover/tags?user=friend&query=Java");
+  await page.goto("/discover/tags?query=Java");
   const subscribe = page.getByRole("button", {
     name: "Java 구독하기",
     exact: true,
@@ -22,6 +22,19 @@ test("guest consent preserves search, requires explicit subscription, and manage
       exact: true,
     })
     .click();
+  const selection = page.getByRole("dialog", {
+    name: "데모 사용자 선택",
+  });
+  await selection
+    .getByRole("combobox", { name: "더미 사용자" })
+    .click();
+  await selection
+    .getByRole("option", { name: "친구", exact: true })
+    .click();
+  await selection
+    .getByRole("button", { name: "선택한 사용자로 시작" })
+    .click();
+  await expect(page).toHaveURL(/user=friend/);
   await expect(page).toHaveURL(/query=Java/);
   await expect(subscribe).toBeVisible();
   expect(
@@ -87,9 +100,6 @@ test("search and unsubscribe restore keyboard focus; hash searches and history w
   page,
 }) => {
   await page.goto("/discover/tags?user=friend");
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
   const search = page.getByRole("searchbox");
   await search.fill("#Web");
   await search.press("Enter");
@@ -168,10 +178,7 @@ test("tag cards fit mobile and expose subscription and quiz availability", async
 }, testInfo) => {
   for (const width of [320, 375, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/discover/tags");
-    await page
-      .getByRole("button", { name: "Google 로그인 (데모)" })
-      .click();
+    await page.goto("/discover/tags?user=learner");
     await expect(
       page.getByText("구독 중", { exact: true }),
     ).toBeVisible();
@@ -185,7 +192,16 @@ test("tag cards fit mobile and expose subscription and quiz availability", async
     const box = await page
       .getByRole("searchbox")
       .boundingBox();
-    expect(box!.y).toBeLessThan(320);
+    const heading = await page
+      .getByRole("heading", {
+        name: "태그 탐색",
+        exact: true,
+      })
+      .boundingBox();
+    expect(box!.y - heading!.y).toBeLessThan(120);
+    await expect(
+      page.getByText("#Web", { exact: true }),
+    ).toBeVisible();
     const menu = await page
       .getByRole("button", { name: "Web 구독 메뉴" })
       .boundingBox();

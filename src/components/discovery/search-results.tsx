@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { tagDiscoveryStyles } from "@/components/discovery/styles";
 import { SubscriptionMenu } from "@/components/discovery/subscription-menu";
 import { useEffect, useRef, useState } from "react";
 import { DiscoveryKind } from "@/api/constants";
@@ -35,6 +36,7 @@ export function DiscoverySearch({
   authorize,
   showSubscriptions = false,
 }: DiscoverySearchProps) {
+  const isTags = request.kind === DiscoveryKind.HASHTAG;
   const [input, setInput] = useState(request.query);
   const [previousQuery, setPreviousQuery] = useState(
     request.query,
@@ -134,7 +136,11 @@ export function DiscoverySearch({
             <Button
               size="sm"
               variant="ghost"
-              className="!min-h-11"
+              className={
+                isTags
+                  ? tagDiscoveryStyles.learn
+                  : "!min-h-11"
+              }
               disabled={busy || publicQuizCount === 0}
               aria-label={`${name} 학습하기`}
               onClick={() => {
@@ -142,6 +148,7 @@ export function DiscoverySearch({
               }}
             >
               학습하기
+              {isTags && <span aria-hidden="true">→</span>}
             </Button>
             <SubscriptionMenu
               name={name}
@@ -153,11 +160,23 @@ export function DiscoverySearch({
           <Button
             size="sm"
             variant="secondary"
-            className="!min-h-11"
+            className={
+              isTags
+                ? tagDiscoveryStyles.subscribe
+                : "!min-h-11"
+            }
             disabled={busy}
             aria-label={`${name} 구독하기`}
             onClick={toggleSubscription}
           >
+            {isTags && (
+              <span
+                aria-hidden="true"
+                className="text-base leading-none"
+              >
+                +
+              </span>
+            )}
             구독하기
           </Button>
         )}
@@ -167,95 +186,121 @@ export function DiscoverySearch({
 
   return (
     <div ref={root} className="space-y-5">
-      <form
-        className="flex flex-wrap items-end justify-end gap-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (invalidInput) return;
-          search({
-            ...request,
-            query: input.trim(),
-            page: 1,
-          });
-        }}
+      <div
+        className={
+          isTags
+            ? tagDiscoveryStyles.searchPanel
+            : undefined
+        }
       >
-        <div className="min-w-0 flex-1">
-          <TextField
-            type="search"
-            label={
-              request.kind === DiscoveryKind.USER
-                ? "개발자 검색"
-                : "태그 검색"
+        <form
+          className={
+            isTags
+              ? tagDiscoveryStyles.searchForm
+              : "flex flex-wrap items-end justify-end gap-3"
+          }
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (invalidInput) return;
+            search({
+              ...request,
+              query: input.trim(),
+              page: 1,
+            });
+          }}
+        >
+          <div
+            className={
+              isTags
+                ? tagDiscoveryStyles.searchField
+                : "min-w-0 flex-1"
             }
-            placeholder={
-              request.kind === DiscoveryKind.USER
-                ? "개발자 이름 또는 ID"
-                : "태그 이름"
-            }
-            value={input}
-            error={
-              invalidInput
-                ? "검색어는 100자 이하여야 합니다."
+          >
+            <TextField
+              hideLabel={isTags}
+              type="search"
+              label={
+                request.kind === DiscoveryKind.USER
+                  ? "개발자 검색"
+                  : "태그 검색"
+              }
+              placeholder={
+                request.kind === DiscoveryKind.USER
+                  ? "개발자 이름 또는 ID"
+                  : "태그 이름 검색"
+              }
+              value={input}
+              error={
+                invalidInput
+                  ? "검색어는 100자 이하여야 합니다."
+                  : undefined
+              }
+              readOnly={busy}
+              onChange={(event) =>
+                setInput(event.target.value)
+              }
+            />
+          </div>
+          <Button
+            type="submit"
+            className={
+              isTags
+                ? tagDiscoveryStyles.searchButton
                 : undefined
             }
-            readOnly={busy}
-            onChange={(event) =>
-              setInput(event.target.value)
-            }
-          />
-        </div>
-        <Button
-          type="submit"
-          disabled={busy || invalidInput}
-        >
-          검색
-        </Button>
-      </form>
-      {request.kind === DiscoveryKind.HASHTAG &&
-        showSubscriptions && (
-          <div
-            role="group"
-            aria-label="태그 목록 필터"
-            className="flex flex-wrap gap-2"
+            disabled={busy || invalidInput}
           >
-            <Button
-              variant={
-                request.subscribedOnly
-                  ? "ghost"
-                  : "secondary"
-              }
-              aria-pressed={!request.subscribedOnly}
-              disabled={busy}
-              onClick={() =>
-                search({
-                  ...request,
-                  subscribedOnly: false,
-                  page: 1,
-                })
-              }
+            검색
+          </Button>
+        </form>
+        {request.kind === DiscoveryKind.HASHTAG &&
+          showSubscriptions && (
+            <div
+              role="group"
+              aria-label="태그 목록 필터"
+              className={tagDiscoveryStyles.filters}
             >
-              전체 태그
-            </Button>
-            <Button
-              variant={
-                request.subscribedOnly
-                  ? "secondary"
-                  : "ghost"
-              }
-              aria-pressed={!!request.subscribedOnly}
-              disabled={busy}
-              onClick={() =>
-                search({
-                  ...request,
-                  subscribedOnly: true,
-                  page: 1,
-                })
-              }
-            >
-              내 구독
-            </Button>
-          </div>
-        )}
+              <Button
+                variant={
+                  request.subscribedOnly
+                    ? "ghost"
+                    : "secondary"
+                }
+                className={tagDiscoveryStyles.filterButton}
+                aria-pressed={!request.subscribedOnly}
+                disabled={busy}
+                onClick={() =>
+                  search({
+                    ...request,
+                    subscribedOnly: false,
+                    page: 1,
+                  })
+                }
+              >
+                전체 태그
+              </Button>
+              <Button
+                variant={
+                  request.subscribedOnly
+                    ? "secondary"
+                    : "ghost"
+                }
+                className={tagDiscoveryStyles.filterButton}
+                aria-pressed={!!request.subscribedOnly}
+                disabled={busy}
+                onClick={() =>
+                  search({
+                    ...request,
+                    subscribedOnly: true,
+                    page: 1,
+                  })
+                }
+              >
+                내 구독
+              </Button>
+            </div>
+          )}
+      </div>
       {discovery.isPending && !invalidQuery && <Skeleton />}
       {discovery.error && !invalidQuery && (
         <div role="alert">
@@ -301,7 +346,13 @@ export function DiscoverySearch({
             {data.page}페이지
           </p>
           {data.items.length ? (
-            <ul className="grid gap-3 md:grid-cols-2">
+            <ul
+              className={
+                isTags
+                  ? tagDiscoveryStyles.grid
+                  : "grid gap-3 md:grid-cols-2"
+              }
+            >
               {data.items.map((item) => {
                 if (item.type === DiscoveryKind.USER) {
                   const {
@@ -350,20 +401,57 @@ export function DiscoverySearch({
                 return (
                   <li
                     key={id}
-                    className="min-w-0 rounded-xl border border-line bg-surface px-4 py-3"
+                    className={tagDiscoveryStyles.card}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <strong className="min-w-0 break-all">
-                        {name}
+                      <strong
+                        className={tagDiscoveryStyles.label}
+                      >
+                        #{name}
                       </strong>
                       {subscribed && (
-                        <span className="rounded-lg bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                        <span
+                          className={
+                            tagDiscoveryStyles.subscribed
+                          }
+                        >
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="size-3"
+                          >
+                            <path d="m3 8 3 3 7-7" />
+                          </svg>
                           구독 중
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-                      <span className="text-sm text-muted">
+                    <div
+                      className={tagDiscoveryStyles.footer}
+                    >
+                      <span
+                        className={tagDiscoveryStyles.count}
+                      >
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          className="size-4 shrink-0"
+                        >
+                          <rect
+                            x="5"
+                            y="3"
+                            width="11"
+                            height="14"
+                            rx="2"
+                          />
+                          <path d="M5 6H3v10a2 2 0 0 0 2 2M8 7h5M8 10h5M8 13h3" />
+                        </svg>
                         {publicQuizCount === 0
                           ? "공개 퀴즈 없음"
                           : `공개 퀴즈 ${publicQuizCount}개`}
@@ -381,7 +469,13 @@ export function DiscoverySearch({
               })}
             </ul>
           ) : (
-            <div className="space-y-3">
+            <div
+              className={
+                isTags
+                  ? tagDiscoveryStyles.empty
+                  : "space-y-3"
+              }
+            >
               <p>
                 {data.total > 0
                   ? "요청한 페이지에 결과가 없습니다."

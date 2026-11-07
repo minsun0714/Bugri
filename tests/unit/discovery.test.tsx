@@ -76,7 +76,7 @@ it("finds developers and all registered tags without subscribing on search", asy
     }),
   );
   expect(
-    await screen.findByText("Java", { exact: true }),
+    await screen.findByText("#Java", { exact: true }),
   ).toBeVisible();
   expect(await api.request("subscriptions", {})).toEqual(
     [],

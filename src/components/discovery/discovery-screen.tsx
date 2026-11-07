@@ -15,6 +15,8 @@ import { DiscoverySearch } from "@/components/discovery/search-results";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import { FeatureSectionShell } from "@/components/navigation/feature-section-shell";
 import { Button, Modal } from "@/components/ui";
+import { TagExplorer } from "@/components/discovery/tag-explorer";
+import { tagDiscoveryStyles } from "@/components/discovery/styles";
 
 export function DiscoveryScreen({
   kind,
@@ -52,12 +54,17 @@ export function DiscoveryScreen({
 
   return (
     <QueryClientProvider client={client}>
-      <div className="space-y-6">
-        <h1 className="text-3xl">
-          {kind === DiscoveryKind.USER
-            ? "개발자 탐색"
-            : "태그 탐색"}
-        </h1>
+      <div className={isTags ? "space-y-5" : "space-y-6"}>
+        {isTags ? (
+          <div className={tagDiscoveryStyles.heading}>
+            <TagExplorer />
+            <h1 className="text-2xl tracking-tight sm:text-3xl">
+              태그 탐색
+            </h1>
+          </div>
+        ) : (
+          <h1 className="text-3xl">개발자 탐색</h1>
+        )}
         {signedIn && !isTags && (
           <FeatureSectionShell
             id="subscriptions"
