@@ -7,6 +7,7 @@ import { Button, Skeleton } from "@/components/ui";
 import { styles } from "@/components/ui/styles";
 import { useProfileAbout } from "@/components/profile/use-profile-about";
 import { ProfileAboutForm } from "@/components/profile/profile-about-form";
+import { EditIcon } from "@/components/profile/edit-icon";
 import { ProfileLinkIcon } from "@/components/profile/profile-link-icon";
 import { profileStyles } from "@/components/profile/styles";
 import { profileLinkLabels } from "@/lib/profile-about";
@@ -18,11 +19,13 @@ export function ProfileAbout({
   identity,
   visitorAction,
   onNotice,
+  quizNavigation,
 }: {
   userId: string;
   publicId: string;
   owner: boolean;
   identity: ReactNode;
+  quizNavigation?: ReactNode;
   visitorAction: ReactNode;
   onNotice: (message: string, duration?: number) => void;
 }) {
@@ -162,6 +165,7 @@ export function ProfileAbout({
                 setEditing(true);
               }}
             >
+              <EditIcon />
               프로필 편집
             </Button>
           </div>
@@ -171,9 +175,10 @@ export function ProfileAbout({
           {visitorAction}
         </div>
       )}
-      {content && (
-        <div className="col-span-2 min-w-0 max-w-3xl">
+      {(content || !editing) && (
+        <div className="col-span-2 min-w-0 max-w-3xl space-y-2">
           {content}
+          {!editing && quizNavigation}
         </div>
       )}
     </section>

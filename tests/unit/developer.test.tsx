@@ -111,7 +111,7 @@ test("public profile previews quizzes without filters and requires login before 
   );
   fireEvent.click(
     screen.getByRole("button", {
-      name: "로그인하고 구독하기",
+      name: "구독하기",
     }),
   );
   expect(await api.request("subscriptions", {})).toEqual(

@@ -18,6 +18,7 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { useDemoSession } from "@/components/navigation/demo-session";
+import { EditIcon } from "@/components/profile/edit-icon";
 import { profileStyles } from "@/components/profile/styles";
 import { ProfileAbout } from "@/components/profile/profile-about";
 import { ApiClientError } from "@/api/client";
@@ -321,7 +322,7 @@ function Catalog({
       }}
     >
       {profile && !signedIn
-        ? "로그인하고 구독하기"
+        ? "구독하기"
         : profile && data.subscribed
           ? "개발자 구독 해제"
           : "개발자 구독하기"}
@@ -329,7 +330,7 @@ function Catalog({
   );
 
   return (
-    <div className="space-y-8">
+    <div className={profile ? "space-y-4" : "space-y-8"}>
       {profile ? (
         <ProfileAbout
           key={`${userId}:${publicId}:${signedIn}`}
@@ -338,6 +339,23 @@ function Catalog({
           owner={signedIn && data.user.userId === userId}
           identity={identity}
           visitorAction={subscription}
+          quizNavigation={
+            <a
+              href="#public-quizzes"
+              className="inline-flex min-h-11 items-center gap-2 rounded text-sm font-medium text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary"
+              onClick={(event) => {
+                event.preventDefault();
+                const target = document.getElementById(
+                  "public-quizzes",
+                );
+                target?.focus({ preventScroll: true });
+                target?.scrollIntoView({ block: "start" });
+              }}
+            >
+              공개 퀴즈 {data.total}개 보기{" "}
+              <span aria-hidden="true">↓</span>
+            </a>
+          }
           onNotice={onNotice}
         />
       ) : (
@@ -356,6 +374,7 @@ function Catalog({
                   href={`/my/desk?user=${encodeURIComponent(userId)}`}
                   className={profileStyles.action}
                 >
+                  <EditIcon />
                   데스크 편집
                 </Link>
               </div>
@@ -500,7 +519,9 @@ function Catalog({
         )}
         <section
           aria-label="개발자의 공개 퀴즈"
-          className="min-w-0"
+          id={profile ? "public-quizzes" : undefined}
+          tabIndex={profile ? -1 : undefined}
+          className="min-w-0 scroll-mt-24 rounded-xl"
         >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg">
