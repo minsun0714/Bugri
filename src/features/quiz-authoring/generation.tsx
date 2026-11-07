@@ -257,7 +257,11 @@ export function Generation(props: GenerationProps) {
       {batch && candidate && chatOpen && chatWorkspace}
       {batch && candidate && !chatOpen && (
         <section
-          className={`${styles.stack} ${props.embedded ? "min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1" : ""}`}
+          className={
+            props.embedded
+              ? "flex min-h-0 flex-1 flex-col"
+              : styles.stack
+          }
           aria-label="생성 후보"
         >
           <Tabs
@@ -265,6 +269,16 @@ export function Generation(props: GenerationProps) {
             items={tabLabels}
             value={tabLabels[selectedIndex]}
             disabled={busy}
+            className={
+              props.embedded
+                ? "flex min-h-0 flex-1 flex-col [&_[role=tablist]]:shrink-0"
+                : undefined
+            }
+            panelClassName={
+              props.embedded
+                ? "min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1"
+                : undefined
+            }
             onChange={(label) =>
               setSelectedIndex(tabLabels.indexOf(label))
             }

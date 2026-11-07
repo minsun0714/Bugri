@@ -189,6 +189,59 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   ).toHaveCount(4);
 });
 
+test("quiz tabs stay visible while only the candidate body scrolls", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/quizzes/authoring");
+  await page
+    .getByRole("textbox", { name: /학습 내용/ })
+    .fill("타입스크립트 union narrowing");
+  await page
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
+    .click();
+
+  const dialog = page.getByRole("dialog", {
+    name: "버그리와 퀴즈 다듬기",
+  });
+  const workspace = dialog.getByRole("region", {
+    name: "퀴즈 작업 본문",
+  });
+  const candidates = dialog.getByRole("region", {
+    name: "생성 후보",
+  });
+  const tabs = candidates.getByRole("tablist", {
+    name: "퀴즈 선택",
+  });
+  const body = candidates.getByRole("tabpanel").first();
+
+  await expect(dialog).toHaveCSS("overflow-y", "hidden");
+  await expect(workspace).toHaveCSS("overflow-y", "hidden");
+  await expect(body).toHaveCSS("overflow-y", "auto");
+  await candidates
+    .getByRole("button", { name: "직접 수정" })
+    .click();
+  const tabTop = (await tabs.boundingBox())?.y;
+  const scroll = await body.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+
+    return {
+      top: element.scrollTop,
+      height: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+    };
+  });
+
+  expect(scroll.scrollHeight).toBeGreaterThan(
+    scroll.height,
+  );
+  expect(scroll.top).toBeGreaterThan(0);
+  expect((await tabs.boundingBox())?.y).toBe(tabTop);
+});
+
 test("review, approve, revise, regenerate, change visibility and delete", async ({
   page,
 }) => {

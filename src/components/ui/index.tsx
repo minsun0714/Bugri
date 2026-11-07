@@ -368,6 +368,8 @@ export function Tabs({
   children,
   label = "컴포넌트 미리보기",
   disabled = false,
+  className = "",
+  panelClassName = "",
 }: {
   label?: string;
   disabled?: boolean;
@@ -375,12 +377,14 @@ export function Tabs({
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
+  className?: string;
+  panelClassName?: string;
 }) {
   const id = useId();
   const index = items.indexOf(value);
 
   return (
-    <div className="min-w-0">
+    <div className={`min-w-0 ${className}`}>
       <div
         className={styles["ui-tabs"]}
         role="tablist"
@@ -425,7 +429,7 @@ export function Tabs({
         id={`${id}-panel`}
         aria-labelledby={`${id}-${index}`}
         tabIndex={0}
-        className={styles["tab-panel"]}
+        className={`${styles["tab-panel"]} ${panelClassName}`}
       >
         {children}
       </div>
