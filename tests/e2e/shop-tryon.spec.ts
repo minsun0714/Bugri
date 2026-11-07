@@ -32,27 +32,16 @@ for (const width of [1100, 390]) {
       await expect(
         dialog.getByRole("button", { name, exact: true }),
       ).toHaveCount(0);
-    await dialog
-      .getByRole("button", {
-        name: "시점 회전",
-        exact: true,
-      })
-      .click();
     const canvas = dialog.locator(
       '[data-renderer="canvas"] canvas',
     );
     await expect(canvas).toBeVisible();
     const box = (await canvas.boundingBox())!;
-    await page.mouse.move(
-      box.x + box.width / 2,
-      box.y + box.height / 2,
-    );
+    await page.mouse.move(box.x + 25, box.y + 25);
     await page.mouse.down();
-    await page.mouse.move(
-      box.x + box.width / 2 + 60,
-      box.y + box.height / 2,
-      { steps: 6 },
-    );
+    await page.mouse.move(box.x + 85, box.y + 25, {
+      steps: 6,
+    });
     await page.mouse.up();
     await expect(
       dialog.getByLabel("카메라 방위각"),

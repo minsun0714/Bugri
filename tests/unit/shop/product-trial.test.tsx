@@ -35,10 +35,13 @@ test("keeps a failed placement draft after equipment succeeds and retries withou
     />,
   );
   expect(
+    screen.queryByRole("button", { name: "상품 이동" }),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
     screen.getByRole("button", {
-      name: "상품 이동",
+      name: "새싹 키보드 선택",
     }),
-  ).toHaveAttribute("aria-pressed", "true");
+  );
   fireEvent.change(screen.getByLabelText("아이템 회전"), {
     target: { value: "90" },
   });

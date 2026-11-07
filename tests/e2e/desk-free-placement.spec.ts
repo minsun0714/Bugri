@@ -1,3 +1,4 @@
+import { productPoint } from "./helpers/desk";
 import { expect, test } from "@playwright/test";
 
 test("lavender keyboard can leave the table, rotate, save and remain visible", async ({
@@ -55,8 +56,10 @@ test("lavender keyboard can leave the table, rotate, save and remain visible", a
   await canvas.scrollIntoViewIfNeeded();
   const box = await canvas.boundingBox();
   if (!box) throw new Error("Canvas missing");
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
+  const { x, y } = await productPoint(
+    canvas,
+    [201, 184, 227],
+  );
   await page.mouse.move(x, y);
   await page.mouse.down();
   await page.mouse.move(x + 300, y, { steps: 12 });

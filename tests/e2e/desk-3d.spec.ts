@@ -1,3 +1,4 @@
+import { productPoint } from "./helpers/desk";
 import { expect, test, type Page } from "@playwright/test";
 
 async function equipped(page: Page) {
@@ -59,20 +60,14 @@ async function topProjection(page: Page) {
   await canvas.scrollIntoViewIfNeeded();
   const box = await canvas.boundingBox();
   if (!box) throw new Error("3D canvas is not visible");
-  // Editing acts on the explicitly selected item, anywhere on the canvas.
-  return () => ({
-    x: box.x + box.width / 2,
-    y: box.y + box.height / 2,
-  });
+  const point = await productPoint(canvas);
+  return () => point;
 }
 
 test("Canvas camera orbit, surface drag, item rotation and public restoration", async ({
   page,
 }) => {
   const canvas = await equipped(page);
-  await page
-    .getByRole("button", { name: "시점 회전", exact: true })
-    .click();
   await page
     .getByRole("button", { name: "45도 시점", exact: true })
     .click();
@@ -92,14 +87,14 @@ test("Canvas camera orbit, surface drag, item rotation and public restoration", 
   await expect(
     page.getByRole("main").getByLabel("카메라 방위각"),
   ).not.toHaveText("45°");
+  await page
+    .getByRole("button", { name: "새싹 키보드 선택" })
+    .click();
   await expect(
     page.getByLabel("선택 상품 배치"),
   ).toContainText("회전 0°");
 
-  await page
-    .getByRole("button", { name: "상품 이동", exact: true })
-    .click();
-  let project = await topProjection(page);
+  const project = await topProjection(page);
   const start = project();
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
@@ -118,11 +113,15 @@ test("Canvas camera orbit, surface drag, item rotation and public restoration", 
     .innerText();
   expect(location).toContain("Y 1.55");
 
-  await page
-    .getByRole("button", { name: "상품 회전", exact: true })
-    .click();
-  project = await topProjection(page);
-  const ring = project();
+  const handle = page.getByRole("button", {
+    name: "선택 상품 회전",
+    exact: true,
+  });
+  const handleBox = (await handle.boundingBox())!;
+  const ring = {
+    x: handleBox.x + handleBox.width / 2,
+    y: handleBox.y + handleBox.height / 2,
+  };
   const end = { x: ring.x + 60, y: ring.y };
   await page.mouse.move(ring.x, ring.y);
   await page.mouse.down();

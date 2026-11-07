@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { DeskTool } from "@/api/constants";
+import { defaultTransforms } from "@/lib/desk-spatial";
 import type {
   DeskTransforms,
   Equipment,
@@ -41,8 +41,6 @@ export function useProductTrial({
     equipment: { ...equipment, [category]: productId },
     transforms: local,
     disabled: pending || applying,
-    initialSelected: movable,
-    initialTool: movable ? DeskTool.MOVE : DeskTool.CAMERA,
     save: async ({ category, transform }) => {
       setLocal((previous) => ({
         ...previous,
@@ -50,7 +48,11 @@ export function useProductTrial({
       }));
     },
   });
-  const signature = JSON.stringify(editor.current);
+  const current = movable
+    ? (editor.effective[movable] ??
+      defaultTransforms[movable])
+    : null;
+  const signature = JSON.stringify(current);
   const unchanged =
     equipment[category] === productId &&
     (applied === signature ||
@@ -67,7 +69,7 @@ export function useProductTrial({
     setError("");
     setMessage("");
     let equipped = false;
-    const transform = editor.current;
+    const transform = current;
     try {
       await equip({ category, productId });
       equipped = true;

@@ -1,3 +1,4 @@
+import { productPoint } from "./helpers/desk";
 import {
   expect,
   test,
@@ -88,10 +89,7 @@ for (const width of [1100, 390]) {
     const visibleBody = await keyboardPixels(canvas);
     const box = await canvas.boundingBox();
     if (!box) throw new Error("Canvas not visible");
-    const center = {
-      x: box.x + box.width / 2,
-      y: box.y + box.height / 2,
-    };
+    const center = await productPoint(canvas);
     await page.mouse.move(center.x, center.y);
     await page.mouse.down();
     // Visit the same tabletop corners explicitly: free placement no longer clamps drags.
@@ -151,18 +149,12 @@ for (const width of [1100, 390]) {
     await expect(
       page.getByText("3D 배치를 저장했어요."),
     ).toBeVisible();
-    await page
-      .getByRole("button", {
-        name: "시점 회전",
-        exact: true,
-      })
-      .click();
     await canvas.scrollIntoViewIfNeeded();
     const orbitBox = await canvas.boundingBox();
     if (!orbitBox) throw new Error("Canvas not visible");
     for (let quarter = 0; quarter < 4; quarter++) {
-      const x = orbitBox.x + orbitBox.width / 2;
-      const y = orbitBox.y + orbitBox.height / 2;
+      const x = orbitBox.x + 25;
+      const y = orbitBox.y + 25;
       await page.mouse.move(x, y);
       await page.mouse.down();
       await page.mouse.move(x + 180, y, { steps: 8 });

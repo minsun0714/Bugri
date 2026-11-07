@@ -40,12 +40,10 @@ test("keyboard movement cancels with Escape and commits rotation with Enter", as
   expect(
     screen.getByLabelText("선택 상품 배치"),
   ).toHaveTextContent("X -0.45");
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: "상품 회전",
-    }),
-  );
-  fireEvent.keyDown(item, { key: "ArrowRight" });
+  fireEvent.keyDown(item, {
+    key: "ArrowRight",
+    altKey: true,
+  });
   expect(
     screen.getByLabelText("선택 상품 배치"),
   ).toHaveTextContent("회전 15°");
@@ -117,10 +115,10 @@ test("height presets and keyboard adjustment cancel and save independently of pl
   expect(
     screen.getByLabelText("선택 상품 배치"),
   ).toHaveTextContent("Y 0.00");
-  fireEvent.click(
-    screen.getByRole("button", { name: "높이 조절" }),
-  );
-  fireEvent.keyDown(item, { key: "ArrowUp" });
+  fireEvent.keyDown(item, {
+    key: "ArrowUp",
+    shiftKey: true,
+  });
   expect(
     screen.getByLabelText("선택 상품 배치"),
   ).toHaveTextContent("Y 0.10");

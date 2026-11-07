@@ -66,11 +66,7 @@ export function useSpatialEditor({
   function select(category: MovableCategory) {
     if (blocked || error) return;
     setSelected(category);
-    if (
-      category === Category.DESK &&
-      tool === DeskTool.HEIGHT
-    )
-      setTool(DeskTool.MOVE);
+    setTool(DeskTool.MOVE);
   }
   function preview(
     category: MovableCategory,
@@ -153,7 +149,7 @@ export function useSpatialEditor({
     )
       return;
     event.preventDefault();
-    if (tool === DeskTool.HEIGHT) {
+    if (tool === DeskTool.HEIGHT || event.shiftKey) {
       if (
         selected !== Category.DESK &&
         (key === "ArrowUp" || key === "ArrowDown")
@@ -162,7 +158,7 @@ export function useSpatialEditor({
           ...current,
           y: current.y + (key === "ArrowUp" ? 0.1 : -0.1),
         });
-    } else if (tool === DeskTool.ROTATE)
+    } else if (tool === DeskTool.ROTATE || event.altKey)
       preview(selected, {
         ...current,
         rotationY:
@@ -199,6 +195,9 @@ export function useSpatialEditor({
   return {
     selected,
     select,
+    deselect: () => {
+      if (!blocked && !error) setSelected(null);
+    },
     tool,
     setTool,
     draft,

@@ -175,8 +175,8 @@ it("offers editing on my desk and product try-on entry points in the shop", asyn
   shop.unmount();
   render(<ShopApp editing />);
   expect(
-    await screen.findByRole("button", {
-      name: "상품 이동",
+    await screen.findByRole("region", {
+      name: "내 데스크 편집",
     }),
   ).toBeInTheDocument();
   expect(

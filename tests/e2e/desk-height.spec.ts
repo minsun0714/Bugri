@@ -95,6 +95,15 @@ test("height drag persists and the tabletop occludes a lowered keyboard", async 
     .getByRole("button", { name: "위에서", exact: true })
     .click();
   await expect.poll(() => visibleKeyboard(canvas)).toBe(0);
+  await expect(page.getByLabel("선택 테두리")).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("button", {
+      name: "선택 상품 회전",
+      exact: true,
+    }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", {
       name: "책상 위에 놓기",
@@ -110,12 +119,13 @@ test("height drag persists and the tabletop occludes a lowered keyboard", async 
   await page
     .getByRole("button", { name: "45도 시점", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "높이 조절", exact: true })
-    .click();
-  await canvas.scrollIntoViewIfNeeded();
-  const box = await canvas.boundingBox();
-  if (!box) throw new Error("Canvas missing");
+  const handle = page.getByRole("button", {
+    name: "선택 상품 높이",
+    exact: true,
+  });
+  await handle.scrollIntoViewIfNeeded();
+  const box = await handle.boundingBox();
+  if (!box) throw new Error("Height handle missing");
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
   await page.mouse.move(x, y);

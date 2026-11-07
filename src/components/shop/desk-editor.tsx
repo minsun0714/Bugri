@@ -31,34 +31,6 @@ export function DeskEditor({
   });
   return (
     <div>
-      <div
-        className="mb-3 flex flex-wrap gap-2 px-2"
-        aria-label="데스크 도구"
-      >
-        {[
-          [DeskTool.CAMERA, "시점 회전"],
-          [DeskTool.MOVE, "상품 이동"],
-          [DeskTool.ROTATE, "상품 회전"],
-          [DeskTool.HEIGHT, "높이 조절"],
-        ].map(([tool, label]) => (
-          <Button
-            key={tool}
-            size="sm"
-            variant={
-              editor.tool === tool ? "primary" : "secondary"
-            }
-            aria-pressed={editor.tool === tool}
-            disabled={
-              editor.blocked ||
-              (tool === DeskTool.HEIGHT &&
-                editor.selected === Category.DESK)
-            }
-            onClick={() => editor.setTool(tool as DeskTool)}
-          >
-            {label}
-          </Button>
-        ))}
-      </div>
       <ThreeView
         equipment={equipment}
         transforms={editor.effective}
@@ -66,16 +38,17 @@ export function DeskEditor({
         tool={editor.tool}
         disabled={editor.blocked}
         readOnly={false}
+        directManipulation
+        onDeselect={editor.deselect}
         onSelect={editor.select}
         onPreview={editor.preview}
         onCommit={editor.commit}
         onCancel={editor.cancel}
       />
       <p className="px-3 pt-3 text-xs leading-5 text-muted">
-        시점 회전 모드에서 화면을 드래그하세요. 상품을
-        선택한 뒤 이동 모드에서 화면을 끌거나 회전 모드에서
-        좌우로 끌어보세요. 높이 조절 모드에서는 화살표를
-        위아래로 끕니다.
+        상품을 클릭해 선택하고 드래그해 옮기세요. 선택
+        테두리 옆의 ↻ 핸들로 회전하고 ↕ 핸들로 높이를
+        조절하세요. 빈 공간을 드래그하면 시점이 회전합니다.
       </p>
       <div className="flex flex-wrap gap-2 p-3">
         {editor.categories.map((category) => (
@@ -206,8 +179,8 @@ export function DeskEditor({
             {editor.current.rotationY}°
           </output>
           <p className="text-xs text-muted">
-            선택 버튼에서 방향키로 이동/회전, 높이 모드에서
-            ↑↓로 높이 조절 · Enter 저장 · Esc 취소
+            선택 버튼에서 방향키로 이동 · Alt+방향키 회전 ·
+            Shift+↑↓ 높이 · Enter 저장 · Esc 취소
           </p>
         </div>
       )}

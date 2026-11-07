@@ -1,3 +1,4 @@
+import { productPoint } from "./helpers/desk";
 import { expect, test } from "@playwright/test";
 
 for (const width of [1100, 390]) {
@@ -12,14 +13,12 @@ for (const width of [1100, 390]) {
     await expect(ownCanvas).toBeVisible();
     const ownWidth = (await ownCanvas.boundingBox())!.width;
     await page.goto("/shop");
-    const card = page
-      .getByRole("article")
-      .filter({
-        has: page.getByRole("heading", {
-          name: "새싹 키보드",
-          exact: true,
-        }),
-      });
+    const card = page.getByRole("article").filter({
+      has: page.getByRole("heading", {
+        name: "새싹 키보드",
+        exact: true,
+      }),
+    });
     await card
       .getByRole("button", { name: "장착해 보기" })
       .click();
@@ -33,19 +32,15 @@ for (const width of [1100, 390]) {
         (await canvas.boundingBox())!.width - ownWidth,
       ),
     ).toBeLessThanOrEqual(2);
+    const point = await productPoint(canvas);
+    await page.mouse.click(point.x, point.y);
     const position = dialog.getByLabel("선택 상품 배치");
     const initial = await position.textContent();
-    const box = (await canvas.boundingBox())!;
-    await page.mouse.move(
-      box.x + box.width / 2,
-      box.y + box.height / 2,
-    );
+    await page.mouse.move(point.x, point.y);
     await page.mouse.down();
-    await page.mouse.move(
-      box.x + box.width / 2 + 50,
-      box.y + box.height / 2 + 20,
-      { steps: 6 },
-    );
+    await page.mouse.move(point.x + 50, point.y + 20, {
+      steps: 6,
+    });
     await page.mouse.up();
     await expect(position).not.toHaveText(initial!);
     await dialog.getByLabel("아이템 회전").fill("90");
@@ -85,6 +80,9 @@ for (const width of [1100, 390]) {
     await page.goto("/shop");
     await card
       .getByRole("button", { name: "장착해 보기" })
+      .click();
+    await dialog
+      .getByRole("button", { name: "새싹 키보드 선택" })
       .click();
     await dialog.getByLabel("아이템 회전").fill("180");
     await page.keyboard.press("Escape");
