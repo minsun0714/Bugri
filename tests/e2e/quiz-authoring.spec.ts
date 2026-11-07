@@ -98,7 +98,7 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     .getByRole("button", { name: "임시저장", exact: true })
     .click();
   await expect(
-    candidates.getByText("저장 완료", { exact: true }),
+    candidates.getByText("임시저장됨", { exact: true }),
   ).toBeVisible();
   for (let index = 2; index <= 4; index += 1) {
     await candidates
@@ -114,12 +114,12 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
       })
       .click();
     await expect(
-      candidates.getByText("저장 완료", { exact: true }),
+      candidates.getByText("임시저장됨", { exact: true }),
     ).toBeVisible();
   }
   await expect(
     candidates.getByRole("tab", {
-      name: /^퀴즈 [1-4] · 저장됨$/,
+      name: /^퀴즈 [1-4] · 임시저장됨$/,
     }),
   ).toHaveCount(4);
   await management.reload();
@@ -497,6 +497,16 @@ test("initial results hide chat and publish only the displayed quiz", async ({
   await expect(dialog.getByRole("status")).toHaveText(
     "공개했습니다.",
   );
+  await expect(
+    dialog.getByRole("tab", { name: "퀴즈 1 · 공개됨" }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByText("공개됨", { exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    dialog.getByRole("tab", { name: "퀴즈 1 · 공개됨" }),
+  ).toBeVisible();
   await dialog
     .getByRole("link", { name: "검토·승인" })
     .click();

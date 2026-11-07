@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { QuizScope, QuizStatus } from "@/api/constants";
 import { ContentFields } from "@/features/quiz-authoring/content-fields";
 import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring-api";
 import {
@@ -53,9 +54,34 @@ export function Generation(props: GenerationProps) {
     "discoverHashtags",
     {},
   );
+  const savedQuizzes = useAuthoringQuery(
+    props.api,
+    props.userId ?? "learner",
+    "quizzes",
+    { scope: QuizScope.OWN },
+    batch.candidates.some(
+      ({ savedQuizId }) => !!savedQuizId,
+    ),
+  );
+  const savedLabels = batch.candidates.map(
+    ({ savedQuizId }) => {
+      if (!savedQuizId) return "";
+
+      const saved = savedQuizzes.data?.find(
+        ({ quizId }) => quizId === savedQuizId,
+      );
+
+      if (!saved) return "상태 확인 중";
+      if (saved.status === QuizStatus.PUBLIC)
+        return "공개됨";
+      if (saved.status === QuizStatus.PRIVATE)
+        return "비공개";
+      return "임시저장됨";
+    },
+  );
   const tabLabels = batch.candidates.map(
-    ({ savedQuizId }, index) =>
-      `퀴즈 ${index + 1}${savedQuizId ? " · 저장됨" : ""}`,
+    (_, index) =>
+      `퀴즈 ${index + 1}${savedLabels[index] ? ` · ${savedLabels[index]}` : ""}`,
   );
   const manageHref = `/quizzes/authoring/manage?user=${encodeURIComponent(props.userId ?? "learner")}`;
 
@@ -315,7 +341,9 @@ export function Generation(props: GenerationProps) {
                   {!editing &&
                     (candidate.savedQuizId ? (
                       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-3 text-xs text-muted">
-                        <span>저장 완료</span>
+                        <span>
+                          {savedLabels[selectedIndex]}
+                        </span>
                         <a
                           className="font-semibold text-primary underline"
                           href={`${manageHref}&quiz=${encodeURIComponent(candidate.savedQuizId)}`}

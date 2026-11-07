@@ -129,6 +129,14 @@ test("starts with quizzes only and publishes the current candidate on explicit r
     screen.getByRole("button", { name: "바로 공개" }),
   );
   await screen.findByText("공개했습니다.");
+  expect(
+    await screen.findByRole("tab", {
+      name: "퀴즈 1 · 공개됨",
+    }),
+  ).toBeVisible();
+  expect(
+    screen.getByText("공개됨", { exact: true }),
+  ).toBeVisible();
   const list = await api.request("quizzes", {
     scope: QuizScope.OWN,
   });
