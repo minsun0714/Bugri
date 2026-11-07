@@ -308,3 +308,51 @@ it("keeps the personal desk inside its parent layout without duplicate page land
     "friend",
   );
 });
+
+it("follows the layout user when switching shop accounts", async () => {
+  const shop = render(
+    <ShopApp embedded initialUser="learner" />,
+  );
+  const title = await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
+  fireEvent.click(
+    within(title.closest("article")!).getByRole("button", {
+      name: "구매하기",
+    }),
+  );
+  await screen.findByText("구매 완료 · 보관함에 담았어요.");
+  expect(
+    screen.getByLabelText("내 잔액"),
+  ).toHaveTextContent("70");
+  shop.rerender(<ShopApp embedded initialUser="friend" />);
+  await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
+  expect(
+    within(
+      screen
+        .getByRole("heading", { name: "새싹 키보드" })
+        .closest("article")!,
+    ).getByRole("button", { name: "구매하기" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByLabelText("내 잔액"),
+  ).toHaveTextContent("100");
+  expect(
+    screen.queryByText("구매 완료 · 보관함에 담았어요."),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByLabelText("더미 사용자"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", { name: "← Bugri 홈" }),
+  ).not.toBeInTheDocument();
+  shop.rerender(<ShopApp embedded initialUser="learner" />);
+  expect(
+    await screen.findByRole("button", { name: "보유 중" }),
+  ).toBeDisabled();
+  expect(
+    screen.getByLabelText("내 잔액"),
+  ).toHaveTextContent("70");
+});

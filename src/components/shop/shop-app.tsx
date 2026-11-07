@@ -570,7 +570,11 @@ export function ShopApp({
   embedded?: boolean;
   initialUser?: string;
 }) {
-  const [userId, setUserId] = useState(initialUser);
+  const [selectedUserId, setUserId] = useState(initialUser);
+  const usesLayoutUser = embedded && !editing;
+  const userId = usesLayoutUser
+    ? initialUser
+    : selectedUserId;
   const ContentContainer = embedded ? "div" : "main";
   return (
     <ShopProvider>
@@ -603,23 +607,25 @@ export function ShopApp({
             : "mx-auto max-w-[1220px] px-5 py-7 md:px-12"
         }
       >
-        <div className="mb-7 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
-          <Link href="/">← Bugri 홈</Link>
-          <Select
-            layout="inline"
-            label="더미 사용자"
-            options={userOptions}
-            value={userId}
-            onChange={(event) => {
-              setUserId(event.target.value);
-              window.history.replaceState(
-                null,
-                "",
-                `${editing ? "/my/desk" : "/shop"}?user=${event.target.value}`,
-              );
-            }}
-          />
-        </div>
+        {!usesLayoutUser && (
+          <div className="mb-7 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
+            <Link href="/">← Bugri 홈</Link>
+            <Select
+              layout="inline"
+              label="더미 사용자"
+              options={userOptions}
+              value={userId}
+              onChange={(event) => {
+                setUserId(event.target.value);
+                window.history.replaceState(
+                  null,
+                  "",
+                  `${editing ? "/my/desk" : "/shop"}?user=${event.target.value}`,
+                );
+              }}
+            />
+          </div>
+        )}
         <ShopContent
           key={userId}
           userId={userId}

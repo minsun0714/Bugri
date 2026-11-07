@@ -186,3 +186,83 @@ test("mobile categories, insufficient balance and empty public desk", async ({
     }),
   ).toBeVisible();
 });
+
+for (const width of [1280, 390]) {
+  test(`shop uses header account switching at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/shop?user=learner");
+    await expect(
+      page.getByRole("link", { name: "← Bugri 홈" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByLabel("더미 사용자"),
+    ).toHaveCount(0);
+    const card = page.getByRole("article").filter({
+      has: page.getByRole("heading", {
+        name: "새싹 키보드",
+        exact: true,
+      }),
+    });
+    await card
+      .getByRole("button", {
+        name: "구매하기",
+        exact: true,
+      })
+      .click();
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "70",
+    );
+    await page
+      .getByRole("button", {
+        name: /데모: 학습자 · 사용자 전환/,
+      })
+      .click();
+    const dialog = page.getByRole("dialog", {
+      name: "데모 사용자 선택",
+    });
+    await dialog
+      .getByRole("combobox", { name: "더미 사용자" })
+      .click();
+    await dialog
+      .getByRole("option", { name: "친구", exact: true })
+      .click();
+    await dialog
+      .getByRole("button", { name: "선택한 사용자로 시작" })
+      .click();
+    await expect(page).toHaveURL(/user=friend/);
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "100",
+    );
+    await expect(
+      card.getByRole("button", {
+        name: "구매하기",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "100",
+    );
+    await page.goBack();
+    await expect(page).toHaveURL(/user=learner/);
+    await expect(page.getByLabel("내 잔액")).toContainText(
+      "70",
+    );
+    await expect(
+      card.getByRole("button", {
+        name: "보유 중",
+        exact: true,
+      }),
+    ).toBeDisabled();
+    await page
+      .getByRole("link", { name: "Bugri 홈", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      (url) =>
+        url.pathname === "/" &&
+        url.searchParams.get("user") === "learner",
+    );
+  });
+}

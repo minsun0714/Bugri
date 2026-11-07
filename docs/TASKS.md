@@ -1313,3 +1313,10 @@
 - ProfileAbout 구조를 보존하면서 방문자 구독 버튼은 데모 모달만 열고 사용자 선택 후 별도 구독하도록 통합. API48개, 양쪽 작업 문서와 테스트를 보존한다. 프로필·탐색 E2E의 예전 로그인 진입을 URL 사용자 정책에 맞췄다. 연속 학습 내부 수정 없음.
 - 관련 단위5 suites/27 tests 통과. 독립 UX/UI 및 실제 PC/mobile 통합 검토와 최종 전체 verify를 수행한다.
 - 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3195 npm run verify -- -- --workers=1` 전체 통과: lint·TypeScript·Jest47 suites/229 tests·도구3개·build·E2E141개. 로그 `/tmp/pr19-merge-verify.log`. 관련 E2E18개·단위27개 통과. 독립 UX/UI 실제화면 검토 필수회귀0개. [검토·한계](ux-reviews/PR19-DEV-INTEGRATION.md). 사용자dev서버의 탐색 hydration mismatch는 최신production에서 미재현. 충돌해결 커밋을 PR19에 반영하며 PR 자체는 merge하지 않는다.
+
+## SHOP-HEADER-CLEANUP — 상점 상단 중복 행 제거
+
+- 상태: IN_PROGRESS. /shop 본문의 홈 링크·더미 사용자 행을 제거하고 공통 헤더의 URL 사용자 전환에 잔액·보유 상태를 연결한다. REQ-09/AC-09b·c, REQ-13의 데모 구분 유지. 데스크 화면과 독립 전시는 변경하지 않는다.
+- 사용자 전환 컴포넌트·E2E 검증, 독립 UX/UI 리뷰, 마지막 전체 verify 수행. Hook 자동 로드는 미확인으로 직접 검증한다.
+
+- 상단 행 제거 구현·관련 단위10개/E2E8개 및 독립 UX/UI R0 완료(필수문제0, 수정0회). [리뷰](ux-reviews/SHOP-HEADER-CLEANUP.md). 전체verify2는 기존3D 모바일 테스트2개 timeout으로 미완료이며 IN_PROGRESS 유지. 후속 사용자 요청과 함께 재검증한다.
