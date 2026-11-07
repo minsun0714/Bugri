@@ -31,7 +31,7 @@ export default function Page(props: Props) {
       <div className="mt-10 grid gap-5">
         <FeatureSectionShell
           id="profile"
-          title="내 프로필"
+          title="프로필 편집"
         />
         <FeatureSectionShell
           id="learning-history"

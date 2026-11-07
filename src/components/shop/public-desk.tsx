@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { withDemoUser } from "@/components/navigation/routes";
 import { Button, Skeleton } from "@/components/ui";
-import { Header } from "@/components/ui/header";
-import { Footer } from "@/components/ui/footer";
+import { ProductLayout } from "@/components/navigation/product-layout";
+import { FeatureSectionShell } from "@/components/navigation/feature-section-shell";
 import { ThreeView } from "@/components/shop/three-view";
 import { DeskTool } from "@/api/constants";
 import { ShopProvider } from "@/components/shop/provider";
@@ -11,6 +13,8 @@ import { usePublicDesk } from "@/components/shop/use-shop";
 import { errorMessage } from "@/components/shop/errors";
 
 function Profile({ publicId }: { publicId: string }) {
+  const searchParams = useSearchParams();
+  const viewer = searchParams.get("user");
   const profile = usePublicDesk(publicId);
   if (profile.isPending) return <Skeleton />;
   if (profile.error)
@@ -49,6 +53,32 @@ function Profile({ publicId }: { publicId: string }) {
           ? "좋아하는 물건으로 채운 작은 작업 공간."
           : "아직 장착한 아이템이 없어 기본 데스크를 보여드려요."}
       </p>
+      <div className="mt-8 grid gap-5">
+        <FeatureSectionShell
+          id="public-profile"
+          title="프로필"
+        />
+        <section
+          aria-labelledby="public-quizzes-heading"
+          className="rounded-3xl border border-line bg-surface p-6 sm:p-8"
+        >
+          <h2
+            id="public-quizzes-heading"
+            className="text-xl font-semibold"
+          >
+            공개 퀴즈
+          </h2>
+          <Link
+            href={withDemoUser(
+              `/developers/${encodeURIComponent(publicId)}/quizzes`,
+              viewer,
+            )}
+            className="mt-5 inline-block rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            공개 퀴즈 보기
+          </Link>
+        </section>
+      </div>
     </>
   );
 }
@@ -59,24 +89,10 @@ export function PublicDesk({
   publicId: string;
 }) {
   return (
-    <ShopProvider>
-      <Header
-        preview={false}
-        sections={[["top", "데스크"]]}
-      />
-      <main
-        id="top"
-        className="mx-auto min-h-[70vh] max-w-4xl px-5 py-10"
-      >
+    <ProductLayout>
+      <ShopProvider>
         <Profile publicId={publicId} />
-        <Link
-          href="/shop"
-          className="mt-8 inline-block rounded-xl bg-primary px-5 py-3 text-sm text-white"
-        >
-          상점으로 돌아가기
-        </Link>
-      </main>
-      <Footer note="Bugri · 이웃의 공간" />
-    </ShopProvider>
+      </ShopProvider>
+    </ProductLayout>
   );
 }
