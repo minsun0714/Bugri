@@ -155,3 +155,19 @@
 - 중간 TypeScript 검사에서 RTL의 미지원 exact 옵션을 제거했다. 자동 Stop Hook은 Node 18.12.1을 상속해 preverify 단계에서 4회 실패했다. 사용자의 기본 Node 변경 요청으로 ~/.zshenv의 18 경로를 수정하고 ~/.zprofile의 시스템 경로 우선순위를 수정했다(nvm default는 이미 22.23.3). 로그인·일반·대화형 셸에서 v22.23.3 확인. 셸 설정은 백업했으며 저장소 커밋 대상이 아니다. Hook을 재활성화해 횟수를 초기화하지 않고 바뀐 셸에서 전체 verify를 직접 실행했다.
 - 최종 검증: 기본 Node v22.23.3에서 `PLAYWRIGHT_PORT=3114 npm run verify` 통과(lint·TypeScript·Jest 12 suites/65 tests·production build·Playwright 8 tests). 로그 `.bugri-hooks/verify-3d-final.log`. `npm run format:check`, `git diff --check` 통과. Playwright의 Three.js CJS 변환에서 deprecation 경고가 발생하지만 제품 번들은 ESM을 사용하며 테스트는 통과했다.
 - 1440px/390px 실제 3D 화면 확인: `.bugri-hooks/previews/desk-3d-final.png`, `desk-3d-mobile.png`. 시각 검증은 격리된 브라우저 컨텍스트의 임시 잔액 fixture를 사용하며 실제 사용자 저장소나 상품 가격을 바꾸지 않았다. 기존 개발 서버 `http://localhost:3001/shop`에 반영했다. 구현자 외 리뷰와 최종 병합 판단은 남아 있다. push·PR·merge 없음.
+
+## P08-3D-RECOVERY 3D 초기화 복구
+
+- 상태: IN_PROGRESS. 사용자 보고의 반복 오류를 조사한다. WebGL 차단 시 같은 오류를 재현했다. 초기화/모듈 로딩 오류를 구분하고 WebGL 불가·컨텍스트 손실 시 실제 3D 호환 렌더러로 전환한다. 사용자 구매/배치 저장소는 변경하지 않는다.
+- 검증 계획: WebGL 차단·컨텍스트 손실 E2E를 먼저 실패 확인하고 호환 모드의 표시·시점·편집·저장 복원, 오류 구분·재시도 UI 테스트 및 전체 verify를 실행한다.
+- 사용자 `/plan` 요청으로 렌더러 변경을 중단했다. 제품 코드는 변경하지 않았으며 WebGL 제거 테스트 초안만 추가된 상태다. 자동 verify는 Node 22.23.3에서 lint 통과 후 TypeScript 실패: `tests/e2e/desk-recovery.spec.ts`의 window.webglRequests 타입 단언 3건(TS2352). Jest·build·E2E는 실행되지 않았다. Hook은 사용자 중단 사유로 blocked 처리했고, 이 작업은 완료/커밋하지 않는다. 사용자 Chrome 환경의 실제 초기화 실패 원인은 아직 확정하지 못했다.
+
+## P08-ZDOG Canvas 입체 시제품
+
+- 상태: IN_PROGRESS. 사용자 승인에 따라 `/shop/zdog`에서 책상·모니터·키보드의 입체 회전, 이동, 겹침을 확인하는 독립 시제품을 구현한다. REQ-09/AC-09e의 렌더러 적합성 실험이며 구매/배치 API 연결·전체 상점 전환은 이번 범위 밖이다.
+- 이전 SVG 전체 전환 E2E 초안은 승인된 시제품 범위와 달라 `.bugri-hooks/drafts/desk-recovery.spec.ts`에 보존했다. 기존 제품 회귀 테스트는 유지한다.
+- 검증: WebGL 차단 상태 Canvas 표시·시점/상품 회전·마우스/터치 이동·취소·경계·반응형, 전체 verify. 기존 shop-app.tsx 미커밋 편집은 사용자 작업으로 보존한다.
+- 구현: Zdog Canvas 2D 모델과 앞/45도/옆/뒤 시점, 포인터·키보드 시점 조작, 키보드/모니터 모드 선택 이동·회전, 상판 경계 제한, 터치 취소 복원, 초기화. `/shop` 상단에 시제품 진입 링크를 추가했다. 시제품은 저장하지 않는다.
+- TDD: 경로 미구현 상태에서 시제품 Canvas를 찾지 못하는 E2E 실패 확인. 이후 React effect 동기 상태 갱신 lint 오류를 프레임 초기화로 수정했다. E2E의 오류 검사는 Next route announcer를 제외한 main의 실제 오류를 검사하도록 수정했다. 기존 미커밋 상점 편집에서 빠진 잔액 접근성 이름 때문에 기존 단위 테스트 3개가 실패하여 화면 디자인을 유지하며 접근성 이름을 복구했다. 이 기존 파일 편집은 커밋에 포함하지 않는다.
+- 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3114 npm run verify` 통과: lint·TypeScript·Jest 13 suites/67 tests·build·Playwright 10 tests. 로그 `.bugri-hooks/verify-zdog-final.log`. 변경 파일 Prettier 검사와 `git diff --check` 통과. 앞/뒤 시각 확인 캡처 `.bugri-hooks/previews/zdog-front.png`, `zdog-back.png`.
+- 평가: WebGL 없는 조작 시제품은 동작한다. Zdog painter 정렬로 모니터 화면 장식/후면과 일부 겹친 면의 가림이 부정확하다. 전체 제품 적용에는 이 한계 해결 또는 렌더러 재선정이 필요하며, 기존 WebGL 오류 복구를 완료한 것은 아니다. 상태 IN_PROGRESS(시제품 검증 완료, 독립 리뷰·채택 판단 대기). push·PR·merge 없음.

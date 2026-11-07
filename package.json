@@ -27,7 +27,8 @@
     "react-dom": "19.3.0",
     "react-markdown": "^10.1.0",
     "rehype-highlight": "^7.0.2",
-    "three": "^0.187.0"
+    "three": "^0.187.0",
+    "zdog": "^1.1.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
@@ -40,6 +41,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.187.0",
+    "@types/zdog": "^1.1.7",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
     "eslint-config-prettier": "^10.1.8",
