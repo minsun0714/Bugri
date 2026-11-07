@@ -52,7 +52,7 @@ test("private management leads to a public profile without personal data", async
   );
   await expect(
     page.getByRole("heading", {
-      name: "프로필",
+      name: "타입 개발자",
       exact: true,
     }),
   ).toBeVisible();
@@ -71,7 +71,7 @@ test("private management leads to a public profile without personal data", async
   await page.reload();
   await expect(
     page.getByRole("heading", {
-      name: "프로필",
+      name: "타입 개발자",
       exact: true,
     }),
   ).toBeVisible();
@@ -108,10 +108,26 @@ test("private management leads to a public profile without personal data", async
     path: testInfo.outputPath("public-mobile.png"),
     fullPage: true,
   });
-  await page
-    .getByRole("link", { name: "공개 퀴즈 보기" })
-    .click();
+  const quizzes = page.getByRole("region", {
+    name: "개발자의 공개 퀴즈",
+  });
+  const activity = page.getByRole("heading", {
+    name: "학습 활동",
+  });
+  const desk = page.getByRole("heading", {
+    name: "데스크",
+    exact: true,
+  });
+  await expect(
+    quizzes.getByRole("link").first(),
+  ).toBeVisible();
+  const quizBox = await quizzes.boundingBox();
+  const activityBox = await activity.boundingBox();
+  const deskBox = await desk.boundingBox();
+  expect(quizBox!.y).toBeLessThan(activityBox!.y);
+  expect(activityBox!.y).toBeLessThan(deskBox!.y);
+  await quizzes.getByRole("link").first().click();
   await expect(page).toHaveURL(
-    /\/developers\/[^/]+\/quizzes\?user=author$/,
+    /\/solve\?user=author&attempt=/,
   );
 });

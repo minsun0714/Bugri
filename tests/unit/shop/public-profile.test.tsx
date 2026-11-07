@@ -10,6 +10,17 @@ jest.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams("user=author"),
 }));
 
+jest.mock(
+  "@/components/developer/developer-screen",
+  () => ({
+    DeveloperScreen: () => (
+      <section aria-label="개발자의 공개 퀴즈">
+        <h1>개발자</h1>
+      </section>
+    ),
+  }),
+);
+
 jest.mock("@/components/shop/three-view", () => ({
   ThreeView: () => <div />,
 }));
@@ -37,17 +48,21 @@ jest.mock("@/components/shop/use-shop", () => ({
   }),
 }));
 
-test("public profile links to public quizzes without exposing personal management", () => {
+test("public profile places quizzes before the desk without exposing personal management", () => {
   render(<PublicDesk publicId="public-author" />);
   expect(
-    screen.getByRole("heading", { name: "프로필" }),
+    screen.getByRole("heading", { name: "학습 활동" }),
   ).toBeInTheDocument();
+  const quizzes = screen.getByRole("region", {
+    name: "개발자의 공개 퀴즈",
+  });
+  const desk = screen.getByRole("region", {
+    name: "공개 데스크",
+  });
   expect(
-    screen.getByRole("link", { name: "공개 퀴즈 보기" }),
-  ).toHaveAttribute(
-    "href",
-    "/developers/public-author/quizzes?user=author",
-  );
+    quizzes.compareDocumentPosition(desk) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
   for (const name of [
     "내 잔액",
     "내 데스크 편집",

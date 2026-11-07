@@ -238,7 +238,7 @@ for (const width of [1280, 390]) {
     );
     await expect(
       page.getByRole("heading", {
-        name: "타입 개발자의 데스크",
+        name: "타입 개발자",
       }),
     ).toBeVisible();
     await expect(

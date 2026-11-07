@@ -16,6 +16,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { useDemoSession } from "@/components/navigation/demo-session";
 import { ApiClientError } from "@/api/client";
 import {
   Button,
@@ -217,14 +218,17 @@ function Catalog({
   navigating,
   onChange,
   onNotice,
+  profile = false,
 }: {
   userId: string;
   publicId: string;
+  profile?: boolean;
   filters: Filters;
   navigating: boolean;
   onChange: (filters: Filters) => void;
   onNotice: (message: string) => void;
 }) {
+  const { signedIn, signIn } = useDemoSession();
   const { page, tagPage, tagQuery, hashtagId } = filters;
   const { quizzes, tags, subscribe } = useDeveloper(
     userId,
@@ -264,36 +268,66 @@ function Catalog({
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl">
-            {data.user.displayName}의 퀴즈
+            {profile
+              ? data.user.displayName
+              : `${data.user.displayName}의 퀴즈`}
           </h1>
           <p className="mt-2 text-muted">
             @{data.user.publicId}
           </p>
         </div>
-        {!data.subscribed && (
-          <Button
-            className="ml-auto"
-            variant="secondary"
-            disabled={busy}
-            onClick={() => {
-              void subscribe
-                .mutateAsync({
-                  target: {
-                    type: "PERSON",
-                    authorUserId: data.user.userId,
-                  },
-                  subscribed: false,
-                })
-                .then(() =>
-                  onNotice(
-                    `${data.user.displayName}님을 구독했습니다.`,
-                  ),
-                )
-                .catch(() => undefined);
-            }}
+        {profile &&
+        signedIn &&
+        data.user.userId === userId ? (
+          <Link
+            href={`/my?user=${encodeURIComponent(userId)}`}
+            className="rounded text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
           >
-            개발자 구독하기
-          </Button>
+            프로필 편집
+          </Link>
+        ) : (
+          (profile || !data.subscribed) && (
+            <Button
+              className="ml-auto"
+              variant="secondary"
+              disabled={busy}
+              onClick={() => {
+                if (profile && !signedIn) {
+                  signIn();
+                  onNotice(
+                    data.user.userId === userId
+                      ? "내 프로필로 로그인했어요."
+                      : "데모 로그인했어요. 구독 버튼을 눌러 구독을 완료하세요.",
+                  );
+                  return;
+                }
+                void subscribe
+                  .mutateAsync({
+                    target: {
+                      type: "PERSON",
+                      authorUserId: data.user.userId,
+                    },
+                    subscribed: profile
+                      ? data.subscribed
+                      : false,
+                  })
+                  .then(() =>
+                    onNotice(
+                      profile && data.subscribed
+                        ? `${data.user.displayName}님 구독을 취소했습니다.`
+                        : `${data.user.displayName}님을 구독했습니다.`,
+                    ),
+                  )
+                  .catch(() => undefined);
+              }}
+            >
+              {profile && !signedIn
+                ? "로그인하고 구독하기"
+                : profile && data.subscribed
+                  ? "개발자 구독 해제"
+                  : "개발자 구독하기"}
+            </Button>
+          )
         )}
       </header>
       {subscribe.error && (
@@ -337,7 +371,7 @@ function Catalog({
                   ({ id, name, quizCount, subscribed }) => (
                     <li
                       key={id}
-                      className={`flex w-fit max-w-full items-center gap-1 rounded-full border py-0.5 pl-3 pr-1 ${subscribed ? "border-primary/25 bg-primary/10" : "border-line bg-canvas/40"} ${hashtagId === id ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-surface" : ""}`}
+                      className={`flex w-fit max-w-full items-center gap-1 rounded-full border py-0.5 pl-3 pr-1 ${(profile ? hashtagId === id : subscribed) ? "border-primary/25 bg-primary/10" : "border-line bg-canvas/40"} ${hashtagId === id ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-surface" : ""}`}
                     >
                       <button
                         type="button"
@@ -345,7 +379,7 @@ function Catalog({
                         aria-pressed={hashtagId === id}
                         className="min-w-0 break-all text-left font-medium text-primary"
                         onClick={() => {
-                          if (!subscribed) {
+                          if (!subscribed && !profile) {
                             void subscribe
                               .mutateAsync({
                                 target: {
@@ -376,7 +410,7 @@ function Catalog({
                           ({quizCount})
                         </span>
                       </button>
-                      {subscribed && (
+                      {subscribed && !profile && (
                         <TagSubscriptionMenu
                           name={name}
                           busy={busy}
@@ -499,7 +533,11 @@ function Catalog({
   );
 }
 
-export function DeveloperScreen() {
+export function DeveloperScreen({
+  profile = false,
+}: {
+  profile?: boolean;
+}) {
   const { publicId } = useParams<{ publicId: string }>();
   const params = useSearchParams();
   const router = useRouter();
@@ -523,15 +561,18 @@ export function DeveloperScreen() {
   return (
     <QueryClientProvider client={client}>
       <div className="space-y-6">
-        <Link
-          className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary focus-visible:text-primary"
-          href={`/discover?user=${encodeURIComponent(userId)}`}
-        >
-          <span aria-hidden="true">←</span>
-          탐색으로 돌아가기
-        </Link>
+        {!profile && (
+          <Link
+            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary focus-visible:text-primary"
+            href={`/discover?user=${encodeURIComponent(userId)}`}
+          >
+            <span aria-hidden="true">←</span>
+            탐색으로 돌아가기
+          </Link>
+        )}
         <Catalog
           key={`${userId}:${publicId}`}
+          profile={profile}
           userId={userId}
           publicId={publicId}
           filters={filters}
@@ -549,7 +590,7 @@ export function DeveloperScreen() {
               query.set("tagQuery", next.tagQuery);
             startTransition(() =>
               router.push(
-                `/developers/${encodeURIComponent(publicId)}/quizzes?${query}`,
+                `${profile ? `/users/${encodeURIComponent(publicId)}` : `/developers/${encodeURIComponent(publicId)}/quizzes`}?${query}`,
                 { scroll: false },
               ),
             );
