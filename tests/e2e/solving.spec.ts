@@ -200,7 +200,10 @@ test("tag filtering persists through next and reload without changing subscripti
     })
     .click();
   await expect(
-    page.getByRole("dialog", { name: "개발자·태그 검색" }),
+    page.getByRole("heading", {
+      name: "개발자·태그 탐색",
+      exact: true,
+    }),
   ).toBeVisible();
   await page
     .getByRole("button", {
@@ -511,7 +514,7 @@ test("existing empty learner snapshot receives demo subscriptions on reload", as
   expect(saved.attempts).toHaveLength(1);
 });
 
-test("empty state opens global developer/tag search and subscribes explicitly", async ({
+test("empty state opens discovery page with URL search and explicit subscription", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -523,56 +526,68 @@ test("empty state opens global developer/tag search and subscribes explicitly", 
       exact: true,
     })
     .click();
-  const dialog = page.getByRole("dialog", {
-    name: "개발자·태그 검색",
-  });
-  await expect(dialog).toBeVisible();
-  const search = dialog.getByRole("searchbox", {
+  await expect(page).toHaveURL(/\/discover\?user=friend/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", {
+      name: "개발자·태그 탐색",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "개발자 검색 결과" })
+      .getByText("학습자", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "태그", exact: true })
+    .click();
+  const search = page.getByRole("searchbox", {
     name: "개발자 또는 태그 검색",
   });
-  await expect(search).toBeFocused();
-  await expect(
-    dialog.getByText("학습자", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    dialog.getByText("타입 개발자", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    dialog.getByText("웹 개발자", { exact: true }),
-  ).toBeVisible();
   await search.fill("JAVA");
-  await expect(
-    dialog.getByText("Java", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    dialog.getByText("JavaScript", { exact: true }),
-  ).toBeVisible();
-  await search.fill("없는검색결과");
-  await expect(
-    dialog.getByText("일치하는 개발자가 없습니다.", {
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(
-    dialog.getByText("일치하는 태그가 없습니다.", {
-      exact: true,
-    }),
-  ).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(dialog).not.toBeVisible();
-  await expect(
-    page.getByRole("button", {
-      name: "다른 태그 선택",
-      exact: true,
-    }),
-  ).toBeFocused();
   await page
-    .getByRole("button", {
-      name: "다른 태그 선택",
-      exact: true,
-    })
+    .getByRole("button", { name: "검색", exact: true })
     .click();
+  await expect(page).toHaveURL(/query=JAVA/);
+  await expect(
+    page
+      .getByRole("region", { name: "태그 검색 결과" })
+      .getByText("Java", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "태그 검색 결과" })
+      .getByText("JavaScript", { exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(search).toHaveValue("JAVA");
+  await expect(
+    page.getByRole("button", { name: "태그", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await search.fill("없는검색결과");
+  await page
+    .getByRole("button", { name: "검색", exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("region", { name: "태그 검색 결과" })
+      .getByText(/검색 결과가 없습니다/),
+  ).toBeVisible();
+  await page.goBack();
+  await expect(search).toHaveValue("JAVA");
+  await expect(
+    page
+      .getByRole("region", { name: "태그 검색 결과" })
+      .getByText("Java", { exact: true }),
+  ).toBeVisible();
   await search.fill("Web");
+  await search.press("Enter");
+  await expect(
+    page
+      .getByRole("region", { name: "태그 검색 결과" })
+      .getByText("Web", { exact: true }),
+  ).toBeVisible();
   const before = await page.evaluate(
     () =>
       JSON.parse(
@@ -588,15 +603,15 @@ test("empty state opens global developer/tag search and subscribes explicitly", 
       throw new Error("full");
     };
   });
-  await dialog
+  await page
     .getByRole("button", {
       name: "Web 구독하고 학습하기",
       exact: true,
     })
     .click();
-  await expect(dialog.getByRole("alert")).toContainText(
-    "구독을 저장하지 못했습니다",
-  );
+  await expect(
+    page.getByRole("main").getByRole("alert"),
+  ).toContainText("구독을 저장하지 못했습니다");
   await expect(search).toHaveValue("Web");
   await page.evaluate(() => {
     Storage.prototype.setItem = (
@@ -605,13 +620,12 @@ test("empty state opens global developer/tag search and subscribes explicitly", 
       }
     ).restoreStorage;
   });
-  await dialog
+  await page
     .getByRole("button", {
       name: "Web 구독하고 학습하기",
       exact: true,
     })
     .click();
-  await expect(dialog).not.toBeVisible();
   await expect(
     page.getByRole("heading", {
       name: "블록 스코프",

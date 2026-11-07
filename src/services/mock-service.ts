@@ -15,6 +15,7 @@ import type {
   Subscription,
   Visibility,
 } from "@/api/contracts";
+import { searchDiscovery } from "@/services/discovery";
 import { hashtags, users } from "@/mocks/users";
 import { shopItems } from "@/mocks/shop-items";
 import type {
@@ -85,6 +86,7 @@ const allowed: Record<Operation, string[]> = {
   subscriptions: [],
   subscribe: ["type", "authorUserId", "hashtagId"],
   unsubscribe: ["subscriptionId"],
+  searchDiscovery: ["kind", "query", "page", "pageSize"],
   discoverUsers: [],
   discoverHashtags: [],
   learningTags: ["authorUserId"],
@@ -654,6 +656,12 @@ export function execute<K extends Operation>(
       return {
         deleted: true,
       };
+
+    case "searchDiscovery":
+      return searchDiscovery(
+        { users, hashtags, subscriptions: s.subscriptions },
+        input as ApiOperations["searchDiscovery"]["request"],
+      );
 
     case "discoverUsers":
       return users;

@@ -86,6 +86,7 @@ REST 교체 시 기본 경로는 `/api/v1`이며 요청·응답 타입을 1단�
 | POST /quizzes/{id}/regenerate, POST /quizzes/{id}/approve, PATCH /quizzes/{id}/visibility, DELETE /quizzes/{id} | 수정본·승인·공개 범위·삭제 UX                                                    | 버전 검사·영속화·실제 권한 검사                   |
 | GET/POST/DELETE /subscriptions                                                                                  | 3종 구독 Mock 상태                                                               | 인증된 사용자 구독 영속화                         |
 | GET /discover/users, GET /discover/hashtags                                                                     | 더미 개발자·태그 탐색                                                            | 실제 공개 데이터 탐색                             |
+| GET /discover/search | kind·query·page·pageSize로 검색·페이지 조회, 결과별 구독 여부와 total 반환. 화면은 20개씩 표시 | 서버 검색·정렬·페이지 조회 |
 | GET /learning/tags                                                                                              | 구독 범위의 더미 기술 태그 선택지                                                | 실제 구독 조건에 맞는 PUBLIC 퀴즈의 태그          |
 | GET /learning/quiz                                                                                              | hashtagId?(전체면 생략), mode(UNSOLVED/REPLAY); 현재 문제 또는 빈 상태·소진 여부 | 구독·태그·완료 기록으로 후보 조회                 |
 | POST /learning/next                                                                                             | 현재 선택 hashtagId?, mode; 다음 문제에도 같은 태그 유지                         | 새 후보 조회·접근 검사                            |

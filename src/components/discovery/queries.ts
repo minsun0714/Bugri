@@ -6,25 +6,25 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
-import type { SubscriptionTarget } from "@/api/contracts";
+import type {
+  DiscoveryQuery,
+  SubscriptionTarget,
+} from "@/api/contracts";
 
-export function useDiscovery(userId: string) {
+export function useDiscovery(
+  userId: string,
+  request: DiscoveryQuery,
+) {
   const cache = useQueryClient();
   const discovery = useQuery({
-    queryKey: ["discovery", userId],
+    queryKey: ["discovery", userId, request],
     queryFn: async () => {
       const api = await createBrowserApi({
         mode: "mock",
         userId,
       });
-      const [users, tags, subscriptions] =
-        await Promise.all([
-          api.request("discoverUsers", {}),
-          api.request("discoverHashtags", {}),
-          api.request("subscriptions", {}),
-        ]);
 
-      return { users, tags, subscriptions };
+      return api.request("searchDiscovery", request);
     },
     retry: false,
   });

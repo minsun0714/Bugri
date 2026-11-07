@@ -20,7 +20,6 @@ import {
   Button,
   Card,
   EmptyState,
-  Modal,
   Skeleton,
 } from "@/components/ui";
 import { AnswerForm } from "@/components/solving/answer-form";
@@ -32,7 +31,6 @@ import {
 } from "@/components/solving/use-quiz-solving";
 
 import { Bugri } from "@/components/ui/bugri";
-import { DiscoverySearch } from "@/components/solving/discovery-search";
 
 function answerText(
   answer: Answer,
@@ -97,29 +95,10 @@ function Session({
   const flow = useQuizSolving(location);
   const { attempt, submit, tags, busy, empty } = flow;
   const [celebrate, setCelebrate] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const data = attempt.data;
 
   return (
     <div className="space-y-6">
-      {!direct && (
-        <Modal
-          open={searchOpen}
-          onClose={() => setSearchOpen(false)}
-          title="개발자·태그 검색"
-          initialFocusSelector="input[type=search]"
-        >
-          {searchOpen && (
-            <DiscoverySearch
-              userId={userId}
-              onLearn={(tag) => {
-                setSearchOpen(false);
-                flow.learn(tag);
-              }}
-            />
-          )}
-        </Modal>
-      )}
       {!direct && (
         <label className="flex flex-wrap items-center gap-3">
           학습 태그
@@ -197,7 +176,11 @@ function Session({
               )}
               <Button
                 variant="secondary"
-                onClick={() => setSearchOpen(true)}
+                onClick={() =>
+                  router.push(
+                    `/discover?user=${encodeURIComponent(userId)}`,
+                  )
+                }
               >
                 다른 태그 선택
               </Button>
