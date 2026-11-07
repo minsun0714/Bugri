@@ -72,7 +72,7 @@ export function createDeskEngine(
     tool: DeskTool;
     moved: boolean;
     handle: boolean;
-    footOffset: { x: number; y: number } | null;
+    baseOffset: { x: number; y: number } | null;
   } | null = null;
 
   function rebuild() {
@@ -521,20 +521,24 @@ export function createDeskEngine(
       tool,
       moved: false,
       handle: Boolean(handleTool),
-      footOffset: null,
+      baseOffset: null,
     };
     if (
-      category === DeskObject.BUGRI &&
+      category &&
+      category !== Category.DESK &&
       tool === DeskTool.MOVE
     ) {
-      // Zdog's runtime Anchor exposes the transformed model origin (foot level).
-      const anchor = anchors.get(DeskObject.BUGRI) as
+      // Every tabletop model's origin is on its supporting base.
+      const anchor = (
+        preview ? previewAnchor : anchors.get(category)
+      ) as
         | (Zdog.Anchor & { renderOrigin: Zdog.Vector })
+        | null
         | undefined;
       if (anchor) {
         const { x, y, width, height } =
           canvas.getBoundingClientRect();
-        drag.footOffset = {
+        drag.baseOffset = {
           x:
             x +
             width / 2 +
@@ -641,19 +645,25 @@ export function createDeskEngine(
     next = constrainTransform(category, next);
     if (
       drag.moved &&
-      category === DeskObject.BUGRI &&
+      category !== Category.DESK &&
       drag.tool === DeskTool.MOVE
     )
-      next = snapBugri(event, next) ?? next;
+      next = snapToTable(event, next) ?? next;
     drag.next = next;
     state.onPreview?.(category, next, preview);
   }
 
-  function snapBugri(
+  function snapToTable(
     event: PointerEvent,
     transform: DeskTransform,
   ) {
-    if (!drag) return null;
+    if (
+      !drag ||
+      !drag.category ||
+      drag.category === Category.DESK
+    )
+      return null;
+    const { category } = drag;
     const { x, y, width, height } =
       canvas.getBoundingClientRect();
     const desk =
@@ -662,13 +672,14 @@ export function createDeskEngine(
       zoom: scale,
       yaw: azimuth,
       pitch: elevation,
-      footOffset,
+      baseOffset,
     } = drag;
     const snapAt = (
       offset: { x: number; y: number },
-      footprint = 0,
+      contact = false,
     ) =>
       tabletopDrop({
+        category,
         screen: {
           x:
             (event.clientX + offset.x - x - width / 2) /
@@ -686,12 +697,12 @@ export function createDeskEngine(
         desk,
         itemFrame: state.itemFrame ?? desk,
         transform,
-        footprint,
+        contact,
       });
 
-    // Prefer the visible feet; also accept a direct pointer drop onto the table.
+    // Prefer the supporting base; also accept a direct pointer drop onto the table.
     return (
-      (footOffset && snapAt(footOffset, 0.4)) ??
+      (baseOffset && snapAt(baseOffset, true)) ??
       snapAt({ x: 0, y: 0 })
     );
   }
@@ -732,10 +743,11 @@ export function createDeskEngine(
       moved &&
       next &&
       tool === DeskTool.MOVE &&
-      category === DeskObject.BUGRI &&
+      category &&
+      category !== Category.DESK &&
       !state.disabled
     ) {
-      next = snapBugri(event, next) ?? next;
+      next = snapToTable(event, next) ?? next;
     }
     drag = null;
     canvas.releasePointerCapture(event.pointerId);

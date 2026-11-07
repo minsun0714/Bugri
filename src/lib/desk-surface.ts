@@ -1,11 +1,29 @@
-import { DeskObject } from "@/api/constants";
+import { Category, DeskObject } from "@/api/constants";
 import type { DeskTransform } from "@/api/contracts";
 import {
   constrainTransform,
   tableHeight,
+  type SpatialTarget,
 } from "@/lib/desk-spatial";
 
+type SurfaceTarget = Exclude<
+  SpatialTarget,
+  typeof Category.DESK
+>;
+
+// Half-extents of each model's supporting base in desk units, not its silhouette.
+const baseSize: Record<
+  SurfaceTarget,
+  { x: number; z: number }
+> = {
+  [DeskObject.BUGRI]: { x: 0.4, z: 0.4 },
+  [Category.KEYBOARD]: { x: 0.675, z: 0.26 },
+  [Category.MONITOR]: { x: 0.375, z: 0.225 },
+  [Category.ACCESSORY]: { x: 0.21, z: 0.21 },
+};
+
 type SurfaceDrop = {
+  category: SurfaceTarget;
   /** Canvas-centred coordinates, with framing offset and pixel scale removed. */
   screen: { x: number; y: number };
   yaw: number;
@@ -14,8 +32,8 @@ type SurfaceDrop = {
   desk: DeskTransform;
   itemFrame: DeskTransform;
   transform: DeskTransform;
-  /** Contact radius for feet; direct pointer drops have no footprint. */
-  footprint?: number;
+  /** Test support-base overlap; direct pointer drops require the pointer inside. */
+  contact?: boolean;
 };
 
 const radians = (degrees: number) =>
@@ -38,6 +56,7 @@ function localPoint(
 
 /** Intersect the orthographic pointer ray with the current desk's top plane. */
 export function tabletopDrop({
+  category,
   screen,
   yaw,
   pitch,
@@ -45,7 +64,7 @@ export function tabletopDrop({
   desk,
   itemFrame,
   transform,
-  footprint = 0,
+  contact = false,
 }: SurfaceDrop): DeskTransform | null {
   if (pitch <= 0) return null;
 
@@ -65,15 +84,36 @@ export function tabletopDrop({
     center.z;
   const local = localPoint(worldX, worldZ, desk);
 
+  const baseAngle = radians(
+    itemFrame.rotationY +
+      transform.rotationY -
+      desk.rotationY,
+  );
+  const size = baseSize[category];
+  const extent = {
+    x:
+      Math.abs(Math.cos(baseAngle)) * size.x +
+      Math.abs(Math.sin(baseAngle)) * size.z,
+    z:
+      Math.abs(Math.sin(baseAngle)) * size.x +
+      Math.abs(Math.cos(baseAngle)) * size.z,
+  };
+
   if (
-    Math.abs(local.x) > 2 + footprint ||
-    Math.abs(local.z) > 1.2 + footprint
+    Math.abs(local.x) > 2 + (contact ? extent.x : 0) ||
+    Math.abs(local.z) > 1.2 + (contact ? extent.z : 0)
   )
     return null;
 
-  // The pointer may reach the edge; keep both feet supported by the tabletop.
-  const x = Math.max(-1.6, Math.min(1.6, local.x));
-  const z = Math.max(-0.8, Math.min(0.8, local.z));
+  // Keep the entire rotated support base on the surface at an edge.
+  const x = Math.max(
+    -2 + extent.x,
+    Math.min(2 - extent.x, local.x),
+  );
+  const z = Math.max(
+    -1.2 + extent.z,
+    Math.min(1.2 - extent.z, local.z),
+  );
   const deskAngle = radians(desk.rotationY);
   const position = localPoint(
     desk.x +
@@ -85,7 +125,7 @@ export function tabletopDrop({
     itemFrame,
   );
 
-  return constrainTransform(DeskObject.BUGRI, {
+  return constrainTransform(category, {
     ...transform,
     ...position,
     y: height - itemFrame.y,
