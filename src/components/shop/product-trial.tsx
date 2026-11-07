@@ -64,27 +64,17 @@ export function ProductTrial(props: {
             {product.name} 선택
           </Button>
         )}
-        {movable && (
-          <div className="h-6">
-            {editor.current && (
-              <output
-                aria-label="선택 상품 배치"
-                className="block text-xs text-muted"
-              >
-                X {editor.current.x.toFixed(2)} · Y{" "}
-                {editor.current.y.toFixed(2)} · Z{" "}
-                {editor.current.z.toFixed(2)} · 회전{" "}
-                {editor.current.rotationY}°
-              </output>
-            )}
-          </div>
+        {editor.current && (
+          <output
+            aria-label="선택 상품 배치"
+            className="sr-only"
+          >
+            X {editor.current.x.toFixed(2)} · Y{" "}
+            {editor.current.y.toFixed(2)} · Z{" "}
+            {editor.current.z.toFixed(2)} · 회전{" "}
+            {editor.current.rotationY}°
+          </output>
         )}
-        <p>
-          {movable
-            ? "상품을 클릭해 선택하고 드래그해 배치하세요. 선택 테두리 위의 작은 화살표를 드래그해 회전하고, 빈 공간을 드래그해 방을 둘러보세요."
-            : "빈 공간을 드래그해 방을 둘러보세요."}{" "}
-          미리보기는 실제 장착 상태를 바꾸지 않아요.
-        </p>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Coin amount={product.price} />
           {owned ? (

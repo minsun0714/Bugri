@@ -45,11 +45,7 @@ export function DeskEditor({
         onCommit={editor.commit}
         onCancel={editor.cancel}
       />
-      <p className="px-3 pt-3 text-xs leading-5 text-muted">
-        상품을 클릭해 선택하고 드래그해 옮기세요. 선택
-        테두리 위의 작은 화살표를 드래그해 회전하세요. 빈
-        공간을 드래그하면 시점이 회전합니다.
-      </p>
+
       <div className="flex flex-wrap gap-2 p-3">
         {editor.categories.map((category) => (
           <Button
@@ -74,7 +70,13 @@ export function DeskEditor({
         ))}
       </div>
       {editor.selected && editor.current && (
-        <div className="space-y-3 rounded-2xl bg-canvas p-3">
+        <div
+          className={
+            editor.selected === Category.DESK
+              ? "sr-only"
+              : "space-y-3 rounded-2xl bg-canvas p-3"
+          }
+        >
           {editor.selected !== Category.DESK && (
             <>
               <label className="flex items-center gap-3 text-xs">
@@ -151,17 +153,13 @@ export function DeskEditor({
           )}
           <output
             aria-label="선택 상품 배치"
-            className="block text-xs text-muted"
+            className="sr-only"
           >
             X {editor.current.x.toFixed(2)} · Y{" "}
             {editor.current.y.toFixed(2)} · Z{" "}
             {editor.current.z.toFixed(2)} · 회전{" "}
             {editor.current.rotationY}°
           </output>
-          <p className="text-xs text-muted">
-            선택 버튼에서 방향키로 이동 · Alt+방향키 회전 ·
-            Shift+↑↓ 높이 · Enter 저장 · Esc 취소
-          </p>
         </div>
       )}
       <div

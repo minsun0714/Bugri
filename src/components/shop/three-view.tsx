@@ -123,7 +123,7 @@ export function ThreeView(props: Props) {
         )}
         <output
           aria-label="카메라 방위각"
-          className="text-xs text-muted"
+          className="sr-only"
         >
           {angle}°
         </output>
