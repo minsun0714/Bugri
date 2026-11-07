@@ -174,9 +174,7 @@ export function ProfileAbout({
         </div>
       )}
       {content && (
-        <div className="col-span-2 min-w-0 max-w-3xl">
-          {content}
-        </div>
+        <div className="col-span-2 min-w-0">{content}</div>
       )}
     </section>
   );

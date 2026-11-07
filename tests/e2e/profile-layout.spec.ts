@@ -62,7 +62,15 @@ for (const width of [1280, 390]) {
     const identityBox = await profile
       .getByText("@bugri-author", { exact: true })
       .boundingBox();
-    const bioBox = await biography.boundingBox();
+    const bioContainer = profile.locator(
+      ".markdown-preview",
+    );
+    await expect(bioContainer).toHaveCSS("padding", "16px");
+    await expect(bioContainer).toHaveCSS(
+      "border-top-width",
+      "1px",
+    );
+    const bioBox = await bioContainer.boundingBox();
     const linkBox = await links.boundingBox();
     const editBox = await edit.boundingBox();
     const deskBox = await desk.boundingBox();
@@ -73,6 +81,12 @@ for (const width of [1280, 390]) {
       linkBox!.y - (bioBox!.y + bioBox!.height),
     ).toBeLessThanOrEqual(24);
     const profileBox = await profile.boundingBox();
+    expect(
+      Math.abs(bioBox!.x - profileBox!.x),
+    ).toBeLessThan(2);
+    expect(
+      Math.abs(bioBox!.width - profileBox!.width),
+    ).toBeLessThan(2);
     const canvasBox = await page
       .getByRole("region", { name: "공개 데스크" })
       .boundingBox();
