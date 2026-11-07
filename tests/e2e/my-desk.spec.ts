@@ -20,12 +20,26 @@ test("shop, own desk and public desk work when WebGL is unavailable", async ({
     errors.push(error.message),
   );
   await page.goto("/shop");
+  await page
+    .getByRole("article")
+    .filter({
+      has: page.getByRole("heading", {
+        name: "새싹 키보드",
+        exact: true,
+      }),
+    })
+    .getByRole("button", { name: "장착해 보기" })
+    .click();
   await expect(
     page.locator('[data-renderer="canvas"] canvas'),
   ).toBeVisible();
   await expect(
     page.getByRole("main").getByRole("alert"),
   ).toHaveCount(0);
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "닫기", exact: true })
+    .click();
   const card = page.getByRole("article").filter({
     has: page.getByRole("heading", {
       name: "새싹 키보드",

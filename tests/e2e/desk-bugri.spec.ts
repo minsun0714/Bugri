@@ -61,6 +61,16 @@ for (const width of [1100, 390]) {
         .toBeGreaterThan(50);
     }
     await page.goto("/shop");
+    await page
+      .getByRole("article")
+      .filter({
+        has: page.getByRole("heading", {
+          name: "새싹 키보드",
+          exact: true,
+        }),
+      })
+      .getByRole("button", { name: "장착해 보기" })
+      .click();
     await expect
       .poll(() => bugriPixels(canvas))
       .toBeGreaterThan(50);

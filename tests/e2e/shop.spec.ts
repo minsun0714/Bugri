@@ -27,6 +27,12 @@ test("purchase, equip, restore, switch users and view a public desk", async ({
   await page
     .getByRole("button", { name: "장착하기" })
     .click();
+  await page
+    .getByRole("link", {
+      name: "내 데스크 꾸미기",
+      exact: true,
+    })
+    .click();
   await expect(
     page.getByRole("group", {
       name: "내 데스크 · 새싹 키보드",

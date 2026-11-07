@@ -7,7 +7,7 @@ import { DeskEditor } from "@/components/shop/desk-editor";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { ApiClientError } from "@/api/client";
-import type { Category } from "@/api/contracts";
+import type { Category, Product } from "@/api/contracts";
 import {
   Badge,
   Button,
@@ -15,6 +15,7 @@ import {
   Coin,
   EmptyState,
   Skeleton,
+  Modal,
   Tag,
 } from "@/components/ui";
 import { Header } from "@/components/ui/header";
@@ -69,6 +70,10 @@ function ShopContent({
   const [category, setCategory] = useState<Category | null>(
     null,
   );
+  const trialTrigger = useRef<HTMLButtonElement | null>(
+    null,
+  );
+  const [trial, setTrial] = useState<Product | null>(null);
   const [message, setMessage] = useState("");
   const [actionError, setActionError] =
     useState<unknown>(null);
@@ -138,26 +143,36 @@ function ShopContent({
 
   return (
     <>
-      <section
-        className={
-          editing
-            ? "mb-10 grid gap-5"
-            : "mb-10 grid items-center gap-5 lg:grid-cols-[.85fr_1.15fr]"
-        }
-        aria-label="상점과 내 데스크"
-      >
-        <div>
-          <div aria-label="내 잔액">
-            {wallet.data ? (
-              <Coin amount={wallet.data.balance} />
-            ) : (
-              <span>잔액 불러오는 중</span>
-            )}
-          </div>
-        </div>
+      <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
         <div
+          aria-label="내 잔액"
+          className="inline-flex items-center gap-3 rounded-2xl border border-sunny/60 bg-sunny/20 px-5 py-3"
+        >
+          <span className="text-xs font-bold text-muted">
+            내 BugCoin
+          </span>
+          {wallet.data ? (
+            <Coin amount={wallet.data.balance} />
+          ) : (
+            <span className="text-xs text-muted">
+              잔액 불러오는 중
+            </span>
+          )}
+        </div>
+        {!editing && (
+          <Link
+            href={`/my?user=${userId}`}
+            className="text-sm font-bold text-primary underline underline-offset-4"
+          >
+            내 데스크 꾸미기
+          </Link>
+        )}
+      </div>
+      {editing && (
+        <section
           id="desk"
-          className="relative rounded-[2rem] border border-line bg-surface p-3"
+          aria-label="내 데스크 편집"
+          className="mb-10 rounded-[2rem] border border-line bg-surface p-3"
         >
           <div className="flex items-center justify-between px-4 pt-3">
             <h2 className="text-sm">내 데스크</h2>
@@ -169,48 +184,21 @@ function ShopContent({
               개 장착
             </Badge>
           </div>
-          <div className="min-h-48">
-            {editing ? (
-              <DeskEditor
-                key={JSON.stringify(
-                  inventory.data?.equipment ?? {},
-                )}
-                equipment={inventory.data?.equipment ?? {}}
-                transforms={
-                  inventory.data?.transforms ?? {}
-                }
-                save={move.mutateAsync}
-                disabled={
-                  pending || loading || Boolean(error)
-                }
-              />
-            ) : (
-              <ThreeView
-                equipment={inventory.data?.equipment ?? {}}
-                transforms={
-                  inventory.data?.transforms ?? {}
-                }
-                selected={null}
-                tool={DeskTool.CAMERA}
-                disabled={false}
-                readOnly
-              />
+          <DeskEditor
+            key={JSON.stringify(
+              inventory.data?.equipment ?? {},
             )}
-          </div>
+            equipment={inventory.data?.equipment ?? {}}
+            transforms={inventory.data?.transforms ?? {}}
+            save={move.mutateAsync}
+            disabled={pending || loading || Boolean(error)}
+          />
           <p className="pb-3 text-center text-xs text-muted">
-            {editing ? (
-              "보관함에서 상품을 장착하고 원하는 위치로 옮겨보세요."
-            ) : (
-              <Link
-                href={`/my?user=${userId}`}
-                className="font-bold text-primary underline"
-              >
-                내 데스크 꾸미기
-              </Link>
-            )}
+            보관함에서 상품을 장착하고 원하는 위치로
+            옮겨보세요.
           </p>
-        </div>
-      </section>
+        </section>
+      )}
       <section id="collection" aria-label="상품 컬렉션">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
           <div className="flex gap-2">
@@ -353,6 +341,22 @@ function ShopContent({
                     <p className="mt-2 min-h-10 text-xs leading-5 text-muted">
                       {description}
                     </p>
+                    {!editing && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="mt-4 w-full"
+                        onClick={(event) => {
+                          trialTrigger.current =
+                            event.currentTarget;
+                          setTrial(product);
+                          setActionError(null);
+                          setMessage("");
+                        }}
+                      >
+                        장착해 보기
+                      </Button>
+                    )}
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                       <Coin amount={price} />
                       {tab === "상점" ? (
@@ -403,6 +407,78 @@ function ShopContent({
           </div>
         )}
       </section>
+      {trial && (
+        <Modal
+          open
+          onClose={() => {
+            setTrial(null);
+            requestAnimationFrame(() =>
+              trialTrigger.current?.focus(),
+            );
+          }}
+          title={`${trial.name} 장착해 보기`}
+        >
+          <ThreeView
+            label="장착 미리보기"
+            equipment={{
+              ...inventory.data?.equipment,
+              [trial.category]: trial.productId,
+            }}
+            transforms={inventory.data?.transforms ?? {}}
+            selected={null}
+            tool={DeskTool.CAMERA}
+            disabled={false}
+            readOnly
+            showViewPresets={false}
+          />
+          <p className="mt-3">
+            드래그해서 둘러보세요. 미리보기는 실제 장착
+            상태를 바꾸지 않아요.
+          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Coin amount={trial.price} />
+            {owned.has(trial.productId) ? (
+              <Button
+                disabled={
+                  pending ||
+                  inventory.data?.equipment[
+                    trial.category
+                  ] === trial.productId
+                }
+                onClick={() =>
+                  void changeEquipment(
+                    trial.category,
+                    trial.productId,
+                  )
+                }
+              >
+                {inventory.data?.equipment[
+                  trial.category
+                ] === trial.productId
+                  ? "장착 중"
+                  : "내 데스크에 장착"}
+              </Button>
+            ) : (
+              <Button
+                disabled={pending}
+                onClick={() => void buy(trial.productId)}
+              >
+                구매하기
+              </Button>
+            )}
+          </div>
+          {message && (
+            <p role="status" className="mt-3">
+              {message}
+            </p>
+          )}
+          {actionError ? (
+            <p role="alert" className="mt-3">
+              {errorMessage(actionError)}
+            </p>
+          ) : null}
+        </Modal>
+      )}
       <section
         id="neighbors"
         className="mt-12 rounded-3xl border border-line bg-surface p-6"
@@ -448,7 +524,12 @@ export function ShopApp({
         preview={false}
         sections={[
           ["top", editing ? "내 공간" : "상점"],
-          ["desk", "내 데스크"],
+          ...(editing
+            ? ([["desk", "내 데스크"]] as [
+                string,
+                string,
+              ][])
+            : []),
           ["collection", "컬렉션"],
           ["neighbors", "이웃"],
         ]}

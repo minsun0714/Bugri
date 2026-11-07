@@ -13,6 +13,7 @@ import { artworkNames } from "@/components/shop/artwork";
 type Engine = ReturnType<typeof createDeskEngine>;
 type Props = Omit<SceneState, "onError" | "onCamera"> & {
   label?: string;
+  showViewPresets?: boolean;
 };
 
 export function ThreeView(props: Props) {
@@ -66,25 +67,27 @@ export function ThreeView(props: Props) {
   return (
     <div role="group" aria-label={`${label} · ${names}`}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2 px-2">
-        <div className="flex gap-1">
-          {[
-            [DeskView.ANGLED, "45도 시점"],
-            [DeskView.FRONT, "정면"],
-            [DeskView.TOP, "위에서"],
-          ].map(([view, text]) => (
-            <Button
-              key={view}
-              variant="ghost"
-              size="sm"
-              disabled={!ready || failed}
-              onClick={() =>
-                engine.current?.view(view as DeskView)
-              }
-            >
-              {text}
-            </Button>
-          ))}
-        </div>
+        {props.showViewPresets !== false && (
+          <div className="flex gap-1">
+            {[
+              [DeskView.ANGLED, "45도 시점"],
+              [DeskView.FRONT, "정면"],
+              [DeskView.TOP, "위에서"],
+            ].map(([view, text]) => (
+              <Button
+                key={view}
+                variant="ghost"
+                size="sm"
+                disabled={!ready || failed}
+                onClick={() =>
+                  engine.current?.view(view as DeskView)
+                }
+              >
+                {text}
+              </Button>
+            ))}
+          </div>
+        )}
         <output
           aria-label="카메라 방위각"
           className="text-xs text-muted"

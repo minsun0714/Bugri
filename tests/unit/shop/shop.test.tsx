@@ -41,9 +41,7 @@ it("purchases once, updates balance, equips and unequips an owned product", asyn
     }),
   ).toBeInTheDocument();
   expect(
-    screen.getByRole("group", {
-      name: /내 데스크.*새싹 키보드/,
-    }),
+    within(card).getByText("장착 중"),
   ).toBeInTheDocument();
   fireEvent.click(
     screen.getByRole("button", { name: "장착 해제" }),
@@ -129,9 +127,11 @@ it("replaces equipment in the same category while keeping both purchases", async
     });
   }
   expect(
-    screen.getByRole("group", {
-      name: "내 데스크 · 라벤더 키보드",
-    }),
+    within(
+      screen
+        .getByRole("heading", { name: "라벤더 키보드" })
+        .closest("article")!,
+    ).getByText("장착 중"),
   ).toBeInTheDocument();
   expect(screen.getAllByRole("article")).toHaveLength(2);
   expect(
@@ -155,7 +155,7 @@ it("preserves the saved data and presents retry when storage is corrupted", asyn
   ).toBe("invalid");
 });
 
-it("offers editing on my desk and a view-only preview in the shop", async () => {
+it("offers editing on my desk and product try-on entry points in the shop", async () => {
   const shop = render(<ShopApp />);
   await screen.findByRole("heading", {
     name: "새싹 키보드",
