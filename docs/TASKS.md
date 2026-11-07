@@ -384,3 +384,9 @@
 
 - LLM 추가 요청의 `요청 보내기` 텍스트 버튼을 종이비행기 아이콘 버튼으로 바꾸고, 접근성 이름·hover 제목·로딩·비활성 동작은 유지했다.
 - Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/86 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 퀴즈 관리 상세 UX 재구성 — DONE
+
+- 관리 상세의 목록 복귀·퀴즈 제목·상태를 sticky 헤더로 통합하고, 편집 폼을 기본 정보·문제 구성·해설·분류 섹션으로 나뉘다. 원본 학습 내용은 기본으로 접고 Markdown 편집기와 선택지 밀도를 줄였다.
+- 추천 태그를 입력 아래 칩으로 변경하고, 선택지의 입력·정답·삭제를 컴팩트한 행으로 재배치했다. 편집 중 변경 상태·취소·저장은 viewport 하단 고정 바에 두고, 재조회는 아이콘, 삭제는 비편집 상태의 독립 위험 영역으로 분리했다.
+- 의도한 구조 테스트 실패를 확인한 뒤 관리 컴포넌트와 승인·수정·재생성·공개 범위·삭제 모바일 E2E를 통과했고 데스크톱·390px 실화면을 확인했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/87 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.

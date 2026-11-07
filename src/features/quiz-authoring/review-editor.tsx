@@ -31,6 +31,7 @@ export function ReviewEditor({
   userId = "learner",
   initialQuiz,
   tags,
+  onBack,
   onChanged,
   onDeleted,
   onDirty,
@@ -40,6 +41,7 @@ export function ReviewEditor({
   userId?: string;
   initialQuiz: ReviewQuiz;
   tags: Hashtag[];
+  onBack: () => void;
   onChanged: () => void;
   onDeleted: () => void;
   onDirty: (dirty: boolean) => void;
@@ -165,6 +167,21 @@ export function ReviewEditor({
     setEditing(false);
   }
 
+  function reload() {
+    if (dirty && !window.confirm(leaveMessage)) return;
+
+    void run(async () => {
+      accept(
+        await api.request("reviewQuiz", {
+          quizId: quiz.quizId,
+        }),
+      );
+      setPrompt("");
+      setSentPrompt("");
+      setMessage("최신 내용을 불러왔습니다.");
+    });
+  }
+
   function approvePending() {
     if (!visibility || !quiz.pending) return;
 
@@ -201,12 +218,27 @@ export function ReviewEditor({
       aria-label="퀴즈 검토"
       className={styles.stack}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl">퀴즈 검토</h2>
+      <header className="sticky top-0 z-30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-line bg-canvas/95 py-3 backdrop-blur-sm">
+        <Button
+          size="sm"
+          variant="ghost"
+          aria-label="내 퀴즈로 돌아가기"
+          disabled={busy}
+          onClick={onBack}
+        >
+          <span aria-hidden="true">←</span>
+          <span className="hidden sm:inline">내 퀴즈</span>
+        </Button>
+        <div className="min-w-0">
+          <p className="text-xs text-muted">퀴즈 검토</p>
+          <h2 className="truncate text-lg font-semibold">
+            {saved.title}
+          </h2>
+        </div>
         <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
           {statusLabel}
         </span>
-      </div>
+      </header>
       <RequestError error={regenerateOpen ? null : error} />
       {message && (
         <p role="status" className="text-primary">
@@ -225,7 +257,7 @@ export function ReviewEditor({
         </details>
       )}
       {editing ? (
-        <div className={styles.stack}>
+        <div className="grid gap-4 pb-28">
           <fieldset disabled={busy} className="min-w-0">
             <ContentFields
               content={content}
@@ -236,50 +268,65 @@ export function ReviewEditor({
               onSource={setSource}
             />
           </fieldset>
-          <div className={styles.actions}>
-            <Button
-              variant="ghost"
-              disabled={busy}
-              onClick={() => {
-                if (dirty && !window.confirm(leaveMessage))
-                  return;
-                void run(async () => {
-                  accept(
-                    await api.request("reviewQuiz", {
-                      quizId: quiz.quizId,
-                    }),
-                  );
-                  setPrompt("");
-                  setSentPrompt("");
-                  setMessage("최신 내용을 불러왔습니다.");
-                });
-              }}
-            >
-              최신 내용 다시 불러오기
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={cancelEditing}
-            >
-              취소
-            </Button>
-            <Button
-              disabled={busy || !edited}
-              onClick={save}
-            >
-              수정 저장
-            </Button>
+          <div
+            role="group"
+            aria-label="편집 작업"
+            className="fixed inset-x-3 bottom-3 z-40 mx-auto flex w-[calc(100%-1.5rem)] max-w-3xl items-center justify-between gap-3 rounded-2xl border border-line bg-surface/95 p-3 shadow-xl backdrop-blur-sm sm:bottom-6 sm:w-[calc(100%-3rem)]"
+          >
+            <div className="flex min-w-0 items-center gap-1">
+              <span className="min-w-0 truncate text-xs font-semibold text-muted">
+                {edited
+                  ? "저장하지 않은 변경 있음"
+                  : "변경 사항 없음"}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label="최신 내용 다시 불러오기"
+                title="작성 중인 내용을 버리고 최신 저장본을 불러옵니다"
+                disabled={busy}
+                className="size-9 min-h-9! shrink-0 p-0!"
+                onClick={reload}
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="size-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 11a8 8 0 1 0-2.34 5.66" />
+                  <path d="M20 4v7h-7" />
+                </svg>
+              </Button>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Button
+                variant="secondary"
+                disabled={busy}
+                onClick={cancelEditing}
+              >
+                취소
+              </Button>
+              <Button
+                disabled={busy || !edited}
+                onClick={save}
+              >
+                수정 저장
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
         <Card className={styles.stack}>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-xl">{saved.title}</h3>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <div
               role="group"
               aria-label="퀴즈 수정 방식"
-              className="ml-auto flex flex-wrap justify-end gap-2"
+              className="flex flex-wrap justify-end gap-2"
             >
               <Button
                 variant="secondary"
@@ -445,29 +492,43 @@ export function ReviewEditor({
           </div>
         </Card>
       )}
-      <div className={styles.actions}>
-        <Button
-          variant="danger"
-          disabled={busy}
-          onClick={() => {
-            if (
-              !window.confirm(
-                `“${saved.title}” 퀴즈를 삭제할까요?${dirty ? " 저장하지 않은 변경도 사라집니다." : ""} 완료한 풀이 기록과 보상은 유지됩니다.`,
-              )
-            )
-              return;
-            void run(async () => {
-              await api.request("deleteQuiz", {
-                quizId: quiz.quizId,
-              });
-              onDirty(false);
-              onDeleted();
-            });
-          }}
+      {!editing && (
+        <section
+          role="group"
+          aria-label="위험 영역"
+          className="grid gap-4 rounded-2xl border border-coral/30 bg-coral/5 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5"
         >
-          퀴즈 삭제
-        </Button>
-      </div>
+          <div>
+            <h3 className="font-semibold text-coral">
+              위험 영역
+            </h3>
+            <p className="mt-1 text-xs text-muted">
+              삭제한 퀴즈는 목록과 학습 후보에서 사라집니다.
+            </p>
+          </div>
+          <Button
+            variant="danger"
+            disabled={busy}
+            onClick={() => {
+              if (
+                !window.confirm(
+                  `“${saved.title}” 퀴즈를 삭제할까요?${dirty ? " 저장하지 않은 변경도 사라집니다." : ""} 완료한 풀이 기록과 보상은 유지됩니다.`,
+                )
+              )
+                return;
+              void run(async () => {
+                await api.request("deleteQuiz", {
+                  quizId: quiz.quizId,
+                });
+                onDirty(false);
+                onDeleted();
+              });
+            }}
+          >
+            퀴즈 삭제
+          </Button>
+        </section>
+      )}
     </section>
   );
 }

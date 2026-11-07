@@ -45,20 +45,67 @@ async function setup(index = 0) {
   const quiz = quizzes[index];
   const tags = await api.request("discoverHashtags", {});
   const onChanged = jest.fn();
+  const onBack = jest.fn();
   render(
     <AuthoringQueryProvider>
       <ReviewEditor
         api={api}
         initialQuiz={quiz}
         tags={tags}
+        onBack={onBack}
         onChanged={onChanged}
         onDeleted={jest.fn()}
         onDirty={jest.fn()}
       />
     </AuthoringQueryProvider>,
   );
-  return { api, quiz, onChanged };
+  return { api, quiz, onBack, onChanged };
 }
+
+test("organizes review navigation, editing sections and action hierarchy", async () => {
+  const { onBack } = await setup();
+
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "내 퀴즈로 돌아가기",
+    }),
+  );
+  expect(onBack).toHaveBeenCalledTimes(1);
+  expect(
+    screen.getByRole("group", { name: "위험 영역" }),
+  ).toBeVisible();
+
+  openEditor();
+
+  for (const name of [
+    "기본 정보",
+    "문제 구성",
+    "해설",
+    "분류",
+  ])
+    expect(
+      screen.getByRole("heading", { name }),
+    ).toBeVisible();
+
+  const actions = screen.getByRole("group", {
+    name: "편집 작업",
+  });
+
+  expect(actions).toHaveTextContent("변경 사항 없음");
+  expect(
+    screen.getByRole("button", {
+      name: "최신 내용 다시 불러오기",
+    }),
+  ).not.toHaveTextContent("최신 내용 다시 불러오기");
+  expect(
+    screen.queryByRole("group", { name: "위험 영역" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", {
+      name: "#JavaScript 추가",
+    }),
+  ).toHaveTextContent("#JavaScript");
+});
 
 function openEditor() {
   fireEvent.click(

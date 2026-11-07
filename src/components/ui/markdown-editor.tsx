@@ -15,6 +15,7 @@ export function MarkdownEditor({
   label = "학습 내용",
   preserveOverflow = false,
   layout = "tabs",
+  className = "",
 }: {
   layout?: "tabs" | "split";
   value: string;
@@ -22,6 +23,7 @@ export function MarkdownEditor({
   limit?: number;
   label?: string;
   preserveOverflow?: boolean;
+  className?: string;
 }) {
   const id = useId();
   const {
@@ -128,7 +130,9 @@ export function MarkdownEditor({
   );
 
   return (
-    <div className={styles["markdown-editor"]}>
+    <div
+      className={`${styles["markdown-editor"]} ${className}`}
+    >
       <div
         className={styles["editor-title"]}
         id={`${id}-label`}

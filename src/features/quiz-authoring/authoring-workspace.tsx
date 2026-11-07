@@ -220,15 +220,17 @@ function Workspace({
 
   return (
     <div className={styles.stack}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">내 퀴즈</h1>
-        <a
-          href={createHref}
-          className="text-sm font-semibold text-primary"
-        >
-          퀴즈 만들기 ↗
-        </a>
-      </div>
+      {!quizId && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-xl font-semibold">내 퀴즈</h1>
+          <a
+            href={createHref}
+            className="text-sm font-semibold text-primary"
+          >
+            퀴즈 만들기 ↗
+          </a>
+        </div>
+      )}
       {notice && (
         <p role="status" className="text-primary">
           {notice}
@@ -236,25 +238,17 @@ function Workspace({
       )}
       {review.data && quizId && (
         <>
-          <div className={styles.actions}>
-            <Button
-              variant="ghost"
-              disabled={busy}
-              onClick={() => {
-                if (dirty && !window.confirm(leaveMessage))
-                  return;
-                closeReview();
-              }}
-            >
-              목록으로
-            </Button>
-          </div>
           <ReviewEditor
             key={`${userId}:${quizId}`}
             api={api}
             userId={userId}
             initialQuiz={review.data}
             tags={tags.data ?? []}
+            onBack={() => {
+              if (dirty && !window.confirm(leaveMessage))
+                return;
+              closeReview();
+            }}
             onChanged={() => void list.refetch()}
             onDeleted={() => {
               closeReview();

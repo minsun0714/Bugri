@@ -340,6 +340,19 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
   await review
     .getByRole("button", { name: "직접 수정" })
     .click();
+  const editActions = review.getByRole("group", {
+    name: "편집 작업",
+  });
+
+  await expect(editActions).toHaveCSS("position", "fixed");
+  await expect(
+    review.getByRole("heading", { name: "기본 정보" }),
+  ).toBeVisible();
+  await expect(
+    review.getByRole("button", {
+      name: "#JavaScript 추가",
+    }),
+  ).toHaveText("#JavaScript");
   await review
     .getByLabel("제목", { exact: true })
     .fill("내 첫 퀴즈");
@@ -370,7 +383,7 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .fill("수정본 제목");
   page.once("dialog", (dialog) => dialog.dismiss());
   await page
-    .getByRole("button", { name: "목록으로" })
+    .getByRole("button", { name: "내 퀴즈로 돌아가기" })
     .click();
   await expect(
     review.getByLabel("제목", { exact: true }),
