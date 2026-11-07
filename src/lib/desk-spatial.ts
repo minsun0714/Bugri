@@ -36,7 +36,10 @@ export function constrainTransform(
     Math.round(value * 1000) / 1000;
   return {
     x: round(input.x),
-    y: category === Category.DESK ? 0 : tableHeight,
+    y:
+      category === Category.DESK
+        ? 0
+        : Math.max(0, round(input.y)),
     z: round(input.z),
     rotationY,
   };

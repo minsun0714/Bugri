@@ -34,14 +34,28 @@ export function useSpatialEditor({
     DeskTool.CAMERA,
   );
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [confirmed, setConfirmed] = useState<{
+    request: Draft;
+    base: DeskTransforms;
+  } | null>(null);
   const latest = useRef<Draft | null>(null);
   const lock = useRef(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
   const [message, setMessage] = useState("");
   const blocked = disabled || saving;
-  const effective = draft
-    ? { ...transforms, [draft.category]: draft.transform }
+  // Keep the successful placement visible while the query's previous immutable
+  // snapshot is still rendered. A new snapshot (including external edits) wins.
+  const visibleDraft =
+    draft ??
+    (confirmed?.base === transforms
+      ? confirmed.request
+      : null);
+  const effective = visibleDraft
+    ? {
+        ...transforms,
+        [visibleDraft.category]: visibleDraft.transform,
+      }
     : transforms;
   const current = selected
     ? (effective[selected] ?? defaultTransforms[selected])
@@ -50,6 +64,11 @@ export function useSpatialEditor({
   function select(category: MovableCategory) {
     if (blocked || error) return;
     setSelected(category);
+    if (
+      category === Category.DESK &&
+      tool === DeskTool.HEIGHT
+    )
+      setTool(DeskTool.MOVE);
   }
   function preview(
     category: MovableCategory,
@@ -89,6 +108,7 @@ export function useSpatialEditor({
     setError(false);
     try {
       await save(next);
+      setConfirmed({ request: next, base: transforms });
       latest.current = null;
       setDraft(null);
       setMessage("3D 배치를 저장했어요.");
@@ -131,7 +151,16 @@ export function useSpatialEditor({
     )
       return;
     event.preventDefault();
-    if (tool === DeskTool.ROTATE)
+    if (tool === DeskTool.HEIGHT) {
+      if (
+        selected !== Category.DESK &&
+        (key === "ArrowUp" || key === "ArrowDown")
+      )
+        preview(selected, {
+          ...current,
+          y: current.y + (key === "ArrowUp" ? 0.1 : -0.1),
+        });
+    } else if (tool === DeskTool.ROTATE)
       preview(selected, {
         ...current,
         rotationY:

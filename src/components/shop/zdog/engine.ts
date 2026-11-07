@@ -6,10 +6,14 @@ import {
 } from "@/api/constants";
 import type { DeskTransform } from "@/api/contracts";
 import type { SceneState } from "@/components/shop/three/engine";
-import { model } from "@/components/shop/zdog/models";
+import {
+  deskParts,
+  model,
+} from "@/components/shop/zdog/models";
 import {
   constrainTransform,
   defaultTransforms,
+  tableHeight,
 } from "@/lib/desk-spatial";
 import { type MovableCategory } from "@/lib/desk-layout";
 
@@ -30,7 +34,8 @@ export function createDeskEngine(
   });
   const scene = new Zdog.Anchor({ addTo: illustration });
   let content: Zdog.Anchor | null = null;
-  let rotationHandle: Zdog.Ellipse | null = null;
+  let rotationHandle: Zdog.Anchor | null = null;
+  let framingHeight = 300;
   const anchors = new Map<MovableCategory, Zdog.Anchor>();
   let equipmentKey = "";
   let yaw = 45;
@@ -57,15 +62,21 @@ export function createDeskEngine(
     const { equipment } = state;
     if (equipment.BACKGROUND)
       model(content, equipment.BACKGROUND);
-    // The camera remains above the tabletop and items retain its height.
-    // Sort the furniture internally, then the objects above it: a distant
-    // tabletop item must never be painted behind the table's centre point.
+    // Draw lower objects with the legs, then the tabletop, then raised objects.
     const desk = new Zdog.Group({ addTo: content });
-    model(desk, equipment.DESK ?? "default");
-    const tabletop = new Zdog.Group({
+    const lower = new Zdog.Group({
       addTo: desk,
       updateSort: true,
     });
+    const top = new Zdog.Group({
+      addTo: desk,
+      updateSort: true,
+    });
+    const upper = new Zdog.Group({
+      addTo: desk,
+      updateSort: true,
+    });
+    deskParts(lower, top, equipment.DESK ?? "default");
     anchors.set(Category.DESK, desk);
     for (const category of [
       Category.KEYBOARD,
@@ -73,64 +84,19 @@ export function createDeskEngine(
       Category.ACCESSORY,
     ]) {
       const id = equipment[category];
-      if (id) anchors.set(category, model(tabletop, id));
-    }
-  }
-
-  function render() {
-    const key = JSON.stringify(state.equipment);
-    if (key !== equipmentKey) {
-      equipmentKey = key;
-      rebuild();
-    }
-    const { width, height } = host.getBoundingClientRect();
-    illustration.setSize(width || 600, height || 420);
-    if (!drag || drag.tool === DeskTool.CAMERA) {
-      const desk =
-        state.transforms.DESK ?? defaultTransforms.DESK;
-      let radius = 2.5;
-      for (const category of anchors.keys()) {
-        if (category === Category.DESK) continue;
-        const value =
-          state.transforms[category] ??
-          defaultTransforms[category];
-        radius = Math.max(
-          radius,
-          Math.hypot(value.x, value.z) + 1,
-        );
-      }
-      radius += Math.hypot(desk.x, desk.z);
-      const spanX = Math.max(850, radius * 200 + 80);
-      const spanY = Math.max(
-        570,
-        radius * 200 * Math.sin(radians(pitch)) +
-          300 * Math.cos(radians(pitch)) +
-          80,
-      );
-      zoom = Math.min(
-        (width || 600) / spanX,
-        (height || 420) / spanY,
-      );
-    }
-    illustration.zoom = zoom;
-    scene.rotate.set({
-      x: -radians(pitch),
-      y: radians(yaw),
-    });
-    illustration.translate.y =
-      150 * Math.cos(radians(pitch)) * zoom;
-    anchors.forEach((anchor, category) => {
       const value =
         state.transforms[category] ??
         defaultTransforms[category];
-      anchor.translate.set({
-        x: value.x * 100,
-        y: -value.y * 100,
-        z: value.z * 100,
-      });
-      anchor.rotate.y = -radians(value.rotationY);
-    });
-    rotationHandle?.remove();
+      if (id)
+        anchors.set(
+          category,
+          model(value.y >= tableHeight ? upper : lower, id),
+        );
+    }
+    createHandle();
+  }
+
+  function createHandle() {
     rotationHandle = null;
     if (
       !state.readOnly &&
@@ -149,6 +115,126 @@ export function createDeskEngine(
           color: "#6544dc",
         });
     }
+    if (
+      !state.readOnly &&
+      state.tool === DeskTool.HEIGHT &&
+      state.selected &&
+      state.selected !== Category.DESK
+    ) {
+      const anchor = anchors.get(state.selected);
+      if (anchor) {
+        rotationHandle = new Zdog.Anchor({
+          addTo: anchor,
+          scale: {
+            y: 1 / Math.max(0.2, Math.cos(radians(pitch))),
+          },
+        });
+        new Zdog.Shape({
+          addTo: rotationHandle,
+          path: [{ y: -10 }, { y: -90 }],
+          stroke: 4,
+          color: "#6544dc",
+        });
+        new Zdog.Shape({
+          addTo: rotationHandle,
+          path: [
+            { x: -9, y: -78 },
+            { y: -90 },
+            { x: 9, y: -78 },
+          ],
+          closed: false,
+          stroke: 4,
+          color: "#6544dc",
+        });
+      }
+    }
+  }
+
+  function render() {
+    // Zdog caches each group's draw list. Rebuild when an item crosses the
+    // tabletop or the selected gizmo changes, rather than reparent cached shapes.
+    const key = JSON.stringify([
+      state.equipment,
+      state.selected,
+      state.tool,
+      state.readOnly,
+      [
+        Category.KEYBOARD,
+        Category.MONITOR,
+        Category.ACCESSORY,
+      ].map(
+        (category) =>
+          (
+            state.transforms[category] ??
+            defaultTransforms[category]
+          ).y >= tableHeight,
+      ),
+    ]);
+    if (key !== equipmentKey) {
+      equipmentKey = key;
+      rebuild();
+    }
+    const { width, height } = host.getBoundingClientRect();
+    illustration.setSize(width || 600, height || 420);
+    if (!drag || drag.tool === DeskTool.CAMERA) {
+      const desk =
+        state.transforms.DESK ?? defaultTransforms.DESK;
+      let radius = 2.5;
+      framingHeight = 300;
+      for (const category of anchors.keys()) {
+        if (category === Category.DESK) continue;
+        const value =
+          state.transforms[category] ??
+          defaultTransforms[category];
+        const objectHeight =
+          category === Category.MONITOR
+            ? 138
+            : category === Category.ACCESSORY
+              ? 85
+              : 12;
+        framingHeight = Math.max(
+          framingHeight,
+          value.y * 100 + objectHeight,
+        );
+        radius = Math.max(
+          radius,
+          Math.hypot(value.x, value.z) + 1,
+        );
+      }
+      radius += Math.hypot(desk.x, desk.z);
+      const spanX = Math.max(850, radius * 200 + 80);
+      const spanY = Math.max(
+        570,
+        radius * 200 * Math.sin(radians(pitch)) +
+          framingHeight * Math.cos(radians(pitch)) +
+          80,
+      );
+      zoom = Math.min(
+        (width || 600) / spanX,
+        (height || 420) / spanY,
+      );
+    }
+    illustration.zoom = zoom;
+    scene.rotate.set({
+      x: -radians(pitch),
+      y: radians(yaw),
+    });
+    illustration.translate.y =
+      (framingHeight / 2) * Math.cos(radians(pitch)) * zoom;
+    anchors.forEach((anchor, category) => {
+      const value =
+        state.transforms[category] ??
+        defaultTransforms[category];
+      anchor.translate.set({
+        x: value.x * 100,
+        y: -value.y * 100,
+        z: value.z * 100,
+      });
+      anchor.rotate.y = -radians(value.rotationY);
+    });
+    if (rotationHandle && state.tool === DeskTool.HEIGHT)
+      rotationHandle.scale.y =
+        1 / Math.max(0.2, Math.cos(radians(pitch)));
     illustration.updateRenderGraph();
   }
 
@@ -217,7 +303,14 @@ export function createDeskEngine(
     let next = { ...transform };
     if (drag.tool === DeskTool.ROTATE)
       next.rotationY += dx * 0.6;
-    else {
+    else if (drag.tool === DeskTool.HEIGHT) {
+      if (category === Category.DESK) return;
+      next.y -=
+        dy /
+        drag.zoom /
+        100 /
+        Math.max(0.2, Math.cos(radians(drag.pitch)));
+    } else {
       const cameraAngle = radians(drag.yaw);
       const screenX = dx / drag.zoom / 100;
       const screenZ =
@@ -272,6 +365,14 @@ export function createDeskEngine(
       state.onCommit?.(category, next);
   }
 
+  function keyDown(event: KeyboardEvent) {
+    if (drag && event.key === "Escape") {
+      event.preventDefault();
+      cancel();
+    }
+  }
+
+  window.addEventListener("keydown", keyDown);
   canvas.addEventListener("pointerdown", pointerDown);
   canvas.addEventListener("pointermove", pointerMove);
   canvas.addEventListener("pointerup", pointerUp);
@@ -296,6 +397,7 @@ export function createDeskEngine(
     cancel,
     dispose() {
       resize.disconnect();
+      window.removeEventListener("keydown", keyDown);
       canvas.removeEventListener(
         "pointerdown",
         pointerDown,

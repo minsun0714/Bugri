@@ -166,26 +166,36 @@ export function model(parent: Zdog.Anchor, id: string) {
       color: second ? "#fff1b9" : "#fff5d9",
     });
   } else {
-    box(
-      root,
-      [400, 14, 240],
-      [0, -148, 0],
-      second ? "#ded4ed" : "#c9a882",
-      {
-        topFace: second ? "#eee8f5" : "#f0d6b5",
-        bottomFace: "#ad927d",
-      },
-    );
-    for (const x of [-175, 175])
-      for (const z of [-95, 95])
-        box(
-          root,
-          [15, 141, 15],
-          [x, -70.5, z],
-          second ? "#c2b5d3" : "#b69a83",
-        );
+    deskParts(root, root, id);
   }
   return root;
+}
+
+/** Separate the tabletop from legs so lowered items can be occluded by it. */
+export function deskParts(
+  lower: Zdog.Anchor,
+  top: Zdog.Anchor,
+  id: string,
+) {
+  const second = id.endsWith("2");
+  box(
+    top,
+    [400, 14, 240],
+    [0, -148, 0],
+    second ? "#ded4ed" : "#c9a882",
+    {
+      topFace: second ? "#eee8f5" : "#f0d6b5",
+      bottomFace: "#ad927d",
+    },
+  );
+  for (const x of [-175, 175])
+    for (const z of [-95, 95])
+      box(
+        lower,
+        [15, 141, 15],
+        [x, -70.5, z],
+        second ? "#c2b5d3" : "#b69a83",
+      );
 }
 
 export function productPreview(productId: string) {

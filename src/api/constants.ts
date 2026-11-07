@@ -50,6 +50,7 @@ export const DeskTool = {
   CAMERA: "camera",
   MOVE: "move",
   ROTATE: "rotate",
+  HEIGHT: "height",
 } as const;
 
 export type DeskTool =

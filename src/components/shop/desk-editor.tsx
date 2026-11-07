@@ -3,7 +3,8 @@ import type {
   DeskTransforms,
   Request,
 } from "@/api/contracts";
-import { DeskTool } from "@/api/constants";
+import { tableHeight } from "@/lib/desk-spatial";
+import { Category, DeskTool } from "@/api/constants";
 import { Button } from "@/components/ui";
 import { artworkNames } from "@/components/shop/artwork";
 import { ThreeView } from "@/components/shop/three-view";
@@ -38,6 +39,7 @@ export function DeskEditor({
           [DeskTool.CAMERA, "시점 회전"],
           [DeskTool.MOVE, "상품 이동"],
           [DeskTool.ROTATE, "상품 회전"],
+          [DeskTool.HEIGHT, "높이 조절"],
         ].map(([tool, label]) => (
           <Button
             key={tool}
@@ -46,7 +48,11 @@ export function DeskEditor({
               editor.tool === tool ? "primary" : "secondary"
             }
             aria-pressed={editor.tool === tool}
-            disabled={editor.blocked}
+            disabled={
+              editor.blocked ||
+              (tool === DeskTool.HEIGHT &&
+                editor.selected === Category.DESK)
+            }
             onClick={() => editor.setTool(tool as DeskTool)}
           >
             {label}
@@ -68,7 +74,8 @@ export function DeskEditor({
       <p className="px-3 pt-3 text-xs leading-5 text-muted">
         시점 회전 모드에서 화면을 드래그하세요. 상품을
         선택한 뒤 이동 모드에서 화면을 끌거나 회전 모드에서
-        좌우로 끌어보세요.
+        좌우로 끌어보세요. 높이 조절 모드에서는 화살표를
+        위아래로 끕니다.
       </p>
       <div className="flex flex-wrap gap-2 p-3">
         {editor.categories.map((category) => (
@@ -115,6 +122,80 @@ export function DeskEditor({
             />
             <span>{editor.current.rotationY}°</span>
           </label>
+          {editor.selected !== Category.DESK && (
+            <>
+              <label className="flex items-center gap-3 text-xs">
+                아이템 높이
+                <input
+                  aria-label="아이템 높이"
+                  type="range"
+                  min="0"
+                  max={Math.max(
+                    4,
+                    Math.ceil(editor.current.y),
+                  )}
+                  step="0.05"
+                  value={editor.current.y}
+                  disabled={editor.blocked}
+                  className="min-w-0 flex-1 accent-primary"
+                  onChange={(event) =>
+                    editor.preview(editor.selected!, {
+                      ...editor.current!,
+                      y: Number(event.target.value),
+                    })
+                  }
+                />
+                <input
+                  aria-label="높이 직접 입력"
+                  type="number"
+                  min="0"
+                  step="0.05"
+                  value={editor.current.y}
+                  disabled={editor.blocked}
+                  className="w-20 rounded-lg border border-line bg-surface px-2 py-1"
+                  onChange={(event) => {
+                    if (
+                      Number.isFinite(
+                        event.target.valueAsNumber,
+                      )
+                    )
+                      editor.preview(editor.selected!, {
+                        ...editor.current!,
+                        y: event.target.valueAsNumber,
+                      });
+                  }}
+                />
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={editor.blocked}
+                  onClick={() =>
+                    editor.preview(editor.selected!, {
+                      ...editor.current!,
+                      y: 0,
+                    })
+                  }
+                >
+                  바닥에 놓기
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={editor.blocked}
+                  onClick={() =>
+                    editor.preview(editor.selected!, {
+                      ...editor.current!,
+                      y: tableHeight,
+                    })
+                  }
+                >
+                  책상 위에 놓기
+                </Button>
+              </div>
+            </>
+          )}
           <output
             aria-label="선택 상품 배치"
             className="block text-xs text-muted"
@@ -125,8 +206,8 @@ export function DeskEditor({
             {editor.current.rotationY}°
           </output>
           <p className="text-xs text-muted">
-            선택 버튼에서 방향키로 이동/회전 · Enter 저장 ·
-            Esc 취소
+            선택 버튼에서 방향키로 이동/회전, 높이 모드에서
+            ↑↓로 높이 조절 · Enter 저장 · Esc 취소
           </p>
         </div>
       )}
