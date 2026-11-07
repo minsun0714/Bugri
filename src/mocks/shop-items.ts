@@ -80,6 +80,46 @@ export const shopItems: readonly Product[] = [
     category: Category.BACKGROUND,
     price: 60,
   },
+  {
+    productId: "keyboard-3",
+    name: "오션 키보드",
+    description:
+      "청록 본체와 밝은 키캡이 어우러진 산뜻한 키보드.",
+    category: Category.KEYBOARD,
+    price: 20,
+  },
+  {
+    productId: "monitor-3",
+    name: "스카이 모니터",
+    description:
+      "하늘색 프레임에 밝은 작업 화면을 담은 모니터.",
+    category: Category.MONITOR,
+    price: 25,
+  },
+  {
+    productId: "desk-3",
+    name: "민트 책상",
+    description:
+      "연한 민트 상판과 차분한 초록 다리의 작업 테이블.",
+    category: Category.DESK,
+    price: 30,
+  },
+  {
+    productId: "accessory-3",
+    name: "블루 화분",
+    description:
+      "푸른 화분과 초록 잎으로 꾸미는 작은 정원.",
+    category: Category.ACCESSORY,
+    price: 5,
+  },
+  {
+    productId: "background-3",
+    name: "노을 작업실",
+    description:
+      "살구색 벽과 주황빛 하늘이 감싸는 따뜻한 작업실.",
+    category: Category.BACKGROUND,
+    price: 20,
+  },
 ];
 
 /** Fixture only, not a product reward policy. */

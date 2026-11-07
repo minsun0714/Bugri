@@ -51,7 +51,7 @@ test("mobile search and price sorting narrow the catalog without overflow", asyn
   await page.goto("/shop");
 
   await page.getByLabel("상품 검색").fill("모니터");
-  await expect(page.getByRole("article")).toHaveCount(2);
+  await expect(page.getByRole("article")).toHaveCount(3);
   const sorting = page.getByRole("combobox", {
     name: "상품 정렬",
   });
@@ -67,7 +67,11 @@ test("mobile search and price sorting narrow the catalog without overflow", asyn
     page
       .getByRole("article")
       .getByRole("heading", { level: 3 }),
-  ).toHaveText(["집중 모니터", "미드나잇 모니터"]);
+  ).toHaveText([
+    "스카이 모니터",
+    "집중 모니터",
+    "미드나잇 모니터",
+  ]);
   await sorting.press("Enter");
   await sorting.press("ArrowDown");
   await sorting.press("Enter");
@@ -81,7 +85,11 @@ test("mobile search and price sorting narrow the catalog without overflow", asyn
     page.getByRole("article").getByRole("heading", {
       level: 3,
     }),
-  ).toHaveText(["미드나잇 모니터", "집중 모니터"]);
+  ).toHaveText([
+    "미드나잇 모니터",
+    "집중 모니터",
+    "스카이 모니터",
+  ]);
   expect(
     await page.evaluate(
       () =>

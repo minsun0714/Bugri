@@ -124,7 +124,7 @@ it("searches, sorts and resets the product catalog", async () => {
     screen.getByLabelText("상품 정렬"),
   );
   expect(
-    screen.queryByText("10개의 오브젝트"),
+    screen.queryByText("15개의 오브젝트"),
   ).not.toBeInTheDocument();
 
   fireEvent.change(search, {
@@ -138,7 +138,7 @@ it("searches, sorts and resets the product catalog", async () => {
   fireEvent.change(search, {
     target: { value: "모니터" },
   });
-  expect(screen.getAllByRole("article")).toHaveLength(2);
+  expect(screen.getAllByRole("article")).toHaveLength(3);
   expect(
     screen.queryByRole("heading", { name: "새싹 키보드" }),
   ).not.toBeInTheDocument();
@@ -157,7 +157,11 @@ it("searches, sorts and resets the product catalog", async () => {
           within(card).getByRole("heading", { level: 3 })
             .textContent,
       ),
-  ).toEqual(["미드나잇 모니터", "집중 모니터"]);
+  ).toEqual([
+    "미드나잇 모니터",
+    "집중 모니터",
+    "스카이 모니터",
+  ]);
 
   fireEvent.click(
     screen.getByRole("button", { name: "키보드" }),
@@ -169,7 +173,7 @@ it("searches, sorts and resets the product catalog", async () => {
   fireEvent.click(
     screen.getByRole("button", { name: "필터 초기화" }),
   );
-  expect(screen.getAllByRole("article")).toHaveLength(10);
+  expect(screen.getAllByRole("article")).toHaveLength(15);
   expect(screen.getByLabelText("상품 검색")).toHaveValue(
     "",
   );
@@ -280,7 +284,7 @@ it("shows the catalog directly without shop or inventory tabs", async () => {
   expect(
     screen.queryByRole("button", { name: "보관함" }),
   ).not.toBeInTheDocument();
-  expect(screen.getAllByRole("article")).toHaveLength(10);
+  expect(screen.getAllByRole("article")).toHaveLength(15);
   expect(
     screen.queryByRole("heading", {
       name: "이웃의 데스크",

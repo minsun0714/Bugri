@@ -1,3 +1,4 @@
+import { productColor } from "@/components/shop/product-colors";
 import { monitorScreen } from "@/components/shop/monitor-screen";
 import { useId, type ReactNode } from "react";
 import { Category } from "@/api/constants";
@@ -17,13 +18,22 @@ export const artworkNames: Record<string, string> = {
   "accessory-2": "버섯 조명",
   "background-1": "정원",
   "background-2": "달빛 작업실",
+  "keyboard-3": "오션 키보드",
+  "monitor-3": "스카이 모니터",
+  "desk-3": "민트 책상",
+  "accessory-3": "블루 화분",
+  "background-3": "노을 작업실",
 };
 
 function Keyboard({
   violet = false,
+  productId,
 }: {
   violet?: boolean;
+  productId?: string;
 }) {
+  const color = (value: string) =>
+    productColor(productId, value);
   return (
     <g transform="translate(208 246) skewX(-18) scale(1 .66)">
       <rect
@@ -32,13 +42,13 @@ function Keyboard({
         width="178"
         height="79"
         rx="12"
-        fill={violet ? "#8065b7" : "#7c9a79"}
+        fill={violet ? color("#8065b7") : color("#7c9a79")}
       />
       <rect
         width="178"
         height="78"
         rx="12"
-        fill={violet ? "#cbb9ef" : "#cbe1bd"}
+        fill={violet ? color("#cbb9ef") : color("#cbe1bd")}
       />
       <rect
         x="7"
@@ -46,7 +56,7 @@ function Keyboard({
         width="164"
         height="61"
         rx="7"
-        fill={violet ? "#ae95d6" : "#a3bf98"}
+        fill={violet ? color("#ae95d6") : color("#a3bf98")}
       />
       {Array.from({ length: 4 }, (_, row) =>
         Array.from({ length: 12 }, (_, col) => (
@@ -59,7 +69,7 @@ function Keyboard({
               width="10"
               height="10"
               rx="2"
-              fill="#7f826b"
+              fill={color("#7f826b")}
               opacity=".3"
             />
             <rect
@@ -69,15 +79,17 @@ function Keyboard({
               fill={
                 col === 0 || col === 11
                   ? violet
-                    ? "#8262bf"
-                    : "#7fa468"
-                  : "#fffcef"
+                    ? color("#8262bf")
+                    : color("#7fa468")
+                  : color("#fffcef")
               }
             />
             <path
               d="M3 3h3"
               stroke={
-                col === 0 || col === 11 ? "#fff" : "#b3b6a4"
+                col === 0 || col === 11
+                  ? color("#fff")
+                  : color("#b3b6a4")
               }
               strokeWidth=".7"
             />
@@ -90,13 +102,21 @@ function Keyboard({
         width="65"
         height="10"
         rx="2"
-        fill="#fffcef"
+        fill={color("#fffcef")}
       />
     </g>
   );
 }
 
-function Monitor({ night = false }: { night?: boolean }) {
+function Monitor({
+  night = false,
+  productId,
+}: {
+  night?: boolean;
+  productId?: string;
+}) {
+  const color = (value: string) =>
+    productColor(productId, value);
   return (
     <g>
       <ellipse
@@ -104,12 +124,12 @@ function Monitor({ night = false }: { night?: boolean }) {
         cy="244"
         rx="57"
         ry="10"
-        fill="#29243d"
+        fill={color("#29243d")}
         opacity=".08"
       />
       <path
         d="M291 187h22l7 48h-38z"
-        fill={night ? "#55516c" : "#b5adc9"}
+        fill={night ? color("#55516c") : color("#b5adc9")}
       />
       <rect
         x="265"
@@ -117,7 +137,7 @@ function Monitor({ night = false }: { night?: boolean }) {
         width="77"
         height="9"
         rx="5"
-        fill={night ? "#514a65" : "#d9d1e8"}
+        fill={night ? color("#514a65") : color("#d9d1e8")}
       />
       <rect
         x="201"
@@ -125,7 +145,7 @@ function Monitor({ night = false }: { night?: boolean }) {
         width="210"
         height="132"
         rx="13"
-        fill={night ? "#39334d" : "#c2b6d9"}
+        fill={night ? color("#39334d") : color("#c2b6d9")}
       />
       <rect
         x="199"
@@ -133,7 +153,7 @@ function Monitor({ night = false }: { night?: boolean }) {
         width="210"
         height="131"
         rx="12"
-        fill={night ? "#514961" : "#e8dff5"}
+        fill={night ? color("#514961") : color("#e8dff5")}
       />
       <svg
         x="207"
@@ -170,7 +190,12 @@ function Monitor({ night = false }: { night?: boolean }) {
           );
         })}
       </svg>
-      <circle cx="304" cy="212" r="2" fill="#9c8eb5" />
+      <circle
+        cx="304"
+        cy="212"
+        r="2"
+        fill={color("#9c8eb5")}
+      />
     </g>
   );
 }
@@ -178,20 +203,24 @@ function Monitor({ night = false }: { night?: boolean }) {
 function Desk({
   cream = false,
   base = false,
+  productId,
 }: {
   cream?: boolean;
   base?: boolean;
+  productId?: string;
 }) {
+  const color = (value: string) =>
+    productColor(productId, value);
   const top = base
-    ? "#e7e0ed"
+    ? color("#e7e0ed")
     : cream
-      ? "#f6eddb"
-      : "#dcb690";
+      ? color("#f6eddb")
+      : color("#dcb690");
   const side = base
-    ? "#cbc1d8"
+    ? color("#cbc1d8")
     : cream
-      ? "#ddd0bb"
-      : "#b58a65";
+      ? color("#ddd0bb")
+      : color("#b58a65");
   return (
     <g>
       <ellipse
@@ -199,7 +228,7 @@ function Desk({
         cy="345"
         rx="225"
         ry="25"
-        fill="#39304b"
+        fill={color("#39304b")}
         opacity=".08"
       />
       <path
@@ -219,7 +248,11 @@ function Desk({
         fill={top}
       />
       {!base && !cream && (
-        <g stroke="#b48962" opacity=".35" fill="none">
+        <g
+          stroke={color("#b48962")}
+          opacity=".35"
+          fill="none"
+        >
           <path d="M129 228q90-8 170 0t173 0M116 246q120-7 211 0t164 0M152 218h74m110 38h120" />
         </g>
       )}
@@ -241,7 +274,15 @@ function Desk({
   );
 }
 
-function Accessory({ lamp = false }: { lamp?: boolean }) {
+function Accessory({
+  lamp = false,
+  productId,
+}: {
+  lamp?: boolean;
+  productId?: string;
+}) {
+  const color = (value: string) =>
+    productColor(productId, value);
   return lamp ? (
     <g>
       <ellipse
@@ -249,7 +290,7 @@ function Accessory({ lamp = false }: { lamp?: boolean }) {
         cy="244"
         rx="31"
         ry="7"
-        fill="#39243d"
+        fill={color("#39243d")}
         opacity=".1"
       />
       <ellipse
@@ -257,26 +298,26 @@ function Accessory({ lamp = false }: { lamp?: boolean }) {
         cy="238"
         rx="22"
         ry="7"
-        fill="#ce9a71"
+        fill={color("#ce9a71")}
       />
       <path
         d="M442 184h12l6 51q-12 7-24 0z"
-        fill="#f5ddba"
+        fill={color("#f5ddba")}
       />
       <path
         d="M412 186q1-37 36-37t36 37q-36 13-72 0"
-        fill="#f19b7f"
+        fill={color("#f19b7f")}
       />
       <ellipse
         cx="448"
         cy="186"
         rx="36"
         ry="8"
-        fill="#ffd8a6"
+        fill={color("#ffd8a6")}
       />
       <path
         d="M423 172q5-13 18-15"
-        stroke="#ffd3bd"
+        stroke={color("#ffd3bd")}
         strokeWidth="4"
         strokeLinecap="round"
         fill="none"
@@ -289,12 +330,12 @@ function Accessory({ lamp = false }: { lamp?: boolean }) {
         cy="244"
         rx="26"
         ry="7"
-        fill="#39243d"
+        fill={color("#39243d")}
         opacity=".1"
       />
       <path
         d="M448 218v-67m0 38-22-19m22 29 21-20"
-        stroke="#5b805c"
+        stroke={color("#5b805c")}
         strokeWidth="4"
         fill="none"
       />
@@ -304,7 +345,7 @@ function Accessory({ lamp = false }: { lamp?: boolean }) {
         rx="10"
         ry="22"
         transform="rotate(-38 435 164)"
-        fill="#92b983"
+        fill={color("#92b983")}
       />
       <ellipse
         cx="461"
@@ -312,7 +353,7 @@ function Accessory({ lamp = false }: { lamp?: boolean }) {
         rx="10"
         ry="21"
         transform="rotate(35 461 158)"
-        fill="#739b6d"
+        fill={color("#739b6d")}
       />
       <ellipse
         cx="469"
@@ -320,7 +361,7 @@ function Accessory({ lamp = false }: { lamp?: boolean }) {
         rx="15"
         ry="8"
         transform="rotate(-30 469 183)"
-        fill="#aac78c"
+        fill={color("#aac78c")}
       />
       <ellipse
         cx="429"
@@ -328,29 +369,29 @@ function Accessory({ lamp = false }: { lamp?: boolean }) {
         rx="16"
         ry="8"
         transform="rotate(30 429 184)"
-        fill="#82a875"
+        fill={color("#82a875")}
       />
       <path
         d="M425 210h46l-5 29q-18 10-36 0z"
-        fill="#e1aa8c"
+        fill={color("#e1aa8c")}
       />
       <path
         d="M430 213h10l3 30q-7-1-13-4z"
-        fill="#edc0a0"
+        fill={color("#edc0a0")}
       />
       <ellipse
         cx="448"
         cy="210"
         rx="23"
         ry="6"
-        fill="#f1c6a9"
+        fill={color("#f1c6a9")}
       />
       <ellipse
         cx="448"
         cy="210"
         rx="17"
         ry="3"
-        fill="#846b55"
+        fill={color("#846b55")}
       />
     </g>
   );
@@ -359,18 +400,28 @@ function Accessory({ lamp = false }: { lamp?: boolean }) {
 function Background({
   night = false,
   id,
+  productId,
 }: {
   night?: boolean;
   id: string;
+  productId?: string;
 }) {
+  const color = (value: string) =>
+    productColor(productId, value);
   return (
     <g>
       <defs>
         <linearGradient id={id} x2="0" y2="1">
-          <stop stopColor={night ? "#342c57" : "#d7e8d3"} />
+          <stop
+            stopColor={
+              night ? color("#342c57") : color("#d7e8d3")
+            }
+          />
           <stop
             offset="1"
-            stopColor={night ? "#8474aa" : "#faf3df"}
+            stopColor={
+              night ? color("#8474aa") : color("#faf3df")
+            }
           />
         </linearGradient>
       </defs>
@@ -380,11 +431,11 @@ function Background({
         width="550"
         height="340"
         rx="28"
-        fill={night ? "#e1daed" : "#eee9dc"}
+        fill={night ? color("#e1daed") : color("#eee9dc")}
       />
       <path
         d="M25 294h550v33q0 28-28 28H53q-28 0-28-28z"
-        fill={night ? "#d3c9e3" : "#dfd9c7"}
+        fill={night ? color("#d3c9e3") : color("#dfd9c7")}
       />
       <rect
         x="110"
@@ -392,7 +443,7 @@ function Background({
         width="200"
         height="153"
         rx="73"
-        fill="#fff9ee"
+        fill={color("#fff9ee")}
       />
       <path
         d="M120 186v-65a90 69 0 0 1 180 0v65z"
@@ -402,24 +453,24 @@ function Background({
         cx={night ? 249 : 160}
         cy="105"
         r="21"
-        fill={night ? "#fff1bf" : "#fff7cd"}
+        fill={night ? color("#fff1bf") : color("#fff7cd")}
       />
       <path
         d="M120 161q40-35 90-5t90-8v38H120z"
-        fill={night ? "#665b93" : "#a8c5a0"}
+        fill={night ? color("#665b93") : color("#a8c5a0")}
       />
       <path
         d="M120 178q50-32 98-5t82-10v23H120z"
-        fill={night ? "#514775" : "#7fa88b"}
+        fill={night ? color("#514775") : color("#7fa88b")}
       />
       <path
         d="M210 55v132m-90-54h180"
-        stroke="#fff9ee"
+        stroke={color("#fff9ee")}
         strokeWidth="6"
       />
       <path
         d="M100 192h220"
-        stroke="#d0c4b8"
+        stroke={color("#d0c4b8")}
         strokeWidth="8"
         strokeLinecap="round"
       />
@@ -429,18 +480,18 @@ function Background({
         width="65"
         height="79"
         rx="4"
-        fill="#fff9ee"
+        fill={color("#fff9ee")}
         transform="rotate(6 437 107)"
       />
       <circle
         cx="438"
         cy="104"
         r="18"
-        fill={night ? "#b5a3d4" : "#c5d6ac"}
+        fill={night ? color("#b5a3d4") : color("#c5d6ac")}
       />
       <path
         d="m423 120 17-26 13 26"
-        fill={night ? "#776292" : "#829e76"}
+        fill={night ? color("#776292") : color("#829e76")}
       />
     </g>
   );
@@ -450,19 +501,39 @@ function Item({ productId }: { productId: string }) {
   switch (productId) {
     case "keyboard-1":
     case "keyboard-2":
+    case "keyboard-3":
       return (
-        <Keyboard violet={productId === "keyboard-2"} />
+        <Keyboard
+          productId={productId}
+          violet={productId === "keyboard-2"}
+        />
       );
     case "monitor-1":
     case "monitor-2":
-      return <Monitor night={productId === "monitor-2"} />;
+    case "monitor-3":
+      return (
+        <Monitor
+          productId={productId}
+          night={productId === "monitor-2"}
+        />
+      );
     case "desk-1":
     case "desk-2":
-      return <Desk cream={productId === "desk-2"} />;
+    case "desk-3":
+      return (
+        <Desk
+          productId={productId}
+          cream={productId === "desk-2"}
+        />
+      );
     case "accessory-1":
     case "accessory-2":
+    case "accessory-3":
       return (
-        <Accessory lamp={productId === "accessory-2"} />
+        <Accessory
+          productId={productId}
+          lamp={productId === "accessory-2"}
+        />
       );
     default:
       return null;
@@ -497,6 +568,7 @@ export function ProductArtwork({
       {category === "background" ? (
         <Background
           id={id}
+          productId={productId}
           night={productId === "background-2"}
         />
       ) : (
@@ -557,6 +629,7 @@ export function DeskScene({
       {equipment.BACKGROUND ? (
         <Background
           id={id}
+          productId={equipment.BACKGROUND}
           night={equipment.BACKGROUND === "background-2"}
         />
       ) : (

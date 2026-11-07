@@ -138,7 +138,7 @@ BugCoin 지급량은 미결정이므로 자동 보상 기본값은 0이고 fixtu
 
 ## 상점·저장소
 
-상품은 관리자 입력을 가정한 5개 카테고리·10종의 고정 데이터다. 1단계 시각 자산은 `src/components/shop/three/models.ts`의 자체 제작 3D 모델이며 상품 ID로 연결한다. 카드 미리보기와 3D 데스크에서 동일한 모델을 사용한다. 공개 프로필은 장착 ID와 공간 배치를 전달한다. 가격은 Mock fixture이며 실결제가 아니다. `purchase`에는 productId와 requestKey가 필수다. 같은 키·상품은 최초 구매를 반환하고 같은 키·다른 상품은 IDEMPOTENCY_CONFLICT, 이미 보유한 상품은 ALREADY_OWNED, 잔액 부족은 INSUFFICIENT_BALANCE다. 보관함과 같은 카테고리의 상품만 장착하며 productId null로 해제한다. 공개 프로필은 표시 사용자와 장착 상태만 반환하고 잔액·원장·보관함은 노출하지 않는다.
+상품은 관리자 입력을 가정한 5개 카테고리·15종의 고정 데이터다. 각 카테고리의 세 번째 상품5종은 새ID에 대한 공통 동작 검증용fixture이며 합계100 BugCoin이다. 1단계 시각 자산은 `src/components/shop/zdog/models.ts`의 자체 제작 3D 모델이며 상품 ID로 연결한다. 카드 미리보기와 3D 데스크에서 동일한 모델을 사용한다. 공개 프로필은 장착 ID와 공간 배치를 전달한다. 가격은 Mock fixture이며 실결제가 아니다. `purchase`에는 productId와 requestKey가 필수다. 같은 키·상품은 최초 구매를 반환하고 같은 키·다른 상품은 IDEMPOTENCY_CONFLICT, 이미 보유한 상품은 ALREADY_OWNED, 잔액 부족은 INSUFFICIENT_BALANCE다. 보관함과 같은 카테고리의 상품만 장착하며 productId null로 해제한다. 공개 프로필은 표시 사용자와 장착 상태만 반환하고 잔액·원장·보관함은 노출하지 않는다.
 
 localStorage 키는 `bugri:mock:v1:{userId}`다. 각 사용자의 작성 퀴즈·후보·구독·풀이·날짜·원장·구매·장착·시간대를 한 스냅샷으로 저장한다. 모든 요청은 최신 저장소를 다시 읽어 다른 더미 사용자의 공개 범위·삭제·장착을 반영하고 요청자 자신의 키만 변경한다. 변경된 스냅샷은 단일 setItem으로 저장한 후 성공을 반환한다. 손상/버전 불일치는 STORAGE_CORRUPT, 접근/용량 오류는 STORAGE_UNAVAILABLE이며 기존 데이터를 자동 초기화하지 않는다.
 

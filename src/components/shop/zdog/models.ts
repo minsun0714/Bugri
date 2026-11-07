@@ -1,3 +1,4 @@
+import { productColor } from "@/components/shop/product-colors";
 import { room } from "@/components/shop/zdog/room";
 import * as Zdog from "zdog";
 import { monitorScreen } from "@/components/shop/monitor-screen";
@@ -25,6 +26,28 @@ function box(
     stroke: 0.5,
     ...extra,
   });
+}
+
+function applyProductColors(
+  root: Zdog.Anchor,
+  productId: string,
+) {
+  if (!productId.endsWith("-3")) return;
+  function visit(node: Zdog.Anchor) {
+    if (node instanceof Zdog.Shape) {
+      node.color = productColor(productId, node.color);
+      if (typeof node.backface === "string")
+        node.backface = productColor(
+          productId,
+          node.backface,
+        );
+    }
+    const { children } = node as Zdog.Anchor & {
+      children: Zdog.Anchor[];
+    };
+    children.forEach(visit);
+  }
+  visit(root);
 }
 
 /** Units are centimetres; y points down in the Canvas renderer. */
@@ -162,6 +185,11 @@ export function model(parent: Zdog.Anchor, id: string) {
   } else {
     deskParts(root, root, id);
   }
+  if (
+    !id.startsWith("desk") &&
+    !id.startsWith("background")
+  )
+    applyProductColors(root, id);
   return root;
 }
 
@@ -226,6 +254,8 @@ export function deskParts(
       [x, -70.5, z],
       second ? "#c2b5d3" : "#b69a83",
     );
+  applyProductColors(lower, id);
+  if (top !== lower) applyProductColors(top, id);
 }
 
 export function productPreview(productId: string) {
