@@ -1,4 +1,5 @@
 import { ApiClientError } from "@/api/client";
+import { getErrorMessage } from "@/api/errors";
 
 export function ErrorNotice({ error }: { error: Error }) {
   const code =
@@ -25,9 +26,8 @@ export function ErrorNotice({ error }: { error: Error }) {
       role="alert"
       className="rounded-xl border border-coral p-4"
     >
-      {messages[code] ??
-        "요청에 실패했습니다. 다시 시도하세요."}{" "}
-      버그리: 다시 시도해보자.
+      {messages[code] ?? getErrorMessage(error)} 버그리:
+      다시 시도해보자.
     </p>
   );
 }

@@ -1,4 +1,16 @@
 const expressions = {
+  confused: {
+    label: "길을 찾는 버그리",
+    eyes: "h-3 w-2 rounded-full bg-foreground",
+    mouth:
+      "h-3 w-3 rounded-full border-2 border-foreground",
+  },
+  concerned: {
+    label: "살펴보는 버그리",
+    eyes: "h-2 w-3 rounded-full bg-foreground",
+    mouth:
+      "h-0 w-4 rounded-full border-t-2 border-foreground",
+  },
   neutral: {
     label: "버그리",
     eyes: "h-3 w-2 rounded-full bg-foreground",

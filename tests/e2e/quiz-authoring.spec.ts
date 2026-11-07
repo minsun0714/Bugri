@@ -234,7 +234,9 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     page.getByText("남은 퀴즈가 없습니다"),
   ).toBeVisible();
   await expect(
-    page.getByText("오류 코드: STORAGE_CORRUPT"),
+    page.getByText(
+      "저장된 데이터를 읽을 수 없어요. 기존 데이터는 보존했어요.",
+    ),
   ).toHaveCount(0);
   await management.reload();
   await expect(

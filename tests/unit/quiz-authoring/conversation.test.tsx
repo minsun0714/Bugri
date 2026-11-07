@@ -151,7 +151,12 @@ test("reply and generation failures keep input and conversation and do not navig
   fireEvent.click(
     screen.getByRole("button", { name: "보내기" }),
   );
-  await screen.findByText("답변 오류");
+  await screen.findByText(
+    "요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+  expect(
+    screen.queryByText("답변 오류"),
+  ).not.toBeInTheDocument();
   expect(screen.getByRole("textbox")).toHaveValue(
     "HTTP 설명해줘",
   );
@@ -171,7 +176,12 @@ test("reply and generation failures keep input and conversation and do not navig
       name: "이 대화로 퀴즈 만들기",
     }),
   );
-  await screen.findByText("생성 오류");
+  await screen.findByText(
+    "요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+  expect(
+    screen.queryByText("생성 오류"),
+  ).not.toBeInTheDocument();
   expect(screen.getByRole("textbox")).toHaveValue("미전송");
   expect(screen.getByText("HTTP 설명해줘")).toBeVisible();
   expect(onGenerated).not.toHaveBeenCalled();

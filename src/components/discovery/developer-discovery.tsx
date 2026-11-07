@@ -1,5 +1,7 @@
 "use client";
 
+import { createQueryClient } from "@/api/query-client";
+
 import Link from "next/link";
 import {
   useEffect,
@@ -11,10 +13,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { SubscriptionCollection } from "@/components/discovery/subscription-collection";
 import { DiscoveryMascot } from "@/components/discovery/discovery-mascot";
 import {
@@ -78,7 +77,7 @@ function Failure({
 }
 
 export function DeveloperDiscovery() {
-  const [client] = useState(() => new QueryClient());
+  const [client] = useState(() => createQueryClient());
   const params = useSearchParams();
   const userId = params.get("user") ?? "learner";
   const [loginTarget, setLoginTarget] = useState<

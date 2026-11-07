@@ -1,5 +1,6 @@
 import type {
   ApiTransport,
+  ErrorCode,
   Operation,
   Request,
   Response,
@@ -236,21 +237,31 @@ export const endpoints: Record<Operation, Endpoint> = {
 
 /** No mock identity, seeds, storage, or real auth implementation is coupled to REST. */
 export function createHttpTransport(
-  options: { baseUrl?: string; fetch?: typeof fetch } = {},
+  options: {
+    baseUrl?: string;
+    fetch?: typeof fetch;
+    timeoutMs?: number;
+  } = {},
 ): ApiTransport {
   return {
     async request<K extends Operation>(
       operation: K,
       request: Request<K>,
     ): Promise<TransportResponse<Response<K>>> {
-      const { baseUrl, fetch: fetcher } = options;
+      const {
+        baseUrl,
+        fetch: fetcher,
+        timeoutMs = 15_000,
+      } = options;
+
       const requestId = globalThis.crypto.randomUUID();
 
       const failure = (
-        code: "NETWORK_ERROR" | "INVALID_RESPONSE",
+        code: ErrorCode,
         message: string,
+        status = 502,
       ) => ({
-        status: 502,
+        status,
         body: {
           error: {
             code,
@@ -293,36 +304,56 @@ export function createHttpTransport(
                 query.append(key, String(item));
             } else query.set(key, String(value));
 
-      let response: globalThis.Response;
+      const controller = new AbortController();
+
+      const timer = setTimeout(
+        () => controller.abort(),
+        timeoutMs,
+      );
+
+      let response: globalThis.Response | undefined;
+
+      const invalidResponse = () => {
+        if (response && !response.ok) {
+          const { status } = response;
+
+          return failure(
+            status === 404
+              ? "NOT_FOUND"
+              : status === 403
+                ? "FORBIDDEN"
+                : status >= 500
+                  ? "SERVER_ERROR"
+                  : "HTTP_ERROR",
+            "요청을 완료하지 못했습니다.",
+            status,
+          );
+        }
+
+        return failure(
+          "INVALID_RESPONSE",
+          "API 응답 형식을 확인하세요.",
+        );
+      };
 
       try {
         response = await (fetcher ?? globalThis.fetch)(
           `${baseUrl ?? "/api/v1"}${path}${query.size ? `?${query}` : ""}`,
           {
             method,
+            signal: controller.signal,
             headers: {
               Accept: "application/json",
               ...(method === "GET"
                 ? {}
-                : {
-                    "Content-Type": "application/json",
-                  }),
+                : { "Content-Type": "application/json" }),
             },
             ...(method === "GET"
               ? {}
-              : {
-                  body: JSON.stringify(params),
-                }),
+              : { body: JSON.stringify(params) }),
           },
         );
-      } catch {
-        return failure(
-          "NETWORK_ERROR",
-          "API 연결에 실패했습니다.",
-        );
-      }
 
-      try {
         const body = await response.json();
         const { ok, status } = response;
 
@@ -336,20 +367,26 @@ export function createHttpTransport(
               typeof body.error.message !== "string" ||
               typeof body.error.requestId !== "string")
         )
-          return failure(
-            "INVALID_RESPONSE",
-            "API 응답 형식을 확인하세요.",
-          );
+          return invalidResponse();
 
-        return {
-          status,
-          body,
-        };
+        return { status, body };
       } catch {
-        return failure(
-          "INVALID_RESPONSE",
-          "JSON 응답이 필요합니다.",
-        );
+        if (controller.signal.aborted) {
+          return failure(
+            "REQUEST_TIMEOUT",
+            "응답 시간이 초과되었습니다.",
+            504,
+          );
+        }
+
+        return response
+          ? invalidResponse()
+          : failure(
+              "NETWORK_ERROR",
+              "API 연결에 실패했습니다.",
+            );
+      } finally {
+        clearTimeout(timer);
       }
     },
   };

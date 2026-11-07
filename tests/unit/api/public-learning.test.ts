@@ -16,7 +16,7 @@ beforeEach(() => localStorage.clear());
 test("public activity returns only the profile owner's aggregate without writing snapshots", async () => {
   const author = initialState("author");
 
-  author.timeZone = "Asia/Seoul";
+  author.timeZone = "America/New_York";
 
   localStorage.setItem(
     storageKey("author"),
@@ -30,7 +30,7 @@ test("public activity returns only the profile owner's aggregate without writing
   });
 
   expect(result).toEqual({
-    timeZone: "Asia/Seoul",
+    timeZone: "America/New_York",
     learningDate: "2026-11-07",
     completed: false,
     streak: 0,
@@ -47,20 +47,12 @@ test("public activity returns only the profile owner's aggregate without writing
   ).toBeNull();
 });
 
-test("missing profiles and unset owner timezones are explicit errors", async () => {
+test("missing profiles return an explicit error", async () => {
   await expect(
     api().request("publicLearningDay", {
       publicId: "missing",
     }),
   ).rejects.toMatchObject({ status: 404 });
-
-  await expect(
-    api().request("publicLearningDay", {
-      publicId: "bugri-author",
-    }),
-  ).rejects.toMatchObject({
-    detail: { code: "TIMEZONE_REQUIRED" },
-  });
 
   expect(localStorage.length).toBe(0);
 });
@@ -107,3 +99,50 @@ test("public totals match home after completion and omit answers and rewards", a
     "timeZone",
   ]);
 });
+
+test.each([false, true])(
+  "unselected demo profiles expose activity without writing storage (saved: %s)",
+  async (saved) => {
+    if (saved) {
+      localStorage.setItem(
+        storageKey("author"),
+        JSON.stringify(initialState("author")),
+      );
+    }
+
+    const before = localStorage.getItem(
+      storageKey("author"),
+    );
+
+    const client = createApiClient(
+      createMockTransport({
+        userId: "friend",
+        storage: localStorage,
+        now: () => new Date("2026-11-07T23:00:00Z"),
+        detectTimeZone: () => "America/Los_Angeles",
+      }),
+    );
+
+    const result = await client.request(
+      "publicLearningDay",
+      { publicId: "bugri-author" },
+    );
+
+    expect(result).toEqual({
+      timeZone: "Asia/Seoul",
+      learningDate: "2026-11-08",
+      completed: false,
+      streak: 0,
+      completedDates: [],
+      dailyCounts: [],
+    });
+
+    expect(localStorage.getItem(storageKey("author"))).toBe(
+      before,
+    );
+
+    expect(
+      localStorage.getItem(storageKey("friend")),
+    ).toBeNull();
+  },
+);

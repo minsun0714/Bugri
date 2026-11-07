@@ -1,3 +1,4 @@
+import { InputValidationError } from "@/api/errors";
 import { useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import type {
@@ -60,12 +61,18 @@ export function useConversation({
   function send() {
     if (!draft.trim()) {
       setError(
-        new Error("질문이나 학습 내용을 입력하세요."),
+        new InputValidationError(
+          "질문이나 학습 내용을 입력하세요.",
+        ),
       );
       return;
     }
     if ([...draft].length > 10000) {
-      setError(new Error("입력은 최대 10,000자입니다."));
+      setError(
+        new InputValidationError(
+          "입력은 최대 10,000자입니다.",
+        ),
+      );
       return;
     }
     void run("message", async () => {

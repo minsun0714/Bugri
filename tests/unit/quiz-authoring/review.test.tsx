@@ -297,7 +297,12 @@ test("regeneration failure preserves prompt and saved content; retry creates an 
   fireEvent.click(
     screen.getByRole("button", { name: "수정본 재생성" }),
   );
-  await screen.findByText("생성 시간 초과");
+  await screen.findByText(
+    "요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  );
+  expect(
+    screen.queryByText("생성 시간 초과"),
+  ).not.toBeInTheDocument();
   expect(
     screen.getByLabelText("추가 프롬프트"),
   ).toHaveValue("예시 추가");
@@ -337,7 +342,7 @@ test("storage failure keeps unsaved content and does not report success", async 
   fireEvent.click(
     screen.getByRole("button", { name: "수정 저장" }),
   );
-  await screen.findByText(/STORAGE_UNAVAILABLE/);
+  await screen.findByText(/저장 공간에 접근할 수 없어요/);
   expect(screen.getByLabelText("제목")).toHaveValue(
     "용량 오류에도 남길 제목",
   );

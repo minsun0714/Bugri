@@ -1,5 +1,7 @@
 "use client";
 
+import { getErrorMessage } from "@/api/errors";
+
 import { useRef, useState } from "react";
 import type {
   ProfileAbout,
@@ -114,11 +116,7 @@ export function useProfileForm(
     try {
       await onSave(value);
     } catch (error) {
-      setFailure(
-        error instanceof Error
-          ? error.message
-          : "저장하지 못했습니다. 다시 시도해 주세요.",
-      );
+      setFailure(getErrorMessage(error));
     } finally {
       setBusy(false);
     }
