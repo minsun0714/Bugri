@@ -152,3 +152,176 @@ test("a returning learner restarts without losing earlier completed days", async
     2,
   );
 });
+
+test("period tabs navigate monthly and yearly learning while preserving today's streak", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Google 로그인 (데모)" })
+    .click();
+  const summary = page.getByRole("region", {
+    name: "연속 학습",
+    exact: true,
+  });
+  await page.getByLabel("number", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "답 제출", exact: true })
+    .click();
+  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await summary
+    .getByRole("tab", { name: "월", exact: true })
+    .click();
+  await expect(summary.getByRole("table")).toBeVisible();
+  await expect(
+    summary.getByText("총 1개", { exact: true }),
+  ).toBeVisible();
+  await summary
+    .getByRole("button", { name: "이전 기간" })
+    .click();
+  await expect(
+    summary.getByText("총 0개", { exact: true }),
+  ).toBeVisible();
+  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await summary
+    .getByRole("button", { name: "현재 기간" })
+    .click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: testInfo.outputPath("period-month-mobile.png"),
+    fullPage: true,
+  });
+  await summary
+    .getByRole("tab", { name: "년", exact: true })
+    .click();
+  await expect(
+    summary.getByText("총 1개", { exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("period-year-mobile.png"),
+    fullPage: true,
+  });
+  await summary
+    .getByRole("button", { name: /, 1개, 월별 보기$/ })
+    .click();
+  await expect(
+    summary.getByRole("tab", { name: "월", exact: true }),
+  ).toBeFocused();
+  await expect(summary.getByRole("table")).toBeVisible();
+  await page.keyboard.press("ArrowLeft");
+  await expect(
+    summary.getByRole("tab", { name: "7일", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page
+    .getByText("프로토타입 안내 · 사용자 전환", {
+      exact: true,
+    })
+    .click();
+  await summary
+    .getByRole("tab", { name: "월", exact: true })
+    .click();
+  await page
+    .getByLabel("더미 사용자", { exact: true })
+    .selectOption("friend");
+  await expect(
+    summary.getByRole("tab", { name: "7일", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(
+    summary.getByText("총 0개", { exact: true }),
+  ).toBeVisible();
+});
+
+test("learning cards keep their height across empty data and four, five and six week months", async ({
+  page,
+}) => {
+  await page.clock.install({
+    time: new Date("2026-03-01T03:00:00Z"),
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Google 로그인 (데모)" })
+    .click();
+  const summary = page.getByRole("region", {
+    name: "연속 학습",
+    exact: true,
+  });
+  await expect(
+    summary.getByText("총 0개", { exact: true }),
+  ).toBeVisible();
+  const emptyWeek = (await summary.boundingBox())!.height;
+  await page.getByLabel("number", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "답 제출", exact: true })
+    .click();
+  await expect(
+    summary.getByText("총 1개", { exact: true }),
+  ).toBeVisible();
+  expect(
+    Math.abs(
+      (await summary.boundingBox())!.height - emptyWeek,
+    ),
+  ).toBeLessThanOrEqual(1);
+  for (const width of [390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await summary
+      .getByRole("tab", { name: "월", exact: true })
+      .click();
+    await expect(
+      summary.getByRole("table", {
+        name: "2026년 3월 학습 달력",
+      }),
+    ).toBeVisible();
+    const fiveWeeks = (await summary.boundingBox())!.height;
+    await summary
+      .getByRole("button", { name: "이전 기간" })
+      .click();
+    await expect(
+      summary.getByRole("table", {
+        name: "2026년 2월 학습 달력",
+      }),
+    ).toBeVisible();
+    expect(
+      Math.abs(
+        (await summary.boundingBox())!.height - fiveWeeks,
+      ),
+    ).toBeLessThanOrEqual(1);
+    for (let index = 0; index < 3; index++)
+      await summary
+        .getByRole("button", { name: "이전 기간" })
+        .click();
+    await expect(
+      summary.getByRole("table", {
+        name: "2025년 11월 학습 달력",
+      }),
+    ).toBeVisible();
+    expect(
+      Math.abs(
+        (await summary.boundingBox())!.height - fiveWeeks,
+      ),
+    ).toBeLessThanOrEqual(1);
+    await summary
+      .getByRole("tab", { name: "년", exact: true })
+      .click();
+    const populatedYear = (await summary.boundingBox())!
+      .height;
+    await summary
+      .getByRole("button", { name: "이전 기간" })
+      .click();
+    await expect(
+      summary.getByText("총 0개", { exact: true }),
+    ).toBeVisible();
+    expect(
+      Math.abs(
+        (await summary.boundingBox())!.height -
+          populatedYear,
+      ),
+    ).toBeLessThanOrEqual(1);
+  }
+});

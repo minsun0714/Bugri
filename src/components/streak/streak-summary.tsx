@@ -1,5 +1,6 @@
 "use client";
 
+import { ActivityPeriods } from "@/components/streak/activity-periods";
 import { ApiClientError } from "@/api/client";
 import { Button } from "@/components/ui";
 import { Bugri } from "@/components/ui/bugri";
@@ -16,25 +17,6 @@ export function StreakSummary({
   const timezoneRequired =
     error instanceof ApiClientError &&
     error.detail.code === "TIMEZONE_REQUIRED";
-
-  const firstDate = data
-    ? new Date(
-        Date.parse(`${data.learningDate}T12:00:00Z`) -
-          6 * 86400000,
-      )
-        .toISOString()
-        .slice(0, 10)
-    : "";
-  const maxCount = Math.max(
-    1,
-    ...(data?.dailyCounts ?? [])
-      .filter(
-        ({ learningDate }) =>
-          learningDate >= firstDate &&
-          learningDate <= data!.learningDate,
-      )
-      .map(({ count }) => count),
-  );
 
   return (
     <section
@@ -67,7 +49,7 @@ export function StreakSummary({
           </div>
         </div>
       ) : data ? (
-        <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_minmax(0,2fr)] md:items-center md:gap-8">
+        <div className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_minmax(0,2fr)] lg:items-start lg:gap-8">
           <div
             className="flex min-w-0 items-center gap-3"
             role="status"
@@ -115,98 +97,8 @@ export function StreakSummary({
               </p>
             </div>
           </div>
-          <div className="min-w-0 md:border-l md:border-line md:pl-8">
-            <div className="mb-2 flex items-center justify-between text-xs text-muted sm:mb-3">
-              <span>최근 7일 · 완료한 퀴즈</span>
-              <span>
-                {firstDate.slice(5).replace("-", "/")}–
-                {data.learningDate
-                  .slice(5)
-                  .replace("-", "/")}
-              </span>
-            </div>
-            <ol
-              aria-label="최근 7일 학습"
-              className="grid grid-cols-7 gap-2 sm:gap-3"
-            >
-              {Array.from({ length: 7 }, (_, index) => {
-                const date = new Date(
-                  `${data.learningDate}T12:00:00Z`,
-                );
-                date.setUTCDate(
-                  date.getUTCDate() - 6 + index,
-                );
-                const value = date
-                  .toISOString()
-                  .slice(0, 10);
-                const completed =
-                  data.completedDates.includes(value);
-                const count =
-                  data.dailyCounts.find(
-                    ({ learningDate }) =>
-                      learningDate === value,
-                  )?.count ?? 0;
-                const height = (count / maxCount) * 32;
-                const today = value === data.learningDate;
-                const weekday = new Intl.DateTimeFormat(
-                  "ko-KR",
-                  { weekday: "short", timeZone: "UTC" },
-                ).format(date);
-
-                return (
-                  <li
-                    key={value}
-                    aria-label={`${value}${today ? " 오늘" : ""} ${completed ? "학습 완료" : "미완료"}, ${count}개`}
-                    aria-current={
-                      today ? "date" : undefined
-                    }
-                    className="flex min-w-0 flex-col items-center gap-1.5"
-                  >
-                    <time
-                      dateTime={value}
-                      className={
-                        today
-                          ? "text-xs font-semibold text-foreground"
-                          : "text-xs text-muted"
-                      }
-                    >
-                      {today ? "오늘" : weekday}
-                    </time>
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 24 36"
-                      className="h-9 w-6"
-                    >
-                      {count > 0 ? (
-                        <rect
-                          x="4"
-                          y={34 - height}
-                          width="16"
-                          height={height}
-                          rx="3"
-                          className="fill-primary"
-                        />
-                      ) : (
-                        <path
-                          d="M4 34h16"
-                          className="stroke-line"
-                          strokeWidth="2"
-                        />
-                      )}
-                    </svg>
-                    <span
-                      className={
-                        count > 0
-                          ? "text-xs font-medium text-foreground"
-                          : "text-xs text-muted"
-                      }
-                    >
-                      {count}개
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
+          <div className="min-w-0 lg:border-l lg:border-line lg:pl-8">
+            <ActivityPeriods key={userId} data={data} />
           </div>
         </div>
       ) : null}
