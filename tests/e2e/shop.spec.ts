@@ -1,5 +1,49 @@
 import { expect, test } from "@playwright/test";
 
+for (const width of [1100, 390]) {
+  test(`shop title and balance share one row at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/shop");
+    const title = page.getByRole("heading", {
+      name: "상점",
+      level: 1,
+    });
+    const balance = page.getByLabel("내 잔액");
+    const titleBox = (await title.boundingBox())!;
+    const balanceBox = (await balance.boundingBox())!;
+
+    expect(balanceBox.x).toBeGreaterThan(titleBox.x);
+    expect(
+      Math.abs(
+        titleBox.y +
+          titleBox.height / 2 -
+          (balanceBox.y + balanceBox.height / 2),
+      ),
+    ).toBeLessThan(4);
+    await expect(page.getByText("내 BugCoin")).toHaveCount(
+      0,
+    );
+  });
+}
+
+test("keeps the desk editor available without a shop entry link", async ({
+  page,
+}) => {
+  await page.goto("/shop");
+
+  await expect(
+    page.getByRole("link", { name: "내 데스크 꾸미기" }),
+  ).toHaveCount(0);
+
+  await page.goto("/my");
+
+  await expect(
+    page.getByRole("region", { name: "내 데스크 편집" }),
+  ).toBeVisible();
+});
+
 test("purchase, equip, restore, switch users and view a public desk", async ({
   page,
 }) => {
@@ -24,12 +68,7 @@ test("purchase, equip, restore, switch users and view a public desk", async ({
   await expect(
     keyboard.getByRole("button", { name: "장착해 보기" }),
   ).toHaveCount(0);
-  await page
-    .getByRole("link", {
-      name: "내 데스크 꾸미기",
-      exact: true,
-    })
-    .click();
+  await page.goto("/my");
   await page
     .getByRole("button", { name: "장착하기", exact: true })
     .click();

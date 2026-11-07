@@ -169,31 +169,32 @@ it("preserves the saved data and presents retry when storage is corrupted", asyn
   ).toBe("invalid");
 });
 
-it("offers editing on my desk and product try-on entry points in the shop", async () => {
-  const shop = render(<ShopApp />);
+it("keeps product try-on in the shop without a separate desk editor entry", async () => {
+  render(<ShopApp />);
   await screen.findByRole("heading", {
     name: "새싹 키보드",
   });
+  const title = screen.getByRole("heading", {
+    name: "상점",
+    level: 1,
+  });
+
+  expect(title.parentElement).toContainElement(
+    screen.getByLabelText("내 잔액"),
+  );
   expect(
-    screen.getByRole("link", { name: "내 데스크 꾸미기" }),
-  ).toHaveAttribute("href", "/my?user=learner");
+    screen.queryByText("내 BugCoin"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", {
+      name: "내 데스크 꾸미기",
+    }),
+  ).not.toBeInTheDocument();
   expect(
     screen.queryByRole("button", {
       name: "상품 이동",
     }),
   ).not.toBeInTheDocument();
-  shop.unmount();
-  render(<ShopApp editing />);
-  expect(
-    await screen.findByRole("region", {
-      name: "내 데스크 편집",
-    }),
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("link", {
-      name: "상점에서 상품 구경하기",
-    }),
-  ).toHaveAttribute("href", "/shop?user=learner");
 });
 
 it("shows the catalog directly without shop or inventory tabs", async () => {

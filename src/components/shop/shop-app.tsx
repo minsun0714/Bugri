@@ -55,7 +55,8 @@ function ShopContent({
   const trialTrigger = useRef<HTMLButtonElement | null>(
     null,
   );
-  const deskLink = useRef<HTMLAnchorElement | null>(null);
+  const collectionHeading =
+    useRef<HTMLHeadingElement | null>(null);
   const [trial, setTrial] = useState<Product | null>(null);
   const [message, setMessage] = useState("");
   const [actionError, setActionError] =
@@ -126,14 +127,11 @@ function ShopContent({
 
   return (
     <>
-      <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
-        <div
-          aria-label="내 잔액"
-          className="inline-flex items-center gap-3 rounded-2xl border border-sunny/60 bg-sunny/20 px-5 py-3"
-        >
-          <span className="text-xs font-bold text-muted">
-            내 BugCoin
-          </span>
+      <div className="mb-7 flex min-w-0 items-center justify-between gap-4">
+        <h1 className="min-w-0 text-2xl">
+          {editing ? "내 데스크" : "상점"}
+        </h1>
+        <div aria-label="내 잔액" className="shrink-0">
           {wallet.data ? (
             <Coin amount={wallet.data.balance} />
           ) : (
@@ -142,16 +140,15 @@ function ShopContent({
             </span>
           )}
         </div>
-        {!editing && (
-          <Link
-            ref={deskLink}
-            href={`/my?user=${userId}`}
-            className="text-sm font-bold text-primary underline underline-offset-4"
-          >
-            내 데스크 꾸미기
-          </Link>
-        )}
       </div>
+      {editing && (
+        <Link
+          href={`/shop?user=${userId}`}
+          className="mb-5 inline-block text-sm text-primary underline"
+        >
+          상점에서 상품 구경하기
+        </Link>
+      )}
       {editing && (
         <section
           id="desk"
@@ -188,7 +185,11 @@ function ShopContent({
       )}
       <section id="collection" aria-label="상품 컬렉션">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-          <h2 className="text-lg">
+          <h2
+            ref={collectionHeading}
+            tabIndex={-1}
+            className="text-lg"
+          >
             {editing ? "보유 상품" : "상품 목록"}
           </h2>
           <span className="text-xs text-muted">
@@ -399,7 +400,7 @@ function ShopContent({
             requestAnimationFrame(() => {
               if (trialTrigger.current?.isConnected)
                 trialTrigger.current.focus();
-              else deskLink.current?.focus();
+              else collectionHeading.current?.focus();
             });
           }}
           title={`${trial.name} 장착해 보기`}
@@ -517,17 +518,6 @@ export function ShopApp({
             </select>
           </label>
         </div>
-        <h1 className="mb-5 text-2xl">
-          {editing ? "내 데스크" : "상점"}
-        </h1>
-        {editing && (
-          <Link
-            href={`/shop?user=${userId}`}
-            className="mb-5 inline-block text-sm text-primary underline"
-          >
-            상점에서 상품 구경하기
-          </Link>
-        )}
         <ShopContent
           key={userId}
           userId={userId}
