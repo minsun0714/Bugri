@@ -200,7 +200,7 @@ test("tag cards fit mobile and expose subscription and quiz availability", async
       .boundingBox();
     expect(box!.y - heading!.y).toBeLessThan(120);
     await expect(
-      page.getByText("#Web", { exact: true }),
+      page.getByRole("link", { name: "Web", exact: true }),
     ).toBeVisible();
     const menu = await page
       .getByRole("button", { name: "Web 구독 메뉴" })

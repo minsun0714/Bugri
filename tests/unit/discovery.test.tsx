@@ -76,7 +76,7 @@ it("finds developers and all registered tags without subscribing on search", asy
     }),
   );
   expect(
-    await screen.findByText("#Java", { exact: true }),
+    await screen.findByText("Java", { exact: true }),
   ).toBeVisible();
   expect(await api.request("subscriptions", {})).toEqual(
     [],
@@ -400,7 +400,7 @@ it("links public quiz counts to the same tag catalog as the title, including emp
 
   for (const name of ["Java", "JavaScript"]) {
     const title = await screen.findByRole("link", {
-      name: `#${name}`,
+      name,
     });
     const count = screen.getByRole("link", {
       name: new RegExp(`^${name} 공개 퀴즈`),

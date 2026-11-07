@@ -1,5 +1,10 @@
 # Bugri 개발 단계와 작업 계획
 
+### TAG-TITLE-CLEANUP — 태그 카드 제목 중복 기호 제거
+
+- 상태: DONE. 태그 탐색 카드의 별도 #아이콘은 유지하고 제목은 태그명만 표시한다. 기존 #검색 입력 및 태그별 페이지 제목은 유지한다. 링크·구독 동작 변경 없음.
+- Node v22.23.3. 변경 ESLint/Prettier·diff 검사, discovery 단위10개·태그 탐색/목록 E2E10개 통과. PC1280/mobile390 실제 캡처에서 아이콘과 제목 확인. 독립 diff 리뷰 추가 문제 없음. 단순 표시문구 수정으로 독립 UX/UI 반복 리뷰와 전체 재실행은 생략하며, 직전 aff5254의 전체 검증(281 unit/175 E2E)은 해당 코드 결과로만 기록한다.
+
 ### DEVELOPER-TAG-PANEL — 다중 필터와 독립 구독 패널
 
 - 상태: DONE — 구현 및 독립 UX/UI 리뷰, 전체 검증 완료. AC-12j. 외부 라이브러리 없이 공통 ResponsivePopover(PC Popover/모바일 Drawer)와 FilterChips를 구현했다. 헤더에서 전체·태그 구독을 검색/페이지 단위로 관리하고 기존 위치의 필터는 펼친 다중 선택(OR)을 제공한다.

@@ -425,7 +425,7 @@ export function DiscoverySearch({
                             discoveryStyles.personLink
                           }
                         >
-                          #{name}
+                          {name}
                         </Link>
                         {subscribed && (
                           <p className="text-xs font-medium text-primary">
