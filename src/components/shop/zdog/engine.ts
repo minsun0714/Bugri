@@ -569,7 +569,8 @@ export function createDeskEngine(
     if (drag.tool === DeskTool.ROTATE && !drag.moved)
       return;
     if (drag.tool === DeskTool.CAMERA) {
-      yaw = drag.yaw + dx * 0.5;
+      // Rotate the scene so its near side follows the pointer.
+      yaw = drag.yaw - dx * 0.5;
       pitch = Math.max(
         -85,
         Math.min(85, drag.pitch - dy * 0.3),
