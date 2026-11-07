@@ -204,14 +204,22 @@ test("profile previews latest four and links to the full catalog", async ({
   await expect(quizzes.getByRole("listitem")).toHaveCount(
     4,
   );
-  await expect(
-    quizzes.getByRole("list").getByRole("link"),
-  ).toHaveText([
+  const quizLinks = quizzes
+    .getByRole("list")
+    .getByRole("link");
+
+  await expect(quizLinks).toHaveCount(4);
+
+  for (const [index, title] of [
     "최신 퀴즈 5",
     "최신 퀴즈 4",
     "최신 퀴즈 3",
     "최신 퀴즈 2",
-  ]);
+  ].entries()) {
+    await expect(quizLinks.nth(index)).toHaveAccessibleName(
+      title,
+    );
+  }
   await quizzes
     .getByRole("link", { name: "전체 보기 →" })
     .click();

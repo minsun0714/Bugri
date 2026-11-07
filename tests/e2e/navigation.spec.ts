@@ -90,7 +90,7 @@ test("mobile menu supports keyboard, dismissals, resize and navigation", async (
   await page.screenshot({
     path: testInfo.outputPath("navigation-mobile.png"),
   });
-  await mobile.getByRole("link", { name: "Shop" }).click();
+  await mobile.getByRole("link", { name: "상점" }).click();
   await expect(page).toHaveURL(/shop\?user=author$/);
   await expect(mobile).toHaveCount(0);
   await trigger.click();

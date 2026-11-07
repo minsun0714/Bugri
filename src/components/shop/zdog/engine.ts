@@ -1,3 +1,4 @@
+import { createSceneProjection } from "@/components/shop/zdog/projection";
 import { createRoomEnvironment } from "@/components/shop/zdog/room-perspective";
 import { tabletopDrop } from "@/lib/desk-surface";
 import { normalizeOrder } from "@/lib/desk-order";
@@ -21,6 +22,7 @@ import {
 import { createPicker } from "@/components/shop/zdog/picking";
 import {
   deskParts,
+  deskContactShadow,
   model,
 } from "@/components/shop/zdog/models";
 import {
@@ -48,6 +50,8 @@ export function createDeskEngine(
   });
   const scene = new Zdog.Anchor({ addTo: illustration });
   let rug: Zdog.Anchor | null = null;
+  let deskShadow: Zdog.Anchor | null = null;
+  let previewDeskShadow: Zdog.Anchor | null = null;
   const picker = createPicker();
   const paintRoom = createRoomEnvironment();
   const owners = new Map<Zdog.Anchor, SceneTarget | null>();
@@ -67,6 +71,11 @@ export function createDeskEngine(
   let pitch = 30;
   let zoom = 1;
   let userZoom = 1;
+  let cameraDistance = 800;
+  const cameraDepths = new Map<
+    SpatialTarget | typeof SceneObject.PREVIEW,
+    number
+  >();
   let drag: {
     id: number;
     x: number;
@@ -82,6 +91,7 @@ export function createDeskEngine(
     moved: boolean;
     handle: boolean;
     baseOffset: { x: number; y: number } | null;
+    cameraDepth: number;
     vertical: boolean | null;
   } | null = null;
 
@@ -108,6 +118,11 @@ export function createDeskEngine(
           backface: false,
         })
       : null;
+    deskShadow = deskContactShadow(content);
+    previewDeskShadow =
+      state.preview?.category === Category.DESK
+        ? deskContactShadow(content)
+        : null;
     // Keep the room behind the furnishings at every camera angle.
     const furnishings = new Zdog.Group({
       addTo: content,
@@ -370,6 +385,11 @@ export function createDeskEngine(
       x: framingOrigin.x + cosine * middle,
       z: framingOrigin.z - sine * middle,
     };
+    // Perspective enlarges the near edge of the rug and furnishings. Reserve
+    // framing space without changing the user's zoom or the room geometry.
+    const perspectiveFit = state.equipment.BACKGROUND
+      ? 0.8
+      : 1;
     if (!drag || drag.tool === DeskTool.CAMERA) {
       const radius = framingRadius;
       const spanX = Math.max(850, radius * 200 + 80);
@@ -381,11 +401,13 @@ export function createDeskEngine(
       );
       zoom =
         userZoom *
+        perspectiveFit *
         Math.min(
           (width || 600) / spanX,
           (height || 420) / spanY,
         );
     }
+    cameraDistance = Math.max(800, framingRadius * 200);
     illustration.zoom = zoom;
     scene.rotate.set({
       x: -radians(pitch),
@@ -418,6 +440,18 @@ export function createDeskEngine(
     // Compensate the parent transform without changing stored item coordinates.
     const desk =
       state.transforms.DESK ?? defaultTransforms.DESK;
+    for (const [shadow, transform] of [
+      [deskShadow, desk],
+      [previewDeskShadow, state.preview?.transform],
+    ] as const) {
+      if (!shadow || !transform) continue;
+      shadow.translate.set({
+        x: transform.x * 100,
+        y: 0,
+        z: transform.z * 100,
+      });
+      shadow.rotate.y = -radians(transform.rotationY);
+    }
     const itemFrame = state.itemFrame ?? desk;
     const offset = new Zdog.Vector({
       x: (itemFrame.x - desk.x) * 100,
@@ -450,24 +484,46 @@ export function createDeskEngine(
           ...(state.preview ? [SceneObject.PREVIEW] : []),
         ])
       : [];
-    if (order.length) {
-      illustration.updateGraph();
-      const context = canvas.getContext("2d")!;
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.save();
-      context.translate(
-        canvas.width / 2,
-        canvas.height / 2,
+    illustration.updateGraph();
+    const perspective = Boolean(state.equipment.BACKGROUND);
+    cameraDepths.clear();
+    for (const [target, anchor] of [
+      ...anchors.entries(),
+      ...(previewAnchor
+        ? [[SceneObject.PREVIEW, previewAnchor] as const]
+        : []),
+    ]) {
+      const { renderOrigin } = anchor as Zdog.Anchor & {
+        renderOrigin: Zdog.Vector;
+      };
+      cameraDepths.set(
+        target,
+        (renderOrigin.y - illustration.translate.y) *
+          Math.sin(radians(pitch)) +
+          renderOrigin.z * Math.cos(radians(pitch)),
       );
-      context.scale(
-        (zoom * canvas.width) / (width || 600),
-        (zoom * canvas.height) / (height || 420),
-      );
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      paintLayers(illustration, context, owners, order);
-      context.restore();
-    } else illustration.updateRenderGraph();
+    }
+    const restoreProjection = perspective
+      ? createSceneProjection(
+          cameraDistance,
+          pitch,
+        ).projectGraph(
+          illustration,
+          illustration.translate.y,
+        )
+      : () => {};
+    const context = canvas.getContext("2d")!;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.save();
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.scale(
+      (zoom * canvas.width) / (width || 600),
+      (zoom * canvas.height) / (height || 420),
+    );
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    paintLayers(illustration, context, owners, order);
+    context.restore();
     if (state.equipment.BACKGROUND) {
       const pixelZoom =
         (zoom * canvas.width) / (width || 600);
@@ -477,8 +533,14 @@ export function createDeskEngine(
         yaw,
         pitch,
         pixelZoom,
-        pixelZoom / userZoom,
+        cameraDistance,
         illustration.translate.y * pixelZoom,
+        Math.min(
+          cameraDistance * 1.4,
+          ((width || 600) / (zoom / userZoom)) *
+            0.9 *
+            perspectiveFit,
+        ),
       );
     }
     if (state.directManipulation && !state.readOnly) {
@@ -495,6 +557,7 @@ export function createDeskEngine(
       );
       state.onSelectionBounds?.(bounds);
     } else state.onSelectionBounds?.(null);
+    restoreProjection();
   }
 
   function pointerDown(
@@ -569,16 +632,16 @@ export function createDeskEngine(
       moved: false,
       handle: Boolean(handleTool),
       baseOffset: null,
+      cameraDepth:
+        cameraDepths.get(
+          preview ? SceneObject.PREVIEW : category!,
+        ) ?? 0,
       vertical:
         category !== Category.DESK && Math.abs(pitch) <= 20
           ? true
           : null,
     };
-    if (
-      category &&
-      category !== Category.DESK &&
-      tool === DeskTool.MOVE
-    ) {
+    if (category && tool === DeskTool.MOVE) {
       // Every tabletop model's origin is on its supporting base.
       const anchor = (
         preview ? previewAnchor : anchors.get(category)
@@ -661,9 +724,17 @@ export function createDeskEngine(
       next.rotationY -= dx * 0.6;
     else if (drag.tool === DeskTool.HEIGHT) {
       if (category === Category.DESK) return;
+      const perspectiveScale = state.equipment.BACKGROUND
+        ? cameraDistance /
+          Math.max(
+            cameraDistance * 0.02,
+            cameraDistance - drag.cameraDepth,
+          )
+        : 1;
       next.y -=
         dy /
         drag.zoom /
+        perspectiveScale /
         100 /
         Math.max(0.2, Math.cos(radians(drag.pitch)));
     } else {
@@ -686,12 +757,64 @@ export function createDeskEngine(
           100 /
           ((Math.sign(sine) || 1) *
             Math.max(0.1, Math.abs(sine)));
+      let horizontal = screenX;
+      let depth = screenZ;
+      if (state.equipment.BACKGROUND) {
+        const box = canvas.getBoundingClientRect();
+        const camera = createSceneProjection(
+          cameraDistance,
+          drag.pitch,
+        );
+        const screen = (
+          clientX: number,
+          clientY: number,
+        ) => ({
+          x:
+            (clientX +
+              (drag!.baseOffset?.x ?? 0) -
+              box.x -
+              box.width / 2) /
+            drag!.zoom,
+          y:
+            (clientY +
+              (drag!.baseOffset?.y ?? 0) -
+              box.y -
+              box.height / 2) /
+              drag!.zoom -
+            illustration.translate.y,
+        });
+        const start = screen(drag.x, drag.y);
+        const current = screen(
+          event.clientX,
+          event.clientY,
+        );
+        const frame =
+          state.itemFrame ??
+          state.transforms.DESK ??
+          defaultTransforms.DESK;
+        const height =
+          -(
+            transform.y +
+            (category === Category.DESK ? 0 : frame.y)
+          ) * 100;
+        const before = vertical
+          ? camera.atDepth(start, drag.cameraDepth)
+          : camera.onPlane(start, height);
+        const after = vertical
+          ? camera.atDepth(current, drag.cameraDepth)
+          : camera.onPlane(current, height);
+        if (!before || !after) return;
+        horizontal = (after.x - before.x) / 100;
+        depth = (after.z - before.z) / 100;
+        if (vertical)
+          next.y = transform.y - (after.y - before.y) / 100;
+      }
       let x =
-        Math.cos(cameraAngle) * screenX +
-        Math.sin(cameraAngle) * screenZ;
+        Math.cos(cameraAngle) * horizontal +
+        Math.sin(cameraAngle) * depth;
       let z =
-        -Math.sin(cameraAngle) * screenX +
-        Math.cos(cameraAngle) * screenZ;
+        -Math.sin(cameraAngle) * horizontal +
+        Math.cos(cameraAngle) * depth;
       if (category !== Category.DESK) {
         const deskAngle = -radians(
           (
@@ -752,20 +875,38 @@ export function createDeskEngine(
     const snapAt = (
       offset: { x: number; y: number },
       contact = false,
-    ) =>
-      tabletopDrop({
-        category,
-        screen: {
-          x:
-            (event.clientX + offset.x - x - width / 2) /
-            scale /
-            100,
+    ) => {
+      let screen = {
+        x:
+          (event.clientX + offset.x - x - width / 2) /
+          scale /
+          100,
+        y:
+          ((event.clientY + offset.y - y - height / 2) /
+            scale -
+            illustration.translate.y) /
+          100,
+      };
+      if (state.equipment.BACKGROUND) {
+        const point = createSceneProjection(
+          cameraDistance,
+          elevation,
+        ).onPlane(
+          { x: screen.x * 100, y: screen.y * 100 },
+          -(desk.y + tableHeight) * 100,
+        );
+        if (!point) return null;
+        screen = {
+          x: point.x / 100,
           y:
-            ((event.clientY + offset.y - y - height / 2) /
-              scale -
-              illustration.translate.y) /
+            (point.y * Math.cos(radians(elevation)) +
+              point.z * Math.sin(radians(elevation))) /
             100,
-        },
+        };
+      }
+      return tabletopDrop({
+        category,
+        screen,
         yaw: azimuth,
         pitch: elevation,
         center: framingCenter,
@@ -774,6 +915,7 @@ export function createDeskEngine(
         transform,
         contact,
       });
+    };
 
     // Prefer the supporting base; also accept a direct pointer drop onto the table.
     return (

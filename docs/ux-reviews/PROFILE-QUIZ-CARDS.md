@@ -40,3 +40,9 @@
 - 표현만 변경하여 scoped 검증 선택. `npx eslint src/components/developer/developer-screen.tsx`, 해당 파일 `prettier --check` 통과.
 - `npm test -- --runInBand tests/unit/developer.test.tsx tests/unit/developer-subscription.test.tsx`: 2 suite, 5 tests 통과.
 - PC/mobile 화면 및 위 링크/키보드 Playwright 조작 통과. 별도 전체 E2E suite·전체 verify는 저위험 표현 변경이므로 실행하지 않았다.
+
+## 후속 dev 통합 검증
+
+- 사용자 pull 충돌 해결 요청으로 dev76d1dcd 통합. 독립 정적 리뷰에서 dev 코드와 프로필 카드 보존, 양쪽 TASKS 기록 보존 확인.
+- 전체 검증 lint·타입·Jest263·도구3·build 통과. E2E162/163 통과 후 장식화살표로 인한 기존 제목 문자열 검사 실패를 발견했다.
+- 최신4개 수량·순서·제목을 접근성 이름으로 검사하도록 테스트만 수정했다. 독립 리뷰로 검사 의도 보존 확인, 해당 spec2개 재실행 통과. 나머지 테스트 성공은 앱·환경이 동일하여 재사용한다. UI 코드는 R0 후 변경하지 않아 UI 수정회차는0회다.

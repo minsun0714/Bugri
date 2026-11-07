@@ -1,3 +1,4 @@
+import { createSceneProjection } from "@/components/shop/zdog/projection";
 import * as Zdog from "zdog";
 import { room } from "@/components/shop/zdog/room";
 import { roomTheme } from "@/components/shop/room-theme";
@@ -53,8 +54,9 @@ export function createRoomEnvironment() {
     yaw: number,
     pitch: number,
     zoom: number,
-    baseZoom: number,
+    distance: number,
     verticalOffset: number,
+    radius: number,
   ) => {
     const { width, height } = target.canvas;
     if (
@@ -69,24 +71,18 @@ export function createRoomEnvironment() {
     const tilt = (pitch * Math.PI) / 180;
     const cosine = Math.cos(angle);
     const sine = Math.sin(angle);
-    // Room geometry uses the automatic fit only. User zoom scales this
-    // fixed geometry and the furnishings together instead of resizing the room.
-    const distance = (width * 0.35) / baseZoom;
-    const radius = distance * 1.4;
     const near = distance * 0.02;
     const rotate = ({ x, y, z }: Point): Point => ({
       x: x * cosine - z * sine,
       y,
       z: x * sine + z * cosine,
     });
-    const project = ({ x, y, z }: Point) => {
-      const scale = (distance / (distance - z)) * zoom;
+    const camera = createSceneProjection(distance, pitch);
+    const project = (point: Point) => {
+      const projected = camera.project(point);
       return {
-        x: width / 2 + x * scale,
-        y:
-          height / 2 +
-          verticalOffset +
-          (y * Math.cos(tilt) + z * Math.sin(tilt)) * scale,
+        x: width / 2 + projected.x * zoom,
+        y: height / 2 + verticalOffset + projected.y * zoom,
       };
     };
     const clip = (points: Point[]) => {

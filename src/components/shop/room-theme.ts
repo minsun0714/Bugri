@@ -1,4 +1,17 @@
 export function roomTheme(productId?: string) {
+  if (productId === "background-3")
+    return {
+      backdrop:
+        "linear-gradient(155deg, #e8c4b5 0%, #f1d8ca 55%, #dbbea9 100%)",
+      floor: "#dbbea9",
+      wall: "#f1d8ca",
+      side: "#e8c4b5",
+      sky: "#eebc9c",
+      glow: "#fff0d4",
+      rug: "#edcfb5",
+      light: "#f4d3b4",
+      strength: 0.1,
+    };
   if (productId === "background-2")
     return {
       backdrop:
