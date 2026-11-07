@@ -51,7 +51,7 @@ export function StreakSummary({
       ) : data ? (
         <div className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_minmax(0,2fr)] lg:items-start lg:gap-8">
           <div
-            className="flex min-w-0 items-center gap-3"
+            className="flex min-w-0 items-center gap-3 lg:self-center lg:justify-center"
             role="status"
           >
             <div
