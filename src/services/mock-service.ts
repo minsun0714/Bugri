@@ -1,3 +1,4 @@
+import { publicLearningTimeZones } from "@/mocks/learning-history";
 import { moveDeskIndependently } from "@/lib/desk-independent";
 import { tagQuizzes } from "@/services/tag-quizzes";
 import { validateProfileAbout } from "@/lib/profile-about";
@@ -1238,21 +1239,27 @@ export function execute<K extends Operation>(
         )!;
       }
 
-      if (!learningState.timeZone)
+      const timeZone =
+        learningState.timeZone ??
+        (operation === "publicLearningDay"
+          ? publicLearningTimeZones[learningState.userId]
+          : undefined);
+
+      if (!timeZone)
         throw new ServiceError(
           "TIMEZONE_REQUIRED",
           "학습 시간대를 설정하세요.",
           409,
         );
 
-      const date = localDate(now, learningState.timeZone);
+      const date = localDate(now, timeZone);
 
       const dates = learningState.days.map(
         (d) => d.learningDate,
       );
 
       return {
-        timeZone: learningState.timeZone,
+        timeZone,
         learningDate: date,
         completed: dates.includes(date),
         streak: streak(dates, date),
