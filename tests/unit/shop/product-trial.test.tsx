@@ -42,9 +42,16 @@ test("keeps a failed placement draft after equipment succeeds and retries withou
       name: "새싹 키보드 선택",
     }),
   );
-  fireEvent.change(screen.getByLabelText("아이템 회전"), {
-    target: { value: "90" },
-  });
+  expect(
+    screen.queryByRole("slider", { name: "아이템 회전" }),
+  ).not.toBeInTheDocument();
+  for (let i = 0; i < 6; i++)
+    fireEvent.keyDown(
+      screen.getByRole("button", {
+        name: "새싹 키보드 선택",
+      }),
+      { key: "ArrowRight", altKey: true },
+    );
   expect(equip).not.toHaveBeenCalled();
   expect(move).not.toHaveBeenCalled();
   fireEvent.click(
@@ -57,9 +64,9 @@ test("keeps a failed placement draft after equipment succeeds and retries withou
       "상품은 장착됐지만 배치를 저장하지 못했어요",
     ),
   );
-  expect(screen.getByLabelText("아이템 회전")).toHaveValue(
-    "90",
-  );
+  expect(
+    screen.getByLabelText("선택 상품 배치"),
+  ).toHaveTextContent("회전 90°");
   expect(move).toHaveBeenCalledWith(
     expect.objectContaining({
       productId: "keyboard-1",

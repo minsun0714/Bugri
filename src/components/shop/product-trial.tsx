@@ -65,40 +65,17 @@ export function ProductTrial(props: {
           </Button>
         )}
         {movable && (
-          <div className="h-16 space-y-3">
+          <div className="h-6">
             {editor.current && (
-              <>
-                <label className="flex items-center gap-3 text-xs">
-                  아이템 회전
-                  <input
-                    aria-label="아이템 회전"
-                    type="range"
-                    min="0"
-                    max="359"
-                    value={editor.current.rotationY}
-                    disabled={editor.blocked}
-                    className="min-w-0 flex-1 accent-primary"
-                    onChange={(event) =>
-                      editor.preview(movable!, {
-                        ...editor.current!,
-                        rotationY: Number(
-                          event.target.value,
-                        ),
-                      })
-                    }
-                  />
-                  <span>{editor.current.rotationY}°</span>
-                </label>
-                <output
-                  aria-label="선택 상품 배치"
-                  className="block text-xs text-muted"
-                >
-                  X {editor.current.x.toFixed(2)} · Y{" "}
-                  {editor.current.y.toFixed(2)} · Z{" "}
-                  {editor.current.z.toFixed(2)} · 회전{" "}
-                  {editor.current.rotationY}°
-                </output>
-              </>
+              <output
+                aria-label="선택 상품 배치"
+                className="block text-xs text-muted"
+              >
+                X {editor.current.x.toFixed(2)} · Y{" "}
+                {editor.current.y.toFixed(2)} · Z{" "}
+                {editor.current.z.toFixed(2)} · 회전{" "}
+                {editor.current.rotationY}°
+              </output>
             )}
           </div>
         )}

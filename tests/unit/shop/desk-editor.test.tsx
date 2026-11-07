@@ -32,6 +32,9 @@ test("keyboard movement cancels with Escape and commits rotation with Enter", as
     name: "새싹 키보드 선택",
   });
   fireEvent.click(item);
+  expect(
+    screen.queryByRole("slider", { name: "아이템 회전" }),
+  ).not.toBeInTheDocument();
   fireEvent.keyDown(item, { key: "ArrowRight" });
   expect(
     screen.getByLabelText("선택 상품 배치"),
@@ -72,10 +75,11 @@ test("failed placement retains the spatial draft and rotation for retry", async 
     .mockImplementation(() => {
       throw new Error("quota");
     });
-  fireEvent.change(
-    screen.getByRole("slider", { name: "아이템 회전" }),
-    { target: { value: "45" } },
-  );
+  for (let i = 0; i < 3; i++)
+    fireEvent.keyDown(item, {
+      key: "ArrowRight",
+      altKey: true,
+    });
   fireEvent.change(
     screen.getByRole("slider", { name: "아이템 높이" }),
     { target: { value: "0.5" } },

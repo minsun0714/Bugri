@@ -1,4 +1,4 @@
-import type { Locator } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 /** Use a visible product pixel, never an assumed Canvas centre or test-only hit box. */
 export async function productPoint(
@@ -40,4 +40,32 @@ export async function productPoint(
     x: box.x + point.x * box.width,
     y: box.y + point.y * box.height,
   };
+}
+
+export async function rotationOf(scope: Page | Locator) {
+  const value = await scope
+    .getByLabel("선택 상품 배치")
+    .innerText();
+  const match = value.match(/회전 ([\d.]+)°/);
+  if (!match) throw new Error("Rotation output missing");
+  return Number(match[1]);
+}
+
+export async function rotateTo(
+  scope: Page | Locator,
+  name: string,
+  angle: number,
+) {
+  const current = await rotationOf(scope);
+  const steps = ((angle - current + 360) % 360) / 15;
+  if (!Number.isInteger(steps))
+    throw new Error(
+      "Use the pointer handle for non-step angles",
+    );
+  const selection = scope.getByRole("button", {
+    name: `${name} 선택`,
+    exact: true,
+  });
+  for (let i = 0; i < steps; i++)
+    await selection.press("Alt+ArrowRight");
 }

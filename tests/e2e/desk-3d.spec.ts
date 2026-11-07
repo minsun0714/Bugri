@@ -1,4 +1,8 @@
-import { productPoint } from "./helpers/desk";
+import {
+  productPoint,
+  rotationOf,
+  rotateTo,
+} from "./helpers/desk";
 import { expect, test, type Page } from "@playwright/test";
 
 async function equipped(page: Page) {
@@ -127,22 +131,16 @@ test("Canvas camera orbit, surface drag, item rotation and public restoration", 
   await page.mouse.down();
   await page.mouse.move(end.x, end.y, { steps: 10 });
   await page.mouse.up();
-  await expect(
-    page.getByRole("slider", { name: "아이템 회전" }),
-  ).not.toHaveValue("0");
+  await expect.poll(() => rotationOf(page)).not.toBe(0);
   await expect(
     page.getByText("3D 배치를 저장했어요."),
   ).toBeVisible();
-  const rotation = await page
-    .getByRole("slider", { name: "아이템 회전" })
-    .inputValue();
+  const rotation = await rotationOf(page);
   await page.reload();
   await page
     .getByRole("button", { name: "새싹 키보드 선택" })
     .click();
-  await expect(
-    page.getByRole("slider", { name: "아이템 회전" }),
-  ).toHaveValue(rotation);
+  await expect.poll(() => rotationOf(page)).toBe(rotation);
   await page.goto("/users/bugri-learner");
   const profile = page.getByRole("main");
   await expect(
@@ -159,7 +157,7 @@ test("Canvas camera orbit, surface drag, item rotation and public restoration", 
   ).toHaveCount(0);
 });
 
-test("touch moves on the tabletop, cancel restores, rotation slider saves on mobile", async ({
+test("touch moves on the tabletop, cancel restores, keyboard rotation saves on mobile", async ({
   browser,
   baseURL,
 }) => {
@@ -202,9 +200,7 @@ test("touch moves on the tabletop, cancel restores, rotation slider saves on mob
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).not.toContainText("X -0.45");
-    await page
-      .getByRole("slider", { name: "아이템 회전" })
-      .fill("45");
+    await rotateTo(page, "새싹 키보드", 45);
     await page
       .getByRole("button", {
         name: "배치 저장",
@@ -218,9 +214,7 @@ test("touch moves on the tabletop, cancel restores, rotation slider saves on mob
     await page
       .getByRole("button", { name: "새싹 키보드 선택" })
       .tap();
-    await expect(
-      page.getByRole("slider", { name: "아이템 회전" }),
-    ).toHaveValue("45");
+    await expect.poll(() => rotationOf(page)).toBe(45);
     await expect(
       page.getByLabel("선택 상품 배치"),
     ).toContainText("Y 1.55");

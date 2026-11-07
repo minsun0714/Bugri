@@ -1,3 +1,4 @@
+import { rotateTo, rotationOf } from "./helpers/desk";
 import { test, expect } from "@playwright/test";
 
 test("shop, own desk and public desk work when WebGL is unavailable", async ({
@@ -80,7 +81,7 @@ test("shop, own desk and public desk work when WebGL is unavailable", async ({
   await page
     .getByRole("button", { name: "새싹 키보드 선택" })
     .click();
-  await page.getByLabel("아이템 회전").fill("90");
+  await rotateTo(page, "새싹 키보드", 90);
   await page
     .getByRole("button", { name: "배치 저장", exact: true })
     .click();
@@ -91,9 +92,7 @@ test("shop, own desk and public desk work when WebGL is unavailable", async ({
   await page
     .getByRole("button", { name: "새싹 키보드 선택" })
     .click();
-  await expect(page.getByLabel("아이템 회전")).toHaveValue(
-    "90",
-  );
+  await expect.poll(() => rotationOf(page)).toBe(90);
   await page.goto("/users/bugri-learner");
   await expect(
     page.locator('[data-renderer="canvas"] canvas'),

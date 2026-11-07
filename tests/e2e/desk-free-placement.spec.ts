@@ -1,4 +1,4 @@
-import { productPoint } from "./helpers/desk";
+import { rotateTo, productPoint } from "./helpers/desk";
 import { expect, test } from "@playwright/test";
 
 test("lavender keyboard can leave the table, rotate, save and remain visible", async ({
@@ -75,7 +75,7 @@ test("lavender keyboard can leave the table, rotate, save and remain visible", a
     })
     .toBeGreaterThan(2);
   await expect(placement).toContainText("Y 1.55");
-  await page.getByLabel("아이템 회전").fill("90");
+  await rotateTo(page, "라벤더 키보드", 90);
   await page
     .getByRole("button", { name: "배치 저장", exact: true })
     .click();

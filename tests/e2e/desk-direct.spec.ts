@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { productPoint } from "./helpers/desk";
+import { productPoint, rotationOf } from "./helpers/desk";
 
 for (const width of [1100, 390]) {
   test(`click product to move and rotate using contextual controls at ${width}px`, async ({
@@ -38,6 +38,9 @@ for (const width of [1100, 390]) {
       dialog.getByLabel("선택 테두리"),
     ).toBeVisible();
     const position = dialog.getByLabel("선택 상품 배치");
+    await expect(
+      dialog.getByRole("slider", { name: "아이템 회전" }),
+    ).toHaveCount(0);
     const initial = await position.textContent();
     await page.mouse.move(point.x, point.y);
     await page.mouse.down();
@@ -69,25 +72,19 @@ for (const width of [1100, 390]) {
       box.y + box.height / 2,
       { steps: 8 },
     );
-    await expect(
-      dialog.getByLabel("아이템 회전"),
-    ).not.toHaveValue("0");
+    await expect.poll(() => rotationOf(dialog)).not.toBe(0);
     await page.mouse.up();
-    await expect(
-      dialog.getByLabel("아이템 회전"),
-    ).not.toHaveValue("0");
-    const rotation = Number(
-      await dialog.getByLabel("아이템 회전").inputValue(),
-    );
+    await expect.poll(() => rotationOf(dialog)).not.toBe(0);
+    const rotation = await rotationOf(dialog);
     await handle.focus();
     await page.keyboard.press("ArrowRight");
-    await expect(
-      dialog.getByLabel("아이템 회전"),
-    ).toHaveValue(String((rotation + 15) % 360));
+    await expect
+      .poll(() => rotationOf(dialog))
+      .toBe((rotation + 15) % 360);
     await handle.click();
-    await expect(
-      dialog.getByLabel("아이템 회전"),
-    ).toHaveValue(String((rotation + 15) % 360));
+    await expect
+      .poll(() => rotationOf(dialog))
+      .toBe((rotation + 15) % 360);
     const placed = await position.textContent();
     const previewRoom = (await canvas.boundingBox())!;
     await page.mouse.click(

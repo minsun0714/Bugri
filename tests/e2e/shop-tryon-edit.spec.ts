@@ -1,4 +1,4 @@
-import { productPoint } from "./helpers/desk";
+import { rotateTo, productPoint } from "./helpers/desk";
 import { expect, test } from "@playwright/test";
 
 for (const width of [1100, 390]) {
@@ -43,7 +43,7 @@ for (const width of [1100, 390]) {
     });
     await page.mouse.up();
     await expect(position).not.toHaveText(initial!);
-    await dialog.getByLabel("아이템 회전").fill("90");
+    await rotateTo(dialog, "새싹 키보드", 90);
     const placed = await position.textContent();
     await dialog
       .getByRole("button", {
@@ -84,7 +84,7 @@ for (const width of [1100, 390]) {
     await dialog
       .getByRole("button", { name: "새싹 키보드 선택" })
       .click();
-    await dialog.getByLabel("아이템 회전").fill("180");
+    await rotateTo(dialog, "새싹 키보드", 180);
     await page.keyboard.press("Escape");
     await page.goto("/my");
     await page

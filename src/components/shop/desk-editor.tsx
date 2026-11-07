@@ -75,26 +75,6 @@ export function DeskEditor({
       </div>
       {editor.selected && editor.current && (
         <div className="space-y-3 rounded-2xl bg-canvas p-3">
-          <label className="flex items-center gap-3 text-xs">
-            아이템 회전
-            <input
-              aria-label="아이템 회전"
-              type="range"
-              min="0"
-              max="359"
-              step="1"
-              value={editor.current.rotationY}
-              disabled={editor.blocked}
-              className="min-w-0 flex-1 accent-primary"
-              onChange={(event) =>
-                editor.preview(editor.selected!, {
-                  ...editor.current!,
-                  rotationY: Number(event.target.value),
-                })
-              }
-            />
-            <span>{editor.current.rotationY}°</span>
-          </label>
           {editor.selected !== Category.DESK && (
             <>
               <label className="flex items-center gap-3 text-xs">

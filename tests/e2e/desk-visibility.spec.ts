@@ -1,4 +1,4 @@
-import { productPoint } from "./helpers/desk";
+import { rotateTo, productPoint } from "./helpers/desk";
 import {
   expect,
   test,
@@ -139,7 +139,7 @@ for (const width of [1100, 390]) {
         exact: true,
       })
       .click();
-    await page.getByLabel("아이템 회전").fill("90");
+    await rotateTo(page, "새싹 키보드", 90);
     await page
       .getByRole("button", {
         name: "배치 저장",
