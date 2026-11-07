@@ -18,8 +18,8 @@
 - 자동 활성화나 DONE/PR 상태 변경은 수행하지 않는다. 미활성화 상태에서의 완료를 강제로 막는 보안 장치도 아니다.
 - 실행 환경의 PATH에서 `python3`, `git`, 프로젝트를 지원하는 Node/npm을 찾을 수 있어야 한다. 현재 기본 Node 18 대신 프로젝트 검증에 사용한 Node 22 환경에서 Codex를 시작한다.
 - 검증 시간 제한은 600초이며 초과 시 프로세스 그룹을 종료하고 실패로 기록한다. 로그에 민감한 값이 포함될 수 있으므로 커밋하지 않는다.
-- 기본 E2E 시작 포트는 3107이다. `npm run test:e2e`와 `npm run verify`(Stop Hook 포함)는 `scripts/run-playwright.mjs`에서 포트를 검사하고 점유 시 +1씩 증가시켜 빈 포트를 선택한다. `PLAYWRIGHT_PORT=3108 npm run verify`는 탐색 시작값을 지정한다. 빌드 중 선택 포트가 점유되면 테스트 시작 전의 명확한 포트 충돌만 다음 포트로 재시도한다. 실제 테스트 실패·빌드 실패는 그대로 실패 처리한다. 다른 워크트리의 서버를 종료하거나 재사용하지 않는다. 직접 `npx playwright test` 실행은 이 래퍼를 거치지 않으므로 자동 선택이 필요할 때는 `npm run test:e2e -- <테스트 경로>`를 사용한다.
-- 기존 `E2E_PORT`도 대체 변수로 지원하며 `PLAYWRIGHT_PORT`가 우선한다. E2E 서버는 `BUGRI_UI_PREVIEW=1`로 빌드해 공통 컴포넌트 전시를 검증한다. 일반 빌드의 홈은 공통 헤더·푸터를 유지하고 본문 전시만 숨긴다.
+- 기본 E2E 시작 포트는 3107이다. `npm run test:e2e`와 `npm run verify`(Stop Hook 포함)는 `scripts/run-playwright.mjs`에서 포트를 검사하고 점유 시 +1씩 증가시켜 빈 포트를 선택한다. `PLAYWRIGHT_PORT=3108 npm run verify`는 탐색 시작값을 지정하며 Stop Hook 실행 환경에도 이 변수를 전달해야 한다. 빌드 중 선택 포트가 점유되면 테스트 시작 전의 명확한 포트 충돌만 다음 포트로 재시도한다. 실제 테스트 실패·빌드 실패는 그대로 실패 처리한다. 다른 워크트리의 서버를 종료하거나 재사용하지 않는다. 직접 `npx playwright test` 실행은 이 래퍼를 거치지 않으므로 자동 선택이 필요할 때는 `npm run test:e2e -- <테스트 경로>`를 사용한다. 여러 워크트리를 동시에 검증할 때는 서로 다른 시작 포트를 지정할 수 있다.
+- 기존 `E2E_PORT`도 대체 변수로 지원하며 `PLAYWRIGHT_PORT`가 우선한다. E2E 서버는 `BUGRI_UI_PREVIEW=1`로 빌드해 공통 컴포넌트 전시를 검증한다. 전시는 `/ui-preview`에서 확인하고, 홈 `/`에서는 구독 기반 풀이를 검증한다. 일반 빌드에서는 `/ui-preview`를 공개하지 않는다.
 - 애플리케이션 테스트가 없는 상태의 `npm run verify` 실패를 건너뛰지 않는다. Hook 테스트는 애플리케이션 검증을 대체하지 않는다.
 
 Hook 테스트: `python3 -B -m unittest discover -s scripts/hooks -p 'test_*.py'`.

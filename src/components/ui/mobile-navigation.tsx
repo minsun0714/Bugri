@@ -75,7 +75,7 @@ export function MobileNavigation({
             {sections.map(([id, label], i) => (
               <a
                 key={id}
-                href={`#${id}`}
+                href={id.startsWith("/") ? id : `#${id}`}
                 aria-current={
                   active === id ? "location" : undefined
                 }

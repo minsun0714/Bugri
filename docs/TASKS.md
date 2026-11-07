@@ -1,5 +1,11 @@
 # Bugri 개발 단계와 작업 계획
 
+### FAVICON-BUGRI — 버그리 파비콘
+
+- 상태: IN_PROGRESS. 공통 버그리 캐릭터의 보라색 외곽·연두색 몸·안테나·얼굴을 작은 크기에 맞게 단순화한 벡터 파비콘으로 기존 기본 아이콘을 교체한다.
+- Next.js 16 App Router의 앱 아이콘 파일 규칙에 따라 루트 `app` 세그먼트에 적용하고, 16px·32px 렌더링과 production build 및 전체 verify로 검증한다.
+- 구현·필수 검증 완료, 구현자 외 리뷰 대기로 IN_PROGRESS를 유지한다. Node v22.23.3에서 16px·32px·64px 렌더링과 production 응답의 SVG·ICO 아이콘 링크 및 MIME 유형을 확인했다. `PLAYWRIGHT_PORT=3295 npm run verify` 전체 통과(lint·TypeScript·Jest 27 suites/123 tests·production build·Playwright 34 tests).
+
 ## 1. 기준과 현재 상태
 
 제품 요구사항은 [PRD.md](PRD.md), API·데이터 경계는 [ARCHITECTURE.md](ARCHITECTURE.md)를 따른다. 아래 TODO는 계획이며 구현 완료 근거가 아니다. 현재 저장소에는 Next.js 프로젝트 기반·초기 홈 화면과 API·Mock 서비스 계층이 있다. API 사용 계약은 [API.md](API.md)를 따른다. 새 기능 UI 연결은 별도 작업이다.
@@ -8,27 +14,27 @@
 
 ## 2. 1단계 — Next.js 프로토타입
 
-| ID    | 작업                                  | 상태        | 선행                     | 완료 기준                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ----- | ------------------------------------- | ----------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P00F  | 공통 푸터                             | DONE        | P00UI 시안               | 로고·링크·맨 위 이동·모바일 줄바꿈 구현. lint·타입·단위 6개·개발 서버 E2E 2개 통과. 2593d0f에서 전체 verify 통과(단위 6개·E2E 2개·빌드)                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| P00TW | Tailwind 스타일링 전환                | DONE        | P00UI 시안               | Tailwind v4·PostCSS·테마 토큰 적용, 컴포넌트 CSS 제거. Node 22에서 E2E_PORT=3101 npm run verify 통과(단위 6개·E2E 2개·lint·타입·빌드). 데스크톱·모바일 캡처 확인. 디자인 검토·임시 홈 복원은 P00UI에서 별도 진행                                                                                                                                                                                                                                                                                                                                                                                        |
-| P00UI | 공통 UI 컴포넌트·홈 전시              | IN_PROGRESS | P00                      | 공통 UI·임시 홈 전시 구현. 해시태그 칩 입력(Enter 추가·개별 삭제·중복 방지·3개 제한), Markdown 작성·미리보기·코드 블록 삽입 적용. Node 22에서 E2E_PORT=3101 npm run verify 통과(단위 6개·E2E 2개), 모바일·모달 키보드 검증. 상단 헤더·모바일 햄버거 드롭다운 반영(선택 표시·Escape/바깥 클릭 닫기). 해당 변경 lint·타입·개발 서버 E2E 2개 통과; 이전 빌드 환경 오류 이후 2593d0f에서 전체 verify 재실행 통과. 기본 홈은 새 공통 헤더·모바일 메뉴·푸터를 유지하고 본문 전시만 숨김. 전시는 BUGRI_UI_PREVIEW=1 로컬·테스트에서만 활성화. 최종 전체 검증 통과. 디자인 사용자 검토는 남음. 제품 기능과 별개 |
-| P00   | 단계별 문서 정합성                    | DONE        | 없음                     | AGENTS·PRD·ARCHITECTURE·TASKS의 1·2단계 경계 반영. 기능 구현과 별개                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| P09C  | Jest 설정 파일 생성                   | IN_PROGRESS | 없음                     | jest.config.mjs·jest.setup.ts 생성. Node 22.23.3에서 jest --showConfig, npm run lint, next typegen 후 tsc --noEmit 통과. 테스트 실행은 미실시; P09는 TODO 유지. 기본 Node 18.12.1에서는 Jest 로딩 실패                                                                                                                                                                                                                                                                                                                                                                                                  |
-| P09E  | Playwright 설정 파일 생성             | IN_PROGRESS | 없음                     | playwright.config.ts 생성. lint·tsc 통과; Node 22에서 playwright test --list는 설정 로딩 후 No tests found(0개, 종료 코드 1). E2E 미실행, P09는 TODO 유지. 실행 전 npm run build 필요                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| P09S  | 검사 npm scripts 추가                 | IN_PROGRESS | P09C, P09E               | 요청한 스크립트 추가. Node 22에서 verify 실행: lint·typecheck 통과, Jest는 테스트 없음으로 종료 코드 1. 이후 build·E2E 미실행; P09는 TODO 유지                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| P01   | 타입·Mock API 계약                    | IN_PROGRESS | P00                      | `/api/v1` 요청·응답 타입·오류 형식, 더미 사용자·데이터, UI API 클라이언트 경계. UI의 더미 배열 직접 의존 제거                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| P01M  | Mock 초기 파일                        | IN_PROGRESS | P01                      | users·quizzes·subscriptions·shop-items·learning-history 초기 데이터 파일, 배포 시 읽기 전용                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| P02   | localStorage Mock 어댑터              | IN_PROGRESS | P01M                     | 초기 파일 읽기·사용자별 변경 상태 저장/복원, UI 직접 의존 제거, HTTP 호출 없이 계약 유지, 서버 파일 쓰기·메모리 영속 저장 금지                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| P02T  | 학습 시간대 감지·설정                 | TODO        | P02                      | 브라우저 IANA 감지·마이페이지 조회/변경·설정 복원, IP 시간대 검토·국가 코드 추론 금지, 기본 시간대 확정 후 fallback                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| P03   | 학습 내용 입력·퀴즈 생성              | TODO        | P02                      | 단일 입력·코드 블록·현재/10,000자, Mock 퀴즈 1~5개와 퀴즈당 태그 최대 3개                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| P04   | 퀴즈 개별·일괄 저장·검토              | TODO        | P03                      | 각 후보의 독립 ID·PENDING 저장, 검토·수정·PRIVATE/PUBLIC 화면 흐름                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| P05   | 퀴즈 풀이 UX                          | TODO        | P04                      | 더미 사용자별 풀이, 제출 전 정답 비노출, 결과·버그리 반응                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| P06   | 구독 3종·탐색                         | TODO        | P04                      | 사람·사람+태그·전체 작성자+태그 구독, 더미 개발자·해시태그 탐색. 구독 피드 없음                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| P07   | 학습 태그·연속 풀이                   | TODO        | P05, P06, P02T           | 기본 전체·단일 태그 선택·다음 문제의 태그 유지·소진 후 다시 풀기/다른 태그·기록 보존·하루 1개 완료 조건                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| P08   | BugCoin 상점·장착 UX                  | IN_PROGRESS | P02, P05                 | 상품 조회→더미 BugCoin 구매→보관함→장착, 잔액 부족·중복 클릭 상태와 타인 데스크 화면                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| P09   | Jest·React Testing Library·Playwright | TODO        | P01M, P02, P02T, P03~P08 | API 계약·핵심 UI 동작·더미 사용자 E2E 통과. 실제 보안·거래 안전성 검증으로 기록하지 않음                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| P10   | Vercel 프로토타입 배포                | TODO        | P09                      | DB·OAuth·JWT 비밀값 없이 화면·Mock API 동작 확인, Mock 데이터의 비영속성 안내                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ID | 작업 | 상태 | 선행 | 완료 기준 |
+| --- | --- | --- | --- | --- |
+| P00F | 공통 푸터 | DONE | P00UI 시안 | 로고·링크·맨 위 이동·모바일 줄바꿈 구현. lint·타입·단위 6개·개발 서버 E2E 2개 통과. 2593d0f에서 전체 verify 통과(단위 6개·E2E 2개·빌드) |
+| P00TW | Tailwind 스타일링 전환 | DONE | P00UI 시안 | Tailwind v4·PostCSS·테마 토큰 적용, 컴포넌트 CSS 제거. Node 22에서 E2E_PORT=3101 npm run verify 통과(단위 6개·E2E 2개·lint·타입·빌드). 데스크톱·모바일 캡처 확인. 디자인 검토·임시 홈 복원은 P00UI에서 별도 진행 |
+| P00UI | 공통 UI 컴포넌트·홈 전시 | IN_PROGRESS | P00 | 공통 UI·임시 홈 전시 구현. 해시태그 칩 입력(Enter 추가·개별 삭제·중복 방지·3개 제한), Markdown 작성·미리보기·코드 블록 삽입 적용. Node 22에서 E2E_PORT=3101 npm run verify 통과(단위 6개·E2E 2개), 모바일·모달 키보드 검증. 상단 헤더·모바일 햄버거 드롭다운 반영(선택 표시·Escape/바깥 클릭 닫기). 해당 변경 lint·타입·개발 서버 E2E 2개 통과; 이전 빌드 환경 오류 이후 2593d0f에서 전체 verify 재실행 통과. 기본 홈은 새 공통 헤더·모바일 메뉴·푸터를 유지하고 본문 전시만 숨김. 전시는 BUGRI_UI_PREVIEW=1 로컬·테스트에서만 활성화. 최종 전체 검증 통과. 디자인 사용자 검토는 남음. 제품 기능과 별개 |
+| P00 | 단계별 문서 정합성 | DONE | 없음 | AGENTS·PRD·ARCHITECTURE·TASKS의 1·2단계 경계 반영. 기능 구현과 별개 |
+| P09C | Jest 설정 파일 생성 | IN_PROGRESS | 없음 | jest.config.mjs·jest.setup.ts 생성. Node 22.23.3에서 jest --showConfig, npm run lint, next typegen 후 tsc --noEmit 통과. 테스트 실행은 미실시; P09는 TODO 유지. 기본 Node 18.12.1에서는 Jest 로딩 실패 |
+| P09E | Playwright 설정 파일 생성 | IN_PROGRESS | 없음 | playwright.config.ts 생성. lint·tsc 통과; Node 22에서 playwright test --list는 설정 로딩 후 No tests found(0개, 종료 코드 1). E2E 미실행, P09는 TODO 유지. 실행 전 npm run build 필요 |
+| P09S | 검사 npm scripts 추가 | IN_PROGRESS | P09C, P09E | 요청한 스크립트 추가. Node 22에서 verify 실행: lint·typecheck 통과, Jest는 테스트 없음으로 종료 코드 1. 이후 build·E2E 미실행; P09는 TODO 유지 |
+| P01 | 타입·Mock API 계약 | IN_PROGRESS | P00 | `/api/v1` 요청·응답 타입·오류 형식, 더미 사용자·데이터, UI API 클라이언트 경계. UI의 더미 배열 직접 의존 제거 |
+| P01M | Mock 초기 파일 | IN_PROGRESS | P01 | users·quizzes·subscriptions·shop-items·learning-history 초기 데이터 파일, 배포 시 읽기 전용 |
+| P02 | localStorage Mock 어댑터 | IN_PROGRESS | P01M | 초기 파일 읽기·사용자별 변경 상태 저장/복원, UI 직접 의존 제거, HTTP 호출 없이 계약 유지, 서버 파일 쓰기·메모리 영속 저장 금지 |
+| P02T | 학습 시간대 감지·설정 | TODO | P02 | 브라우저 IANA 감지·마이페이지 조회/변경·설정 복원, IP 시간대 검토·국가 코드 추론 금지, 기본 시간대 확정 후 fallback |
+| P03 | 학습 내용 입력·퀴즈 생성 | IN_PROGRESS | P02 | 단일 입력·코드 블록·현재/10,000자, Mock 퀴즈 1~5개와 퀴즈당 태그 최대 3개 |
+| P04 | 퀴즈 개별·일괄 저장·검토 | IN_PROGRESS | P03 | 각 후보의 독립 ID·PENDING 저장, 검토·수정·PRIVATE/PUBLIC 화면 흐름 |
+| P05 | 퀴즈 풀이 UX | DONE | P04 (기존 Mock API로 독립 구현) | 기존 완료 기준: 더미 사용자별 풀이, 제출 전 정답 비노출, 결과·버그리 반응 진행 기록: 홈 직접 풀이·4형식·정답 비노출·결과 복원·새 Attempt 재도전·버그리 정오/완료 표정. 학습자 3종 예시 구독과 기존 데이터 보완. Node 22.23.3 / PLAYWRIGHT_PORT=3125 전체 verify 통과(Jest 68개·E2E 15개). 탐색 전환의 입력 경합 및 테스트 타입/선택자 오류 수정 후 통과. 구현자 외 리뷰 대기 |
+| P06 | 구독 3종·탐색 | TODO | P04 | 사람·사람+태그·전체 작성자+태그 구독, 더미 개발자·해시태그 탐색. 구독 피드 없음 |
+| P07 | 학습 태그·연속 풀이 | IN_PROGRESS | P05, P06, P02T | 기존 완료 기준: 기본 전체·단일 태그 선택·다음 문제의 태그 유지·소진 후 다시 풀기/다른 태그·기록 보존·하루 1개 완료 조건 진행 기록: 구독 기반 한 문제·단일 태그·다음 문제·소진/빈 상태·다시 풀기를 기존 API에 연결. 빈 상태는 /discover 전용 탐색 페이지로 이동. 공통 밑줄 탭·키보드 전환·개발자/태그 검색·20개 단위 API 페이지 조회·URL 복원·구독 후 탐색 조건 유지·여러 항목 연속 추가·별도 학습 이동(AC-12i). 1,000명/1,000개 fixture 페이지 처리 및 전체 verify 통과(Jest 68개·E2E 15개). 전체 구독 관리(P06)·시간대 설정(P02T) 화면 통합과 구현자 외 리뷰는 남음 |
+| P08 | BugCoin 상점·장착 UX | IN_PROGRESS | P02, P05 | 상품 조회→더미 BugCoin 구매→보관함→장착, 잔액 부족·중복 클릭 상태와 타인 데스크 화면 |
+| P09 | Jest·React Testing Library·Playwright | TODO | P01M, P02, P02T, P03~P08 | API 계약·핵심 UI 동작·더미 사용자 E2E 통과. 실제 보안·거래 안전성 검증으로 기록하지 않음 |
+| P10 | Vercel 프로토타입 배포 | TODO | P09 | DB·OAuth·JWT 비밀값 없이 화면·Mock API 동작 확인, Mock 데이터의 비영속성 안내 |
 
 1단계에 관리자 상품 등록 실제 API, MySQL 마이그레이션, Spring Boot 서버, 실제 AI 제공자 연결, 구매 트랜잭션·동시성 보장을 추가하지 않는다. 필요한 경우 상품 목록은 더미 데이터로 제공한다. 관리자 직접 등록과 상점의 전체 제품 요구사항은 유지한다.
 
@@ -494,3 +500,431 @@
 - 확대 동기화 관련 E2E 6개 및 전체 verify 통과(Jest 98·E2E 79, .bugri-hooks/room-sync-verify.log). 이어 사용자가 축소 시 여러 번 꺾인 벽 모양을 지적하여 같은 작업에서 사각형 방의 카메라 쪽 벽을 열고 인접 벽을 화면 밖까지 연장한다. 대각선 시점에 두 벽만 보이는 검사를 추가했고 수정 전 PC·모바일 모두 실패를 확인했다. 추가 수정 후 전체 재검증 예정.
 
 - 최종 검증: 모바일에서 가구에 가려지는 창틀 대신 정면 두 벽 모서리 간격과 책상 픽셀 너비를 함께 비교한다. 축소 후 추가 모서리가 보이는 경우에도 중앙 모서리의 수직/중앙 정렬을 검사하며, 대각선 사각형 방은 두 벽으로 보이는지 확인한다. 관련 E2E 6개와 마지막 코드 변경 후 Node v22.23.3 npm run verify 전체 통과(lint·TypeScript·Jest 17 suites/98 tests·도구 3 tests·build·E2E 79 tests). 로그 .bugri-hooks/square-room-verify.log. 실제 최소 배율의 대각선/정면 화면과 git diff --check 확인. IN_PROGRESS(독립 리뷰 대기). 사용자가 커밋·푸시·PR 생성을 요청하여 진행한다.
+
+### P06-DEVELOPER-QUIZZES — 개발자별 공개 퀴즈·태그
+
+- 상태: IN_PROGRESS. 사용자 요청 및 AC-12j에 따라 탐색 이름 링크, 개발자 공개 퀴즈·태그 페이지, 태그 필터·검색·페이지 조회, PERSON/PERSON_HASHTAG 구독 후 화면 유지, 기존 직접 풀이 연결을 구현한다.
+- 작성자 CRUD와 전체 개인 프로필/데스크는 범위 밖이다. 공개 목록 민감 정보 제외·상태 필터·대량 페이지 처리 단위 테스트를 먼저 실패 확인 후 구현했다.
+- 구현·필수 검증 완료, 구현자 외 리뷰 대기로 IN_PROGRESS를 유지한다. Node v22.23.3에서 관련 API/UI 테스트와 전체 Hook verify 통과: lint·TypeScript·Jest 14 suites/73 tests·production build·Playwright 17 tests. 초기 lint 구조 분해 오류와 UI 테스트 타입 오류를 수정한 후 전체 통과했다. 근거: .bugri-hooks/verify-2.log.
+- 3002 개발 서버에서 데스크톱·390px 모바일 화면 확인, 가로 넘침 없음. 구독 후 현재 페이지 유지 및 새로고침 복원·직접 풀이 이동, 비공개/삭제/검토 중 제외·1,000개 퀴즈 페이지 처리·빈/없는 개발자 상태를 검증했다. push/PR/merge는 수행하지 않는다.
+
+### P00UI-HOME-LINK — 풀이 워크스페이스 로고 홈 이동
+
+- 상태: IN_PROGRESS. 3002 공통 헤더 로고를 홈(/)으로 연결한다. 탐색·직접 풀이·개발자 페이지에서 홈 이동 및 기존 UI 전시 흐름을 검증한다. 3000/3001 워크스페이스는 변경하지 않는다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. Node v22.23.3에서 PLAYWRIGHT_PORT=3125 npm run verify 통과(lint·TypeScript·Jest 73개·build·Playwright 18개). 홈의 자동 학습 쿼리 때문에 URL 전체 일치 검사가 실패하여 요구사항에 맞게 pathname=/ 검증으로 수정 후 전체 통과했다. 근거: /tmp/bugri-3002-home-verify.log.
+
+### P07-TAG-DROPDOWN — 학습 태그 공통 드롭다운
+
+- 상태: IN_PROGRESS. 3002 학습 태그의 native select를 공통 Dropdown으로 교체한다. 기존 CRUD 공통 Dropdown·훅·접근성 테스트를 가져오되 다른 워크스페이스는 수정하지 않는다. 햄버거 메뉴의 둥근 패널·선택 강조 스타일을 사용하고 필터·URL·구독 정책은 유지한다.
+- 검증: 공통 드롭다운 선택·키보드·닫기·비활성 단위 테스트, 기존 태그 필터/복원 흐름 및 모바일 E2E, 전체 verify.
+- 구현·필수 검증 완료, 독립 리뷰 대기. Node v22.23.3에서 공통 Dropdown 단위 3개 및 최종 PLAYWRIGHT_PORT=3125 npm run verify 통과(lint·TypeScript·Jest 76개·production build·Playwright 19개). 초기 모바일 키보드 테스트가 실제 태그 순서보다 한 칸 덜 이동하여 실패한 것을 수정 후 전체 통과했다.
+- 3002의 390px 모바일에서 열린 메뉴 캡처와 가로 넘침 없음을 확인했다. Escape·바깥 클릭 닫기·방향키 선택, 태그별 출제·새로고침 복원·구독 미변경을 검증했다. 근거: /tmp/bugri-tag-dropdown-verify.log.
+
+### P05-MULTIPLE-CHOICE-LAYOUT — 복수 선택 답안 배치
+
+- 상태: IN_PROGRESS. 일반 폼용 inline 체크박스로 인해 선택지가 붙어 보이는 문제를 공통 Checkbox의 choice variant로 해결한다. 한 선택지당 카드 한 줄, 선택 강조를 제공하고 복수 선택 안내를 한 줄로 합친다. 기존 선택·해제·제출 규칙은 유지한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. Node v22.23.3에서 관련 UI/풀이 단위 6개, 최종 PLAYWRIGHT_PORT=3125 npm run verify 통과(lint·TypeScript·Jest 76개·build·Playwright 19개). 390px 모바일에서 각 선택지가 폭 312px·높이 47.5px의 별도 행으로 표시되고 선택 강조되는 것을 확인했다.
+- 첫 E2E 및 개별 재검사에서 결과 교체 후 기존 마우스 위치가 완료 버튼 hover 가장자리에 남아 stability 시간 초과가 재현됐다. 결과 확인 후 마우스를 이동하고 일반 클릭하도록 조정했다(강제 클릭·검사 생략 없음). 전체 재검증 통과. 근거: /tmp/bugri-answer-layout-verify.log.
+
+### P05-RESULT-ACTIONS — 결과 버튼 가로 배치
+
+- 상태: IN_PROGRESS. 다시 풀기·다음 문제를 같은 flex 행에 배치한다. 직접 풀이 및 이용 불가 퀴즈의 기존 버튼 표시 조건은 유지한다. 기존 재도전·다음 문제 E2E와 전체 verify로 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. Node v22.23.3에서 PLAYWRIGHT_PORT=3125 npm run verify 통과(lint·TypeScript·Jest 76개·build·Playwright 19개). 3002의 390px 모바일에서 두 버튼 y=890 동일 행 배치를 실제 브라우저로 확인했다. 근거: /tmp/bugri-result-actions-verify.log.
+
+### UI-ACTIONS-RIGHT — 제품 화면 동작 버튼 오른쪽 정렬
+
+- 상태: IN_PROGRESS. 3002의 풀이 제출·결과·오류/빈 상태, 탐색 구독·학습·페이지 이동, 개발자 페이지 구독·오류·페이지 이동 버튼을 오른쪽 정렬한다. 답안 선택지·필터·탭 같은 입력 요소 및 UI 전시는 범위 밖이다. 기존 동작 테스트와 모바일 배치를 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. Node v22.23.3에서 PLAYWRIGHT_PORT=3125 npm run verify 종료 코드 0(lint·TypeScript·Jest 76개·build·Playwright 19개). 3002의 390px 모바일에서 제출 및 다음 문제 버튼 오른쪽 끝 x=351 일치·가로 넘침 없음을 확인했다.
+
+### P06-DEVELOPER-TAGS-TOP — 개발자 태그 상단 배치
+
+- 상태: IN_PROGRESS. 개발자 공개 퀴즈 페이지의 태그 검색·선택·구독 영역을 사이드바에서 페이지 상단 전체 너비로 옮기고 공개 퀴즈 목록을 그 아래에 배치한다. 태그는 반응형 1·2·3열 카드로 표시하며 기존 검색·필터·구독·URL 복원 정책은 유지한다.
+- 기존 좌우 배치에서 실패하는 영역 순서·동일 너비 E2E를 먼저 확인했다. 관련 개발자 흐름과 데스크톱·모바일 배치 및 전체 verify로 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. Node v22.23.3에서 개발자 E2E 2개와 최종 Hook verify 통과(lint·TypeScript·Jest 15 suites/76 tests·production build·Playwright 19 tests). 3002 데스크톱·390px 모바일에서 태그 영역이 공개 퀴즈 위에 같은 너비로 배치되고 가로 넘침이 없음을 확인했다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-DEVELOPER-TAGS-COMPACT — 개발자 태그 영역 압축
+
+- 상태: IN_PROGRESS. 태그 글자 크기는 유지하고 컨테이너 패딩·요소 간격·태그 카드 패딩을 줄인다. 태그가 한 페이지뿐이면 무의미한 페이지 이동 행을 숨기며, 10개를 넘으면 기존 페이지 이동을 표시한다.
+- 기존 3개 태그 컨테이너 높이 318px 및 단일 페이지 이동 노출로 실패하는 E2E를 먼저 확인했다. 데스크톱 높이 260px 미만, 모바일 가로 넘침, 검색·필터·구독 및 전체 verify로 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. 글자 크기 변경 없이 데스크톱 태그 영역을 318px에서 218.5px로 줄였고 390px 모바일은 338.5px·가로 넘침 없음으로 확인했다. Node v22.23.3에서 개발자 E2E 2개와 최종 Hook verify 통과(lint·TypeScript·Jest 15 suites/76 tests·production build·Playwright 19 tests). 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-DEVELOPER-TAG-CHIPS — 개별 태그 칩 압축
+
+- 상태: IN_PROGRESS. 개별 태그를 균등 3열 카드에서 내용 너비만 차지하는 둥근 칩으로 바꾼다. 태그명·개수·구독 상태 글자 크기와 필터·구독 동작은 유지하고, 칩은 필요한 만큼 한 줄에 배치한 뒤 넘치면 줄바꿈한다.
+- 기존 태그 카드가 각 250px 이상을 차지해 실패하는 데스크톱 E2E를 먼저 확인했다. 각 칩 250px 미만·동일 행 배치, 모바일 줄바꿈·가로 넘침 및 전체 verify로 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. 글자 크기를 유지하면서 개별 칩을 높이 32px, 너비 139~182px로 줄였고 데스크톱 한 줄 배치·390px 모바일 줄바꿈·가로 넘침 없음을 확인했다. Node v22.23.3에서 개발자 E2E 2개와 최종 Hook verify 통과(lint·TypeScript·Jest 15 suites/76 tests·production build·Playwright 19 tests). 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-DEVELOPER-TAG-STATE — 태그 hover·구독 상태 정리
+
+- 상태: IN_PROGRESS. 태그명 hover 밑줄을 제거하고 구독 완료 텍스트는 체크 아이콘으로 바꾼다. 구독 전 동작 문구와 선택 태그 표시는 유지하며, 체크 아이콘 버튼의 접근성 이름은 기존 “개발자명·태그명·구독 중”을 유지한다.
+- hover 시 실제 text-decoration과 구독 후 빈 시각 텍스트를 검증하는 E2E를 먼저 실패 확인했다. 구독·새로고침 복원, 데스크톱·모바일 표시 및 전체 verify로 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기. 태그 hover의 실제 `text-decoration` 제거와 구독 후 시각 텍스트 없음·접근성 이름·체크 아이콘 상태 및 새로고침 복원을 개발자 E2E로 확인했다. Node v22.23.3에서 개발자 E2E 2개와 최종 Hook verify 통과(lint·TypeScript·Jest 15 suites/76 tests·production build·Playwright 19 tests). 근거: `.bugri-hooks/verify-1.log`.
+
+### 풀이·탐색 UX 검토 반영
+
+- 상태: DONE. 완료 결과의 별도 ‘완료 확인’을 제거하고 ‘다음 문제’를 주 행동, ‘다시 풀기’를 보조 행동으로 표시한다.
+- 구독된 개발자·태그는 같은 위치에서 해제할 수 있으며, 단일 페이지의 페이지 이동 컨트롤은 숨긴다.
+- 개발자 페이지는 선택 태그를 채운 칩으로 표시하고 원시 태그 ID 안내 문구를 노출하지 않는다.
+- 미제출 답안이 있는 상태에서 학습 태그를 바꾸면 답안 소실 경고를 표시한다.
+- Node v22.23.3에서 관련 단위 테스트 11개와 풀이·개발자 E2E 15개를 통과했다. 최종 Hook verify도 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P05-RESULT-NO-BUGRI — 풀이 결과 캐릭터 제거
+
+- 상태: DONE. 풀이 결과 화면에서 버그리 이미지와 반응 문구를 제거하고 정오·답안·해설·다음 행동만 유지한다. 공통 캐릭터 컴포넌트와 다른 화면의 사용은 변경하지 않는다.
+- Node v22.23.3에서 정답·오답 관련 E2E 2개와 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-TAG-SUBSCRIPTION-MENU — 태그 구독 메뉴
+
+- 상태: DONE. 개발자 페이지의 태그 칩은 필터 선택에 집중시키고, 우측 말줄임표 메뉴에서 현재 상태에 맞는 구독 또는 구독 해제를 제공한다. 검색 결과의 명시적 구독 버튼은 유지한다.
+- 말줄임표를 세 점 SVG로 중앙 정렬하고 메뉴 열기·구독·새로고침 복원·Escape 닫기를 검증했다. Node v22.23.3에서 관련 단위 테스트 1개·개발자 E2E 2개와 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-TAG-SEARCH-ALIGNMENT — 태그 검색 상태·정렬
+
+- 상태: DONE. 태그 필터 전환 중 검색 입력이 비활성화되어 어두워지는 현상을 제거하고 검색 입력과 검색 버튼의 상단 y좌표를 맞춘다. 구독 저장 중 중복 동작 방지는 유지한다.
+- 전환 중 검색 입력에 disabled 속성이 생기지 않고 입력·버튼 상단 좌표 차이가 1px 미만인지 E2E로 검증했다. Node v22.23.3에서 관련 개발자 E2E 1개와 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-TAG-SUBSCRIBED-STATE — 태그 구독 배경 구분
+
+- 상태: DONE. 개발자 페이지에서 구독한 태그와 구독하지 않은 태그의 칩 배경색을 구분한다. 선택 상태는 별도 링으로 표시해 구독 상태와 동시에 식별할 수 있게 한다.
+- 구독 전후 실제 계산된 배경색 변경과 선택 링을 E2E로 검증했다. Node v22.23.3에서 관련 개발자 E2E 1개와 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-TAG-THEME-COLOR — 구독 태그 테마 색상
+
+- 상태: DONE. 구독 태그의 배경·테두리와 선택 링을 브랜드 primary 계열로 통일하고, 미구독 태그의 중립 배경과 구분한다.
+- 구독 전후 primary 배경색 변경과 선택 링을 E2E로 검증했다. Node v22.23.3에서 관련 개발자 E2E 1개와 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-SUBSCRIPTION-FEEDBACK — 구독 동작 노출·피드백
+
+- 상태: DONE. 개발자 페이지의 미구독 태그는 말줄임표를 숨기고 구독 태그만 해제 메뉴를 제공한다. 태그·개발자 구독 변경 성공은 대상명이 포함된 토스트로 알린다. 개발자 구독 완료 후 상단 버튼은 숨기고 해당 위치의 구독 해제는 제거한다.
+- 관련 단위 테스트 7개와 구독·해제 토스트, 미구독 메뉴 숨김, 개발자 구독 버튼 제거를 포함한 E2E 2개를 확인했다. Node v22.23.3에서 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P06-TAG-CLICK-SUBSCRIBE — 미구독 태그 클릭 구독
+
+- 상태: DONE. 개발자 페이지의 미구독 태그를 클릭하면 해당 태그를 구독하면서 기존 퀴즈 필터도 적용하고 성공 토스트와 구독 상태 UI를 표시한다.
+- 관련 단위 테스트 1개와 구독→해제→재구독 및 필터 유지 E2E 1개를 확인했다. Node v22.23.3에서 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### UI-POINTER-CURSORS — 상호작용 요소 포인터 커서
+
+- 상태: DONE. 활성 링크·버튼·셀렉트·체크박스·라디오·연결 라벨·summary에 공통 포인터 커서를 적용하고 비활성 요소의 금지 커서는 유지한다.
+- UI 전시 화면의 표시 중인 상호작용 요소를 계산된 cursor 값으로 전수 검사했다. Node v22.23.3에서 관련 E2E 1개와 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 20 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P07-NEXT-EXHAUSTION — 다음 문제 소진 처리
+
+- 상태: DONE. 선택 태그의 미풀이 문제를 모두 완료하면 완료 문제를 다시 순환하지 않고 소진 상태와 태그 탐색만 제공한다. 재생 모드 결과에서도 다음 문제 대신 태그 탐색을 표시한다.
+- 일반 학습 소진 시 Attempt 수가 늘지 않는 흐름과 재생 모드 결과에서 다음 문제를 숨기는 E2E를 포함해 관련 E2E 4개를 확인했다. Node v22.23.3에서 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/78 tests·production build·Playwright 21 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P07-NEXT-DUPLICATE-QUIZ — 동일 문제 재출제 방지
+
+- 상태: DONE. 다른 quizId로 저장된 동일 문제를 완료한 경우에도 다음 문제 후보에서 제외하고, 남은 고유 문제가 없으면 소진 상태와 태그 탐색을 제공한다.
+- 다른 quizId에 같은 문제를 복제한 회귀 테스트를 추가해 첫 완료 직후 EXHAUSTED와 null quiz를 확인했다. 첫 전체 검증은 기존 E2E의 중복 출제 기대값 때문에 실패했고 요구사항에 맞게 갱신한 뒤 재검증했다. Node v22.23.3에서 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/79 tests·production build·Playwright 21 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-2.log`.
+
+### P07-NEXT-THEN-EXHAUSTED — 결과 후 소진 화면 전환
+
+- 상태: DONE. 마지막 문제 결과에서도 바로 태그 탐색으로 바꾸지 않고 다음 문제를 유지한다. 다음 문제를 누른 뒤 남은 문제가 없을 때 소진 제목·안내·태그 탐색 화면으로 전환한다.
+- 재생 모드도 다음 문제 요청 후 일반 미풀이 모드로 종료해 자동 재선택을 막고, 선택 태그 소진 안내의 제목·설명·태그 탐색을 E2E로 확인했다. Node v22.23.3에서 관련 API 단위 테스트 28개·풀이 E2E 2개와 최종 Hook verify를 통과했다(lint·TypeScript·Jest 15 suites/79 tests·production build·Playwright 21 tests). 구현자 외 리뷰는 남아 있다. 근거: `.bugri-hooks/verify-1.log`.
+
+### P07-DISCOVERY-SUBSCRIPTION-MENU — 탐색 카드 구독 해제 메뉴
+
+- 상태: DONE. 개발자·태그 탐색 결과에서 구독 중인 카드의 큰 구독 해제 버튼을 제거하고, 카드 우측 말줄임표 메뉴 안에서 구독을 해제한다. 미구독 항목의 구독하기와 구독 항목의 학습하기는 유지한다.
+- 개발자 카드의 메뉴 해제 단위 테스트와 개발자·태그 카드 메뉴 전환, Escape 닫기, 검색 조건 유지 E2E를 확인했다. Node v22.23.3에서 최종 `PLAYWRIGHT_PORT=3125 npm run verify`를 통과했다(lint·TypeScript·Jest 15 suites/79 tests·production build·Playwright 21 tests). 구현자 외 리뷰는 남아 있다.
+
+### P06-DEVELOPER-BACK-LINK — 개발자 페이지 탐색 복귀 링크
+
+- 상태: DONE. 개발자 공개 퀴즈 페이지의 모호한 `개발자·태그 탐색` 링크를 방향이 분명한 `탐색으로 돌아가기` 보조 링크로 바꾸고, 버튼처럼 과하게 보이지 않도록 정리했다.
+- 탐색 복귀 링크의 이름·URL E2E를 확인했다. Node v22.23.3에서 최종 `PLAYWRIGHT_PORT=3125 npm run verify`를 통과했다(lint·TypeScript·Jest 15 suites/79 tests·production build·Playwright 21 tests). 구현자 외 리뷰는 남아 있다.
+
+### P06-DEVELOPER-ALL-QUIZZES-FILTER — 전체 퀴즈 필터 위치
+
+- 상태: DONE. 태그 영역의 `전체 퀴즈` 버튼을 제거하고, 태그 필터가 활성화된 경우에만 공개 퀴즈 제목 우측에 필터 해제 동작으로 표시한다.
+- 기본 상태 숨김, 태그 선택 후 공개 퀴즈 영역 노출, 필터 해제 후 전체 목록 복원을 E2E로 확인했다. Node v22.23.3에서 최종 `PLAYWRIGHT_PORT=3125 npm run verify`를 통과했다(lint·TypeScript·Jest 15 suites/79 tests·production build·Playwright 21 tests). 구현자 외 리뷰는 남아 있다.
+
+### A 작성 UI — 생성·저장·내 목록 (2026-11-07)
+
+- P03 구현: `/quizzes/authoring`, `src/features/quiz-authoring`에서 단일 Markdown 입력·유니코드 글자 수·초과 원문 보존·Mock 생성 안내·후보 복원·개별/일괄 저장·사용자별 목록을 API 클라이언트에 연결했다. P04 검토·관리 화면은 다음 기능 커밋에서 진행한다.
+- 공통 MarkdownEditor에 label/preserveOverflow 옵션을 추가했다. 기존 기본 동작은 유지한다. B/C 기능·Mock/API 계약·패키지·공유 설정은 수정하지 않았다.
+- 테스트 우선: 컴포넌트 미구현으로 신규 테스트 실패 확인 후 구현했다. 입력 검증·중복 없는 저장·오류 후 입력 유지 3개를 검증했다.
+- Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest 7 suites/45 tests·production build·Playwright 5 tests. 생성→개별/일괄 저장→새로고침→사용자 전환을 브라우저로 확인했다. 첫 E2E 실패는 friend 초기 퀴즈 2개를 누락한 테스트 기대값을 실제 seed 계약에 맞춰 수정했다.
+- 작성자 외 독립 검토는 아직 남아 있다. A 전체 완료 및 B/C 통합 검증을 의미하지 않는다.
+
+### A 작성 UI — 검토·승인·관리 (2026-11-07)
+
+- P03/P04의 A 화면 구현 및 검증 완료: 네 형식의 문제·선택지·정답·해설·원본·태그 편집, 저장된 내용 재확인→명시적 검토→공개 범위 선택→승인, 승인 버전 유지와 PENDING 수정본, 프롬프트 재생성, 공개 범위 전환, 삭제를 연결했다.
+- 미저장 이동 경고, 버전 충돌 후 편집 보존·최신 내용 재조회, 생성/저장 실패 후 입력 보존, 사용자별 목록·후보·검토 화면 새로고침 복원을 확인했다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 8 suites/53 tests·production build·Playwright 7 tests. A 컴포넌트 11개 및 UI E2E 3개 포함. 모바일 폭 390px, 승인·수정·재생성·공개 범위·삭제, 다른 탭 충돌을 검증했다. E2E 오류 선택자가 Next.js route announcer까지 선택한 실패는 검토 영역으로 범위를 제한해 해결했다.
+- 사용자 확인에 따라 승인 목록의 B 풀이 링크는 경로가 정해지는 통합 시 연결한다. B/C 화면 및 통합 검증, 작성자 외 독립 리뷰는 남아 있다. 전체 P04 완료 상태는 통합 후 확정한다.
+
+### A 브랜치 dev 병합 (2026-11-07)
+
+- 사용자 pull 차단을 해결하기 위해 검증된 A 기능을 `22aa19e`, `821f0c8`에 커밋하고 `origin/dev`의 `631e5dd`를 병합했다.
+- TASKS 양쪽 기록을 보존하고, 공통 MarkdownEditor는 dev의 `useMarkdownEditor` 분리 구조와 A의 label/preserveOverflow·상한 없는 본문/해설 표시를 함께 유지했다.
+- 병합 후 Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest·production build·Playwright 7개. 푸시/PR 생성은 하지 않았다.
+
+### A 화면 보충 설명 정리 (2026-11-07)
+
+- 작성실·생성·후보 저장·수정본·재생성·단답 정답의 보충 설명을 공통 Tooltip으로 옮겼다. 중복 태그 설명은 삭제하고, 오류·현재 상태·승인 대상은 직접 표시한다.
+- Tooltip은 hover·키보드 focus·탭으로 열고 Escape·바깥 클릭으로 닫는다. 모바일에서는 화면 안에 표시한다.
+- Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest 59개·production build·Playwright 8개. 새 단위 테스트 2개와 브라우저 도움말·390px 화면 검증 포함. 독립 리뷰는 남아 있다.
+
+### A 작성 화면 컨테이너 정렬 (2026-11-07)
+
+- 본문 최대 너비를 헤더와 같은 1220px로 맞추고 좌우 여백을 모바일 20px·md 이상 48px로 통일했다.
+- Chromium 실측: 1280px 화면에서 헤더/본문 내용 경계 모두 78~1202px, 390px 화면에서 모두 20~370px.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 59개·production build·Playwright 8개. `git diff --check` 통과.
+
+### A 공통 선택 입력·상단 정리 (2026-11-07)
+
+- 더미 사용자·승인 공개 범위·현재 공개 범위를 공통 Select로 교체했다. 공통 컴포넌트는 기존 문자열 옵션을 유지하면서 표시명/값 분리, value/onChange/disabled를 지원한다.
+- 큰 작성실 제목을 작은 ‘퀴즈’ 제목으로 정리하고 사용자 선택을 상단 오른쪽에 배치했다. 모바일에서는 줄바꿈한다. 데스크톱 브라우저 캡처로 배치를 확인했다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 60개·production build·Playwright 8개. 기존 사용자 전환·공개 범위 동작과 새 공통 Select 테스트를 포함한다. `git diff --check` 통과.
+
+### A 메뉴 형태 공통 드롭다운 적용 (2026-11-07)
+
+- 헤더 모바일 메뉴의 둥근 패널·그림자·보라색 선택 표시를 따르는 공통 `Dropdown`과 상호작용 훅을 추가했다. 사용자·승인 범위·현재 공개 범위 선택에 적용했다. 선택 값과 API 계약은 유지한다.
+- combobox/listbox 의미, 방향키·Home/End·Enter 선택, Escape·Tab·바깥 클릭 닫기, 비활성 상태를 지원한다. 공통 사용 규칙은 CODING_CONVENTIONS에 기록했다.
+- 새 컴포넌트 미구현 실패 확인 후 단위 테스트 3개를 통과했다. 기존 화면 테스트는 커스텀 옵션 클릭으로 변경하고 사용자 전환·승인·비공개 전환 검증을 유지했다. 타입 검사에서 RTL에 없는 exact 옵션을 사용한 오류를 수정했다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 63개·production build·Playwright 9개. 키보드·390px 모바일·바깥 클릭 검증과 데스크톱 열린 패널 캡처 확인 포함. `git diff --check` 통과. 독립 리뷰는 남아 있다.
+
+### A 생성 대화와 관리 화면 분리 — DONE (2026-11-07)
+
+- 생성 화면에서 내 목록·더미 사용자 선택을 제거하고 관리를 `/quizzes/authoring/manage`로 분리한다. 저장 전 후보별 추가 요청·이력·실패 시 입력 보존을 구현한다. Mock 유지, B/C 기능 제외.
+- 새 후보 추가 요청 API·저장 검증과 UI 흐름 테스트를 추가했다. 요청만으로 내 목록에 저장하지 않으며, 실패 시 기존 후보와 요청 입력을 보존한다. candidateId 교체로 오래된 후보 갱신을 거부하고 사용자별 요청·응답 기록을 복원한다.
+- 최신 구현 스킬에 따라 TanStack Query와 작성 영역 Provider, 사용자별 쿼리 키·API mutation 훅을 적용했다. 생성 입력/비동기 흐름은 useGeneration에 분리했다. 원본 API 클라이언트와 Mock 서비스 경계는 유지한다. API/Mock 외 변경은 A 화면·공통 헤더의 경로 링크 지원에 한정한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 67개·production build·Playwright 9개. 후보 추가 요청 정상/실패/권한/오래된 후보/저장 전 목록 제외와 실제 HTTP 직렬화, 생성→대화→복원→개별/일괄 저장→별도 관리·승인·수정·삭제를 확인했다. 데스크톱 대화 화면 캡처를 확인했다.
+- 초기 타입/린트 오류(unknown 조건부 렌더링·테스트 구조 분해)를 수정했다. 전체 검증의 기존 HTTP endpoint 개수 기대값은 새 계약 추가에 따라 30→31로 수정하고 신규 경로/본문 검증을 추가했다. 이후 전체 검증 통과. 실제 LLM 호출·B/C 통합과 독립 리뷰는 이번 완료 범위에 포함하지 않는다.
+
+### A 학습 대화와 생성 결과 상세 분리 — DONE (2026-11-07)
+
+- 메시지 전송과 퀴즈 생성을 분리하고, 명시적 생성 성공 시 별도 상세로 이동한다. 대화 복귀 시 기록·미전송 입력을 복원한다.
+- Mock 대화 API·사용자 격리·버전 충돌·실패 보존 및 UI 테스트를 추가했다. B/C 및 실제 LLM 연결은 제외한다.
+- Node 22.23.3에서 최종 `npm run verify` 전체 통과: lint·TypeScript·Jest 71개·production build·Playwright 9개. 최초 전체 검증의 구조 분해 lint 오류를 수정한 뒤 전체 재실행했다.
+- 브라우저에서 메시지만 보낼 때 미생성, 명시적 상세 이동, 상세 새로고침, 복귀 시 대화·미전송 입력 복원, 개별/일괄 저장 및 검토·승인·수정·삭제를 검증했다. 독립 리뷰는 남아 있다.
+
+### A 대화 모달 — DONE
+
+- 공통 모달을 확장해 대화·생성을 한곳에 배치하고 모바일 전체 화면, 하단 입력 고정, 닫기·재열기 입력 유지를 검증한다.
+- Node 22.23.3에서 최종 `npm run verify` 통과: lint·TypeScript·Jest 72개·production build·Playwright 10개. 테스트 타입 오류와 상세 이동 시 잔류 모달 문제를 수정한 뒤 전체 검증을 재실행했다.
+- 공통 모달·툴팁 키보드 동작, 모바일 390px 전체 화면·입력 유지·상세 이동을 확인했다. 모바일 대화 캡처도 확인했다. 독립 리뷰는 남아 있다.
+
+### A 퀴즈 공동 편집 작업 공간 — DONE
+
+- 바깥 학습 입력 → 생성 모달에서 후보·대화를 함께 표시 → 추가 요청 또는 직접 편집 → 저장으로 변경한다. 실제 AI 스트리밍은 현재 Mock 단계에 포함하지 않는다.
+- 작성 입력은 모달 밖에 두고, 생성 성공 후 같은 모달에서 후보·추가 요청·직접 편집을 제공한다. 직접 수정은 후보 ID를 교체하고 이후 재생성의 현재 내용으로 전달한다. 자동 저장·승인은 하지 않는다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 75개·production build·Playwright 10개. 직접 수정·실패 보존·오래된 후보 충돌, 모달 재열기·새로고침 복원·개별/일괄 저장·검토/승인 흐름을 확인했다. 데스크톱·390px 모바일 캡처를 확인했다.
+- 기존 대화 전용 API와 결과 상세 직접 접근은 호환을 위해 유지한다. 실제 LLM 연결·스트리밍과 독립 리뷰는 남아 있다.
+
+### A 작업 모달 세로 배치 — DONE
+
+- 오른쪽 대화 칼럼을 제거하고 퀴즈 아래에 대화·추가 요청을 배치한다. 화면과 키보드 탐색 순서를 일치시킨다.
+- Node 22.23.3에서 `npm run verify` 전체 통과: lint·TypeScript·Jest 75개·build·Playwright 10개. 독립 리뷰는 남아 있다.
+
+### A 메시지 순서 정리 — DONE
+
+- 학습 내용을 첫 사용자 메시지로 펼쳐 표시하고, 버그리 퀴즈 응답 바로 아래에 추가 요청 입력을 배치한다. 별도 대화 제목·소개 문구는 제거한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 75개·build·Playwright 10개. 독립 리뷰는 남아 있다.
+
+### A 채팅창 아래 퀴즈 배치 — DONE
+
+- 추가 요청 입력창 다음에 퀴즈를 배치한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 75개·build·Playwright 10개. 독립 리뷰는 남아 있다.
+
+### A 생성 모달 재열기 오류 — DONE
+
+- 개발 StrictMode의 effect 정리에서 예약된 close 이벤트가 다시 열린 모달을 닫는 문제를 회귀 테스트로 재현했다. 실제 닫힌 상태에서만 닫기 콜백을 전달한다.
+- 회귀 테스트가 수정 전 실패·수정 후 성공했다. 테스트 lint 오류 수정 후 Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 76개·build·Playwright 10개. 독립 리뷰는 남아 있다.
+
+### A 퀴즈 우선 표시와 바로 공개 — DONE
+
+- 최초 화면은 퀴즈만 표시하고 LLM으로 수정 선택 시 대화를 펼친다. 바로 공개는 현재 후보 한 개에 대한 명시적 검토·공개 요청이다.
+- 후보 바로 공개 API는 명시적 검토 표시·소유권·최신 후보·내용을 검증하고 선택한 후보 한 개를 PUBLIC으로 저장한다. 기존 승인 API의 미검토 차단은 유지한다. LLM 수정 선택 전에는 학습 메시지·요청 기록·입력을 숨긴다.
+- 기존 입력 테스트의 펼치기 동작, lint 공백 오류, 브라우저 버튼 선택자 충돌을 수정한 뒤 Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 11개. 선택 후보만 공개·중복 방지·타인 거부와 기존 저장/승인 흐름을 확인했다. 독립 리뷰는 남아 있다.
+
+### A 작업 이어가기 버튼 제거 — DONE
+
+- 별도 작업 이어가기 버튼을 제거한다. 같은 학습 내용이나 미반영 수정이 있을 때는 퀴즈 만들기로 기존 모달을 열어 작업을 유지한다.
+- 마지막 테스트 변경 후 Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 11개. 단일 버튼으로 모달 재열기·미반영 요청 유지 확인. 독립 리뷰는 남아 있다.
+
+### A 매번 새 퀴즈 생성 — DONE
+
+- 같은 입력에서도 생성 버튼은 새 batch를 만든다. 기존 작업을 여는 분기를 제거하고 새 결과에 이전 미반영 요청·편집을 넘기지 않는다.
+- 수정 전 기존 작업 재열기 동작으로 회귀 테스트 실패를 확인했다. Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 11개. 같은 입력의 새 batch 생성과 이전 편집·미반영 요청 초기화를 검증했다. 독립 리뷰는 남아 있다.
+
+### A 퀴즈 탭과 작업 버튼 정리 — DONE
+
+- 공통 Tabs로 퀴즈를 선택하고 바로 공개·LLM 수정만 주요 동작으로 유지한다. 직접 수정·개별/일괄 저장은 더 보기로 이동하고 버튼 크기를 통일한다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 12개. 공통 탭 방향키 전환·더 보기 메뉴 Escape/포커스 복귀·기존 수정/저장을 검증했다. 데스크톱·390px 모바일 캡처 확인. 독립 리뷰는 남아 있다.
+
+### A 발견하기 쉬운 퀴즈 검토 UI — DONE
+
+- 더 보기 메뉴를 제거하고 직접 수정·개별/일괄 저장을 해당 콘텐츠 옆에 노출한다. 문제·번호 선택지·정답/해설의 시각적 구분과 한국어 형식명을 적용한다. B 풀이 화면은 변경하지 않는다.
+- Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 78개·build·Playwright 12개. 메뉴 없이 수정·저장 접근, 탭 키보드 전환, 한국어 문제 형식과 선택지 표시를 확인했다. 데스크톱·390px 모바일 캡처 확인. 독립 리뷰는 남아 있다.
+
+### P03-EDIT-MODES — 수정 방식 탭 통합
+
+- 상태: IN_PROGRESS. 생성 후보 카드에 미리보기·직접 수정·LLM 수정 탭을 함께 배치한다. 기존 직접 편집 반영/취소·추가 요청·초안 보존·공개/저장 정책을 유지한다.
+- 수정 방식 탭·전환 시 미전송 요청 보존 테스트의 의도한 실패를 확인했다. 관련 컴포넌트 테스트와 기존 작성 E2E 및 전체 verify로 검증한다.
+- 구현·필수 검증 완료, 독립 리뷰 대기로 IN_PROGRESS 유지. Node v22.23.3에서 관련 컴포넌트 6개 및 전체 Hook verify 통과(lint·TypeScript·Jest 79개·production build·Playwright 12개). 수정 방식 탭 키보드 이동·미전송 요청 보존·직접 수정·저장·공개 회귀를 검증했다.
+- 3000 개발 서버의 390px 모바일 캡처 확인: 수정 탭 영역 가로 넘침 없음. 근거 로그 .bugri-hooks/verify-1.log. 풀이/쇼핑몰 워크스페이스는 수정하지 않았다.
+
+### A 미확정 수정 중 탭 이동 — DONE
+
+- 직접 수정 초안을 퀴즈별로 보관하고 미리보기·LLM 수정·다른 퀴즈 탭 이동을 허용한다. 다른 초안이 남아 있으면 일괄 저장과 이탈 경고를 유지한다.
+- 수정 전 탭 잠금·초안 유실 회귀 테스트 실패를 확인했다. 테스트 선택자 중복을 수정하고, 별도 헤더 변경의 lint 오류가 해소된 뒤 Node 22.23.3 `npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 14개. 수정 방식/퀴즈 전환의 초안 유지와 다른 초안의 일괄 저장 차단을 확인했다. 독립 리뷰는 남아 있다.
+
+### A 생성 입력·미리보기 동시 표시 — DONE
+
+- 공통 MarkdownEditor에 split 배치를 추가하고 퀴즈 만들기 입력에 적용한다. 다른 편집기의 기본 탭 배치는 유지한다.
+- 기본 3107 포트 점유로 첫 전체 검증의 E2E가 차단되어, Node 22.23.3에서 `PLAYWRIGHT_PORT=3197 npm run verify`를 재실행해 전체 통과했다: lint·TypeScript·Jest 80개·build·Playwright 15개. 입력/미리보기 동시 표시·실시간 갱신·모바일 가로 넘침과 기존 탭 편집기를 확인했다. 데스크톱 캡처 확인. 독립 리뷰는 남아 있다.
+
+### A 코드 삽입 버튼 정리 — DONE
+
+- 공통 MarkdownEditor의 코드 삽입 버튼을 오른쪽 테두리 버튼 “+ 코드 블럭”으로 표시하고 제목·강조·목록 안내를 제거한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 코드 블록 삽입과 작성/미리보기 회귀 확인. 독립 리뷰는 남아 있다.
+
+### A 코드 언어 공통 드롭다운 — DONE
+
+- MarkdownEditor의 네이티브 언어 select를 기존 공통 Dropdown으로 교체한다. 모바일 선택·Escape·포커스·코드 삽입을 검증한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 390px 모바일에서 언어 선택·Escape 닫기·포커스 복귀·선택 언어 코드 삽입을 확인했다. 독립 리뷰는 남아 있다.
+
+### A 저장 동작 배치 정리 — DONE
+
+- 바로 공개와 개별 저장을 같은 줄로 합치고 일괄 저장·저장 개수는 퀴즈 선택 탭 위로 옮긴다.
+- 편집 중 JSX 구문 오류를 수정한 뒤 Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 개별/일괄 저장·공개·탭 이동 회귀 확인. 독립 리뷰는 남아 있다.
+
+### A 임시저장 버튼 명칭·스타일 — DONE
+
+- 개별 저장을 임시저장으로 바꾸고 바로 공개와 동일한 버튼 스타일을 적용한다. PENDING 저장 동작은 유지한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 임시저장·공개·기존 편집 흐름 회귀 확인. 독립 리뷰는 남아 있다.
+
+### A 공개·임시저장 툴팁 제거 — DONE
+
+- 바로 공개·임시저장 버튼 옆 도움말 아이콘과 툴팁을 제거한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3197 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 독립 리뷰는 남아 있다.
+
+### A 실행 버튼 오른쪽 정렬 — DONE
+
+- 작성·생성 결과·검토·내 퀴즈의 실행 버튼 그룹을 오른쪽으로 통일한다. 제목·탭·선택지 정렬은 유지하고 모바일 줄바꿈을 허용한다.
+- 검증 로그 경로가 다른 작업과 겹쳐 전용 로그·포트로 재검증했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 근거: /tmp/bugri-authoring-right-actions-52e9afd.log. 독립 리뷰는 남아 있다.
+
+### A 일괄 저장 버튼 제거 — DONE
+
+- 남은 후보 모두 저장 버튼을 제거하고 현재 퀴즈별 임시저장·바로 공개만 제공한다. 기존 일괄 저장 API는 유지한다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 80개·build·Playwright 15개. 퀴즈별 임시저장·공개와 일괄 저장 버튼 미노출을 검증했다. 독립 리뷰는 남아 있다.
+
+### A · 수정 동작 위계 정리 — DONE
+
+- 퀴즈는 항상 표시하고 제목 오른쪽 수정 버튼으로 아래 편집·대화 영역을 토글한다. 초안은 보존한다.
+- 검증: Node 22.23.3, 관련 단위 테스트 7개 통과. 첫 전체 검증에서 테스트 편집 중 관리 드롭다운의 End 키가 바뀐 오류를 확인하고 복원했다. 마지막 코드 변경 후 PLAYWRIGHT_PORT=3291 npm run verify 통과(lint·타입·Jest 80개·빌드·E2E 15개). 독립 리뷰는 남아 있다.
+
+### A · 후보 공개·임시저장 상태 표시 — DONE
+
+- 실제 저장된 퀴즈 상태를 조회해 공개됨·임시저장됨을 구분하고 새로고침에도 유지한다.
+- 검증: 공개 상태 테스트의 의도한 실패 확인 후 관련 단위 테스트 5개 통과. Node 22.23.3에서 마지막 코드 변경 후 PLAYWRIGHT_PORT=3291 npm run verify 통과(lint·타입·Jest 80개·빌드·E2E 15개). 공개 후 새로고침 상태 복원을 포함했다. 독립 리뷰는 남아 있다.
+
+### A · Markdown 코드 블럭 도구 배치 — DONE
+
+- 코드 블럭 버튼과 언어 선택기를 본문 입력창과 같은 편집 컨테이너 안에 배치한다.
+- 검증: 의도한 E2E 실패를 확인한 뒤 관련 E2E 1개와 Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 수정 전체 대화 화면 — DONE
+
+- LLM 수정을 선택하면 작업 모달 본문을 대화 화면으로 전환하고 퀴즈로 돌아갈 때 요청 초안을 보존한다.
+- 검증: 전환 동작 테스트의 의도한 실패를 확인한 뒤 관련 컴포넌트 7개와 작성 E2E 10개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 대화 스크롤 영역 분리 — DONE
+
+- 모달과 채팅 헤더·입력창은 고정하고 대화 메시지 본문만 스크롤한다.
+- 검증: 스크롤 소유권 E2E의 의도한 실패를 확인한 뒤 작성 컴포넌트 7개와 작성 E2E 10개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 추가 요청 textarea — DONE
+
+- 추가 요청을 여러 줄 textarea로 바꾸고 포커스 링이 모달 경계 안에서 모두 보이도록 여백을 확보한다.
+- 검증: textarea 요소·포커스 링 경계 E2E의 의도한 실패를 확인한 뒤 작성 컴포넌트 7개와 관련 E2E 1개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 요청 포커스 링 잘림 수정 — DONE
+
+- 공통 7px 포커스 외곽선이 실제 overflow 부모의 좌우·하단 경계 안에 들어오도록 입력 영역 여백을 보정한다.
+- 검증: 실제 overflow 부모 경계 E2E의 의도한 실패를 확인한 뒤 관련 E2E 1개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · 직접 수정 단일 화면 — DONE
+
+- 직접 수정 중에는 기존 퀴즈 미리보기를 숨기고 편집 폼만 표시한다.
+- 검증: 미리보기 미노출 컴포넌트 테스트의 의도한 실패를 확인한 뒤 작성 컴포넌트 7개와 관련 E2E 1개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · 직접 수정·LLM 수정 독립 처리 — DONE
+
+- 미반영 직접 수정 초안이 있어도 LLM 요청을 허용하고 두 초안을 독립적으로 유지한다. 마지막으로 성공한 반영 결과를 현재 후보로 사용한다.
+- 검증: 직접 수정 초안 중 LLM 입력·요청과 마지막 직접 수정 반영 테스트의 의도한 실패를 확인한 뒤 작성 컴포넌트 7개와 관련 E2E 1개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 80개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · LLM 대화 최신 위치 복원 — DONE
+
+- LLM 대화에 진입하거나 새 응답이 추가되면 대화 본문을 맨 아래 최신 메시지 위치로 이동한다.
+- 검증: 재진입 스크롤 위치 컴포넌트 테스트의 의도한 실패를 확인한 뒤 작성 컴포넌트 8개 통과. Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과(lint·TypeScript·Jest 81개·build·Playwright 15개). 독립 리뷰는 남아 있다.
+
+### A · 검토·승인 흐름 단순화 — DONE
+
+- 검토 상세는 저장된 퀴즈 미리보기를 기본으로 표시하고 `직접 수정`을 선택했을 때만 편집 폼을 보여준다. 수정 저장 후 미리보기로 돌아간다.
+- 별도 `검토 완료 저장` 버튼을 제거하고 `승인` 한 번이 기존 `MARK_REVIEWED`와 `approve` 요청을 최신 버전으로 순서대로 처리한다. 승인된 기존 버전은 PENDING 수정본이 있을 때 접힌 `현재 공개본과 비교` 영역으로만 제공한다.
+- 검토 컴포넌트 테스트의 의도한 실패를 확인한 뒤 관련 단위 테스트 8개와 검토·승인 및 오래된 탭 E2E를 통과했다. 첫 전체 검증에서 기존 영문 `PUBLIC` 기대값 1건을 한국어 상태 문구에 맞춰 수정했고, 마지막 코드 변경 후 Node 22.23.3에서 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 81개·production build·Playwright 15개. 독립 리뷰는 남아 있다.
+
+### A · 생성 모달 본문 스크롤·탭 고정 — DONE
+
+- `버그리와 퀴즈 다듬기` 모달과 작업 공간의 스크롤을 잠그고 선택된 퀴즈의 공통 Tabs panel만 세로 스크롤하도록 변경했다. 모달 헤더와 퀴즈 선택 탭은 본문 스크롤 위치와 관계없이 유지한다.
+- 모바일 직접 수정 폼을 끝까지 스크롤한 뒤 본문 overflow와 탭 위치를 실측하는 E2E의 의도한 실패를 확인하고 통과했다. 모바일 실화면에서도 하단 편집 동작과 퀴즈 탭이 동시에 보이는 것을 확인했다.
+- Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 81개·production build·Playwright 16개. 독립 리뷰는 남아 있다.
+
+### A · 검토 재생성 모달 — DONE
+
+- 검토 미리보기의 `추가 프롬프트로 재생성`을 `직접 수정`과 같은 버튼 그룹으로 옮기고, 공통 Modal의 textarea에서 수정 요청을 입력하도록 변경했다. 기존 독립 재생성 카드는 제거했다.
+- 재생성 실패 시 모달과 입력을 유지하고 성공 시 모달을 닫아 새 PENDING 미리보기로 돌아간다. 버튼 위계·모달 입력 보존 테스트의 의도한 실패를 확인한 뒤 검토 단위 테스트 8개와 검토·승인 E2E를 통과했으며 모바일 실화면을 확인했다.
+- Node 22.23.3에서 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 81개·production build·Playwright 16개. 독립 리뷰는 남아 있다.
+
+### A · 생성 후보 검토 진입·삭제 — DONE
+
+- 후보별 `검토·승인`을 제거하고, 남은 후보가 모두 임시저장 또는 바로 공개로 처리된 뒤에만 상단에 단일 검토 진입을 표시한다.
+- 현재 후보를 삭제하는 타입 API·Mock 서비스·UI를 추가했다. 이미 저장·공개한 후보는 연결 퀴즈도 soft delete하며, 삭제 후 탭·편집 초안 인덱스를 재정렬한다.
+- 의도한 단위 테스트 실패를 확인한 뒤 API 권한·충돌·HTTP 직렬화, UI 노출 조건·삭제, 검토 이동·새로고침 복원을 검증했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/84 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 마지막 생성 후보 삭제 복원 — DONE
+
+- 모든 후보를 삭제한 `GenerationBatch`의 빈 `candidates`를 정상 상태로 검증해, 다음 API 요청이나 새로고침에서 `STORAGE_CORRUPT`로 잘못 판정하던 문제를 수정했다. 이미 저장된 빈 묶음도 초기화 없이 다시 읽힌다.
+- 마지막 후보 삭제 후 새 API 클라이언트 복원과 브라우저 새로고침을 추가했다. 의도한 `STORAGE_CORRUPT` 실패를 확인한 뒤 Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/84 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 미처리 생성 후보 닫기 경고 — DONE
+
+- 생성 모달에 임시저장·공개하지 않은 후보가 하나라도 있으면 닫기 버튼과 Escape에서 소실 경고를 표시한다. 취소하면 모달을 유지하고, 모든 후보를 임시저장·공개·삭제했으면 경고 없이 닫는다.
+- 공통 Modal의 cancel 기본 닫기를 막아 호출부가 닫기를 거부할 수 있게 했다. 의도한 경고 미호출 실패를 확인했고, Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/86 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · LLM 요청 전송 아이콘 — DONE
+
+- LLM 추가 요청의 `요청 보내기` 텍스트 버튼을 종이비행기 아이콘 버튼으로 바꾸고, 접근성 이름·hover 제목·로딩·비활성 동작은 유지했다.
+- Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/86 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 퀴즈 관리 상세 UX 재구성 — DONE
+
+- 관리 상세의 목록 복귀·퀴즈 제목·상태를 sticky 헤더로 통합하고, 편집 폼을 기본 정보·문제 구성·해설·분류 섹션으로 나뉘다. 원본 학습 내용은 기본으로 접고 Markdown 편집기와 선택지 밀도를 줄였다.
+- 추천 태그를 입력 아래 칩으로 변경하고, 선택지의 입력·정답·삭제를 컴팩트한 행으로 재배치했다. 편집 중 변경 상태·취소·저장은 viewport 하단 고정 바에 두고, 재조회는 아이콘, 삭제는 비편집 상태의 독립 위험 영역으로 분리했다.
+- 의도한 구조 테스트 실패를 확인한 뒤 관리 컴포넌트와 승인·수정·재생성·공개 범위·삭제 모바일 E2E를 통과했고 데스크톱·390px 실화면을 확인했다. Node 22.23.3 `PLAYWRIGHT_PORT=3291 npm run verify` 전체 통과: lint·TypeScript·Jest 20 suites/87 tests·production build·Playwright 16 tests. 독립 리뷰는 남아 있다.
+
+### A · 내 퀴즈 목록 탐색 UX — DONE
+
+- 큰 반복 카드를 컴팩트한 목록 행으로 바꾸고 전체 개수·상태별 개수, 제목·태그 검색, 검토 필요·공개·나만 보기 필터, 최근·오래된·제목순 정렬과 10개 단위 페이지를 제공한다. wire 상태값은 사용자 문구와 배지로 표시하고 항목 전체에서 상태에 맞는 검토·관리 화면으로 이동한다.
+- 검색·필터·정렬·페이지를 URL에 보존해 상세 화면에서 돌아오거나 새로고침해도 목록 맥락을 유지한다. 새 퀴즈 만들기를 주요 동작으로 정리하고 새로고침은 정렬 옆 아이콘으로 축소했다.
+- 목록 단위 테스트 4개와 검색 조건 복귀·390px 가로 넘침 E2E를 추가하고 데스크톱·모바일 production 화면을 확인했다. Node 22.23.3 `PLAYWRIGHT_PORT=3293 npm run verify` 전체 통과: lint·TypeScript·Jest 21 suites/93 tests·production build·Playwright 17 tests. 독립 리뷰는 남아 있다.
+
+### A · 채팅 Enter 전송 — DONE
+
+- 최초 학습 대화와 퀴즈 LLM 수정 textarea에서 Enter는 전송하고 Shift+Enter는 줄바꿈으로 동작한다. 한글 등 IME 조합 중 Enter는 전송하지 않으며 기존 전송 버튼도 유지한다.
+- 두 채팅의 키보드 단위 테스트와 실제 브라우저의 Enter·Shift+Enter 흐름을 추가했다. Node 22.23.3 `PLAYWRIGHT_PORT=3293 npm run verify` 전체 통과: lint·TypeScript·Jest 21 suites/93 tests·production build·Playwright 17 tests. 독립 리뷰는 남아 있다.
+
+### A/B 통합 · dev 충돌 해결 — DONE
+
+- `origin/dev`의 퀴즈 작성·관리 기능과 `feat/solving-quiz`의 홈 풀이·탐색 기능을 병합한다. 작성 대화와 학습 데모 상태, 작성·탐색 HTTP 계약, 공통 Tabs·Modal 동작을 모두 유지한다.
+- 공통 Modal의 StrictMode 닫힘 경합과 URL 전환 후 Tabs 키보드 포커스 소실을 통합 테스트에서 발견해 수정했다. Node 22.23.3에서 `PLAYWRIGHT_PORT=3125 npm run verify` 전체 통과: lint·TypeScript·Jest 27 suites/123 tests·production build·Playwright 34 tests.
+- 독립 UX 리뷰는 3002의 홈·탐색·개발자·작성 화면을 1440px/390px에서 확인했으며 중대한 병합 회귀 없이 수정 0회로 종료했다. 구현자 외 코드 리뷰와 최종 병합 판단은 남아 있다.
+
+## P08-DEV-MERGE 상점·퀴즈 기능 통합
+
+- 상태: IN_PROGRESS(구현자 외 코드 리뷰 대기). 사용자와 파일별 충돌을 해결하여 dev의 작성·풀이·탐색과 상점의 구매·미리보기·공간 편집을 함께 보존했다. 공통 Select의 문자열/객체 옵션·가로 배치, Modal의 방 크기·대화 레이아웃·초기 포커스를 통합했다. 헤더 로고는 사용자 결정대로 홈으로 연결한다.
+- HTTP 검사는 양쪽 9개 테스트를 모두 유지했고 엔드포인트 계약 합집합 44개를 확인했다. 통합 검증의 첫 lint에서 상수 사이 빈 줄 누락을 수정했다.
+- Node v22.23.3 npm run verify 전체 통과: lint·TypeScript·Jest 36 suites/175 tests·도구 3 tests·build·Playwright 109 tests. 로그 .bugri-hooks/merge-verify-2.log. 충돌 표식과 git diff --check 확인.
+- ux-review-loop 독립 리뷰는 Chromium 1440px/390px 홈 풀이·상점·내 공간·선택 정렬·모달 Esc/포커스 복귀를 확인했으며 병합 회귀 없이 수정 0회로 종료했다. fresh dummy 정상 흐름 중심이며 구매와 모든 배치 제스처를 독립 리뷰에서 확인한 것은 아니다. 캡처 .bugri-hooks/previews/merge-*.png. 사용자 요청에 따라 병합 커밋을 푸시하고 Draft PR #10을 갱신한다.

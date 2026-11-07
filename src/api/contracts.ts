@@ -3,9 +3,11 @@ import {
   Category,
   type DeskObject,
   QuizStatus,
+  type ConversationRole,
   type LearningMode,
   type LearningState,
   type QuizScope,
+  DiscoveryKind,
 } from "@/api/constants";
 
 export {
@@ -95,6 +97,19 @@ export interface LearningQuizView {
   hashtagIds: string[];
 }
 
+export interface AuthoringMessage {
+  messageId: string;
+  role: ConversationRole;
+  content: string;
+}
+
+export interface AuthoringConversation {
+  version: number;
+  messages: AuthoringMessage[];
+  draft: string;
+  latestBatchId: string | null;
+}
+
 export interface GenerationBatch {
   batchId: string;
   sourceContent: string;
@@ -102,6 +117,7 @@ export interface GenerationBatch {
     candidateId: string;
     content: QuizContent;
     savedQuizId: string | null;
+    history?: { prompt: string; content: QuizContent }[];
   }[];
 }
 
@@ -246,13 +262,115 @@ export type PendingRequest = VersionRequest &
     | { action: "MARK_REVIEWED" }
   );
 
+export interface DiscoveryQuery {
+  kind: DiscoveryKind;
+  query: string;
+  page: number;
+  pageSize: number;
+}
+
+export type DiscoveryItem =
+  | {
+      type: typeof DiscoveryKind.USER;
+      user: User;
+      subscribed: boolean;
+    }
+  | {
+      type: typeof DiscoveryKind.HASHTAG;
+      hashtag: Hashtag;
+      subscribed: boolean;
+    };
+
+export interface DiscoveryPage {
+  items: DiscoveryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface DeveloperPageQuery {
+  publicId: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface DeveloperQuizzesPage {
+  user: User;
+  subscribed: boolean;
+  items: {
+    quizId: string;
+    title: string;
+    hashtagIds: string[];
+    updatedAt: string;
+  }[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface DeveloperTagsPage {
+  items: (Hashtag & {
+    quizCount: number;
+    subscribed: boolean;
+  })[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface ApiOperations {
+  authoringConversation: {
+    request: Record<string, never>;
+    response: AuthoringConversation;
+  };
+  sendAuthoringMessage: {
+    request: { content: string; expectedVersion: number };
+    response: AuthoringConversation;
+  };
+  generateFromConversation: {
+    request: { draft: string; expectedVersion: number };
+    response: {
+      conversation: AuthoringConversation;
+      batch: GenerationBatch;
+    };
+  };
   generate: {
     request: { sourceContent: string };
     response: GenerationBatch;
   };
   generationBatch: {
     request: { batchId: string };
+    response: GenerationBatch;
+  };
+  publishCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+      reviewed: true;
+    };
+    response: GenerationBatch;
+  };
+  editCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+      content: QuizContent;
+    };
+    response: GenerationBatch;
+  };
+  refineCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+      prompt: string;
+    };
+    response: GenerationBatch;
+  };
+  deleteCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+    };
     response: GenerationBatch;
   };
   saveBatch: {
@@ -301,6 +419,20 @@ export interface ApiOperations {
   unsubscribe: {
     request: { subscriptionId: string };
     response: { deleted: true };
+  };
+  developerQuizzes: {
+    request: DeveloperPageQuery & {
+      hashtagId?: string | null;
+    };
+    response: DeveloperQuizzesPage;
+  };
+  developerTags: {
+    request: DeveloperPageQuery & { query: string };
+    response: DeveloperTagsPage;
+  };
+  searchDiscovery: {
+    request: DiscoveryQuery;
+    response: DiscoveryPage;
   };
   discoverUsers: {
     request: Record<string, never>;

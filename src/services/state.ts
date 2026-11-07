@@ -1,5 +1,6 @@
 import type {
   Answer,
+  AuthoringConversation,
   Equipment,
   DeskPositions,
   DeskTransforms,
@@ -37,6 +38,9 @@ export interface StoredDay {
 
 export interface UserState {
   schemaVersion: 1;
+  /** One-time mock fixture upgrade; absent in older v1 snapshots. */
+  learningDemoVersion?: 1;
+  authoringConversation?: AuthoringConversation;
   userId: string;
   quizzes: StoredQuiz[];
   batches: GenerationBatch[];

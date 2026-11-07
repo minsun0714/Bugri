@@ -9,7 +9,7 @@ export const styles = {
   "ui-tag":
     "ui-tag border border-line bg-white rounded-[20px] py-2 px-3.25 text-[12px] cursor-pointer text-muted font-semibold [&[aria-pressed='true']]:bg-[#e9ddff] [&[aria-pressed='true']]:border-[#b99ae9] [&[aria-pressed='true']]:text-primary",
   "ui-field":
-    "ui-field flex flex-col gap-2.25 w-full [&_label]:text-[12px] [&_label]:font-[650] [&_input]:text-[13px] [&_input]:border [&_input]:border-line [&_input]:rounded-[12px] [&_input]:p-3.25 [&_input]:bg-white [&_input]:text-foreground [&_input]:w-full [&_input]:min-w-0 [&_textarea]:text-[13px] [&_textarea]:border [&_textarea]:border-line [&_textarea]:rounded-[12px] [&_textarea]:p-3.25 [&_textarea]:bg-white [&_textarea]:text-foreground [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:leading-[1.8] [&_select]:text-[13px] [&_select]:border [&_select]:border-line [&_select]:rounded-[12px] [&_select]:p-3.25 [&_select]:bg-white [&_select]:text-foreground [&_select]:w-full [&_select]:min-w-0 [&_input:disabled]:bg-[#f2eff8] [&_input:disabled]:text-[#9a90a9] [&_input[aria-invalid='true']]:border-[#d14a78] [&_small]:text-[11px] [&_small]:text-muted [&_.error-text]:text-[#af3158] [&_.counter]:text-right [&_.counter]:[font-variant-numeric:tabular-nums] [&_.tag-input-shell_input]:[flex:1_1_150px] [&_.tag-input-shell_input]:w-auto [&_.tag-input-shell_input]:min-w-[120px] [&_.tag-input-shell_input]:[border:0] [&_.tag-input-shell_input]:p-1.75 [&_.tag-input-shell_input]:bg-transparent [&_.tag-input-shell_input]:[outline:none]",
+    "ui-field flex flex-col gap-2.25 w-full [&_label]:text-[12px] [&_label]:font-[650] [&_input]:text-[13px] [&_input]:border [&_input]:border-line [&_input]:rounded-[12px] [&_input]:p-3.25 [&_input]:bg-white [&_input]:text-foreground [&_input]:w-full [&_input]:min-w-0 [&_textarea]:text-[13px] [&_textarea]:border [&_textarea]:border-line [&_textarea]:rounded-[12px] [&_textarea]:p-3.25 [&_textarea]:bg-white [&_textarea]:text-foreground [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:leading-[1.8] [&_select]:text-[13px] [&_select]:border [&_select]:border-line [&_select]:rounded-[12px] [&_select]:p-3.25 [&_select]:bg-white [&_select]:text-foreground [&_select]:w-full [&_select]:min-w-0 [&_input:disabled]:bg-[#f2eff8] [&_input:disabled]:text-[#9a90a9] [&_textarea:disabled]:bg-[#f2eff8] [&_textarea:disabled]:text-[#9a90a9] [&_input[aria-invalid='true']]:border-[#d14a78] [&_small]:text-[11px] [&_small]:text-muted [&_.error-text]:text-[#af3158] [&_.counter]:text-right [&_.counter]:[font-variant-numeric:tabular-nums] [&_.tag-input-shell_input]:[flex:1_1_150px] [&_.tag-input-shell_input]:w-auto [&_.tag-input-shell_input]:min-w-[120px] [&_.tag-input-shell_input]:[border:0] [&_.tag-input-shell_input]:p-1.75 [&_.tag-input-shell_input]:bg-transparent [&_.tag-input-shell_input]:[outline:none]",
   "ui-select-inline":
     "ui-select-inline flex items-center gap-2 text-xs text-muted [&_select]:rounded-xl [&_select]:border [&_select]:border-line [&_select]:bg-surface [&_select]:px-3 [&_select]:py-2 [&_select]:text-foreground",
   "ui-switch":
@@ -33,7 +33,7 @@ export const styles = {
   "ui-code":
     "ui-code bg-[#302443] rounded-[9px] text-[#dcf3a6] overflow-hidden text-[12px] [&_>_div]:flex [&_>_div]:justify-between [&_>_div]:py-3 [&_>_div]:px-4.25 [&_>_div]:border-b [&_>_div]:border-b-[#ffffff16] [&_>_div]:text-[#c4afd9] [&_>_div]:[font:10px_monospace] [&_pre]:p-4.75 [&_pre]:overflow-auto [&_pre]:leading-[1.9] [&_pre]:text-[12px] [&_pre]:[tab-size:2] [&_.hljs-keyword]:text-[#d5acff] [&_.hljs-selector-tag]:text-[#d5acff] [&_.hljs-literal]:text-[#d5acff] [&_.hljs-string]:text-[#cef097] [&_.hljs-attr]:text-[#cef097] [&_.hljs-number]:text-[#ffc38e] [&_.hljs-built_in]:text-[#ffc38e] [&_.hljs-comment]:text-[#aaa0bc] [&_.hljs-title]:text-[#9cd9f3] [&_.hljs-function]:text-[#9cd9f3]",
   "ui-tabs":
-    "ui-tabs flex border-b border-b-line gap-5.5 [&_button]:[border:0] [&_button]:bg-transparent [&_button]:py-3 [&_button]:px-0 [&_button]:text-[12px] [&_button]:text-muted [&_button]:cursor-pointer [&_button]:border-b-2 [&_button]:border-b-transparent [&_button[aria-selected='true']]:text-primary [&_button[aria-selected='true']]:border-primary [&_button[aria-selected='true']]:font-bold",
+    "ui-tabs flex overflow-x-auto whitespace-nowrap [&_button]:shrink-0 [&_button:disabled]:opacity-45 border-b border-b-line gap-5.5 [&_button]:[border:0] [&_button]:bg-transparent [&_button]:py-3 [&_button]:px-0 [&_button]:text-[12px] [&_button]:text-muted [&_button]:cursor-pointer [&_button]:border-b-2 [&_button]:border-b-transparent [&_button[aria-selected='true']]:text-primary [&_button[aria-selected='true']]:border-primary [&_button[aria-selected='true']]:font-bold",
   "tab-panel":
     "tab-panel pt-5.5 px-0 pb-0 text-[13px] text-muted",
   "ui-modal":
@@ -42,6 +42,8 @@ export const styles = {
     "p-6.25 [width:min(440px,_calc(100%_-_32px))]",
   "modal-room":
     "w-[calc(100%_-_40px)] max-w-[1124px] p-3 md:w-[calc(100%_-_96px)]",
+  "conversation-modal":
+    "m-auto h-dvh max-h-dvh w-full max-w-none overflow-hidden border border-line bg-surface p-4 text-foreground open:flex open:flex-col sm:h-[min(850px,90dvh)] sm:w-[min(840px,calc(100%-48px))] sm:rounded-3xl sm:p-6 [&::backdrop]:bg-foreground/40 [&::backdrop]:backdrop-blur-sm",
   "modal-header":
     "modal-header flex items-center justify-between mb-3.75 [&_h2]:text-[20px]",
   "ui-toast":
@@ -59,11 +61,13 @@ export const styles = {
   "editor-title":
     "editor-title text-[12px] font-[650] flex items-center justify-between mb-2.5 [&_span]:[font:10px_monospace] [&_span]:text-muted",
   "markdown-editor":
-    "markdown-editor [&_.tab-panel]:pt-0 [&_textarea]:block [&_textarea]:w-full [&_textarea]:min-h-[220px] [&_textarea]:resize-y [&_textarea]:border [&_textarea]:border-line [&_textarea]:rounded-[10px] [&_textarea]:bg-white [&_textarea]:p-3.5 [&_textarea]:text-foreground [&_textarea]:[font:12px/1.9_monospace] [&_textarea]:[tab-size:2] [&_.error-text]:text-[#af3158] [&_.error-text]:text-[11px] [&_.error-text]:mt-1.75",
+    "markdown-editor [&_.tab-panel]:pt-0 [&_textarea]:block [&_textarea]:w-full [&_textarea]:min-h-[220px] [&_textarea]:resize-y [&_textarea]:border-0 [&_textarea]:border-t [&_textarea]:border-line [&_textarea]:rounded-none [&_textarea]:rounded-b-[10px] [&_textarea]:bg-white [&_textarea]:p-3.5 [&_textarea]:text-foreground [&_textarea]:[font:12px/1.9_monospace] [&_textarea]:[tab-size:2] [&_textarea]:outline-none [&_.error-text]:text-[#af3158] [&_.error-text]:text-[11px] [&_.error-text]:mt-1.75",
+  "editor-shell":
+    "editor-shell rounded-[10px] border border-line bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15",
   "editor-tools":
-    "editor-tools flex items-center justify-between flex-wrap gap-2 py-2.5 px-0 [&_>_span]:text-[10px] [&_>_span]:text-muted",
+    "editor-tools flex items-center justify-end flex-wrap gap-2 p-2.5",
   "editor-picker":
-    "editor-picker flex gap-2.5 items-center flex-wrap bg-[#f4f1f9] p-3 rounded-[8px] mb-2.5 text-[11px] [&_select]:p-1.75 [&_select]:border [&_select]:border-line [&_select]:rounded-[6px] [&_select]:bg-white [&_select]:text-foreground",
+    "editor-picker mx-2.5 mb-2.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 rounded-xl bg-canvas p-3",
   "editor-footer":
     "editor-footer flex justify-between gap-2.5 flex-wrap mt-2.5 text-[10px] text-muted",
   "markdown-preview":

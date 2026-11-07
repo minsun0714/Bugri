@@ -8,8 +8,9 @@ import {
   useRef,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
-  type ReactNode,
+  type KeyboardEventHandler,
   type SelectHTMLAttributes,
+  type ReactNode,
 } from "react";
 
 type Tone = "neutral" | "success" | "warning" | "danger";
@@ -121,13 +122,28 @@ export function TextArea({
   value,
   onChange,
   limit = 10000,
+  showCount = true,
+  id: suppliedId,
+  placeholder = "오늘 배운 내용을 자유롭게 적어보세요. 코드도 좋아요.",
+  rows = 5,
+  disabled,
+  className,
+  onKeyDown,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   limit?: number;
+  showCount?: boolean;
+  id?: string;
+  placeholder?: string;
+  rows?: number;
+  disabled?: boolean;
+  className?: string;
+  onKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
 }) {
-  const id = useId();
+  const generated = useId();
+  const id = suppliedId ?? generated;
   const { length: count } = Array.from(value);
 
   return (
@@ -136,20 +152,30 @@ export function TextArea({
       <textarea
         id={id}
         value={value}
-        onChange={(event) =>
+        onChange={(event) => {
+          const characters = Array.from(event.target.value);
+
           onChange(
-            Array.from(event.target.value)
-              .slice(0, limit)
-              .join(""),
-          )
+            Number.isFinite(limit)
+              ? characters.slice(0, limit).join("")
+              : characters.join(""),
+          );
+        }}
+        aria-describedby={
+          showCount ? `${id}-count` : undefined
         }
-        aria-describedby={`${id}-count`}
-        placeholder="오늘 배운 내용을 자유롭게 적어보세요. 코드도 좋아요."
-        rows={5}
+        placeholder={placeholder}
+        rows={rows}
+        disabled={disabled}
+        className={className}
+        onKeyDown={onKeyDown}
       />
-      <small id={`${id}-count`} className={"counter"}>
-        {count.toLocaleString()} / {limit.toLocaleString()}
-      </small>
+      {showCount && (
+        <small id={`${id}-count`} className={"counter"}>
+          {count.toLocaleString()} /{" "}
+          {limit.toLocaleString()}
+        </small>
+      )}
     </div>
   );
 }
@@ -160,14 +186,16 @@ export function Select({
   layout = "stacked",
   id,
   ...props
-}: {
+}: Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  "children"
+> & {
   label: string;
   layout?: "stacked" | "inline";
-  options: readonly {
-    label: string;
-    value: string;
-  }[];
-} & SelectHTMLAttributes<HTMLSelectElement>) {
+  options: readonly (
+    string | { value: string; label: string }
+  )[];
+}) {
   const generated = useId();
   const fieldId = id ?? generated;
 
@@ -181,11 +209,18 @@ export function Select({
     >
       <label htmlFor={fieldId}>{label}</label>
       <select {...props} id={fieldId}>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
+        {options.map((option) => {
+          const { value, label: text } =
+            typeof option === "string"
+              ? { value: option, label: option }
+              : option;
+
+          return (
+            <option key={value} value={value}>
+              {text}
+            </option>
+          );
+        })}
       </select>
     </div>
   );
@@ -216,14 +251,23 @@ export function Switch({
 
 export function Checkbox({
   label,
+  variant = "inline",
+  checked,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & {
   label: string;
+  variant?: "inline" | "choice";
 }) {
   return (
-    <label className={styles["ui-check"]}>
-      <input {...props} type="checkbox" />
-      {label}
+    <label
+      className={
+        variant === "choice"
+          ? `${styles["ui-choice"]} ${checked ? "selected" : ""}`
+          : styles["ui-check"]
+      }
+    >
+      <input {...props} checked={checked} type="checkbox" />
+      <span className="min-w-0 break-words">{label}</span>
     </label>
   );
 }
@@ -345,33 +389,54 @@ export function Tabs({
   value,
   onChange,
   children,
+  label = "컴포넌트 미리보기",
+  disabled = false,
+  className = "",
+  panelClassName = "",
 }: {
+  label?: string;
+  disabled?: boolean;
   items: string[];
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
+  className?: string;
+  panelClassName?: string;
 }) {
   const id = useId();
   const index = items.indexOf(value);
+  const pendingTabFocus = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (pendingTabFocus.current !== value) return;
+
+    document.getElementById(`${id}-${index}`)?.focus();
+    pendingTabFocus.current = null;
+  }, [id, index, value]);
 
   return (
-    <div>
+    <div className={`min-w-0 ${className}`}>
       <div
         className={styles["ui-tabs"]}
         role="tablist"
-        aria-label="컴포넌트 미리보기"
+        aria-label={label}
       >
         {items.map((item, i) => (
           <button
             type="button"
+            disabled={disabled}
             key={item}
             role="tab"
             id={`${id}-${i}`}
             aria-controls={`${id}-panel`}
             aria-selected={item === value}
+            aria-disabled={disabled}
             tabIndex={item === value ? 0 : -1}
-            onClick={() => onChange(item)}
+            onClick={() => {
+              if (!disabled) onChange(item);
+            }}
             onKeyDown={(event) => {
+              if (disabled) return;
               let next = i;
 
               if (event.key === "ArrowRight")
@@ -384,6 +449,7 @@ export function Tabs({
                 next = items.length - 1;
               else return;
               event.preventDefault();
+              pendingTabFocus.current = items[next];
               onChange(items[next]);
               document
                 .getElementById(`${id}-${next}`)
@@ -399,7 +465,7 @@ export function Tabs({
         id={`${id}-panel`}
         aria-labelledby={`${id}-${index}`}
         tabIndex={0}
-        className={styles["tab-panel"]}
+        className={`${styles["tab-panel"]} ${panelClassName}`}
       >
         {children}
       </div>
@@ -413,12 +479,16 @@ export function Modal({
   title,
   children,
   size = "standard",
+  initialFocusSelector,
+  layout = "default",
 }: {
+  layout?: "default" | "conversation";
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   size?: "standard" | "room";
+  initialFocusSelector?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -426,17 +496,30 @@ export function Modal({
   useEffect(() => {
     const { current: dialog } = ref;
 
-    if (open) dialog?.showModal();
-    else dialog?.close();
-  }, [open]);
+    if (open) {
+      dialog?.showModal();
+      if (initialFocusSelector)
+        dialog
+          ?.querySelector<HTMLElement>(initialFocusSelector)
+          ?.focus();
+    } else dialog?.close();
+
+    return () => dialog?.close();
+  }, [open, initialFocusSelector]);
 
   return (
     <dialog
       ref={ref}
-      className={`${styles["ui-modal"]} ${size === "room" ? styles["modal-room"] : styles["modal-standard"]}`}
+      className={
+        layout === "conversation"
+          ? styles["conversation-modal"]
+          : `${styles["ui-modal"]} ${size === "room" ? styles["modal-room"] : styles["modal-standard"]}`
+      }
       aria-labelledby={id}
-      onCancel={onClose}
-      onClose={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
     >
       <div className={styles["modal-header"]}>
         <h2 id={id}>{title}</h2>

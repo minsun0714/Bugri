@@ -80,3 +80,19 @@ export const LayerAction = {
 
 export type LayerAction =
   (typeof LayerAction)[keyof typeof LayerAction];
+
+export const DiscoveryKind = {
+  USER: "USER",
+  HASHTAG: "HASHTAG",
+} as const;
+
+export type DiscoveryKind =
+  (typeof DiscoveryKind)[keyof typeof DiscoveryKind];
+
+export const ConversationRole = {
+  USER: "USER",
+  ASSISTANT: "ASSISTANT",
+} as const;
+
+export type ConversationRole =
+  (typeof ConversationRole)[keyof typeof ConversationRole];
