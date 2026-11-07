@@ -27,7 +27,7 @@ export function getNavigationItems(
     {
       label: "태그 탐색",
       href: withDemoUser("/discover/tags", userId),
-      activePaths: ["/discover/tags"],
+      activePaths: ["/discover/tags", "/tags"],
     },
     {
       label: "Shop",
@@ -111,6 +111,15 @@ export function getBreadcrumbs(
   const matched = routes[pathname];
 
   if (matched) return [home, ...matched];
+  if (/^\/tags\/[^/]+\/quizzes$/.test(pathname))
+    return [
+      home,
+      {
+        label: "태그 탐색",
+        href: withDemoUser("/discover/tags", userId),
+      },
+      { label: "태그별 공개 퀴즈" },
+    ];
   if (
     /^\/developers\/[^/]+\/quizzes$/.test(pathname) ||
     /^\/users\/[^/]+$/.test(pathname)

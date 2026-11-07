@@ -32,12 +32,18 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 - `/?user={userId}&attempt={attemptId}&tag={hashtagId}`: 풀이·완료 결과와 단일 태그를 복원한다. `tag` 생략은 전체, `mode=REPLAY`는 완료 문제 다시 풀기다. 미제출 답안 입력 자체는 새로고침 시 복원하지 않는다.
 - `/solve?user=author&quiz={quizId}`: 작성자 화면 등에서 특정 퀴즈로 직접 진입하는 경로. 목록 없이 해당 퀴즈를 바로 표시하며 API가 PRIVATE/PUBLIC 접근을 판단한다. 결과 URL은 `/solve?user={userId}&attempt={attemptId}`다. 인자 없는 `/solve`는 홈으로 이동한다.
 - 홈의 문제 선택은 `learningQuiz`/`learningNext` → `startAttempt(context: LEARNING)` 순서다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다. 특정 퀴즈 직접 풀이는 DIRECT를 사용한다. 태그 변경은 구독을 수정하지 않고, 다음 문제는 현재 태그·모드를 유지한다.
-- 마지막 결과 화면의 ‘다음 문제’는 `learningNext`를 호출하고 남은 문제가 없으면 소진 화면으로 전환한다. 빈 상태·소진 상태의 ‘태그 탐색’은 `/discover/tags?user={userId}`로 이동한다. `/discover/developers`와 `/discover/tags`는 독립 경로이며 기존 `/discover?kind=...`는 검색 조건을 보존해 리다이렉트한다. 대상은 경로, 검색어·페이지는 `query`·`page`로 복원한다. 검색 버튼/Enter는 1페이지부터 조회한다.
-- `searchDiscovery`(`GET /discover/search`) 요청은 `{ kind: USER|HASHTAG, query, page, pageSize }`, 응답은 `{ items, page, pageSize, total }`이다. 화면은 20개씩 표시하며 API는 page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 코드 포인트를 검증한다. 검색 후 ID 순으로 정렬·페이지 처리한다. 개발자 검색은 표시된 `@publicId`도 허용한다. 범위 밖 페이지는 첫 페이지 복귀를 제공하며 검색 실패로 오인시키지 않는다.
+- 마지막 결과의 다음 문제에서 미풀이 후보를 소진하면 소진 화면을 표시한다. 사용자가 태그 탐색을 눌렀을 때 `/discover/tags?user={userId}`로 이동한다. 개발자 탐색(`/discover/developers`)과 태그 탐색은 독립 페이지이며 기존 `/discover?kind=...`는 새 경로로 리다이렉트한다. 검색어·페이지·더미 사용자는 `query`, `page`, `user`로 복원한다. 검색 버튼/Enter로 검색하며 조건 변경 시 1페이지부터 조회한다.
+- `searchDiscovery`(`GET /discover/search`)는 `{ kind: USER|HASHTAG, query, page, pageSize, subscribedOnly?: boolean }`을 받고 `{ items, page, pageSize, total }`을 반환한다. 태그 페이지의 내 구독 필터는 `subscribed=true` URL로 복원하고 `subscribedOnly: true`로 조회한다. HASHTAG 직접 구독을 검색·필터링한 뒤 ID순 정렬 및 페이지 처리하므로 다른 페이지의 구독도 누락하지 않는다. 개발자·개발자와 태그 조합 구독 관리는 이 필터의 대상이 아니다.
+- 화면은 20개씩 표시하고 API는 page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 유니코드 코드포인트를 검증한다. 검색은 대소문자를 구분하지 않으며 NFC 정규화하고, 태그 검색은 선행 `#`과 주변 공백을 제거하고 개발자 검색은 표시된 `@publicId`도 허용한다. UI도 같은 길이 기준으로 입력 오류를 표시한다. 잘못된 URL 검색어는 조회를 반복하지 않고 수정하도록 안내한다. 범위 밖 페이지는 첫 페이지 복귀를 제공한다.
+- 검색 대상은 모든 더미 개발자와 등록 태그이며 공개 퀴즈가 없는 태그도 포함한다. 태그 결과에는 `subscribed`와 `publicQuizCount`를 제공한다. 개수는 활성 PUBLIC 퀴즈만 포함하며 PRIVATE·PENDING·삭제 퀴즈와 답·해설·원문은 노출하지 않는다. `learningTags`는 기존대로 현재 구독에 맞는 공개 퀴즈의 태그만 반환한다.
+- 태그 페이지는 데모 로그인 전 구독·해제·학습 행동에 로그인 안내를 제공한다. 로그인 후 검색 조건을 유지하고 원래 행동을 자동 실행하지 않는다. 실제 인증은 아니며 URL user별 Mock 상태를 유지한다. 다른 페이지의 세션 통합까지 구현한 것은 아니다.
+- 구독 등록·해제는 현재 검색 조건을 유지하고 성공 토스트 및 구독 상태를 갱신한다. 내 구독 필터에서도 해제가 가능하며 결과에서 사라지면 결과 개수로 초점을 복구한다. 전체 목록에서는 같은 카드 버튼으로 복구한다. 공개 퀴즈 0개 태그는 구독할 수 있지만 학습 버튼은 비활성화한다. 학습 버튼을 명시적으로 누르면 해당 태그로 홈에 이동한다. 개발자 탐색의 전체 학습 이동은 공통 홈 링크를 사용한다.
+- 쿼리 키는 `['discovery', userId, request]`이며 구독 변경 후 discovery/developerQuizzes/developerTags/tagQuizzes/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 무효화한다. UI는 Mock·localStorage를 직접 접근하지 않는다. 검색·필터 후 결과 개수로 키보드 초점을 연결하고 메뉴는 항목 포커스·방향키·Escape·이탈 닫기를 지원한다.
+
 - USER 결과는 `user`, `subscribed`, `summary: { publicQuizCount, hashtags } | null`을 포함한다. 요약은 삭제되지 않은 활성 PUBLIC 퀴즈만 집계하며 태그는 등록 순서의 최대 3개다. 문제·정답·해설·원문은 포함하지 않는다. 타 사용자 저장 데이터가 손상되면 해당 요약만 null로 표시하고 정상 사용자 탐색은 유지한다. 손상 데이터를 초기값으로 대체하거나 덮어쓰지 않는다. HASHTAG 결과 계약은 유지한다.
 - 개발자 화면은 `discoverUsers`·`discoverHashtags`로 데모 사용자 검증과 구독 대상 이름을 조회하고, 로그인 시 `subscriptions`로 3종 내 구독을 조회한다. 이 공개 디렉터리 조회는 사용자 저장 데이터에 의존하지 않는다. 검색 목록 자체는 `searchDiscovery`로 페이지 처리한다. `subscriptions`·`subscribe`·`unsubscribe`는 현재 사용자 상태만 읽는다.
 - 개발자 탐색에서 방문자 구독 조작은 공통 데모 사용자 선택 모달을 열고 원래 검색 조건을 유지한다. 사용자 선택만으로 구독하지 않으며 사용자가 다시 명시적으로 실행한다. 구독 상태는 ‘구독 중’과 펼침형 해제 버튼으로 표시하고 성공/실패를 해당 상태와 함께 안내한다. 내 구독은 3종 구독의 목록·대상 이동·개별 해제를 제공한다. 방문자의 검색·공개프로필/퀴즈 이동은 user를 임의로 추가하지 않는다.
-- 개발자 이름은 `/users/[publicId]`, 공개 퀴즈 수는 `/developers/[publicId]/quizzes`로 연결한다. 개발자 카드의 학습 버튼 대신 공통 ‘홈에서 학습하기’를 제공한다. 태그 탐색은 기존 단일 태그 학습 이동을 유지한다. 구독 변경 후 discovery/developerQuizzes/developerTags/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다.
+- 개발자 이름은 `/users/[publicId]`, 공개 퀴즈 수는 `/developers/[publicId]/quizzes`로 연결한다. 개발자 카드의 학습 버튼 대신 공통 ‘홈에서 학습하기’를 제공한다. 태그 탐색은 기존 단일 태그 학습 이동을 유지한다. 구독 변경 후 discovery/developerQuizzes/developerTags/tagQuizzes/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다.
 - 잘못된 사용자·검색어는 입력 수정/사용자 복귀를 제공하고, 현재 사용자 저장 데이터 손상은 데이터를 유지한 채 다른 데모 사용자 선택 또는 복구 후 재조회 경로를 제공한다. 일시적 조회·저장소 접근 오류는 수동 재시도를 제공한다.
 - 결과 화면은 정오·제출 답안·정답·해설과 다음 행동만 표시하며 `Bugri` 캐릭터나 별도 반응 문구를 표시하지 않는다.
 - TanStack Query Provider는 풀이 화면에 한 번 생성한다. Attempt 키는 `['solving', userId, 'attempt', attemptId]`, 태그 키는 `['learningTags', userId]`다. 사용자·Attempt·필터 변경 시 입력과 mutation 화면을 새로 만든다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
@@ -224,3 +230,10 @@ BugCoin 내역은 최신순 10개씩 클라이언트 페이지네이션한다. `
 BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체·양수·음수인 행을 대상으로 한다. 0금액은 전체에만 나타난다. 필터 적용 후 페이지 수를 계산하며 필터를 바꾸면 첫 페이지, 사용자를 바꾸면 전체/첫 페이지로 초기화한다. 잔액은 필터와 무관하다. 결과가 없으면 선택한 지급/사용 내역이 없음을 표시하고 탭으로 복귀할 수 있다. API 조회와 저장 계약은 유지한다.
 
 후속 UI 개선에서 BugCoin 페이지 크기를 5개로 변경했다(기본 예시25건은5페이지). 필터·정렬·잔액·API 전체 조회 계약은 유지한다. 목록 날짜는 짧은 연월일로 표시하고 전체 시각·시간대는 time의 접근성 이름으로 보존한다.
+
+## 태그별 공개 퀴즈 목록 (TAG-QUIZ-CATALOG)
+
+- `tagQuizzes`: GET `/tags/{hashtagId}/quizzes`, 요청 `{hashtagId,page,pageSize}`, 응답 `{hashtag,subscribed,items:[{quizId,title,author:{userId,publicId,displayName}}],page,pageSize,total}`. page는 양의 정수, pageSize는 1~50이며 없는 태그는 NOT_FOUND다. 등록된 빈 태그는 total0으로 구분한다.
+- 모든 작성자의 활성 PUBLIC 퀴즈 중 태그에 해당하는 항목을 최근 공개 시각 내림차순·동률 quizId 오름차순으로 정렬한다. PRIVATE/PENDING/삭제/비활성은 제외한다. 정답·해설·문제 본문·원문은 반환하지 않는다.
+- `subscribed`는 현재 더미 사용자의 직접 HASHTAG 구독이다. 방문자 UI는 이 값을 개인 상태로 표시하지 않는다. 목록 조회는 구독을 변경하지 않는다. 기존 subscribe/unsubscribe 성공 시 `tagQuizzes` 사용자별 캐시도 무효화한다.
+- 화면 `/tags/[hashtagId]/quizzes`는 탐색의 query/discoveryPage/subscribed 조건을 보존해 돌아간다. 목록 page와 탐색 discoveryPage는 분리한다. URL user가 없으면 링크·검색으로 임의 사용자를 추가하지 않는다.

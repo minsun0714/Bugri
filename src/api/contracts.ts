@@ -277,6 +277,7 @@ export type PendingRequest = VersionRequest &
   );
 
 export interface DiscoveryQuery {
+  subscribedOnly?: boolean;
   kind: DiscoveryKind;
   query: string;
   page: number;
@@ -297,10 +298,20 @@ export type DiscoveryItem =
       type: typeof DiscoveryKind.HASHTAG;
       hashtag: Hashtag;
       subscribed: boolean;
+      publicQuizCount: number;
     };
 
 export interface DiscoveryPage {
   items: DiscoveryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface TagQuizzesPage {
+  hashtag: Hashtag;
+  subscribed: boolean;
+  items: { quizId: string; title: string; author: User }[];
   page: number;
   pageSize: number;
   total: number;
@@ -449,6 +460,14 @@ export interface ApiOperations {
   unsubscribe: {
     request: { subscriptionId: string };
     response: { deleted: true };
+  };
+  tagQuizzes: {
+    request: {
+      hashtagId: string;
+      page: number;
+      pageSize: number;
+    };
+    response: TagQuizzesPage;
   };
   developerQuizzes: {
     request: DeveloperPageQuery & {
