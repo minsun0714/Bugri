@@ -1510,3 +1510,12 @@
 
 - 상태: DONE(충돌해결·전체검증). 사용자 요청으로 최신dev119c929의데스크조작과PR25프로필카드/스트릭을통합한다. 문서3개는양쪽추가내용보존, HTTP엔드포인트검사는transformDesk/publicLearningDay를모두반영해51개로통합한다. 앞서제거한구독관리customEscape/rAF초점복원·전용단위테스트를복원하지않고클릭기준E2E를유지한다. 전체검증·독립통합리뷰후PR25를갱신하고사용자요청에따라dev에병합한다.
 - 독립정적통합리뷰: 양쪽API/서비스·문서보존, 구독관리삭제코드/테스트미복원및clickE2E유지, 중복제목/충돌마커/미해결인덱스없음. Node v22.23.3 `npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest54 suites/271개·도구3개·production build·E2E167개통과. 로그 `/tmp/pr25-dev-integration-verify.log`. 검증대상은b52d922+dev119c929통합코드이며이후변경은결과기록뿐이다. PR25를갱신하고사용자요청에따라dev에병합한다.
+
+### COIN-ROUTE — 코인 내역 전용 페이지
+
+- 상태: DONE(로컬 검증). 사용자 요청에 따라 `/my`를 `/coin-history`로 변경하고 풀이 기록·학습 시간대 설정 자리표시자를 제거한다. REQ-09의 잔액·거래 내역 규칙은 유지한다.
+- 범위: 페이지·프로필 메뉴·브레드크럼·관련 문서/테스트. 기존 `/my`는 사용자 쿼리를 보존해 새 경로로 연결한다. `/my/desk`는 유지한다.
+- 검증: 페이지 이동 변경으로 scoped lint/format, 전체 타입 검사, 관련 Jest와 navigation/profile/coin E2E 및 독립 UX/UI 화면 리뷰.
+
+- 결과: Node v22.23.3 scoped ESLint/Prettier·전체 TypeScript·Jest 4 suites/19개·production build·관련 E2E 16개 통과. 최초 타입 오류 수정 1회 후 통과. 전체 verify는 미실행(페이지 이동 변경의 로컬 완료 범위).
+- 독립 UX/UI R0와 코드 리뷰 완료, 필수 문제 없음·UI 수정 0회. [리뷰 및 검증 근거](ux-reviews/COIN-ROUTE.md). 화면은 PC/모바일 캡처, 조작은 E2E 근거로 확인. 로딩·오류·게스트 시각 상태는 이번 리뷰에서 미확인.

@@ -1,62 +1,23 @@
-import { ProductLayout } from "@/components/navigation/product-layout";
 import { Suspense } from "react";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { withDemoUser } from "@/components/navigation/routes";
-import { FeatureSectionShell } from "@/components/navigation/feature-section-shell";
-
-import { CoinHistory } from "@/components/coins/coin-history";
 
 type Props = { searchParams: Promise<{ user?: string }> };
 
-async function Content({ searchParams }: Props) {
+async function RedirectToCoinHistory({
+  searchParams,
+}: Props) {
   const { user } = await searchParams;
-  const initialUser =
-    user === "author" || user === "friend"
-      ? user
-      : "learner";
-  return (
-    <>
-      <h1 className="text-3xl font-semibold">마이페이지</h1>
-      <div className="mt-6">
-        <CoinHistory userId={initialUser} />
-        <section aria-label="개인 관리" className="mt-8">
-          <Link
-            href={withDemoUser("/my/desk", initialUser)}
-            className="flex items-center justify-between gap-4 border-t border-line py-5 text-sm font-semibold text-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
-          >
-            데스크 꾸미기 바로가기
-            <span aria-hidden="true">→</span>
-          </Link>
-          <FeatureSectionShell
-            compact
-            id="learning-history"
-            title="풀이 기록"
-          />
-          <FeatureSectionShell
-            compact
-            id="learning-timezone"
-            title="학습 시간대 설정"
-          />
-        </section>
-      </div>
-    </>
+
+  return redirect(
+    withDemoUser("/coin-history", user ?? null),
   );
 }
 
 export default function Page(props: Props) {
   return (
-    <ProductLayout>
-      <div>
-        <Suspense
-          fallback={
-            <p role="status" className="p-8 text-muted">
-              불러오는 중…
-            </p>
-          }
-        >
-          <Content {...props} />
-        </Suspense>
-      </div>
-    </ProductLayout>
+    <Suspense fallback={null}>
+      <RedirectToCoinHistory {...props} />
+    </Suspense>
   );
 }
