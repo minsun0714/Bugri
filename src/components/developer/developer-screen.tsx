@@ -296,11 +296,6 @@ function Catalog({
       onClick={() => {
         if (profile && !signedIn) {
           signIn();
-          onNotice(
-            data.user.userId === userId
-              ? "내 프로필로 로그인했어요."
-              : "데모 로그인했어요. 구독 버튼을 눌러 구독을 완료하세요.",
-          );
           return;
         }
         void subscribe
@@ -322,7 +317,7 @@ function Catalog({
       }}
     >
       {profile && !signedIn
-        ? "구독하기"
+        ? "데모 사용자 선택 후 구독하기"
         : profile && data.subscribed
           ? "개발자 구독 해제"
           : "개발자 구독하기"}

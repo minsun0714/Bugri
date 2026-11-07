@@ -6,9 +6,6 @@ for (const width of [1280, 390]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/users/bugri-author?user=author");
-    await page
-      .getByRole("button", { name: "Google 로그인 (데모)" })
-      .click();
     const edit = page.getByRole("button", {
       name: "프로필 편집",
       exact: true,

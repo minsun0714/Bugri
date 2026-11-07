@@ -1,3 +1,4 @@
+import { guestLearning } from "@/services/guest-learning";
 import { demoCoinHistory } from "@/mocks/coin-history";
 import { initialBugCoin } from "@/mocks/shop-items";
 import type {
@@ -80,6 +81,31 @@ export function createMockTransport(
       const requestId = globalThis.crypto.randomUUID();
 
       try {
+        if (
+          operation === "guestQuiz" ||
+          operation === "guestAnswer"
+        ) {
+          const storage =
+            suppliedStorage ?? window.localStorage;
+
+          const quizzes = users.flatMap(
+            ({ userId }) =>
+              readState(storage, userId).quizzes,
+          );
+
+          const data = guestLearning(
+            operation,
+            request as
+              Request<"guestQuiz"> | Request<"guestAnswer">,
+            quizzes,
+          );
+
+          return {
+            status: 200,
+            body: { data: clone(data) as Response<K> },
+          };
+        }
+
         requireValue(
           users.some((u) => u.userId === userId),
           "알 수 없는 더미 사용자입니다.",

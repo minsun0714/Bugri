@@ -5,16 +5,14 @@ for (const width of [1280, 390]) {
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/users/bugri-author?user=author");
+    await page.goto("/users/bugri-author");
     await expect(
       page.getByRole("button", {
         name: "프로필 편집",
         exact: true,
       }),
     ).toHaveCount(0);
-    await page
-      .getByRole("button", { name: "Google 로그인 (데모)" })
-      .click();
+    await page.goto("/users/bugri-author?user=author");
     await page
       .getByRole("button", {
         name: "프로필 편집",
@@ -166,11 +164,8 @@ for (const width of [1280, 390]) {
         name: "프로필 편집",
         exact: true,
       }),
-    ).toHaveCount(0);
+    ).toBeVisible();
     await page.goto("/users/bugri-author?user=friend");
-    await page
-      .getByRole("button", { name: "Google 로그인 (데모)" })
-      .click();
     await expect(
       page.getByRole("button", {
         name: "프로필 편집",
@@ -183,9 +178,6 @@ for (const width of [1280, 390]) {
       }),
     ).toBeVisible();
     await page.goto("/users/bugri-author?user=author");
-    await page
-      .getByRole("button", { name: "Google 로그인 (데모)" })
-      .click();
     await page
       .getByRole("button", {
         name: "프로필 편집",

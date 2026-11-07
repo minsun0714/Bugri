@@ -9,6 +9,11 @@ async function showYear(summary: Locator) {
   const heading = summary.getByRole("button", {
     name: /월별 학습량 보기$/,
   });
+  await expect(
+    heading.or(
+      summary.getByRole("combobox", { name: /연도 선택$/ }),
+    ),
+  ).toBeVisible();
   if (await heading.count()) await heading.click();
 }
 
@@ -53,8 +58,12 @@ test("home streak updates after submission, survives reload and isolates users",
   });
   await expect(summary).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
+    .getByRole("button", { name: "데모 사용자 선택" })
     .click();
+  await page
+    .getByRole("button", { name: "선택한 사용자로 시작" })
+    .click();
+
   await expect(
     summary.getByText("오늘부터 시작"),
   ).toBeVisible();
@@ -114,22 +123,31 @@ test("home streak updates after submission, survives reload and isolates users",
     ),
   ).toBe(true);
   await page.reload();
-  await expect(summary).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
+  await expect(page).toHaveURL(/user=learner/);
+  await expect(summary).toBeVisible();
+
   await expect(summary.getByText("1일 연속")).toBeVisible();
   await expect(
     summary.getByText("1개", { exact: true }),
   ).toHaveCount(1);
+
   await page
-    .getByText("프로토타입 안내 · 사용자 전환", {
-      exact: true,
+    .getByRole("button", {
+      name: /데모: 학습자 · 사용자 전환/,
     })
     .click();
-  await page
-    .getByLabel("더미 사용자", { exact: true })
-    .selectOption("friend");
+  const dialog = page.getByRole("dialog", {
+    name: "데모 사용자 선택",
+  });
+  await dialog
+    .getByRole("combobox", { name: "더미 사용자" })
+    .click();
+  await dialog
+    .getByRole("option", { name: "친구", exact: true })
+    .click();
+  await dialog
+    .getByRole("button", { name: "선택한 사용자로 시작" })
+    .click();
   await expect(
     summary.getByText("오늘부터 시작"),
   ).toBeVisible();
@@ -144,7 +162,7 @@ test("a returning learner restarts without losing earlier completed days", async
   await page.clock.install({
     time: new Date("2026-03-15T03:00:00Z"),
   });
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await page
     .getByRole("heading", {
       name: "타입 선언",
@@ -168,9 +186,7 @@ test("a returning learner restarts without losing earlier completed days", async
     localStorage.setItem(key, JSON.stringify(state));
   });
   await page.reload();
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
+
   const summary = page.getByRole("region", {
     name: "연속 학습",
     exact: true,
@@ -201,11 +217,9 @@ test("a returning learner restarts without losing earlier completed days", async
 test("date heading navigates monthly and yearly learning while preserving today's streak", async ({
   page,
 }, testInfo) => {
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await seedHistory(page, "2024-02-29");
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
+
   const summary = page.getByRole("region", {
     name: "연속 학습",
     exact: true,
@@ -288,18 +302,28 @@ test("date heading navigates monthly and yearly learning while preserving today'
         document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page
-    .getByText("프로토타입 안내 · 사용자 전환", {
-      exact: true,
-    })
-    .click();
+
   await showYear(summary);
   await summary
     .getByRole("combobox", { name: /연도 선택$/ })
     .click();
   await page
-    .getByLabel("더미 사용자", { exact: true })
-    .selectOption("friend");
+    .getByRole("button", {
+      name: /데모: 학습자 · 사용자 전환/,
+    })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "데모 사용자 선택",
+  });
+  await dialog
+    .getByRole("combobox", { name: "더미 사용자" })
+    .click();
+  await dialog
+    .getByRole("option", { name: "친구", exact: true })
+    .click();
+  await dialog
+    .getByRole("button", { name: "선택한 사용자로 시작" })
+    .click();
   await expect(
     summary.getByRole("button", {
       name: /월별 학습량 보기$/,
@@ -317,11 +341,9 @@ test("learning cards keep their height across empty data and four, five and six 
     time: new Date("2026-03-01T03:00:00Z"),
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await seedHistory(page, "2024-02-29");
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
+
   const summary = page.getByRole("region", {
     name: "연속 학습",
     exact: true,
@@ -447,11 +469,9 @@ test("history navigation stops at the first learning month and resets for an emp
   await page.clock.install({
     time: new Date("2026-06-15T03:00:00Z"),
   });
-  await page.goto("/");
+  await page.goto("/?user=learner");
   await seedHistory(page, "2025-11-15");
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
+
   const summary = page.getByRole("region", {
     name: "연속 학습",
     exact: true,
@@ -488,14 +508,24 @@ test("history navigation stops at the first learning month and resets for an emp
   await expect(
     summary.getByRole("button", { name: "이전 기간" }),
   ).toBeEnabled();
+
   await page
-    .getByText("프로토타입 안내 · 사용자 전환", {
-      exact: true,
+    .getByRole("button", {
+      name: /데모: 학습자 · 사용자 전환/,
     })
     .click();
-  await page
-    .getByLabel("더미 사용자", { exact: true })
-    .selectOption("friend");
+  const dialog = page.getByRole("dialog", {
+    name: "데모 사용자 선택",
+  });
+  await dialog
+    .getByRole("combobox", { name: "더미 사용자" })
+    .click();
+  await dialog
+    .getByRole("option", { name: "친구", exact: true })
+    .click();
+  await dialog
+    .getByRole("button", { name: "선택한 사용자로 시작" })
+    .click();
   await expect(
     summary.getByRole("table", {
       name: "2026년 6월 학습 달력",
@@ -527,10 +557,8 @@ test("single-year menu stays compact while the two-column month list remains vis
   await page.clock.install({
     time: new Date("2026-11-07T03:00:00Z"),
   });
-  await page.goto("/");
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
+  await page.goto("/?user=learner");
+
   const summary = page.getByRole("region", {
     name: "연속 학습",
     exact: true,

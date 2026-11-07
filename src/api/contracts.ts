@@ -335,6 +335,18 @@ export interface DeveloperTagsPage {
 }
 
 export interface ApiOperations {
+  guestQuiz: {
+    request: Record<string, never>;
+    response: LearningQuizView | null;
+  };
+  guestAnswer: {
+    request: {
+      quizId: string;
+      revisionId: string;
+      answer: Answer;
+    };
+    response: AttemptResult;
+  };
   authoringConversation: {
     request: Record<string, never>;
     response: AuthoringConversation;

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { DemoSessionProvider } from "@/components/navigation/demo-session";
 import type { Metadata } from "next";
 import "@/app/globals.css";
@@ -14,9 +15,13 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <DemoSessionProvider>
-          {children}
-        </DemoSessionProvider>
+        <Suspense
+          fallback={<p role="status">불러오는 중…</p>}
+        >
+          <DemoSessionProvider>
+            {children}
+          </DemoSessionProvider>
+        </Suspense>
       </body>
     </html>
   );

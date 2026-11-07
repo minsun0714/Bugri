@@ -13,6 +13,8 @@ interface Endpoint {
 }
 
 export const endpoints: Record<Operation, Endpoint> = {
+  guestQuiz: { method: "GET", path: "/guest/quiz" },
+  guestAnswer: { method: "POST", path: "/guest/answer" },
   authoringConversation: {
     method: "GET",
     path: "/authoring/conversation",

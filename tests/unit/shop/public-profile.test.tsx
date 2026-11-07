@@ -1,12 +1,10 @@
 import { render, screen } from "@testing-library/react";
-import { fireEvent } from "@testing-library/react";
-import {
-  DemoSessionProvider,
-  useDemoSession,
-} from "@/components/navigation/demo-session";
+import { DemoSessionProvider } from "@/components/navigation/demo-session";
 import { PublicDesk } from "@/components/shop/public-desk";
 
 jest.mock("next/navigation", () => ({
+  usePathname: () => "/users/public-author",
+  useRouter: () => ({ push: jest.fn() }),
   useSearchParams: () => new URLSearchParams("user=author"),
 }));
 
@@ -87,24 +85,16 @@ test("public profile places the desk before quizzes without exposing personal ma
   }
 });
 
-function Login() {
-  const { signIn } = useDemoSession();
-  return <button onClick={signIn}>로그인</button>;
-}
-
-test("public desk has no edit entry even for signed-in owner", () => {
+test("public desk has no edit entry for the explicitly selected demo owner", () => {
+  HTMLDialogElement.prototype.close = jest.fn();
   render(
     <DemoSessionProvider>
-      <Login />
       <PublicDesk publicId="public-author" />
     </DemoSessionProvider>,
   );
   expect(
     screen.queryByRole("link", { name: "데스크 편집" }),
   ).not.toBeInTheDocument();
-  fireEvent.click(
-    screen.getByRole("button", { name: "로그인" }),
-  );
   expect(
     screen.queryByRole("link", { name: "데스크 편집" }),
   ).not.toBeInTheDocument();

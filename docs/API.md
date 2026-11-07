@@ -28,7 +28,7 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 
 ## P05·P07 홈 풀이 연결
 
-- `/`: 구독 조건과 선택 태그에 맞는 문제 하나를 즉시 표시한다. 공개 퀴즈 목록이나 시작 버튼을 거치지 않는다. 학습자(learner)는 3종 예시 구독으로 네 형식을 바로 체험한다. 작성자(author)·친구(friend)는 구독 없는 빈 상태로 시작한다. 구독이 없는 사용자에게는 탐색·구독 안내를 제공하며 임의 추천을 추가하지 않는다.
+- `/`: 방문자는 `guestQuiz`로 전체 활성 PUBLIC 후보의 랜덤 문제를 체험한다. 태그와 개인 학습 상태를 표시하지 않으며 `guestAnswer` 제출 결과는 화면 메모리에만 유지한다. `/?user={userId}`에서는 구독 조건과 선택 태그에 맞는 문제 하나를 즉시 표시한다. 공개 퀴즈 목록이나 시작 버튼을 거치지 않는다. 학습자(learner)는 3종 예시 구독으로 네 형식을 바로 체험한다. 작성자(author)·친구(friend)는 구독 없는 빈 상태로 시작한다. 구독이 없는 사용자에게는 탐색·구독 안내를 제공하며 임의 추천을 추가하지 않는다.
 - `/?user={userId}&attempt={attemptId}&tag={hashtagId}`: 풀이·완료 결과와 단일 태그를 복원한다. `tag` 생략은 전체, `mode=REPLAY`는 완료 문제 다시 풀기다. 미제출 답안 입력 자체는 새로고침 시 복원하지 않는다.
 - `/solve?user=author&quiz={quizId}`: 작성자 화면 등에서 특정 퀴즈로 직접 진입하는 경로. 목록 없이 해당 퀴즈를 바로 표시하며 API가 PRIVATE/PUBLIC 접근을 판단한다. 결과 URL은 `/solve?user={userId}&attempt={attemptId}`다. 인자 없는 `/solve`는 홈으로 이동한다.
 - 홈의 문제 선택은 `learningQuiz`/`learningNext` → `startAttempt(context: LEARNING)` 순서다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다. 특정 퀴즈 직접 풀이는 DIRECT를 사용한다. 태그 변경은 구독을 수정하지 않고, 다음 문제는 현재 태그·모드를 유지한다.
@@ -43,6 +43,13 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 - TanStack Query Provider는 풀이 화면에 한 번 생성한다. Attempt 키는 `['solving', userId, 'attempt', attemptId]`, 태그 키는 `['learningTags', userId]`다. 사용자·Attempt·필터 변경 시 입력과 mutation 화면을 새로 만든다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
 - 제출 성공 시 Attempt 캐시를 응답으로 교체하고 `[resource, userId]` 형태의 `learningDay`, `learningQuiz`, `wallet`, `history`를 무효화한다. 해당 후속 화면을 통합할 때 Provider와 키를 맞춰야 한다. 현재 다른 제품 화면의 캐시가 구현되었다는 의미는 아니다.
 - 기존 API·Mock 채점/보상 정책을 유지한다. 시간대 감지 실패에는 오류 안내를 제공하며, 임의 기본 시간대나 BugCoin 지급량을 추가하지 않는다. 구독 관리와 시간대 설정 UI는 각각 P06/P02T 범위다.
+
+### 방문자 체험 계약
+
+- `guestQuiz({})`: `GET /guest/quiz`, `LearningQuizView | null`. 활성 PUBLIC·미삭제 후보만 무작위 선택하며 정답·해설·원문은 반환하지 않는다.
+- `guestAnswer({ quizId, revisionId, answer })`: `POST /guest/answer`, `AttemptResult`. 현재 공개·삭제·활성 버전을 재검사하고 답안 타입/선택지를 검증한 뒤 채점한다. 버전이 바뀌거나 이용할 수 없으면 `QUIZ_UNAVAILABLE`을 반환한다.
+- 브라우저 Mock은 모든 더미 사용자 퀴즈 상태를 읽되 방문자 요청에서는 시간대 초기화·데이터 마이그레이션·Attempt·학습일·보상 쓰기를 수행하지 않는다. 익명 사용자/OwnerSession을 만들지 않으며 데모 선택 시 체험 결과를 이관하지 않는다. 새로고침 복원은 제공하지 않는다.
+- 헤더의 ‘데모 사용자 선택’은 공통 선택 모달에서 사용자를 명시적으로 선택한 뒤 URL `user`를 갱신한다. 기존 직접 데모 URL도 같은 상태로 복원한다. 사용자 전환 시 기존 `attempt`·`tag`·`mode`를 제거해 이전 사용자의 풀이를 섞지 않는다. 실제 인증 기능이 아니다.
 
 ## 상태·모드 상수
 

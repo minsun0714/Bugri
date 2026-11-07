@@ -162,7 +162,7 @@ export function HeaderNavigation({
                     }}
                     className="rounded-xl px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
-                    로그아웃
+                    데모 나가기
                   </button>
                 </nav>
               )}
@@ -173,16 +173,7 @@ export function HeaderNavigation({
               onClick={onSignIn}
               className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface px-3 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
-              <span
-                aria-hidden="true"
-                className="text-base font-bold text-primary"
-              >
-                G
-              </span>
-              Google 로그인{" "}
-              <span className="text-[10px] text-muted">
-                (데모)
-              </span>
+              데모 사용자 선택
             </button>
           )}
           <MobileNavigation
@@ -204,18 +195,33 @@ function ConnectedHeader() {
   const pathname = usePathname();
   const params = useSearchParams();
 
-  const { signedIn, signIn, signOut } = useDemoSession();
-
-  // Demo header state is independent of existing feature query parameters.
+  const userId = params.get("user");
+  const { signIn, signOut } = useDemoSession();
   return (
-    <HeaderNavigation
-      pathname={pathname}
-      userId={
-        signedIn ? (params.get("user") ?? "learner") : null
-      }
-      onSignIn={signIn}
-      onSignOut={signOut}
-    />
+    <>
+      <HeaderNavigation
+        pathname={pathname}
+        userId={userId}
+        onSignIn={signIn}
+        onSignOut={signOut}
+      />
+      {userId && (
+        <div className="border-b border-line bg-canvas px-5 py-1 text-center text-xs text-muted">
+          <button
+            className="min-h-8 rounded px-2 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-primary"
+            onClick={signIn}
+          >
+            데모:{" "}
+            {userId === "author"
+              ? "작성자"
+              : userId === "friend"
+                ? "친구"
+                : "학습자"}{" "}
+            · 사용자 전환
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 

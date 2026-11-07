@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { solvingStyles } from "@/components/solving/styles";
 import type { Answer, Question } from "@/api/contracts";
 import {
   Button,
@@ -46,13 +47,15 @@ export function AnswerForm({
         event.preventDefault();
         if (valid && !pending) onSubmit(answer);
       }}
-      className="space-y-5"
+      className={solvingStyles.answerForm}
     >
       <fieldset disabled={pending} className="space-y-3">
-        <legend className="mb-3 font-bold">
+        <legend className="mb-3 text-xs font-medium text-muted">
           {question.type === "MULTIPLE_CHOICE"
             ? "정답을 모두 선택하세요"
-            : "답안 선택"}
+            : question.type === "SHORT_ANSWER"
+              ? "답안 입력"
+              : "답안 선택"}
         </legend>
         {question.type === "SINGLE_CHOICE" &&
           question.choices.map(({ id, text }) => (
@@ -136,6 +139,7 @@ export function AnswerForm({
       </fieldset>
       <div className="flex justify-end">
         <Button
+          className="w-full sm:w-auto sm:min-w-36"
           type="submit"
           disabled={!valid}
           loading={pending}

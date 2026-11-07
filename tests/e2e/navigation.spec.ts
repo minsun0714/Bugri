@@ -4,9 +4,6 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
   page,
 }, testInfo) => {
   await page.goto("/discover/developers?user=friend");
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
   await expect(page.getByRole("banner")).toHaveCount(1);
   await expect(
     page
@@ -39,9 +36,6 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
       .getByText("내 퀴즈"),
   ).toHaveAttribute("aria-current", "page");
   await page.reload();
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
   await expect(
     page
       .getByRole("navigation", { name: "현재 위치" })
@@ -71,9 +65,6 @@ test("mobile menu supports keyboard, dismissals, resize and navigation", async (
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/discover?user=author");
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
   const trigger = page.getByRole("button", {
     name: "메뉴 열기",
   });
@@ -126,9 +117,6 @@ test("developer breadcrumbs never show IDs and link to discovery", async ({
   await page.goto(
     "/developers/bugri-author/quizzes?user=friend",
   );
-  await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
-    .click();
   const breadcrumb = page.getByRole("navigation", {
     name: "현재 위치",
   });
@@ -161,7 +149,10 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     path: testInfo.outputPath("header-guest.png"),
   });
   await page
-    .getByRole("button", { name: "Google 로그인 (데모)" })
+    .getByRole("button", { name: "데모 사용자 선택" })
+    .click();
+  await page
+    .getByRole("button", { name: "선택한 사용자로 시작" })
     .click();
   await expect(
     page.getByRole("button", {
@@ -184,17 +175,17 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     .getByRole("button", { name: "내 프로필", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "로그아웃" }),
+    page.getByRole("button", { name: "데모 나가기" }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "로그아웃" })
+    .getByRole("button", { name: "데모 나가기" })
     .click();
   await expect(
     nav.getByRole("link", { name: "내 퀴즈" }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", {
-      name: "Google 로그인 (데모)",
+      name: "데모 사용자 선택",
     }),
   ).toBeVisible();
 });
@@ -205,9 +196,6 @@ for (const width of [1280, 390]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/my?user=author");
-    await page
-      .getByRole("button", { name: "Google 로그인 (데모)" })
-      .click();
     const trigger = page.getByRole("button", {
       name: "내 프로필",
       exact: true,
