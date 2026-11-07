@@ -162,8 +162,17 @@ test("tag filtering persists through next and reload without changing subscripti
     }),
   ).toBeVisible();
   await page
-    .getByLabel("학습 태그", { exact: true })
-    .selectOption("javascript");
+    .getByRole("combobox", {
+      name: "학습 태그",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("option", {
+      name: "JavaScript",
+      exact: true,
+    })
+    .click();
   await expect(
     page.getByRole("heading", {
       name: "블록 스코프",
@@ -183,7 +192,7 @@ test("tag filtering persists through next and reload without changing subscripti
   await page.reload();
   await expect(
     page.getByLabel("학습 태그", { exact: true }),
-  ).toHaveValue("javascript");
+  ).toHaveText("JavaScript");
   await submit(page, []);
   await page
     .getByRole("button", { name: "다음 문제", exact: true })
@@ -706,7 +715,7 @@ test("empty state opens discovery page with URL search and explicit subscription
   ).toBeVisible();
   await expect(
     page.getByLabel("학습 태그", { exact: true }),
-  ).toHaveValue("web");
+  ).toHaveText("Web");
   await page.getByLabel("var", { exact: true }).check();
   await page
     .getByRole("button", { name: "답 제출", exact: true })
@@ -720,6 +729,47 @@ test("empty state opens discovery page with URL search and explicit subscription
   await expect(
     page.getByRole("img", { name: "축하하는 버그리" }),
   ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("learning tag dropdown supports mobile dismissal and keyboard selection", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const tag = page.getByRole("combobox", {
+    name: "학습 태그",
+    exact: true,
+  });
+  await expect(tag).toBeEnabled();
+  await tag.click();
+  await expect(
+    page.getByRole("listbox", { name: "학습 태그" }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(tag).toBeFocused();
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await tag.click();
+  await page
+    .getByRole("heading", {
+      name: "오늘의 퀴즈",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await tag.focus();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Home");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(tag).toHaveText("JavaScript");
+  await expect(page).toHaveURL(/tag=javascript/);
   expect(
     await page.evaluate(
       () =>

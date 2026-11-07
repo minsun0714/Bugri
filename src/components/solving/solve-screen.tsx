@@ -30,6 +30,8 @@ import {
   type SolvingLocation,
 } from "@/components/solving/use-quiz-solving";
 
+import { Dropdown } from "@/components/ui/dropdown";
+
 import { Bugri } from "@/components/ui/bugri";
 
 function answerText(
@@ -100,41 +102,35 @@ function Session({
   return (
     <div className="space-y-6">
       {!direct && (
-        <label className="flex flex-wrap items-center gap-3">
-          학습 태그
-          <select
-            aria-label="학습 태그"
-            className="rounded-lg border border-line bg-surface p-2"
+        <div className="w-full sm:max-w-xs">
+          <Dropdown
+            label="학습 태그"
             value={hashtagId ?? ""}
             disabled={busy || submit.isPending}
-            onChange={(event) =>
+            options={[
+              { value: "", label: "전체" },
+              ...(hashtagId &&
+              !tags.data?.some(({ id }) => id === hashtagId)
+                ? [{ value: hashtagId, label: hashtagId }]
+                : []),
+              ...(tags.data?.map(({ id, name }) => ({
+                value: id,
+                label: name,
+              })) ?? []),
+            ]}
+            onValueChange={(value) =>
               router.push(
                 solvingUrl({
                   ...location,
                   attemptId: null,
-                  hashtagId: event.target.value || null,
+                  hashtagId: value || null,
                   mode: LearningMode.UNSOLVED,
                 }),
                 { scroll: false },
               )
             }
-          >
-            <option value="">전체</option>
-            {hashtagId &&
-              !tags.data?.some(
-                ({ id }) => id === hashtagId,
-              ) && (
-                <option value={hashtagId}>
-                  {hashtagId}
-                </option>
-              )}
-            {tags.data?.map(({ id, name }) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
+          />
+        </div>
       )}
       {tags.error && (
         <>
