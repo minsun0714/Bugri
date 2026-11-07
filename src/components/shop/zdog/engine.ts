@@ -56,8 +56,15 @@ export function createDeskEngine(
     const { equipment } = state;
     if (equipment.BACKGROUND)
       model(content, equipment.BACKGROUND);
-    const desk = new Zdog.Anchor({ addTo: content });
+    // The camera remains above the tabletop and items are constrained to it.
+    // Sort the furniture internally, then the objects above it: a distant
+    // tabletop item must never be painted behind the table's centre point.
+    const desk = new Zdog.Group({ addTo: content });
     model(desk, equipment.DESK ?? "default");
+    const tabletop = new Zdog.Group({
+      addTo: desk,
+      updateSort: true,
+    });
     anchors.set(Category.DESK, desk);
     for (const category of [
       Category.KEYBOARD,
@@ -65,7 +72,7 @@ export function createDeskEngine(
       Category.ACCESSORY,
     ]) {
       const id = equipment[category];
-      if (id) anchors.set(category, model(desk, id));
+      if (id) anchors.set(category, model(tabletop, id));
     }
   }
 

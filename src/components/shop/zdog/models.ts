@@ -27,7 +27,11 @@ function box(
 
 /** Units are centimetres; y points down in the Canvas renderer. */
 export function model(parent: Zdog.Anchor, id: string) {
-  const root = new Zdog.Anchor({ addTo: parent });
+  // Keep each object's parts together when sorting neighbouring objects.
+  const root = new Zdog.Group({
+    addTo: parent,
+    updateSort: !id.startsWith("keyboard"),
+  });
   const second = id.endsWith("2");
   if (id.startsWith("keyboard")) {
     box(
@@ -36,16 +40,21 @@ export function model(parent: Zdog.Anchor, id: string) {
       [0, -4, 0],
       second ? "#c9b8e3" : "#a8c3a8",
     );
+    // All allowed views are above the keyboard: its keycaps cover its body.
+    const keys = new Zdog.Group({
+      addTo: root,
+      updateSort: true,
+    });
     for (let row = 0; row < 3; row++)
       for (let col = 0; col < 10; col++) {
         box(
-          root,
+          keys,
           [10, 4, 10],
           [-55 + col * 12, -10, -18 + row * 13],
           col === 0 ? "#6544dc" : "#f6f1e8",
         );
       }
-    box(root, [60, 4, 8], [0, -10, 20], "#dcf58c");
+    box(keys, [60, 4, 8], [0, -10, 20], "#dcf58c");
   } else if (id.startsWith("monitor")) {
     box(root, [75, 5, 45], [0, -2.5, 0], "#c9c0dc");
     box(root, [14, 42, 12], [0, -24, 0], "#ada1c3");

@@ -181,3 +181,13 @@
 - 실패 원인/수정: 미구현 Canvas 검사 실패를 먼저 확인했다. 편집 화면 분리로 기존 UI 테스트를 editing 화면으로 이동했다. Next 16의 searchParams 런타임 접근은 Suspense 경계로 처리했다. RTL 미지원 exact 옵션 타입 오류를 제거했다. 마지막 E2E는 숨겨진 이전 상점의 방위각도 함께 찾아 strict locator 오류가 나서 현재 main으로 범위를 한정했다. 기대 동작·저장/복원 검사를 약화하지 않았다.
 - 최종 검증: Node v22.23.3 `PLAYWRIGHT_PORT=3114 npm run verify` 통과(lint·TypeScript·Jest 12 suites/66 tests·build·Playwright 9 tests). 로그 `.bugri-hooks/my-verify-final.log`. 이동/회전/공개 복원 및 모바일 취소 E2E 2개도 별도 통과. 변경 파일 Prettier와 `git diff --check` 통과. 로컬 `/my` 화면 캡처 `.bugri-hooks/previews/my-page.png` 확인.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 구현자 외 리뷰 대기). 기존 상점 소개 제거 편집은 보존하고 잔액 접근성 이름을 유지했다. push·PR·merge 없음.
+
+## P08-DESK-OCCLUSION 드래그 중 상품 가림 수정
+
+- 상태: IN_PROGRESS. 키보드를 책상 위에서 이동할 때 사라지는 사용자 보고를 재현하고 렌더 순서를 수정한다. 좌표 저장/경계 규칙은 유지한다.
+- 검증: 실제 Canvas의 키보드 색 픽셀을 검사하여 상판 앞/뒤/좌우 이동 중 표시, 드롭·복원, 회전 시점·모바일·타인 데스크를 검증한다. 기존 이동 E2E는 좌표만 확인했으므로 시각 회귀 검사를 추가한다.
+- 원인: Zdog의 중심 깊이 정렬로 큰 상판이 뒤쪽 키보드보다 나중에 그려져 실제 상품을 덮었다. 좌표는 정상 상판 높이 1.55였으며 재현 캡처에서 뒤쪽으로 이동한 키보드가 일부만 보였다. 초기 시각 E2E는 데스크톱에서 키보드 색 픽셀 0, 모바일에서 39를 검출해 실패했다.
+- 수정: 위에서 보는 카메라·상판 고정 높이 조건에 맞춰 책상 자체와 상판 위 상품의 렌더 순서를 분리했다. 상품끼리는 깊이 정렬을 유지하고, 각 상품의 부품을 하나의 그룹으로 묶었다. 키보드 몸체 다음에 키캡을 그려 몸체가 키캡을 덮는 현상도 수정했다. 좌표·구매·저장 API는 변경하지 않았다.
+- 시각 회귀 테스트: 1100px/390px에서 이동 전 키보드 몸체 색 픽셀 대비 80% 이상 유지, 네 모서리 드래그·드롭·새로고침·정면/위/45도 시점·키보드 90도 회전·시점 한 바퀴·공개 데스크 표시. 기존 이동/터치 취소 E2E 포함 관련 4개 통과 후 최종 전체 검증을 실행했다.
+- 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3114 npm run verify` 통과(lint·TypeScript·Jest 12 suites/66 tests·build·Playwright 11 tests). 로그 `.bugri-hooks/visibility-verify.log`. 변경 파일 Prettier와 `git diff --check` 통과. 수정 전/후 캡처 `.bugri-hooks/previews/keyboard-disappear.png`, `keyboard-fixed.png` 확인.
+- 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
