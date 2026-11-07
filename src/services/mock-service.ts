@@ -80,6 +80,7 @@ const allowed: Record<Operation, string[]> = {
   generationBatch: ["batchId"],
   refineCandidate: ["batchId", "candidateId", "prompt"],
   editCandidate: ["batchId", "candidateId", "content"],
+  publishCandidate: ["batchId", "candidateId", "reviewed"],
   saveBatch: ["batchId", "mode", "candidateId"],
   quizzes: ["scope"],
   reviewQuiz: ["quizId"],
@@ -532,6 +533,68 @@ export function execute<K extends Operation>(
       ];
 
       candidate.candidateId = id();
+
+      return batch;
+    }
+
+    case "publishCandidate": {
+      const batch = getBatch();
+
+      text(r.candidateId);
+
+      requireValue(
+        r.reviewed === true,
+        "내용 확인 후 공개하세요.",
+      );
+
+      const candidate = batch.candidates.find(
+        ({ candidateId }) => candidateId === r.candidateId,
+      );
+
+      if (!candidate)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "후보가 변경되었습니다. 최신 결과를 확인하세요.",
+          409,
+        );
+
+      if (candidate.savedQuizId) {
+        const existing = s.quizzes.find(
+          ({ quizId }) => quizId === candidate.savedQuizId,
+        );
+
+        requireValue(
+          existing &&
+            !existing.deletedAt &&
+            existing.status === QuizStatus.PUBLIC &&
+            !existing.pending,
+          "저장한 퀴즈는 검토 화면에서 공개하세요.",
+        );
+
+        return batch;
+      }
+
+      validateContent(candidate.content, tagIds);
+      source(batch.sourceContent);
+
+      const quiz: StoredQuiz = {
+        quizId: id(),
+        ownerUserId: s.userId,
+        status: QuizStatus.PUBLIC,
+        version: 1,
+        active: {
+          ...candidate.content,
+          revisionId: id(),
+          sourceContent: batch.sourceContent,
+          reviewed: true,
+        },
+        pending: null,
+        updatedAt: timestamp,
+        deletedAt: null,
+      };
+
+      s.quizzes.push(quiz);
+      candidate.savedQuizId = quiz.quizId;
 
       return batch;
     }

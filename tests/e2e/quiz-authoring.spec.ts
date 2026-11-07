@@ -37,6 +37,9 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     }),
   ).toHaveCount(4);
   await page
+    .getByRole("button", { name: "LLM으로 수정" })
+    .click();
+  await page
     .getByLabel("퀴즈 1에 추가 요청")
     .fill("예시 추가");
   await page
@@ -49,6 +52,9 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
     candidates.getByRole("article"),
   ).toContainText("Mock 재생성: 예시 추가");
   await page.reload();
+  await page
+    .getByRole("button", { name: "LLM으로 수정" })
+    .click();
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("예시 추가");
@@ -410,6 +416,9 @@ test("workshop preserves pending requests when closed on mobile", async ({
   });
   await expect(dialog).toBeVisible();
   await page
+    .getByRole("button", { name: "LLM으로 수정" })
+    .click();
+  await page
     .getByLabel("퀴즈 1에 추가 요청")
     .fill("더 어렵게");
   await page.keyboard.press("Escape");
@@ -429,4 +438,44 @@ test("workshop preserves pending requests when closed on mobile", async ({
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("더 어렵게");
+});
+
+test("initial results hide chat and publish only the displayed quiz", async ({
+  page,
+}) => {
+  await page.goto("/quizzes/authoring");
+  await page
+    .getByRole("textbox", { name: /학습 내용/ })
+    .fill("타입스크립트");
+  await page
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await expect(
+    dialog.getByRole("button", {
+      name: "바로 공개",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByLabel("퀴즈 1에 추가 요청"),
+  ).toHaveCount(0);
+  await dialog
+    .getByRole("button", { name: "바로 공개", exact: true })
+    .click();
+  await expect(dialog.getByRole("status")).toHaveText(
+    "공개했습니다.",
+  );
+  await dialog
+    .getByRole("link", { name: "검토·승인" })
+    .click();
+  await expect(
+    page.getByRole("region", {
+      name: "퀴즈 검토",
+      exact: true,
+    }),
+  ).toContainText("PUBLIC");
 });

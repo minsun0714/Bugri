@@ -257,6 +257,14 @@ export interface ApiOperations {
     request: { batchId: string };
     response: GenerationBatch;
   };
+  publishCandidate: {
+    request: {
+      batchId: string;
+      candidateId: string;
+      reviewed: true;
+    };
+    response: GenerationBatch;
+  };
   editCandidate: {
     request: {
       batchId: string;

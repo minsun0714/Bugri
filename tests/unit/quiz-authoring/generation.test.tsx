@@ -80,6 +80,9 @@ test("detail saves one then all without duplicates or automatic approval", async
 
 test("detail refinement preserves input on failure and retry updates only the candidate", async () => {
   const { api } = await setup();
+  fireEvent.click(
+    screen.getByRole("button", { name: "LLM으로 수정" }),
+  );
   const prompt =
     screen.getByLabelText("퀴즈 1에 추가 요청");
   fireEvent.change(prompt, {
@@ -107,4 +110,20 @@ test("detail refinement preserves input on failure and retry updates only the ca
   expect(
     await api.request("quizzes", { scope: QuizScope.OWN }),
   ).toHaveLength(0);
+});
+
+test("starts with quizzes only and publishes the current candidate on explicit request", async () => {
+  const { api } = await setup();
+  expect(
+    screen.queryByLabelText("퀴즈 1에 추가 요청"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "바로 공개" }),
+  );
+  await screen.findByText("공개했습니다.");
+  const list = await api.request("quizzes", {
+    scope: QuizScope.OWN,
+  });
+  expect(list).toHaveLength(1);
+  expect(list[0].status).toBe("PUBLIC");
 });

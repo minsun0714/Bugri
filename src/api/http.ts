@@ -34,6 +34,11 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/generation-batches/{id}",
     pathKey: "batchId",
   },
+  publishCandidate: {
+    method: "POST",
+    path: "/generation-batches/{id}/publish",
+    pathKey: "batchId",
+  },
   editCandidate: {
     method: "POST",
     path: "/generation-batches/{id}/edit",

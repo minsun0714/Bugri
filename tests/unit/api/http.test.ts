@@ -141,7 +141,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(35);
+  expect(Object.keys(endpoints)).toHaveLength(36);
 });
 
 // Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.

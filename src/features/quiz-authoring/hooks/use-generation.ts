@@ -34,6 +34,7 @@ export function useGeneration({
   >({});
   const [editing, setEditing] =
     useState<QuizContent | null>(null);
+  const [notice, setNotice] = useState("");
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const locked = useRef(false);
@@ -57,6 +58,7 @@ export function useGeneration({
     setBusy(true);
     onBusy(true);
     setError(null);
+    setNotice("");
     try {
       await action();
     } catch (error) {
@@ -126,6 +128,27 @@ export function useGeneration({
     });
   }
 
+  function publish() {
+    if (
+      !candidate ||
+      candidate.savedQuizId ||
+      editing ||
+      prompt.trim()
+    )
+      return;
+    void run(async () => {
+      accept(
+        await api.request("publishCandidate", {
+          batchId: batch.batchId,
+          candidateId: candidate.candidateId,
+          reviewed: true,
+        }),
+      );
+      setNotice("공개했습니다.");
+      onSaved();
+    });
+  }
+
   function save(candidateId?: string) {
     if (!batch) return;
     void run(async () => {
@@ -162,6 +185,8 @@ export function useGeneration({
 
   return {
     batch,
+    publish,
+    notice,
     editing,
     edit,
     cancelEdit,
