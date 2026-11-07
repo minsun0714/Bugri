@@ -1342,3 +1342,10 @@
 - 검증: API 테스트 우선 실패 확인, 관련 Jest/E2E, 독립 UI 설계·UX/UI 실제 화면 리뷰, 최종 전체 verify.
 
 - 구현과 C1/R1·C2/R2 독립 UX/UI 검토 완료. 태그 링크/목록/구독/학습/개별풀이·귀여운 노트 카드 반영. 최종 전체 lint·타입·Jest238개·도구3개·build 통과, E2E148통과/1실패(URL이 정상 attempt로 전환되는데 테스트는 quiz를 기대). C2 dev 검사2통과/2실패. 재시도3회 한도이므로 전체 완료 아님, IN_PROGRESS 유지. [근거·남은 검증](ux-reviews/TAG-QUIZ-CATALOG.md).
+
+## DIRECT-SOLVE-STYLE — 개별 풀이와 홈 스타일 통일
+
+- 상태: DONE(스타일 범위). 사용자 요청으로 개별 풀이 `/solve`를 홈과 동일한 스타일로 맞춘다. 이미 공통 QuizPanel/AnswerForm/결과 버그리를 사용하므로 중복 컴포넌트를 만들지 않는다. 개별 화면만의768px 제한을 제거해 공통 frame으로 통일하고 하단 홈 링크를 공통 보조영역 스타일로 옮긴다. 풀이/API/정답/기록·홈의 외형은 변경하지 않는다.
+- 순수 UI 변경: 별도 UI 설계자의 실제 PC비교, 변경 파일 lint/포맷, PC/mobile과 독립 UX/UI 리뷰, 관련 기존 풀이 검사를 실행한다. 앞선 TAG-QUIZ-CATALOG의 미통과 검증은 별도로 유지하며 이 작업으로 초기화하지 않는다.
+
+- Node v22.23.3 변경 파일 lint/Prettier·단위8개·관련 E2E4개 통과. 독립 UX/UI 실제1440/375/320 및 입력/제출/재풀이/홈이동 R0 완료, 수정0회. [검토·범위·한계](ux-reviews/DIRECT-SOLVE-STYLE.md). 전체 verify는 이 순수 스타일 변경에서 반복하지 않았으며 TAG-QUIZ-CATALOG의 기존 미해결 검증은 유지한다.
