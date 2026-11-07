@@ -1446,6 +1446,13 @@
 
 - PR22-DEV-INTEGRATION: 충돌6파일 해소·양쪽기능 보존 완료. 관련 단위39개/E2E20개 통과. 전체247단위·도구3·build 통과, E2E156통과/1실패(개발자 빠른구독관리). 후속 초점복원 회귀 테스트 추가·관련단위5개 통과, 개발자 production E2E7통과/1실패. 재시도3회 한도 도달, 빠른관리메뉴 미해결로 검증 상태 IN_PROGRESS 및 PR Draft 유지. [회차·실제결과](ux-reviews/PR22-DEV-INTEGRATION.md). 태그 URL 기대값 실패는 이번 통합검사에서 해결 확인했다.
 
+
+## PROFILE-QUIZ-CARDS — 최신 공개 퀴즈 카드 통일
+
+- 상태: DONE(로컬 범위 검증). 사용자 요청에 따라 공개 프로필의 최신 퀴즈에 태그 공개 퀴즈 카드의 테두리·그림자·노트 아이콘·화살표를 적용한다. AC-09d와 페이지 구조의 최신4개/PC2열/mobile1열, 태그·풀이 링크를 유지한다. 개발자 전체목록과 API는 변경하지 않는다.
+- 단순 표현 변경으로 TDD 생략. 변경파일 lint/포맷, PC/mobile 실제 화면, 독립 UX/UI 리뷰와 기존 관련 단위검사를 수행한다.
+- 결과: scoped lint/Prettier·기존 Jest5개 통과. 1280/390/320 화면 배치와 guest/본인/타인의 키보드 풀이 이동 확인. 독립 UX/UI R0 문제0개·수정0회. [근거·미확인 범위](ux-reviews/PROFILE-QUIZ-CARDS.md). 전체 verify는 실행하지 않았다.
+
 ## P08-DESK-SIMPLIFY — 내 데스크 화면 정리
 
 - 상태: DONE(로컬 변경 검증). 사용자 요청: `/my/desk` 이웃의 데스크 영역·메뉴와 시점 프리셋 버튼 제거. REQ-09/AC-09e 데스크 편집·저장과 공개 프로필 조회 유지.
@@ -1458,6 +1465,27 @@
 
 - 상태: 충돌 해결 완료, 통합 검증 미완료. origin/dev9a7d573 통합에서 TASKS의 두 추가 블록을 양쪽 모두 보존했다. 독립 정적 리뷰에서 양쪽 비어 있지 않은 줄 보존·중복 제목 없음·상점 label/태그 경로 보존 확인. 충돌마커·미해결 인덱스 없음, diff check 통과.
 - Node v22.23.3 `PLAYWRIGHT_PORT=3431 npm run verify -- -- --workers=2`: lint·TypeScript·Jest53 suites/263개·도구3개·build 통과, E2E162통과/1실패. 개발자 구독 해제 버튼을 기다리다30초 시간초과(`developer-discovery-repair.spec.ts:64`). 최신 dev의 PR22 기록과 같은 미해결 흐름이며 이번 문서 충돌 해결에서 해당 기능/테스트를 수정하지 않았다. 기존 재시도 한도를 초기화하지 않고 추가 수정·재실행하지 않는다. 로그 `/tmp/shop-pr23-conflict-verify.log`. 충돌 해결을 PR23에 push하고 미통과 근거를 반영해 Draft로 전환한다. PR 병합은 수행하지 않는다.
+
+## PROFILE-DEV-INTEGRATION — dev 통합
+
+- 상태: DONE(충돌 해결·통합 검증). 사용자 pull 충돌 해결 요청으로 origin/dev76d1dcd를 통합한다. TASKS의 프로필 카드 기록과 PR23 기록을 모두 보존한다. 코드 충돌은 없으며 프로필 카드15d5ecc와 dev 상점/내비게이션 변경을 유지한다.
+- 독립 정적 리뷰: 양쪽 TASKS 비어 있지 않은 줄 보존·중복제목 없음, dev 대비 앱 차이는 기존 프로필 카드뿐. 충돌마커·미해결인덱스·diff 오류 없음.
+- Node v22.23.3 전체 `npm run verify -- -- --workers=2`: lint·TypeScript·Jest263개·도구3개·build 통과, E2E162/163 통과. 유일한 실패는 프로필 최신4개 제목검사가 새 장식 화살표까지 읽은 것으로, 링크수4개와 순서별 접근성 이름 검사로 수정했다. 독립 리뷰에서 검사의 수량·순서·정확한 제목 기대 보존 확인. 수정한 profile-split E2E2개 재실행 통과, 테스트 lint/Prettier·전체타입 재검증. 앱/나머지테스트/의존성/실행설정은 같아 나머지162개 성공을 재사용하며 전체명령을 재실행했다고 주장하지 않는다. 로그 `/tmp/profile-dev-integration-verify.log`, `/tmp/profile-dev-related-e2e.log`. 로컬 merge 커밋으로 완료하며 push하지 않는다.
+
+## PROFILE-STREAK — 공개 프로필 학습 활동
+
+- 상태: DONE(관련검증및후속요구변경반영). 사용자 요청으로 학습 활동 빈 컨테이너를 홈 StreakSummary로 교체한다. 프로필 주인의 스트릭·일별집계만 공개 조회하고 기간 탐색을 재사용한다. 개인 답안/문제별기록/잔액은 공개하지 않는다. 시간대 미설정은 기존 오류상태 유지. API 정상/미존재/시간대미설정·읽기전용 테스트 미구현 실패2개 확인 후 구현.
+- PROFILE-STREAK 최종전체검증: lint·타입·Jest267개·도구3개·build 통과, E2E164통과/1실패. 실패는기존개발자구독관리Enter후해제버튼대기(`developer-discovery-repair.spec.ts:64`). 스트릭/프로필E2E통과. 전체검증완료상태로표시하지않으며후속사용자요청에따라해당키보드사용자흐름을제거하는별도변경으로이어간다. [독립UX/UI·실패근거](ux-reviews/PROFILE-STREAK.md).
+
+## DISCOVERY-POINTER-ACTIONS — 구독 관리 키보드 전용 처리 제거
+
+- 상태: DONE(요청된클릭흐름·관련검증). 사용자 명시 요청으로 구독관리의 커스텀Escape 및 저장후rAF초점복원/onRemoved콜백과전용단위테스트를제거한다. 반복실패한구독직후Enter시나리오는클릭으로변경하고관련초점기대를제거한다. 버튼native동작·중복저장방지·click구독/해제·상위모달초점/검색키보드는유지한다. 실패테스트를단순제외하는것이아니라요청된사용자흐름변경에맞춘검증이다.
+- 결과: scoped lint/format·전체타입·관련Jest13개·productionE2E8개통과. 최초삭제콜백을상위모달닫기에서참조하는타입오류를발견해해당모달계약만복원했다. 독립UX/UI R0필수문제0개·수정0회. [근거·실패기록·한계](ux-reviews/DISCOVERY-POINTER-ACTIONS.md). 원래키보드검사의과거실패기록은유지하며새사용자요구로대체된검증임을구분한다.
+- PROFILE-STREAK: 구현·관련검증완료. 전체검증의유일한실패였던개발자키보드흐름은후속사용자명시요청으로위작업에서삭제/클릭전환후검증했다. 나머지성공결과는동일코드로재사용하며새전체verify실행을주장하지않는다.
+
+## MY-QUIZ-PR — 공개 프로필 및 구독 관리 PR
+
+- 상태: DONE(게시전최종검증). 사용자PR요청에따라 dev76d1dcd 대상 최종fc6d257 전체검증을실행했다. Node v22.23.3 `npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest54 suites/266개·도구3개·production build·E2E165개전부통과. 로그 `/tmp/my-quiz-pr-verify.log`. 이전기록의Enter실패는요구변경전역사로남기며최종click흐름포함전체통과와구분한다. 검증후변경은이기록뿐이며성공결과를재사용한다. 기존독립UX/UI·코드리뷰근거유지. feat/my-quiz를push하고dev대상PR을생성하며병합은하지않는다.
 
 ## DESK-DEV-INTEGRATION — 최신 dev 통합
 
@@ -1477,3 +1505,8 @@
 - 최종 Node v22.23.3 `npm run verify`: lint·typecheck·Jest53 suites/268 tests·도구3개·production build 통과. E2E163개 통과/2개 실패. 데스크/상점 관련은 모두 통과. 로그 `/tmp/bugri-desk-shared-verify.log`.
 - 미통과: 변경하지 않은 developer-discovery-repair.spec.ts:65 구독 해제 후 버튼 포커스 복원 실패, navigation.spec.ts:148 화면 캡처30초 시간 초과. 구독 관리 경로는 기존 통합 기록에도 미해결 이력이 있다. 이 두 경로의 코드/기대값을 수정하거나 실패를 제외하지 않았다. 전체 통과/DONE/병합 준비 완료로 기록하지 않는다.
 - 마지막 앱 코드 이후 변경은 리뷰·검증 기록뿐이다. 변경 코드 Prettier·git diff --check 확인. push/PR 생성 없음.
+
+## PR25-DEV-INTEGRATION — dev 병합 및 키보드 테스트 제거 유지
+
+- 상태: DONE(충돌해결·전체검증). 사용자 요청으로 최신dev119c929의데스크조작과PR25프로필카드/스트릭을통합한다. 문서3개는양쪽추가내용보존, HTTP엔드포인트검사는transformDesk/publicLearningDay를모두반영해51개로통합한다. 앞서제거한구독관리customEscape/rAF초점복원·전용단위테스트를복원하지않고클릭기준E2E를유지한다. 전체검증·독립통합리뷰후PR25를갱신하고사용자요청에따라dev에병합한다.
+- 독립정적통합리뷰: 양쪽API/서비스·문서보존, 구독관리삭제코드/테스트미복원및clickE2E유지, 중복제목/충돌마커/미해결인덱스없음. Node v22.23.3 `npm run verify -- -- --workers=2` exit0: lint·TypeScript·Jest54 suites/271개·도구3개·production build·E2E167개통과. 로그 `/tmp/pr25-dev-integration-verify.log`. 검증대상은b52d922+dev119c929통합코드이며이후변경은결과기록뿐이다. PR25를갱신하고사용자요청에따라dev에병합한다.

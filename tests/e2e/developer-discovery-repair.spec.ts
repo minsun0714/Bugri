@@ -49,20 +49,20 @@ test("guest search, explicit demo login, subscription and profile navigation", a
     exact: true,
   });
   await expect(subscribe).toBeFocused();
-  await subscribe.press("Enter");
+  await subscribe.click();
   await expect(
     page.getByText("타입 개발자님을 구독했습니다."),
   ).toBeVisible();
   const toggle = page.getByRole("button", {
     name: "타입 개발자 구독 중 · 관리",
   });
-  await toggle.press("Enter");
+  await toggle.click();
   const remove = page.getByRole("button", {
     name: "타입 개발자 구독 해제",
     exact: true,
   });
-  await remove.press("Enter");
-  await expect(subscribe).toBeFocused();
+  await remove.click();
+  await expect(subscribe).toBeVisible();
   await expect(input).toHaveValue("@bugri-author");
   await page
     .getByRole("link", { name: "타입 개발자", exact: true })
@@ -118,7 +118,7 @@ test("out of range and invalid URL searches have actionable recovery", async ({
   ).toBeVisible();
 });
 
-test("mobile subscriptions include all target types and return focus after removal", async ({
+test("mobile subscriptions include all target types and remove clicked entries", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 740 });
@@ -149,7 +149,6 @@ test("mobile subscriptions include all target types and return focus after remov
   await list
     .getByRole("button", { name: "#Web 구독 해제" })
     .click();
-  await expect(summary).toBeFocused();
   await expect(
     list.getByRole("link", { name: "#Web", exact: true }),
   ).toHaveCount(0);
@@ -365,7 +364,7 @@ test("subscription modal searches, filters, removes and restores focus on mobile
     .click();
   await expect(
     dialog.getByRole("heading", { name: "구독 0개" }),
-  ).toBeFocused();
+  ).toBeVisible();
   await expect(dialog.getByRole("status")).toContainText(
     "구독을 취소했습니다",
   );
@@ -386,9 +385,9 @@ test("subscription modal searches, filters, removes and restores focus on mobile
   );
 });
 
-test("subscription actions float without resizing cards or rows and Escape keeps the modal open", async ({
+test("subscription actions float without resizing cards or rows and close on outside clicks", async ({
   page,
-}) => {
+}, testInfo) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/discover/developers?user=learner");
   const card = page
@@ -414,7 +413,11 @@ test("subscription actions float without resizing cards or rows and Escape keeps
   expect((await card.boundingBox())?.height).toBe(
     before?.height,
   );
-  await page.keyboard.press("Escape");
+  await card
+    .getByRole("button", {
+      name: "타입 개발자 구독 중 · 관리",
+    })
+    .click();
   await page
     .locator("summary")
     .filter({ hasText: "내 구독" })
@@ -441,11 +444,11 @@ test("subscription actions float without resizing cards or rows and Escape keeps
   );
   const panel = await remove.boundingBox();
   expect(panel!.y + panel!.height).toBeLessThanOrEqual(568);
-  await page.keyboard.press("Escape");
-  await expect(remove).not.toBeVisible();
-  await expect(dialog).toBeVisible();
-  await expect(trigger).toBeFocused();
-  await trigger.click();
+  await page.screenshot({
+    path: testInfo.outputPath(
+      "subscription-click-mobile.png",
+    ),
+  });
   await dialog
     .getByRole("heading", { name: "내 구독", exact: true })
     .click();

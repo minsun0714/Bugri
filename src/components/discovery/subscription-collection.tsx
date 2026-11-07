@@ -95,11 +95,6 @@ export function SubscriptionCollection({
             if (modal) setMessage(text);
             onSuccess(text);
           }}
-          onRemoved={
-            modal
-              ? () => results.current?.focus()
-              : onPreviewRemoved
-          }
         />
       </li>
     ));

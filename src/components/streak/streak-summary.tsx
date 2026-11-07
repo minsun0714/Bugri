@@ -9,11 +9,13 @@ import { useLearningDay } from "@/components/streak/queries";
 
 export function StreakSummary({
   userId,
+  publicId,
 }: {
   userId: string;
+  publicId?: string;
 }) {
   const { data, isPending, error, refetch, isFetching } =
-    useLearningDay(userId);
+    useLearningDay(userId, publicId);
   const timezoneRequired =
     error instanceof ApiClientError &&
     error.detail.code === "TIMEZONE_REQUIRED";
@@ -23,8 +25,15 @@ export function StreakSummary({
       aria-labelledby="learning-streak-heading"
       className="rounded-3xl border border-line bg-surface p-4 sm:p-6"
     >
-      <h2 id="learning-streak-heading" className="sr-only">
-        연속 학습
+      <h2
+        id="learning-streak-heading"
+        className={
+          publicId
+            ? "mb-5 text-xl font-semibold"
+            : "sr-only"
+        }
+      >
+        {publicId ? "학습 활동" : "연속 학습"}
       </h2>
       {isPending ? (
         <p role="status" className="mt-4 text-muted">
@@ -81,24 +90,31 @@ export function StreakSummary({
                 <strong className="text-2xl font-bold tracking-tight text-foreground">
                   {data.streak > 0
                     ? `${data.streak}일 연속`
-                    : data.completedDates.length > 0
-                      ? "오늘부터 다시"
-                      : "오늘부터 시작"}
+                    : publicId
+                      ? "연속 학습 0일"
+                      : data.completedDates.length > 0
+                        ? "오늘부터 다시"
+                        : "오늘부터 시작"}
                 </strong>
               </div>
               <p className="mt-1 text-xs text-muted">
                 {data.completed
                   ? "✓ 오늘 학습 완료"
-                  : data.streak > 0
-                    ? "오늘 한 문제로 이어가요"
-                    : data.completedDates.length > 0
-                      ? "한 문제로 다시 시작해요"
-                      : "한 문제 풀고 첫 기록"}
+                  : publicId
+                    ? "오늘 학습 기록 없음"
+                    : data.streak > 0
+                      ? "오늘 한 문제로 이어가요"
+                      : data.completedDates.length > 0
+                        ? "한 문제로 다시 시작해요"
+                        : "한 문제 풀고 첫 기록"}
               </p>
             </div>
           </div>
           <div className="min-w-0 lg:border-l lg:border-line lg:pl-8">
-            <ActivityPeriods key={userId} data={data} />
+            <ActivityPeriods
+              key={publicId ?? userId}
+              data={data}
+            />
           </div>
         </div>
       ) : null}

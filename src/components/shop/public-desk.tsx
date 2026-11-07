@@ -3,7 +3,7 @@
 import { Button, Skeleton } from "@/components/ui";
 import { ProductLayout } from "@/components/navigation/product-layout";
 import { DeveloperScreen } from "@/components/developer/developer-screen";
-import { FeatureSectionShell } from "@/components/navigation/feature-section-shell";
+import { StreakSummary } from "@/components/streak/streak-summary";
 import { ThreeView } from "@/components/shop/three-view";
 import { DeskTool } from "@/api/constants";
 import { ShopProvider } from "@/components/shop/provider";
@@ -60,10 +60,12 @@ export function PublicDesk({
             </section>
           }
         />
-        <FeatureSectionShell
-          id="learning-activity"
-          title="학습 활동"
-        />
+        <ShopProvider>
+          <StreakSummary
+            userId="learner"
+            publicId={publicId}
+          />
+        </ShopProvider>
       </div>
     </ProductLayout>
   );

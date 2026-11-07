@@ -201,7 +201,10 @@ export function createMockTransport(
 
         const before = JSON.stringify(state);
 
-        if (!state.timeZone) {
+        if (
+          operation !== "publicLearningDay" &&
+          !state.timeZone
+        ) {
           let detected: string | undefined;
 
           try {
@@ -234,7 +237,10 @@ export function createMockTransport(
 
         // Upgrade only the actor's legacy snapshot. Service-level subscribe deduplicates targets.
         // Commit the marker with the requested operation so a failed write never partially migrates.
-        if (state.learningDemoVersion === undefined) {
+        if (
+          operation !== "publicLearningDay" &&
+          state.learningDemoVersion === undefined
+        ) {
           for (const target of subscriptions[userId] ??
             []) {
             execute("subscribe", clone(target), context);
@@ -243,7 +249,10 @@ export function createMockTransport(
           state.learningDemoVersion = 1;
         }
 
-        if (state.coinHistoryDemoVersion === undefined) {
+        if (
+          operation !== "publicLearningDay" &&
+          state.coinHistoryDemoVersion === undefined
+        ) {
           state.ledger = state.ledger.flatMap((entry) =>
             entry.id === `seed-balance-${userId}` &&
             entry.reason === "SEED" &&
