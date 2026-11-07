@@ -147,3 +147,29 @@ test("failed save preserves draft with retry and visitor has no controls", async
     }),
   ).not.toBeInTheDocument();
 });
+
+test("header slot owns the single modal trigger and restores focus after close", async () => {
+  render(
+    <ProfileSections
+      {...props}
+      renderHeader={(action) => (
+        <header aria-label="프로필 머리글">{action}</header>
+      )}
+    />,
+  );
+  const header = screen.getByRole("banner", {
+    name: "프로필 머리글",
+  });
+  const trigger = screen.getByRole("button", {
+    name: "순서 편집",
+  });
+  expect(header).toContainElement(trigger);
+  fireEvent.click(trigger);
+  fireEvent.click(
+    screen.getByRole("button", { name: "닫기" }),
+  );
+  await waitFor(() => expect(trigger).toHaveFocus());
+  expect(
+    screen.queryByRole("dialog"),
+  ).not.toBeInTheDocument();
+});

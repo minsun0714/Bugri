@@ -72,7 +72,11 @@ for (const width of [1280, 390]) {
     const editBox = await edit.boundingBox();
     const deskBox = await desk.boundingBox();
     expect(
-      bioBox!.y - (identityBox!.y + identityBox!.height),
+      bioBox!.y -
+        Math.max(
+          identityBox!.y + identityBox!.height,
+          editBox!.y + editBox!.height,
+        ),
     ).toBeLessThanOrEqual(24);
     expect(
       linkBox!.y - (bioBox!.y + bioBox!.height),
@@ -210,3 +214,102 @@ test("custom link domains stay readable and accessible after long labels", async
     fullPage: true,
   });
 });
+
+for (const width of [1280, 390, 320]) {
+  test(`empty learner profile groups actions without a blank toolbar at ${width}`, async ({
+    page,
+  }, testInfo) => {
+    const state = initialState("learner");
+    state.profileOrder = {
+      order: ["QUIZZES", "DESK", "ACTIVITY"],
+    };
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript(
+      (value) =>
+        localStorage.setItem(
+          "bugri:mock:v1:learner",
+          JSON.stringify(value),
+        ),
+      state,
+    );
+    await page.goto("/users/bugri-learner?user=learner");
+    const profile = page.getByRole("region", {
+      name: "공개 프로필 정보",
+    });
+    const group = profile.getByRole("group", {
+      name: "프로필 관리",
+    });
+    const sort = group.getByRole("button", {
+      name: "순서 편집",
+      exact: true,
+    });
+    const edit = group.getByRole("button", {
+      name: "프로필 편집",
+      exact: true,
+    });
+    await expect(sort).toBeEnabled();
+    await expect(edit).toBeEnabled();
+    const sortBox = (await sort.boundingBox())!;
+    const editBox = (await edit.boundingBox())!;
+    expect(Math.abs(sortBox.y - editBox.y)).toBeLessThan(2);
+    const profileBox = (await profile.boundingBox())!;
+    const quizzes = page.getByRole("region", {
+      name: "개발자의 공개 퀴즈",
+    });
+    const quizBox = (await quizzes.boundingBox())!;
+    expect(
+      quizBox.y - profileBox.y - profileBox.height,
+    ).toBeLessThanOrEqual(32);
+    expect(quizBox.height).toBeLessThan(150);
+    await expect(
+      quizzes.getByText("공개된 퀴즈가 없습니다", {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      quizzes.getByRole("link", { name: "전체 보기 →" }),
+    ).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            innerWidth,
+        ),
+      )
+      .toBe(true);
+    await page.screenshot({
+      path: testInfo.outputPath(`header-${width}.png`),
+      fullPage: true,
+    });
+    await sort.click();
+    await expect(
+      page.getByRole("dialog", { name: "순서 편집" }),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(sort).toBeFocused();
+    await edit.click();
+    await expect(
+      page.getByRole("textbox", {
+        name: "자기소개 (선택)",
+      }),
+    ).toBeFocused();
+    await page
+      .getByRole("button", { name: "취소", exact: true })
+      .click();
+    await expect(edit).toBeFocused();
+    await page.goto("/users/bugri-learner?user=friend");
+    await expect(
+      page.getByRole("button", {
+        name: "순서 편집",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("button", {
+        name: "프로필 편집",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+  });
+}

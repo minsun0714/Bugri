@@ -26,6 +26,9 @@ for (const width of [1280, 390, 320]) {
       exact: true,
     });
     await expect(sections).toHaveCount(3);
+    await expect(
+      page.getByRole("img", { name: "3D 데스크 캔버스" }),
+    ).toHaveAttribute("data-renderer", "canvas");
     const initialHeight = await sections
       .first()
       .evaluate((el) => el.getBoundingClientRect().height);

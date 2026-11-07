@@ -1668,3 +1668,12 @@
 
 - Node v22.23.3: 변경파일 ESLint/Prettier·전체 타입·관련 Jest10개 통과. production build 및 E2E8개(순서모달1280/390/320, 기존프로필배치3개·분리2개) 통과. 저장전 본문 순서/높이 보존, 모달500px미만, 드래그/키보드, 취소/닫기/Escape/초점, 저장실패후재시도, 방문자/타인 복원 검증. 기존 본문 장거리 edge scroll 테스트는 제거된 동작으로 모달 내 세 행 조작 테스트로 교체했다. 로그 `/tmp/profile-modal-e2e.log`, `/tmp/profile-modal-unit.log`, `/tmp/profile-modal-types.log`.
 - [독립 UX/UI R0](ux-reviews/PROFILE-ORDER-MODAL.md): UX는320/390실제브라우저핵심흐름·코드검토, UI는9개PC/mobile캡처 검토. 필수문제0개/수정0회, 작은화살표glyph 선택개선 보류. 실기기터치/스크린리더/낮은높이 미확인. API·저장·공통UI·의존성 변경 없이 로컬 동작 변경으로 전체 verify는 재실행하지 않았다. 검증 후 변경은 문서 기록뿐이며 로컬 커밋한다.
+
+
+## PROFILE-HEADER-ACTIONS — 프로필 상단 여백 정리
+
+- 상태: DONE(로컬 범위 검증·독립 리뷰 완료). 사용자 스크린샷 및 sub-agent 논의 요청에 따라 순서 편집 독립 행을 제거하고 프로필 편집과 헤더의 한 관리 그룹에 배치한다. 기존 프로필편집 우측끝 정렬을 유지한다. 좁은 화면은 ID 다음행에 두 버튼을 함께 배치한다. 공개 프로필 퀴즈 빈 상태만 아이콘/중복설명 없이 간결하게 표시하며 별도 목록의 EmptyState는 유지한다. 모달·API·저장 계약 유지.
+- UX/UI 설계 논의: 두 역할 모두 독립 툴바의44px높이+간격 중첩을 원인으로 확인. 배치 순서는 기존 프로필편집 우측끝 요구를 우선해 ‘순서 편집 → 프로필 편집’으로 선택했다. 본문 간격24px 유지. 변경 동작에 대한 header slot 테스트 최초실패 확인 후 관련 Jest9개/전체타입 통과.
+
+- [독립 UX/UI 리뷰](ux-reviews/PROFILE-HEADER-ACTIONS.md): 새 UX리뷰어320/390실제조작+코드검토, 새 UI리뷰어1280/390/320캡처확인. 필수문제0개/R0수정0회. 본인/게스트/타인·두 편집진입/초점복귀·순서저장 확인. 실기기터치/스크린리더 미확인.
+- Nodev22.23.3 관련Jest9개·변경파일ESLint/Prettier·전체타입·diff검사 통과. productionE2E 최초13개중11통과/모달2실패(3D준비중안내 높이40px차이). 준비완료 대기만 추가해 높이동일기대 유지, 수정후모달3개재통과. 앱/나머지테스트/환경동일하여 최초 나머지10개 성공재사용. 실패수정1회. 로그 `/tmp/profile-header-e2e.log`, `/tmp/profile-header-order-r1.log`, `/tmp/profile-header-unit.log`. UI 한정 로컬완료로 전체verify는 재실행하지 않았다. 검증 후 변경은 결과 기록뿐이며 로컬커밋한다. push/PR/병합 없음.

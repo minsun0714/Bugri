@@ -18,6 +18,7 @@ export function ProfileAbout({
   owner,
   identity,
   visitorAction,
+  ownerAction,
   onNotice,
 }: {
   userId: string;
@@ -25,6 +26,7 @@ export function ProfileAbout({
   owner: boolean;
   identity: ReactNode;
   visitorAction: ReactNode;
+  ownerAction?: ReactNode;
   onNotice: (message: string, duration?: number) => void;
 }) {
   const { profile, update } = useProfileAbout(
@@ -142,7 +144,7 @@ export function ProfileAbout({
     <section
       ref={root}
       aria-label="공개 프로필 정보"
-      className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-x-6 gap-y-3"
+      className="grid w-full grid-cols-1 items-start gap-x-6 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto]"
     >
       <header className="min-w-0 self-center">
         {identity}
@@ -152,8 +154,9 @@ export function ProfileAbout({
           <div
             role="group"
             aria-label="프로필 관리"
-            className="flex flex-wrap items-center justify-end gap-1"
+            className="flex items-center justify-end gap-3"
           >
+            {ownerAction}
             <Button
               data-profile-edit
               variant="ghost"
@@ -174,7 +177,9 @@ export function ProfileAbout({
         </div>
       )}
       {content && (
-        <div className="col-span-2 min-w-0">{content}</div>
+        <div className="min-w-0 sm:col-span-2">
+          {content}
+        </div>
       )}
     </section>
   );

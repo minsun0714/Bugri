@@ -15,11 +15,13 @@ export function ProfileSections({
   owner,
   sections,
   onNotice,
+  renderHeader,
 }: {
   userId: string;
   publicId: string;
   owner: boolean;
   sections: Record<ProfileSection, ReactNode>;
+  renderHeader?: (action: ReactNode) => ReactNode;
   onNotice: (message: string, duration?: number) => void;
 }) {
   const {
@@ -48,42 +50,48 @@ export function ProfileSections({
     onNotice,
   );
 
-  if (profile.isPending) return <Skeleton />;
-  if (profile.error && !profile.data)
-    return (
-      <div role="alert" className="space-y-3">
-        <p>섹션 순서를 불러오지 못했습니다.</p>
-        <div className="flex justify-end">
-          <Button onClick={() => void profile.refetch()}>
-            다시 불러오기
-          </Button>
-        </div>
-      </div>
-    );
+  const orderAction = owner ? (
+    <Button
+      ref={editButton}
+      variant="ghost"
+      className={profileStyles.actionButton}
+      disabled={!profile.data || !!profile.error}
+      onClick={start}
+    >
+      순서 편집
+    </Button>
+  ) : null;
+  const header = renderHeader
+    ? renderHeader(orderAction)
+    : orderAction;
 
   return (
-    <div className="space-y-8">
-      {owner && (
-        <div className="flex justify-end">
-          <Button
-            ref={editButton}
-            variant="ghost"
-            className={profileStyles.actionButton}
-            onClick={start}
-          >
-            순서 편집
-          </Button>
+    <div className="space-y-6">
+      {header}
+      {profile.isPending ? (
+        <Skeleton />
+      ) : profile.error && !profile.data ? (
+        <div role="alert" className="space-y-3">
+          <p>섹션 순서를 불러오지 못했습니다.</p>
+          <div className="flex justify-end">
+            <Button onClick={() => void profile.refetch()}>
+              다시 불러오기
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {savedOrder.map((id) => (
+            <div
+              key={id}
+              data-profile-section={id}
+              className="min-w-0"
+            >
+              {sections[id]}
+            </div>
+          ))}
         </div>
       )}
-      {savedOrder.map((id) => (
-        <div
-          key={id}
-          data-profile-section={id}
-          className="min-w-0"
-        >
-          {sections[id]}
-        </div>
-      ))}
       {editing && (
         <Modal
           open

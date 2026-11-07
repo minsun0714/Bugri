@@ -338,6 +338,10 @@ function Catalog({
             ),
           )}
         </ul>
+      ) : profile ? (
+        <p className="py-6 text-center text-sm text-muted">
+          공개된 퀴즈가 없습니다
+        </p>
       ) : (
         <EmptyState
           title="공개된 퀴즈가 없습니다"
@@ -365,26 +369,35 @@ function Catalog({
   if (profile)
     return (
       <div className="space-y-6">
-        <ProfileAbout
-          key={`${userId}:${publicId}:${signedIn}`}
-          userId={userId}
-          publicId={publicId}
-          owner={signedIn && data.user.userId === userId}
-          identity={identity}
-          visitorAction={subscription}
-          onNotice={onNotice}
-        />
-        {subscribe.error && (
-          <p role="alert">
-            구독을 저장하지 못했습니다. 다시 시도해 주세요.
-          </p>
-        )}
         <ProfileSections
           key={`${userId}:${publicId}:${signedIn}`}
           userId={userId}
           publicId={publicId}
           owner={signedIn && data.user.userId === userId}
           onNotice={onNotice}
+          renderHeader={(orderAction) => (
+            <div className="space-y-3">
+              {" "}
+              <ProfileAbout
+                key={`${userId}:${publicId}:${signedIn}`}
+                userId={userId}
+                publicId={publicId}
+                owner={
+                  signedIn && data.user.userId === userId
+                }
+                identity={identity}
+                visitorAction={subscription}
+                ownerAction={orderAction}
+                onNotice={onNotice}
+              />
+              {subscribe.error && (
+                <p role="alert">
+                  구독을 저장하지 못했습니다. 다시 시도해
+                  주세요.
+                </p>
+              )}
+            </div>
+          )}
           sections={{
             DESK: (
               <div className="space-y-2">
