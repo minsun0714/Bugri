@@ -17,6 +17,8 @@ export interface SelectionBounds {
 }
 
 export interface DeskSceneState extends SceneState {
+  /** Frozen item coordinate frame while the trial desk moves independently. */
+  itemFrame?: DeskTransform;
   previewSelected?: boolean;
   allowDefaultDesk?: boolean;
   onSelect?: (

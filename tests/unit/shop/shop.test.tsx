@@ -208,4 +208,12 @@ it("shows the catalog directly without shop or inventory tabs", async () => {
     screen.queryByRole("button", { name: "보관함" }),
   ).not.toBeInTheDocument();
   expect(screen.getAllByRole("article")).toHaveLength(10);
+  expect(
+    screen.queryByRole("heading", {
+      name: "이웃의 데스크",
+    }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", { name: /이웃/ }),
+  ).not.toBeInTheDocument();
 });

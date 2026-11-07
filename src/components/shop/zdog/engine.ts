@@ -42,6 +42,7 @@ export function createDeskEngine(
   const picker = createPicker();
   const owners = new Map<Zdog.Anchor, SceneTarget | null>();
   let content: Zdog.Anchor | null = null;
+  let itemLayers: Zdog.Anchor[] = [];
   let previewAnchor: Zdog.Anchor | null = null;
   let rotationHandle: Zdog.Anchor | null = null;
   let framingHeight = 300;
@@ -91,7 +92,10 @@ export function createDeskEngine(
       updateSort: true,
     });
     deskParts(lower, top, equipment.DESK ?? "default");
-    owners.set(bugri(lower), null);
+    const lowerItems = new Zdog.Anchor({ addTo: lower });
+    const upperItems = new Zdog.Anchor({ addTo: upper });
+    itemLayers = [lowerItems, upperItems];
+    owners.set(bugri(lowerItems), null);
     anchors.set(Category.DESK, desk);
     for (const category of [
       Category.KEYBOARD,
@@ -105,7 +109,12 @@ export function createDeskEngine(
       if (id)
         anchors.set(
           category,
-          model(value.y >= tableHeight ? upper : lower, id),
+          model(
+            value.y >= tableHeight
+              ? upperItems
+              : lowerItems,
+            id,
+          ),
         );
     }
     anchors.forEach((anchor, category) =>
@@ -118,8 +127,8 @@ export function createDeskEngine(
         category === Category.DESK
           ? content
           : transform.y >= tableHeight
-            ? upper
-            : lower,
+            ? upperItems
+            : lowerItems,
         productId,
       );
       owners.set(previewAnchor, SceneObject.PREVIEW);
@@ -239,7 +248,11 @@ export function createDeskEngine(
           Math.hypot(value.x, value.z) + 1,
         );
       }
-      radius += Math.hypot(desk.x, desk.z);
+      const itemFrame = state.itemFrame ?? desk;
+      radius = Math.max(
+        radius + Math.hypot(itemFrame.x, itemFrame.z),
+        Math.hypot(desk.x, desk.z) + 3,
+      );
       if (state.preview) {
         const { category, transform } = state.preview;
         radius = Math.max(
@@ -247,7 +260,7 @@ export function createDeskEngine(
           Math.hypot(transform.x, transform.z) +
             (category === Category.DESK
               ? 3
-              : 1 + Math.hypot(desk.x, desk.z)),
+              : 1 + Math.hypot(itemFrame.x, itemFrame.z)),
         );
         framingHeight = Math.max(
           framingHeight,
@@ -278,8 +291,8 @@ export function createDeskEngine(
         );
         const world = (x: number, z: number) =>
           new Zdog.Vector({ x, z })
-            .rotate({ y: -radians(desk.rotationY) })
-            .add({ x: desk.x, z: desk.z });
+            .rotate({ y: -radians(itemFrame.rotationY) })
+            .add({ x: itemFrame.x, z: itemFrame.z });
         const mascot = world(-2.3, 1.8);
         radius = Math.max(
           radius,
@@ -333,6 +346,22 @@ export function createDeskEngine(
       });
       anchor.rotate.y = -radians(value.rotationY);
     });
+    // Preserve the opening room's item frame even when its desk is moved.
+    // Compensate the parent transform without changing stored item coordinates.
+    const desk =
+      state.transforms.DESK ?? defaultTransforms.DESK;
+    const itemFrame = state.itemFrame ?? desk;
+    const offset = new Zdog.Vector({
+      x: (itemFrame.x - desk.x) * 100,
+      y: -(itemFrame.y - desk.y) * 100,
+      z: (itemFrame.z - desk.z) * 100,
+    }).rotate({ y: radians(desk.rotationY) });
+    for (const layer of itemLayers) {
+      layer.translate.set(offset);
+      layer.rotate.y = radians(
+        desk.rotationY - itemFrame.rotationY,
+      );
+    }
     if (previewAnchor && state.preview) {
       const { transform } = state.preview;
       previewAnchor.translate.set({
@@ -501,8 +530,11 @@ export function createDeskEngine(
         Math.cos(cameraAngle) * screenZ;
       if (category !== Category.DESK) {
         const deskAngle = -radians(
-          (state.transforms.DESK ?? defaultTransforms.DESK)
-            .rotationY,
+          (
+            state.itemFrame ??
+            state.transforms.DESK ??
+            defaultTransforms.DESK
+          ).rotationY,
         );
         const localX =
           Math.cos(deskAngle) * x + Math.sin(deskAngle) * z;

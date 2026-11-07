@@ -247,6 +247,8 @@ export function useProductTrial({
     previewTransform,
     commitTransform,
     space: { ...space, transforms: spaceEditor.effective },
+    itemFrame:
+      space.transforms.DESK ?? defaultTransforms.DESK,
     preview:
       movable && current
         ? {

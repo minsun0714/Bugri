@@ -32,6 +32,7 @@ export function ProductTrial(props: {
     previewTransform,
     commitTransform,
     space,
+    itemFrame,
     preview,
     replacesExisting,
     apply,
@@ -55,6 +56,7 @@ export function ProductTrial(props: {
               }
         }
         transforms={space.transforms}
+        itemFrame={itemFrame}
         preview={preview}
         previewSelected={previewSelected}
         allowDefaultDesk
