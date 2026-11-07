@@ -33,6 +33,7 @@ const radians = (value: number) => (value * Math.PI) / 180;
 export function createDeskEngine(
   host: HTMLElement,
   initial: DeskSceneState,
+  interactionSurface: HTMLElement = host,
 ) {
   let state = initial;
   const canvas = document.createElement("canvas");
@@ -789,7 +790,7 @@ export function createDeskEngine(
   }
 
   window.addEventListener("keydown", keyDown);
-  canvas.addEventListener("wheel", wheel, {
+  interactionSurface.addEventListener("wheel", wheel, {
     passive: false,
   });
   canvas.addEventListener("pointerdown", pointerDown);
@@ -819,7 +820,10 @@ export function createDeskEngine(
     cancel,
     dispose() {
       resize.disconnect();
-      canvas.removeEventListener("wheel", wheel);
+      interactionSurface.removeEventListener(
+        "wheel",
+        wheel,
+      );
       window.removeEventListener("keydown", keyDown);
       canvas.removeEventListener(
         "pointerdown",

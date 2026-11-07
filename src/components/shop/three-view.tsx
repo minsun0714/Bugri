@@ -52,6 +52,7 @@ type Props = Omit<
 export function ThreeView(props: Props) {
   const descriptionId = useId();
   const host = useRef<HTMLDivElement>(null);
+  const viewport = useRef<HTMLDivElement>(null);
   const engine = useRef<Engine | null>(null);
   const latest = useRef(props);
   const [failed, setFailed] = useState(false);
@@ -132,13 +133,18 @@ export function ThreeView(props: Props) {
     let instance: Engine | null = null;
     import("@/components/shop/zdog/engine")
       .then(({ createDeskEngine }) => {
-        if (cancelled || !host.current) return;
-        instance = createDeskEngine(host.current, {
-          ...latest.current,
-          onError: () => setFailed(true),
-          onCamera: updateCamera,
-          onSelectionBounds: updateSelection,
-        });
+        if (cancelled || !host.current || !viewport.current)
+          return;
+        instance = createDeskEngine(
+          host.current,
+          {
+            ...latest.current,
+            onError: () => setFailed(true),
+            onCamera: updateCamera,
+            onSelectionBounds: updateSelection,
+          },
+          viewport.current,
+        );
         engine.current = instance;
         setReady(true);
       })
@@ -189,7 +195,7 @@ export function ThreeView(props: Props) {
           {camera.pitch}°
         </output>
       </div>
-      <div className="relative">
+      <div ref={viewport} className="relative">
         <div
           ref={host}
           style={
