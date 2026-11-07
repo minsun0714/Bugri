@@ -1,3 +1,4 @@
+import { shouldThrowQueryError } from "@/api/errors";
 import {
   useWallet,
   walletKey,
@@ -99,6 +100,7 @@ export function useShop(userId: string) {
 export function usePublicDesk(publicId: string) {
   return useQuery({
     queryKey: ["profile", publicId],
+    throwOnError: shouldThrowQueryError,
     queryFn: async () =>
       (
         await createBrowserApi({

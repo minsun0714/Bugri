@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { QueryRecoveryPreview } from "@/components/errors/query-preview";
 import { Button } from "@/components/ui";
 
 export function ErrorPreview() {
@@ -14,6 +15,7 @@ export function ErrorPreview() {
       <Button onClick={() => setFailed(true)}>
         렌더링 오류 재현
       </Button>
+      <QueryRecoveryPreview />
     </main>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { createQueryClient } from "@/api/query-client";
+
 import Link from "next/link";
 import { tagCatalogStyles } from "@/components/tag-catalog/styles";
 import {
@@ -13,10 +15,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ApiClientError } from "@/api/client";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import { useTagQuizzes } from "@/components/tag-catalog/queries";
@@ -386,7 +385,7 @@ export function TagCatalogScreen() {
   const { hashtagId } = useParams<{ hashtagId: string }>();
   const params = useSearchParams();
   const userId = params.get("user") ?? "learner";
-  const [client] = useState(() => new QueryClient());
+  const [client] = useState(() => createQueryClient());
   return (
     <QueryClientProvider client={client}>
       <Catalog
