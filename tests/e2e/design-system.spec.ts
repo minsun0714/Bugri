@@ -19,6 +19,7 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
   await page
     .getByRole("link", { name: "Bugri 홈", exact: true })
     .click();
+  await expect(page).toHaveURL("/");
   await page.screenshot({
     path: testInfo.outputPath("desktop.png"),
     fullPage: true,
@@ -102,4 +103,20 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
         window.innerWidth,
     ),
   ).toBe(true);
+});
+
+test("header logo returns from authoring to home", async ({
+  page,
+}) => {
+  await page.goto("/quizzes/authoring");
+  await page
+    .getByRole("link", { name: "Bugri 홈", exact: true })
+    .click();
+  await expect(page).toHaveURL("/");
+  await expect(
+    page.getByRole("heading", {
+      name: "컴포넌트",
+      exact: true,
+    }),
+  ).toBeVisible();
 });
