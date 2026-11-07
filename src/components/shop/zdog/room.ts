@@ -10,35 +10,65 @@ export function room(
 ) {
   const theme = roomTheme(productId);
   const night = productId === "background-2";
+  const bounds = {
+    left: -900,
+    right: 900,
+    back: -420,
+    front: 900,
+  };
+  const width = bounds.right - bounds.left;
+  const depth = bounds.front - bounds.back;
+  const centerX = (bounds.left + bounds.right) / 2;
+  const centerZ = (bounds.back + bounds.front) / 2;
+  const floorY = 2;
   const floor = new Zdog.Rect({
     addTo: parent,
-    width: 1800,
-    height: 1800,
+    width,
+    height: depth,
     rotate: { x: Math.PI / 2 },
-    translate: { y: 2 },
+    translate: { x: centerX, y: floorY, z: centerZ },
     fill: true,
     stroke: false,
     color: theme.floor,
     backface: false,
   });
   const walls = [
-    { x: 0, z: -420, angle: 0, color: theme.wall },
     {
-      x: -900,
-      z: 0,
+      x: centerX,
+      z: bounds.back,
+      angle: 0,
+      span: width,
+      color: theme.wall,
+    },
+    {
+      x: bounds.left,
+      z: centerZ,
       angle: -Math.PI / 2,
+      span: depth,
       color: theme.side,
     },
-    { x: 0, z: 900, angle: Math.PI, color: theme.wall },
-    { x: 900, z: 0, angle: Math.PI / 2, color: theme.side },
+    {
+      x: centerX,
+      z: bounds.front,
+      angle: Math.PI,
+      span: width,
+      color: theme.wall,
+    },
+    {
+      x: bounds.right,
+      z: centerZ,
+      angle: Math.PI / 2,
+      span: depth,
+      color: theme.side,
+    },
   ].map(
-    ({ x, z, angle, color }) =>
+    ({ x, z, angle, span, color }) =>
       new Zdog.Rect({
         addTo: parent,
-        width: 1800,
+        width: span,
         height: 700,
         rotate: { y: angle },
-        translate: { x, y: -350, z },
+        translate: { x, y: floorY - 350, z },
         fill: true,
         stroke: false,
         color,
@@ -168,11 +198,12 @@ export function room(
     const reachX =
       extent / Math.max(0.001, Math.abs(cosine));
     const reachZ = extent / Math.max(0.001, Math.abs(sine));
-    const minX = sine > 0.000001 ? -900 : -reachX;
-    const maxX = sine < -0.000001 ? 900 : reachX;
-    const minZ = cosine > 0.000001 ? -420 : -reachZ;
-    const maxZ = cosine < -0.000001 ? 900 : reachZ;
+    const minX = sine > 0.000001 ? bounds.left : -reachX;
+    const maxX = sine < -0.000001 ? bounds.right : reachX;
+    const minZ = cosine > 0.000001 ? bounds.back : -reachZ;
+    const maxZ = cosine < -0.000001 ? bounds.front : reachZ;
     floor.width = floor.height = extent * 2;
+    floor.translate.x = floor.translate.z = 0;
     floor.updatePath();
     walls.forEach((wall, index) => {
       const alongX = index % 2 === 0;
@@ -180,7 +211,7 @@ export function room(
       wall.height = extent * 2;
       if (alongX) wall.translate.x = (minX + maxX) / 2;
       else wall.translate.z = (minZ + maxZ) / 2;
-      wall.translate.y = 2 - extent;
+      wall.translate.y = floorY - extent;
       wall.updatePath();
     });
   };

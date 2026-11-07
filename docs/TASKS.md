@@ -449,3 +449,9 @@
 - 상태: IN_PROGRESS. REQ-09/AC-09e. 확장한 두 벽이 서로 겹쳐 사선 가장자리가 벽 경계처럼 보이는 문제를 실제 Canvas의 서로 다른 높이에서 모서리 X 좌표를 비교해 재현한다. 각 시점의 두 내부 벽을 공통 모서리에서 맞추고 화면 바깥 방향으로만 확장한다.
 
 - 구현/검증: 카메라 방위각에 따라 두 벽의 공통 모서리를 정하고 그 부분에서만 면을 자른다. 반대 끝은 투영 가로 폭을 고려해 화면 밖까지 확장한다. 수정 전 PC/모바일 모서리 X 좌표 비교 2개 실패, 수정 후 두 테마의 수직 경계·배경 채움·장착/복원 관련 E2E 6개 통과. 실제 최소 배율 Canvas에서도 수직 모서리를 확인했다. 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 전체 통과(lint·TypeScript·Jest 94개·도구 3개·build·E2E 73개), `git diff --check` 통과. 로그 `.bugri-hooks/room-corner-verify.log`. IN_PROGRESS(독립 리뷰 대기), push·PR·merge 없음.
+
+## P08-ROOM-THUMBNAIL-BOUNDS 썸네일 벽과 바닥 정렬
+
+- 상태: IN_PROGRESS. REQ-09/AC-09e. 썸네일 고정 방 모델의 왼쪽 벽 깊이와 바닥 범위가 달라 경계 밖으로 겹치는 문제를 수정한다. 벽 네 면의 하단 끝점이 바닥 모서리와 일치하는지 두 테마 단위 테스트로 검증하고 실제 상품 카드 및 기존 전체 화면 배경 회귀를 확인한다. 이전 작업 Hook이 활성 상태여서 재활성화하지 않고 기존 검증 상태를 유지한다.
+
+- 검증: 수정 전 두 테마의 벽 하단/바닥 모서리 테스트 2개 실패 후 수정으로 통과. 새 테스트의 Zdog 내부 children 타입 선언 오류로 첫 E2E 빌드가 중단되어 타입 선언을 수정했고 TypeScript와 관련 E2E 6개 통과. 실제 정원/달빛 썸네일 화면 확인. 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 전체 통과(lint·TypeScript·Jest 96개·도구 3개·build·E2E 73개). 로그 `.bugri-hooks/room-thumbnail-verify.log`. IN_PROGRESS(독립 리뷰 대기), push·PR·merge 없음.
