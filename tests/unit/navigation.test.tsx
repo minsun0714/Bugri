@@ -1,4 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
   getBreadcrumbs,
@@ -36,8 +40,9 @@ test("home and unknown routes have no guessed breadcrumb", () => {
 test("navigation preserves the demo identity and excludes personal destinations for visitors", () => {
   const member = getNavigationItems("friend");
   expect(
-    member.find(({ label }) => label === "내 퀴즈")?.href,
-  ).toBe("/quizzes/authoring/manage?user=friend");
+    member.find(({ label }) => label === "개발자·태그 탐색")
+      ?.href,
+  ).toBe("/discover?user=friend");
   expect(
     getNavigationItems(null).some(
       ({ label }) => label === "내 퀴즈",
@@ -77,7 +82,7 @@ test("member and visitor headers expose only applicable links", async () => {
     screen.queryByRole("link", { name: "내 퀴즈" }),
   ).not.toBeInTheDocument();
   expect(
-    screen.getByRole("link", { name: "탐색" }),
+    screen.getByRole("link", { name: "개발자·태그 탐색" }),
   ).toHaveAttribute("aria-current", "page");
   rerender(
     <HeaderNavigation
@@ -85,9 +90,15 @@ test("member and visitor headers expose only applicable links", async () => {
       userId="author"
     />,
   );
+  fireEvent.click(
+    screen.getByRole("button", { name: "내 프로필" }),
+  );
   expect(
     screen.getByRole("link", { name: "내 퀴즈" }),
-  ).toHaveAttribute("aria-current", "page");
+  ).toHaveAttribute(
+    "href",
+    "/quizzes/authoring/manage?user=author",
+  );
   expect(
     screen.getByRole("link", { name: "Bugri 홈" }),
   ).toHaveAttribute("href", "/?user=author");

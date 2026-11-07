@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PublicProfileLink } from "@/components/navigation/public-profile-link";
 import { Suspense } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 import {
@@ -132,6 +133,10 @@ export function HeaderNavigation({
                   aria-label="내 프로필 메뉴"
                   className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 gap-1 rounded-2xl border border-line bg-white p-2 shadow-[0_16px_45px_-12px_#34204b40]"
                 >
+                  <PublicProfileLink
+                    userId={userId}
+                    onNavigate={() => setProfileOpen(false)}
+                  />
                   <Link
                     href={withDemoUser(
                       "/quizzes/authoring/manage",
