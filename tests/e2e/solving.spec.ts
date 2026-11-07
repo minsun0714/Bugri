@@ -51,9 +51,9 @@ async function submit(page: Page, labels: string[]) {
   await expect(
     page.getByRole("img", { name: /버그리/ }),
   ).toHaveCount(0);
-  await expect(page.getByText("잘했어!", { exact: true })).toHaveCount(
-    0,
-  );
+  await expect(
+    page.getByText("잘했어!", { exact: true }),
+  ).toHaveCount(0);
 }
 
 test("home immediately shows a subscribed question without a list or start button", async ({
@@ -147,7 +147,10 @@ test("four formats, restoration, next, exhaustion and tag exploration on home", 
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "다시 풀기", exact: true }),
+    page.getByRole("button", {
+      name: "다시 풀기",
+      exact: true,
+    }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", {
@@ -370,9 +373,12 @@ test("replay results stop instead of cycling completed questions", async ({
     }),
   ).toBeVisible();
   await expect(
-    page.getByText("다른 태그를 선택해 학습을 이어가세요.", {
-      exact: true,
-    }),
+    page.getByText(
+      "다른 태그를 선택해 학습을 이어가세요.",
+      {
+        exact: true,
+      },
+    ),
   ).toBeVisible();
   await expect(
     page.getByRole("button", {
@@ -727,10 +733,25 @@ test("empty state opens discovery page with URL search and explicit subscription
   ).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "Web 구독 해제",
+      name: "Web 구독 메뉴",
       exact: true,
     }),
   ).toBeEnabled();
+  await page
+    .getByRole("button", {
+      name: "Web 구독 메뉴",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page
+      .getByRole("menu", { name: "Web 구독 관리" })
+      .getByRole("menuitem", { name: "구독 해제" }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("menu", { name: "Web 구독 관리" }),
+  ).toHaveCount(0);
   await expect(page).toHaveURL(/\/discover\?.*query=Web/);
   await expect(search).toHaveValue("Web");
   await search.fill("Java");
@@ -745,7 +766,7 @@ test("empty state opens discovery page with URL search and explicit subscription
     .click();
   await expect(
     page.getByRole("button", {
-      name: "Java 구독 해제",
+      name: "Java 구독 메뉴",
       exact: true,
     }),
   ).toBeEnabled();
@@ -757,7 +778,7 @@ test("empty state opens discovery page with URL search and explicit subscription
     .click();
   await expect(
     page.getByRole("button", {
-      name: "JavaScript 구독 해제",
+      name: "JavaScript 구독 메뉴",
       exact: true,
     }),
   ).toBeEnabled();

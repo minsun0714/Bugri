@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DiscoveryKind } from "@/api/constants";
 import type {
   DiscoveryQuery,
@@ -22,6 +22,98 @@ interface DiscoverySearchProps {
   request: DiscoveryQuery;
   onSearch: (request: DiscoveryQuery) => void;
   onLearn: (hashtagId: string | null) => void;
+}
+
+function SubscriptionMenu({
+  name,
+  busy,
+  onUnsubscribe,
+}: {
+  name: string;
+  busy: boolean;
+  onUnsubscribe: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function closeOutside(event: PointerEvent) {
+      if (!root.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function closeWithKeyboard(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+
+      setOpen(false);
+      root.current
+        ?.querySelector<HTMLButtonElement>("button")
+        ?.focus();
+    }
+
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeWithKeyboard);
+
+    return () => {
+      document.removeEventListener(
+        "pointerdown",
+        closeOutside,
+      );
+      document.removeEventListener(
+        "keydown",
+        closeWithKeyboard,
+      );
+    };
+  }, [open]);
+
+  return (
+    <div ref={root} className="relative">
+      <Button
+        className="!size-7 !min-h-0 !rounded-full !border-0 !p-0 !shadow-none"
+        size="sm"
+        variant="ghost"
+        disabled={busy}
+        aria-label={`${name} 구독 메뉴`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="size-4"
+        >
+          <circle cx="5" cy="12" r="1.5" />
+          <circle cx="12" cy="12" r="1.5" />
+          <circle cx="19" cy="12" r="1.5" />
+        </svg>
+      </Button>
+      {open && (
+        <div
+          role="menu"
+          aria-label={`${name} 구독 관리`}
+          className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-28 rounded-xl border border-line bg-surface p-1 shadow-lg"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            disabled={busy}
+            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold whitespace-nowrap hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-45"
+            onClick={() => {
+              onUnsubscribe();
+              setOpen(false);
+            }}
+          >
+            구독 해제
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function DiscoverySearch(
@@ -85,40 +177,50 @@ function DiscoveryResults({
     tag: string | null,
     subscribed: boolean,
   ) {
+    function toggleSubscription() {
+      const message =
+        target.type === "HASHTAG"
+          ? subscribed
+            ? `${name} 태그 구독을 취소했습니다.`
+            : `${name} 태그를 구독했습니다.`
+          : subscribed
+            ? `${name}님 구독을 취소했습니다.`
+            : `${name}님을 구독했습니다.`;
+
+      void subscribe
+        .mutateAsync({ target, subscribed })
+        .then(() => setToast(message))
+        .catch(() => undefined);
+    }
+
     return (
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={busy}
-          aria-label={`${name} ${subscribed ? "구독 해제" : "구독하기"}`}
-          onClick={() => {
-            const message =
-              target.type === "HASHTAG"
-                ? subscribed
-                  ? `${name} 태그 구독을 취소했습니다.`
-                  : `${name} 태그를 구독했습니다.`
-                : subscribed
-                  ? `${name}님 구독을 취소했습니다.`
-                  : `${name}님을 구독했습니다.`;
-
-            void subscribe
-              .mutateAsync({ target, subscribed })
-              .then(() => setToast(message))
-              .catch(() => undefined);
-          }}
-        >
-          {subscribed ? "구독 해제" : "구독하기"}
-        </Button>
-        {subscribed && (
+        {subscribed ? (
+          <>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={busy}
+              aria-label={`${name} 학습하기`}
+              onClick={() => onLearn(tag)}
+            >
+              학습하기
+            </Button>
+            <SubscriptionMenu
+              name={name}
+              busy={busy}
+              onUnsubscribe={toggleSubscription}
+            />
+          </>
+        ) : (
           <Button
             size="sm"
-            variant="ghost"
+            variant="secondary"
             disabled={busy}
-            aria-label={`${name} 학습하기`}
-            onClick={() => onLearn(tag)}
+            aria-label={`${name} 구독하기`}
+            onClick={toggleSubscription}
           >
-            학습하기
+            구독하기
           </Button>
         )}
       </div>
@@ -301,7 +403,10 @@ function DiscoveryResults({
         </section>
       )}
       {toast && (
-        <Toast message={toast} onClose={() => setToast(null)} />
+        <Toast
+          message={toast}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );

@@ -109,10 +109,15 @@ it("finds developers and all registered tags without subscribing on search", asy
   await waitFor(() =>
     expect(
       screen.getByRole("button", {
-        name: "타입 개발자 구독 해제",
+        name: "타입 개발자 구독 메뉴",
       }),
     ).toBeEnabled(),
   );
+  expect(
+    screen.queryByRole("button", {
+      name: "타입 개발자 구독 해제",
+    }),
+  ).not.toBeInTheDocument();
   expect(
     screen.getByText("타입 개발자님을 구독했습니다."),
   ).toBeVisible();
@@ -131,7 +136,12 @@ it("finds developers and all registered tags without subscribing on search", asy
   ]);
   fireEvent.click(
     screen.getByRole("button", {
-      name: "타입 개발자 구독 해제",
+      name: "타입 개발자 구독 메뉴",
+    }),
+  );
+  fireEvent.click(
+    screen.getByRole("menuitem", {
+      name: "구독 해제",
     }),
   );
   await waitFor(async () =>
@@ -140,9 +150,7 @@ it("finds developers and all registered tags without subscribing on search", asy
     ),
   );
   expect(
-    screen.getByText(
-      "타입 개발자님 구독을 취소했습니다.",
-    ),
+    screen.getByText("타입 개발자님 구독을 취소했습니다."),
   ).toBeVisible();
 });
 
@@ -220,7 +228,7 @@ it("adds multiple tags without navigating or losing the current search", async (
   await waitFor(() =>
     expect(
       screen.getByRole("button", {
-        name: "Java 구독 해제",
+        name: "Java 구독 메뉴",
       }),
     ).toBeEnabled(),
   );
@@ -235,7 +243,7 @@ it("adds multiple tags without navigating or losing the current search", async (
   await waitFor(() =>
     expect(
       screen.getByRole("button", {
-        name: "JavaScript 구독 해제",
+        name: "JavaScript 구독 메뉴",
       }),
     ).toBeEnabled(),
   );
