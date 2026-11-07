@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { Generation } from "@/features/quiz-authoring/generation";
 import { createApiClient } from "@/api/client";
@@ -141,7 +142,9 @@ test("groups editing modes and preserves an unsent prompt when returning to prev
     { target: { value: "예시 추가" } },
   );
   fireEvent.click(
-    screen.getByRole("tab", { name: "미리보기" }),
+    within(
+      screen.getByRole("tablist", { name: "수정 방식" }),
+    ).getByRole("tab", { name: "미리보기" }),
   );
   expect(
     screen.queryByLabelText("퀴즈 1에 추가 요청"),
@@ -151,7 +154,22 @@ test("groups editing modes and preserves an unsent prompt when returning to prev
   );
   expect(
     screen.getByRole("tab", { name: "LLM으로 수정" }),
-  ).toBeDisabled();
+  ).toBeEnabled();
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "제목" }),
+    { target: { value: "임시 제목" } },
+  );
+  fireEvent.click(
+    within(
+      screen.getByRole("tablist", { name: "수정 방식" }),
+    ).getByRole("tab", { name: "미리보기" }),
+  );
+  fireEvent.click(
+    screen.getByRole("tab", { name: "직접 수정" }),
+  );
+  expect(
+    screen.getByRole("textbox", { name: "제목" }),
+  ).toHaveValue("임시 제목");
   fireEvent.click(
     screen.getByRole("button", { name: "수정 취소" }),
   );
@@ -161,4 +179,44 @@ test("groups editing modes and preserves an unsent prompt when returning to prev
   expect(
     screen.getByLabelText("퀴즈 1에 추가 요청"),
   ).toHaveValue("예시 추가");
+});
+
+test("keeps separate unconfirmed edits across quiz tabs and only clears the applied draft", async () => {
+  await setup();
+  fireEvent.click(
+    screen.getByRole("tab", { name: "직접 수정" }),
+  );
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "제목" }),
+    { target: { value: "첫 번째 임시 제목" } },
+  );
+  fireEvent.click(
+    screen.getByRole("tab", { name: "퀴즈 2" }),
+  );
+  fireEvent.click(
+    screen.getByRole("tab", { name: "직접 수정" }),
+  );
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "제목" }),
+    { target: { value: "두 번째 임시 제목" } },
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "수정 반영" }),
+  );
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("button", { name: "수정 반영" }),
+    ).not.toBeInTheDocument(),
+  );
+  expect(
+    screen.getByRole("button", {
+      name: "남은 후보 모두 저장",
+    }),
+  ).toBeDisabled();
+  fireEvent.click(
+    screen.getByRole("tab", { name: "퀴즈 1" }),
+  );
+  expect(
+    screen.getByRole("textbox", { name: "제목" }),
+  ).toHaveValue("첫 번째 임시 제목");
 });

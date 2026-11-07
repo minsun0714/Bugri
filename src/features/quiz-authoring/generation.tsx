@@ -20,7 +20,9 @@ import {
 } from "@/features/quiz-authoring/hooks/use-generation";
 
 export function Generation(props: GenerationProps) {
-  const [chatOpen, setChatOpen] = useState(false);
+  const [modes, setModes] = useState<
+    Record<number, string>
+  >({});
   const {
     batch,
     publish,
@@ -41,6 +43,12 @@ export function Generation(props: GenerationProps) {
     reload,
     save,
   } = useGeneration(props);
+  const selectedMode = modes[selectedIndex] ?? "미리보기";
+  const mode =
+    selectedMode === "직접 수정" && !editing
+      ? "미리보기"
+      : selectedMode;
+  const chatOpen = mode === "LLM으로 수정";
   const tags = useAuthoringQuery(
     props.api,
     props.userId ?? "learner",
@@ -99,7 +107,7 @@ export function Generation(props: GenerationProps) {
             label="퀴즈 선택"
             items={tabLabels}
             value={tabLabels[selectedIndex]}
-            disabled={busy || !!editing}
+            disabled={busy}
             onChange={(label) =>
               setSelectedIndex(tabLabels.indexOf(label))
             }
@@ -121,6 +129,15 @@ export function Generation(props: GenerationProps) {
                       </h2>
                     </div>
                   </div>
+                  {editing && mode !== "직접 수정" && (
+                    <p
+                      role="status"
+                      className="text-xs text-muted"
+                    >
+                      직접 수정한 내용이 아직 반영되지
+                      않았습니다.
+                    </p>
+                  )}
                   <Tabs
                     label="수정 방식"
                     items={
@@ -133,16 +150,20 @@ export function Generation(props: GenerationProps) {
                           ]
                     }
                     value={
-                      editing
-                        ? "직접 수정"
-                        : chatOpen && !candidate.savedQuizId
-                          ? "LLM으로 수정"
-                          : "미리보기"
+                      candidate.savedQuizId
+                        ? "미리보기"
+                        : mode
                     }
-                    disabled={busy || !!editing}
-                    onChange={(mode) => {
-                      setChatOpen(mode === "LLM으로 수정");
-                      if (mode === "직접 수정")
+                    disabled={busy}
+                    onChange={(nextMode) => {
+                      setModes((current) => ({
+                        ...current,
+                        [selectedIndex]: nextMode,
+                      }));
+                      if (
+                        nextMode === "직접 수정" &&
+                        !editing
+                      )
                         edit(candidate.content);
                     }}
                   >
@@ -241,7 +262,7 @@ export function Generation(props: GenerationProps) {
                             </form>
                           )}
                       </div>
-                      {editing ? (
+                      {mode === "직접 수정" && editing ? (
                         <fieldset
                           disabled={busy}
                           className="min-w-0"

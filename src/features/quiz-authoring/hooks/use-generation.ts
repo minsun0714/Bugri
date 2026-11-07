@@ -32,8 +32,10 @@ export function useGeneration({
   const [prompts, setPrompts] = useState<
     Record<number, string>
   >({});
-  const [editing, setEditing] =
-    useState<QuizContent | null>(null);
+  const [edits, setEdits] = useState<
+    Record<number, QuizContent>
+  >({});
+  const editing = edits[selectedIndex] ?? null;
   const [notice, setNotice] = useState("");
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
@@ -44,7 +46,10 @@ export function useGeneration({
   function changePrompt(value: string) {
     const next = { ...prompts, [selectedIndex]: value };
     setPrompts(next);
-    onDirty(Object.values(next).some((value) => !!value));
+    onDirty(
+      Object.keys(edits).length > 0 ||
+        Object.values(next).some((value) => !!value),
+    );
   }
 
   function accept(result: GenerationBatch) {
@@ -71,14 +76,20 @@ export function useGeneration({
   }
 
   function edit(content: QuizContent) {
-    setEditing(content);
+    setEdits((current) => ({
+      ...current,
+      [selectedIndex]: content,
+    }));
     onDirty(true);
   }
 
   function cancelEdit() {
-    setEditing(null);
+    const next = { ...edits };
+    delete next[selectedIndex];
+    setEdits(next);
     onDirty(
-      Object.values(prompts).some((value) => !!value),
+      Object.keys(next).length > 0 ||
+        Object.values(prompts).some((value) => !!value),
     );
   }
 
@@ -113,7 +124,10 @@ export function useGeneration({
       accept(result);
       const next = { ...prompts, [selectedIndex]: "" };
       setPrompts(next);
-      onDirty(Object.values(next).some((value) => !!value));
+      onDirty(
+        Object.keys(edits).length > 0 ||
+          Object.values(next).some((value) => !!value),
+      );
     });
   }
 
@@ -195,9 +209,11 @@ export function useGeneration({
     selectedIndex,
     setSelectedIndex,
     prompt,
-    hasDrafts: Object.values(prompts).some(
-      (value) => !!value.trim(),
-    ),
+    hasDrafts:
+      Object.keys(edits).length > 0 ||
+      Object.values(prompts).some(
+        (value) => !!value.trim(),
+      ),
     changePrompt,
     error,
     busy,

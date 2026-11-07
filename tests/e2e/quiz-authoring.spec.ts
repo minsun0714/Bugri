@@ -568,3 +568,71 @@ test("quiz tabs support keyboard selection and editing and saving are immediatel
     "객관식 · 모두 선택",
   );
 });
+
+test("unconfirmed direct edits survive mode and quiz tab changes", async ({
+  page,
+}) => {
+  await page.goto("/quizzes/authoring");
+  await page
+    .getByRole("textbox", { name: /학습 내용/ })
+    .fill("타입");
+  await page
+    .getByRole("button", {
+      name: "퀴즈 만들기",
+      exact: true,
+    })
+    .click();
+  const modes = page.getByRole("tablist", {
+    name: "수정 방식",
+  });
+  const quizzes = page.getByRole("tablist", {
+    name: "퀴즈 선택",
+  });
+  await modes
+    .getByRole("tab", { name: "직접 수정" })
+    .click();
+  await page
+    .getByRole("textbox", { name: "제목", exact: true })
+    .fill("미확정 제목");
+  await modes
+    .getByRole("tab", { name: "LLM으로 수정" })
+    .click();
+  await expect(
+    page.getByLabel("퀴즈 1에 추가 요청"),
+  ).toBeVisible();
+  await modes
+    .getByRole("tab", { name: "미리보기", exact: true })
+    .click();
+  await modes
+    .getByRole("tab", { name: "직접 수정" })
+    .click();
+  await expect(
+    page.getByRole("textbox", {
+      name: "제목",
+      exact: true,
+    }),
+  ).toHaveValue("미확정 제목");
+  await quizzes
+    .getByRole("tab", { name: "퀴즈 2", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: "남은 후보 모두 저장",
+    }),
+  ).toBeDisabled();
+  await quizzes
+    .getByRole("tab", { name: "퀴즈 1", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", {
+      name: "제목",
+      exact: true,
+    }),
+  ).toHaveValue("미확정 제목");
+  await page
+    .getByRole("button", { name: "수정 반영" })
+    .click();
+  await expect(page.getByRole("article")).toContainText(
+    "미확정 제목",
+  );
+});
