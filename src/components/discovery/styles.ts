@@ -13,16 +13,15 @@ export const tagDiscoveryStyles = {
     "flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-canvas p-1",
   filterButton:
     "!min-h-11 !rounded-xl !border-0 !px-4 !shadow-none !transition-colors hover:!translate-y-0 active:!translate-y-0 [&[aria-pressed=true]]:!bg-primary [&[aria-pressed=true]]:!text-white [&[aria-pressed=false]]:!bg-transparent [&[aria-pressed=false]]:!text-muted",
-  grid: "grid gap-3 md:grid-cols-2 sm:gap-4",
+  grid: "grid items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3",
+  icon: "flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary",
   card: "flex min-w-0 flex-col gap-4 rounded-3xl border border-line bg-surface p-4 shadow-[0_3px_0_var(--color-line)] sm:p-5",
-  label:
-    "inline-block min-w-0 max-w-full break-all rounded-2xl bg-lime/45 px-3 py-2 text-base font-bold leading-6 tracking-tight sm:text-lg",
   subscribed:
     "inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary",
   footer:
-    "flex flex-wrap items-center justify-between gap-x-3 gap-y-2",
+    "mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line/70 pt-3",
   count:
-    "inline-flex items-center gap-1.5 text-sm text-muted",
+    "inline-flex min-h-11 items-center gap-1.5 text-xs text-muted",
   learn:
     "!min-h-11 !rounded-2xl !border-primary/10 !bg-primary/10 !px-4 !text-primary !shadow-none hover:!bg-primary/15",
   subscribe:
