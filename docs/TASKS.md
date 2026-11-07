@@ -1643,3 +1643,8 @@
 
 - 독립통합리뷰: 양쪽TASKS·API/아키텍처기록 보존, upstream Mock/서비스/PRD/공개학습테스트와origin/dev일치, 미해결충돌없음 확인. UI는ERROR-CUTE R0최신표정근거유지.
 - 최종 Node22.23.3 `npm run verify -- -- --workers=2` exit0: lint·전체타입·Jest57 suites/290개·도구3개·production build·E2E178개 통과. 로그 `/tmp/bugri-error-cute-verify.log`. 검증대상31ff6d7+dev21eef94 통합코드이며 이후변경은결과기록뿐이다. 원격dev도21eef94임을확인했다. PR29에push/본문갱신하며 최종병합은사용자판단이다.
+
+### QUIZ-CREATE-CTA — 내 퀴즈 생성 버튼 정리
+
+- DONE: REQ-02/AC-02e의 내 목록에서 생성 화면으로 이동하는 CTA를 제목 오른쪽 한 개로 통합했다. 공통 primary 스타일·+ 아이콘·44px 터치 영역을 적용하고 빈 목록 중복 링크를 제거했다.
+- 검증: Jest 6개, 관련 작성 E2E 12개, 변경 파일 lint/포맷·타입 검사 통과. PC·모바일 4상태 생성 이동과 독립 UX/UI R0 리뷰 완료(수정 회차 0). [근거와 한계](ux-reviews/QUIZ-CREATE-CTA.md). 로컬 완료 후 PR 검증: 전체 lint·타입·Jest 299개·도구 3개·빌드 통과. 전체 E2E 179개 통과/5개 실패 후 실패 5개 단일 worker 재실행 모두 통과(코드 수정 없음).
