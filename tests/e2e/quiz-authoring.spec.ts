@@ -49,6 +49,21 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
   await expect(
     chat.getByRole("log", { name: "대화 내용" }),
   ).toHaveCSS("overflow-y", "auto");
+  const prompt = page.getByLabel("퀴즈 1에 추가 요청");
+  await expect(prompt).toHaveJSProperty(
+    "tagName",
+    "TEXTAREA",
+  );
+  await prompt.focus();
+  const promptBox = await prompt.boundingBox();
+  const dialogBox = await page
+    .getByRole("dialog")
+    .boundingBox();
+  expect(promptBox).not.toBeNull();
+  expect(dialogBox).not.toBeNull();
+  expect(
+    promptBox!.y + promptBox!.height + 7,
+  ).toBeLessThanOrEqual(dialogBox!.y + dialogBox!.height);
   await expect(
     page.getByRole("tablist", { name: "퀴즈 선택" }),
   ).toHaveCount(0);

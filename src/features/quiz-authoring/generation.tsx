@@ -7,7 +7,7 @@ import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring
 import {
   Button,
   Card,
-  TextField,
+  TextArea,
   Tabs,
 } from "@/components/ui";
 import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
@@ -181,21 +181,23 @@ export function Generation(props: GenerationProps) {
         </p>
       )}
       <form
-        className="flex shrink-0 flex-wrap items-end justify-end gap-3 border-t border-line bg-surface pt-4"
+        className="flex shrink-0 flex-wrap items-end justify-end gap-3 border-t border-line bg-surface px-1 pt-4 pb-1"
         onSubmit={(event) => {
           event.preventDefault();
           refine();
         }}
       >
         <div className="min-w-0 flex-1">
-          <TextField
+          <TextArea
             label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
             placeholder="예시를 추가해줘"
             value={prompt}
             disabled={busy || !!editing}
-            onChange={(event) =>
-              changePrompt(event.target.value)
-            }
+            rows={2}
+            limit={Number.POSITIVE_INFINITY}
+            showCount={false}
+            className="max-h-32 min-h-16 resize-none!"
+            onChange={changePrompt}
           />
         </div>
         <Button

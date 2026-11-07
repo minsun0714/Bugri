@@ -121,13 +121,26 @@ export function TextArea({
   value,
   onChange,
   limit = 10000,
+  showCount = true,
+  id: suppliedId,
+  placeholder = "오늘 배운 내용을 자유롭게 적어보세요. 코드도 좋아요.",
+  rows = 5,
+  disabled,
+  className,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   limit?: number;
+  showCount?: boolean;
+  id?: string;
+  placeholder?: string;
+  rows?: number;
+  disabled?: boolean;
+  className?: string;
 }) {
-  const id = useId();
+  const generated = useId();
+  const id = suppliedId ?? generated;
   const { length: count } = Array.from(value);
 
   return (
@@ -136,20 +149,29 @@ export function TextArea({
       <textarea
         id={id}
         value={value}
-        onChange={(event) =>
+        onChange={(event) => {
+          const characters = Array.from(event.target.value);
+
           onChange(
-            Array.from(event.target.value)
-              .slice(0, limit)
-              .join(""),
-          )
+            Number.isFinite(limit)
+              ? characters.slice(0, limit).join("")
+              : characters.join(""),
+          );
+        }}
+        aria-describedby={
+          showCount ? `${id}-count` : undefined
         }
-        aria-describedby={`${id}-count`}
-        placeholder="오늘 배운 내용을 자유롭게 적어보세요. 코드도 좋아요."
-        rows={5}
+        placeholder={placeholder}
+        rows={rows}
+        disabled={disabled}
+        className={className}
       />
-      <small id={`${id}-count`} className={"counter"}>
-        {count.toLocaleString()} / {limit.toLocaleString()}
-      </small>
+      {showCount && (
+        <small id={`${id}-count`} className={"counter"}>
+          {count.toLocaleString()} /{" "}
+          {limit.toLocaleString()}
+        </small>
+      )}
     </div>
   );
 }
