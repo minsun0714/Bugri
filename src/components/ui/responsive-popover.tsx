@@ -137,7 +137,7 @@ export function ResponsivePopover({
               setOpen(false);
           }
         }}
-        className="fixed inset-x-0 top-auto bottom-0 z-50 m-0 max-h-[85dvh] [&[open]]:flex [&[open]]:flex-col w-full max-w-none overflow-hidden rounded-t-3xl border border-line bg-surface p-4 text-foreground shadow-xl backdrop:bg-black/50 sm:inset-auto sm:w-96 sm:rounded-2xl sm:p-5"
+        className="fixed inset-x-0 top-auto bottom-0 z-50 m-0 max-h-[85dvh] [&[open]]:flex [&[open]]:flex-col w-full max-w-none overflow-hidden rounded-none border border-line bg-surface p-4 text-foreground backdrop:bg-black/50 sm:inset-auto sm:w-96 sm:p-5"
       >
         <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
           <h2 id={titleId} className="text-base">
