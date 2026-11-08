@@ -1,8 +1,3 @@
-import {
-  QuizStatus,
-  LearningMode,
-  LearningState,
-} from "@/api/constants";
 import { test, expect, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
@@ -82,129 +77,75 @@ async function load(page: Page) {
   });
 }
 
-test("browser generation → review → subscription → solve/replay → purchase/equip survives reload", async ({
+test("browser generation → review → direct solve/replay survives reload", async ({
   page,
 }) => {
   await load(page);
 
-  const outcome = await page.evaluate(
-    async ({ QuizStatus, LearningMode }) => {
-      localStorage.clear();
+  const outcome = await page.evaluate(async () => {
+    localStorage.clear();
 
-      const owner = window.mockApi("author"),
-        learner = window.mockApi("learner");
+    const owner = window.mockApi("author");
 
-      const batch = await owner.request("generate", {
-        sourceContent: "코드\n```ts\nconst x = 1;\n```",
-      });
+    const batch = await owner.request("generate", {
+      sourceContent: "코드\n```ts\nconst x = 1;\n```",
+    });
 
-      const [draft] = await owner.request("saveBatch", {
-        batchId: batch.batchId,
-        mode: "SINGLE",
-        candidateId: batch.candidates[0].candidateId,
-      });
+    const [draft] = await owner.request("saveBatch", {
+      batchId: batch.batchId,
+      mode: "SINGLE",
+      candidateId: batch.candidates[0].candidateId,
+    });
 
-      const reviewed = await owner.request(
-        "updatePending",
-        {
-          quizId: draft.quizId,
-          expectedVersion: draft.version,
-          action: "MARK_REVIEWED",
-        },
-      );
+    const reviewed = await owner.request("updatePending", {
+      quizId: draft.quizId,
+      expectedVersion: draft.version,
+      action: "MARK_REVIEWED",
+    });
 
-      await owner.request("approve", {
-        quizId: draft.quizId,
-        expectedVersion: reviewed.version,
-        visibility: QuizStatus.PUBLIC,
-      });
+    await owner.request("approve", {
+      quizId: draft.quizId,
+      expectedVersion: reviewed.version,
+    });
 
-      await learner.request("subscribe", {
-        type: "PERSON",
-        authorUserId: "author",
-      });
+    const first = await owner.request("startAttempt", {
+      quizId: draft.quizId,
+      context: "DIRECT",
+    });
 
-      const selected = await learner.request(
-        "learningQuiz",
-        {
-          hashtagId: "typescript",
-        },
-      );
+    await owner.request("answer", {
+      attemptId: first.attemptId,
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "a",
+      },
+    });
 
-      const first = await learner.request("startAttempt", {
-        quizId: selected.quiz!.quizId,
-        context: "LEARNING",
-      });
+    const replay = await owner.request("startAttempt", {
+      quizId: draft.quizId,
+      context: "DIRECT",
+    });
 
-      await learner.request("answer", {
-        attemptId: first.attemptId,
-        answer: {
-          type: "SINGLE_CHOICE",
-          choiceId: "a",
-        },
-      });
+    await owner.request("answer", {
+      attemptId: replay.attemptId,
+      answer: {
+        type: "SINGLE_CHOICE",
+        choiceId: "a",
+      },
+    });
 
-      const exhausted = await learner.request(
-        "learningNext",
-        {},
-      );
+    return {
+      first,
+      firstId: first.attemptId,
+      replayId: replay.attemptId,
+      day: await owner.request("learningDay", {}),
+    };
+  });
 
-      const replaySelection = await learner.request(
-        "learningQuiz",
-        {
-          hashtagId: "typescript",
-          mode: LearningMode.REPLAY,
-        },
-      );
-
-      const replay = await learner.request("startAttempt", {
-        quizId: replaySelection.quiz!.quizId,
-        context: "LEARNING",
-      });
-
-      await learner.request("answer", {
-        attemptId: replay.attemptId,
-        answer: {
-          type: "SINGLE_CHOICE",
-          choiceId: "a",
-        },
-      });
-
-      await learner.request("purchase", {
-        productId: "keyboard-1",
-        requestKey: "browser-buy",
-      });
-
-      await learner.request("purchase", {
-        productId: "keyboard-1",
-        requestKey: "browser-buy",
-      });
-
-      await learner.request("equip", {
-        category: "KEYBOARD",
-        productId: "keyboard-1",
-      });
-
-      return {
-        exhausted: exhausted.state,
-        exhaustedQuiz: exhausted.quiz,
-        tag: exhausted.hashtagId,
-        selected,
-        firstId: first.attemptId,
-        replayId: replay.attemptId,
-        day: await learner.request("learningDay", {}),
-      };
-    },
-    { QuizStatus, LearningMode },
-  );
-
-  expect(outcome.exhausted).toBe(LearningState.EXHAUSTED);
-  expect(outcome.exhaustedQuiz).toBeNull();
-  expect(outcome.tag).toBe("typescript");
   expect(outcome.replayId).not.toBe(outcome.firstId);
   expect(outcome.day.completedDates).toHaveLength(1);
 
-  expect(JSON.stringify(outcome.selected)).not.toMatch(
+  expect(JSON.stringify(outcome.first)).not.toMatch(
     /"answer"|"explanation"|"sourceContent"/,
   );
 
@@ -215,40 +156,19 @@ test("browser generation → review → subscription → solve/replay → purcha
   });
 
   const restored = await page.evaluate(async () => ({
-    wallet: await window
-      .mockApi("learner")
-      .request("wallet", {}),
-    inventory: await window
-      .mockApi("learner")
-      .request("inventory", {}),
-    other: await window
+    day: await window
       .mockApi("author")
-      .request("inventory", {}),
+      .request("learningDay", {}),
+    other: await window
+      .mockApi("friend")
+      .request("learningDay", {}),
   }));
 
-  // Initial 100 + first correct 1 + daily bonus 1 - keyboard 30.
-  expect(restored.wallet.balance).toBe(72);
-
-  expect(
-    restored.wallet.ledger.filter(
-      ({ reason }) => reason === "FIRST_CORRECT",
-    ),
-  ).toHaveLength(1);
-
-  expect(
-    restored.wallet.ledger.filter(
-      ({ reason }) => reason === "DAILY_CORRECT",
-    ),
-  ).toHaveLength(1);
-
-  expect(restored.inventory.equipment.KEYBOARD).toBe(
-    "keyboard-1",
-  );
-
-  expect(restored.other.products).toHaveLength(0);
+  expect(restored.day.completedDates).toHaveLength(1);
+  expect(restored.other.completedDates).toHaveLength(0);
 });
 
-test("another tab observes visibility revocation and stale edits without overwriting state", async ({
+test("another tab observes quiz deletion and edits of the deleted quiz without overwriting state", async ({
   page,
   context,
 }) => {
@@ -270,18 +190,14 @@ test("another tab observes visibility revocation and stale edits without overwri
 
   await load(second);
 
-  await second.evaluate(
-    async ({ QuizStatus }) =>
-      window.mockApi("author").request("visibility", {
-        quizId: "seed-quiz-1",
-        expectedVersion: 1,
-        visibility: QuizStatus.PRIVATE,
-      }),
-    { QuizStatus },
+  await second.evaluate(async () =>
+    window.mockApi("author").request("deleteQuiz", {
+      quizId: "seed-quiz-1",
+    }),
   );
 
   const codes = await page.evaluate(
-    async ({ attemptId, QuizStatus }) => {
+    async ({ attemptId }) => {
       const errors: string[] = [];
 
       try {
@@ -302,10 +218,10 @@ test("another tab observes visibility revocation and stale edits without overwri
       try {
         await window
           .mockApi("author")
-          .request("visibility", {
+          .request("updatePending", {
             quizId: "seed-quiz-1",
             expectedVersion: 1,
-            visibility: QuizStatus.PUBLIC,
+            action: "MARK_REVIEWED",
           });
       } catch (error) {
         errors.push(
@@ -316,11 +232,8 @@ test("another tab observes visibility revocation and stale edits without overwri
 
       return errors;
     },
-    { attemptId, QuizStatus },
+    { attemptId },
   );
 
-  expect(codes).toEqual([
-    "QUIZ_UNAVAILABLE",
-    "VERSION_CONFLICT",
-  ]);
+  expect(codes).toEqual(["QUIZ_UNAVAILABLE", "NOT_FOUND"]);
 });

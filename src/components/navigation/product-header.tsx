@@ -3,22 +3,26 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { LanguagePicker } from "@/components/ui/language-picker";
 
-import Link from "next/link";
-import { ThemePicker } from "@/components/ui/theme-picker";
-import { PublicProfileLink } from "@/components/navigation/public-profile-link";
-import { Suspense } from "react";
-import { useEffect, useId, useRef, useState } from "react";
-import {
-  usePathname,
-  useSearchParams,
-} from "next/navigation";
 import { useDemoSession } from "@/components/navigation/demo-session";
-import { MobileNavigation } from "@/components/ui/mobile-navigation";
 import {
   getNavigationItems,
   isNavigationActive,
   withDemoUser,
 } from "@/components/navigation/routes";
+import { MobileNavigation } from "@/components/ui/mobile-navigation";
+import { ThemePicker } from "@/components/ui/theme-picker";
+import Link from "next/link";
+import {
+  usePathname,
+  useSearchParams,
+} from "next/navigation";
+import {
+  Suspense,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 export function HeaderNavigation({
   pathname,
@@ -121,7 +125,7 @@ export function HeaderNavigation({
               <button
                 ref={profileTrigger}
                 type="button"
-                aria-label={t("내 프로필")}
+                aria-label={t("내 메뉴")}
                 aria-expanded={profileOpen}
                 aria-controls={profileId}
                 onClick={() =>
@@ -151,13 +155,9 @@ export function HeaderNavigation({
               {profileOpen && (
                 <nav
                   id={profileId}
-                  aria-label={t("내 프로필 메뉴")}
+                  aria-label={t("내 메뉴")}
                   className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 divide-y divide-line overflow-hidden rounded-control border border-control-line bg-surface-raised"
                 >
-                  <PublicProfileLink
-                    userId={userId}
-                    onNavigate={() => setProfileOpen(false)}
-                  />
                   <Link
                     href={withDemoUser(
                       "/quizzes/authoring/manage",
@@ -177,16 +177,6 @@ export function HeaderNavigation({
                     className="rounded-none px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
                     {t("풀이 내역")}
-                  </Link>
-                  <Link
-                    href={withDemoUser(
-                      "/coin-history",
-                      userId,
-                    )}
-                    onClick={() => setProfileOpen(false)}
-                    className="rounded-none px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
-                  >
-                    {t("코인 내역")}
                   </Link>
                   <button
                     type="button"

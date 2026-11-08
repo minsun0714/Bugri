@@ -274,16 +274,16 @@ test("guest selection, empty/filter empty, unavailable, unsubmitted and cross-us
   ).toHaveCount(0);
 });
 
-test("profile entry on shop, out of range, unfinished result and storage retry", async ({
+test("profile entry on authoring, out of range, unfinished result and storage retry", async ({
   page,
 }) => {
   await seedHistory(page);
-  await page.goto("/shop?user=learner");
+  await page.goto("/quizzes/authoring?user=learner");
   await page
-    .getByRole("button", { name: "내 프로필", exact: true })
+    .getByRole("button", { name: "내 메뉴", exact: true })
     .click();
   await page
-    .getByRole("navigation", { name: "내 프로필 메뉴" })
+    .getByRole("navigation", { name: "내 메뉴" })
     .getByRole("link", { name: "풀이 내역", exact: true })
     .click();
   await expect(page).toHaveURL(

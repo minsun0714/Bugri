@@ -205,30 +205,6 @@ test("sends an LLM refinement with Enter and preserves Shift Enter", async () =>
   expect(prompt).toHaveValue("");
 });
 
-test("starts with quizzes only and publishes the current candidate on explicit request", async () => {
-  const { api } = await setup();
-  expect(
-    screen.queryByLabelText("퀴즈 1에 추가 요청"),
-  ).not.toBeInTheDocument();
-  fireEvent.click(
-    screen.getByRole("button", { name: "바로 공개" }),
-  );
-  await screen.findByText("공개했습니다.");
-  expect(
-    await screen.findByRole("tab", {
-      name: "퀴즈 1 · 공개됨",
-    }),
-  ).toBeVisible();
-  expect(
-    screen.getByText("공개됨", { exact: true }),
-  ).toBeVisible();
-  const list = await api.request("quizzes", {
-    scope: QuizScope.OWN,
-  });
-  expect(list).toHaveLength(1);
-  expect(list[0].status).toBe("PUBLIC");
-});
-
 test("keeps direct and LLM edits independent and applies the last confirmed change", async () => {
   await setup();
   expect(

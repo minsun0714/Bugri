@@ -1,22 +1,9 @@
-import type { QuizReaction } from "@/api/constants";
 import type {
-  RewardGrant,
-  RewardOutcome,
-  ProfileAbout,
-  ProfileOrder,
   Answer,
   AuthoringConversation,
-  Equipment,
-  DeskPositions,
-  DeskTransforms,
-  DeskOrder,
   GenerationBatch,
-  LedgerEntry,
-  LearningQuery,
-  Purchase,
   ReviewQuiz,
   Revision,
-  Subscription,
 } from "@/api/contracts";
 
 export interface StoredQuiz extends ReviewQuiz {
@@ -24,7 +11,6 @@ export interface StoredQuiz extends ReviewQuiz {
 }
 
 export interface StoredAttempt {
-  rewardOutcome?: RewardOutcome;
   attemptId: string;
   quizId: string;
   revision: Omit<
@@ -50,33 +36,13 @@ export interface StoredDay {
 
 export interface UserState {
   schemaVersion: 1;
-  rewards?: RewardGrant[];
-  quizReactions?: {
-    quizId: string;
-    reaction: QuizReaction;
-  }[];
-  profileAbout?: ProfileAbout;
-  profileOrder?: ProfileOrder;
-  /** One-time mock fixture upgrade; absent in older v1 snapshots. */
-  learningDemoVersion?: 1;
-  coinHistoryDemoVersion?: 1;
   /** Set once the optional history search demo fixtures were merged. */
   historyDemoVersion?: 1;
   authoringConversation?: AuthoringConversation;
   userId: string;
   quizzes: StoredQuiz[];
   batches: GenerationBatch[];
-  subscriptions: Subscription[];
   attempts: StoredAttempt[];
   days: StoredDay[];
   timeZone: string | null;
-  selection: Required<LearningQuery> & {
-    quizId: string | null;
-  };
-  ledger: LedgerEntry[];
-  purchases: Purchase[];
-  equipment: Equipment;
-  positions: DeskPositions;
-  transforms: DeskTransforms;
-  order: DeskOrder;
 }

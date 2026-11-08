@@ -76,13 +76,11 @@ test("changing language preserves the selected editor tab and original draft", (
 });
 
 test("stored messages are translated at display time and interpolation values remain untouched", () => {
-  const notice = message("{0}님을 구독했습니다.", {
-    0: "공개 中文",
+  const notice = message("{0}일 연속 학습", {
+    0: "中文 3",
   });
-  expect(translate("en", notice)).toBe(
-    "Subscribed to 공개 中文.",
-  );
+  expect(translate("en", notice)).toBe("中文 3-day streak");
   expect(translate("ko", notice)).toBe(
-    "공개 中文님을 구독했습니다.",
+    "中文 3일 연속 학습",
   );
 });

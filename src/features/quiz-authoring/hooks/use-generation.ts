@@ -1,10 +1,10 @@
-import { useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import type {
   GenerationBatch,
   QuizContent,
 } from "@/api/contracts";
 import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
+import { useRef, useState } from "react";
 
 export interface GenerationProps {
   api: ApiClient;
@@ -142,27 +142,6 @@ export function useGeneration({
     });
   }
 
-  function publish() {
-    if (
-      !candidate ||
-      candidate.savedQuizId ||
-      editing ||
-      prompt.trim()
-    )
-      return;
-    void run(async () => {
-      accept(
-        await api.request("publishCandidate", {
-          batchId: batch.batchId,
-          candidateId: candidate.candidateId,
-          reviewed: true,
-        }),
-      );
-      setNotice("공개했습니다.");
-      onSaved();
-    });
-  }
-
   function shiftDrafts<T>(
     current: Record<number, T>,
     removedIndex: number,
@@ -253,7 +232,6 @@ export function useGeneration({
 
   return {
     batch,
-    publish,
     removeCandidate,
     notice,
     editing,

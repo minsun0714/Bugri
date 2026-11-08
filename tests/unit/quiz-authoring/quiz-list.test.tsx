@@ -91,20 +91,14 @@ test("summarizes and localizes quiz states without exposing wire values", () => 
     screen.getByRole("tab", { name: "검토 필요 1" }),
   ).toBeVisible();
   expect(
-    screen.getByRole("tab", { name: "공개 1" }),
-  ).toBeVisible();
-  expect(
-    screen.getByRole("tab", { name: "나만 보기 1" }),
+    screen.getByRole("tab", { name: "승인됨 2" }),
   ).toBeVisible();
   expect(
     screen.getByText("검토 필요", { exact: true }),
   ).toBeVisible();
   expect(
-    screen.getByText("공개 중", { exact: true }),
-  ).toBeVisible();
-  expect(
-    screen.getByText("나만 보기", { exact: true }),
-  ).toBeVisible();
+    screen.getAllByText("승인됨", { exact: true }),
+  ).toHaveLength(2);
   expect(
     screen.queryByText("PENDING"),
   ).not.toBeInTheDocument();
@@ -228,44 +222,6 @@ test.each([{ items: quizzes }, { items: [] }])(
     );
   },
 );
-
-test("public management cards expose independent reaction controls", () => {
-  const onOpen = jest.fn();
-  render(
-    <QuizList
-      quizzes={quizzes}
-      view={{
-        query: "",
-        filter: QuizListFilter.ALL,
-        sort: QuizListSort.NEWEST,
-        page: 1,
-      }}
-      createHref="/quizzes/authoring?user=learner"
-      isFetching={false}
-      busy={false}
-      onViewChange={jest.fn()}
-      onOpen={onOpen}
-      onRefresh={jest.fn()}
-      renderReaction={(quizId) => (
-        <button aria-label={`${quizId} 좋아요`}>0</button>
-      )}
-    />,
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "public 좋아요" }),
-  );
-  expect(onOpen).not.toHaveBeenCalled();
-  expect(
-    screen.queryByRole("button", {
-      name: "pending 좋아요",
-    }),
-  ).not.toBeInTheDocument();
-  expect(
-    screen.queryByRole("button", {
-      name: "private 좋아요",
-    }),
-  ).not.toBeInTheDocument();
-});
 
 test("approved cards open solving while pending cards keep review access", () => {
   const { onOpen } = renderList();
