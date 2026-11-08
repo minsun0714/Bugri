@@ -3,7 +3,6 @@
 import { useLandingReturn } from "@/components/landing/use-landing-return";
 import { KnowledgePuzzle } from "@/components/landing/knowledge-puzzle";
 import { RewardDesk } from "@/components/landing/reward-desk";
-import { styles } from "@/components/ui/styles";
 import { landingStyles } from "@/components/landing/styles";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
@@ -18,23 +17,6 @@ export function GuestLanding() {
       className="relative mb-12 [view-timeline-name:--learning-story] [view-timeline-axis:block] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-[490svh]"
     >
       <div className="py-6 motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:sticky motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:top-0 motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:flex motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-svh motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:max-h-[1000px] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:flex-col motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:justify-center md:py-10">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <span className="text-xs font-semibold text-muted">
-            {t("기억에 남는 공부")}
-          </span>
-          <a
-            href="#guest-quiz"
-            onClick={() =>
-              document
-                .getElementById("guest-quiz")
-                ?.focus({ preventScroll: true })
-            }
-            className={`${styles["ui-button"]} secondary sm`}
-          >
-            {t("바로 퀴즈 풀기")}{" "}
-            <span aria-hidden="true">↘</span>
-          </a>
-        </div>
         <div className="relative space-y-16 motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-[min(72svh,680px)] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:space-y-0">
           <div
             className={`${landingStyles.scene} ${landingStyles.puzzle}`}

@@ -46,8 +46,8 @@
   --color-coin-edge: #d4aa49;
   --color-coin-ink: #7a591c;
   --font-sans:
-    Arial, "Apple SD Gothic Neo", "Malgun Gothic",
-    sans-serif;
+    var(--font-ibm-plex-sans-kr), "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
   --animate-reward-coin: reward-coin 1s linear both;
   --animate-reward-coin-late: reward-coin-late 1s linear
     both;

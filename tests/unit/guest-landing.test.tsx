@@ -15,13 +15,12 @@ jest.mock("@/components/solving/solve-screen", () => ({
   SolveScreen: () => <button>답 제출</button>,
 }));
 
-test("visitors can skip the introduction to the existing quiz", () => {
+test("visitors see the introduction above the existing quiz", () => {
   signedIn = false;
   render(<HomeSections />);
-  const link = screen.getByRole("link", {
-    name: /바로 퀴즈 풀기/,
-  });
-  expect(link).toHaveAttribute("href", "#guest-quiz");
+  expect(
+    screen.queryByRole("link", { name: /바로 퀴즈 풀기/ }),
+  ).not.toBeInTheDocument();
   expect(
     document.getElementById("guest-quiz"),
   ).toContainElement(
