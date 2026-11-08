@@ -76,7 +76,7 @@ for (const width of [1280, 320]) {
       const themeBox = await picker.boundingBox();
       const demoBox = await page
         .getByRole("button", {
-          name: "데모 사용자 선택",
+          name: "내 메뉴",
           exact: true,
         })
         .boundingBox();

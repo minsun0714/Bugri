@@ -20,9 +20,9 @@ export function getNavigationItems(
 ): NavigationItem[] {
   return [
     {
-      label: "퀴즈 만들기",
-      href: withDemoUser("/quizzes/authoring", userId),
-      activePaths: ["/quizzes/authoring"],
+      label: "내 노트",
+      href: withDemoUser("/notes", userId),
+      activePaths: ["/notes"],
     },
   ];
 }
@@ -53,6 +53,7 @@ export function getBreadcrumbs(
       : undefined,
   };
   const routes: Record<string, BreadcrumbItem[]> = {
+    "/notes": [{ label: "내 노트" }],
     "/my/learning": [{ label: "풀이 내역" }],
     "/solve": [{ label: "퀴즈 풀이" }],
     "/quizzes/authoring/manage": [{ label: "내 퀴즈" }],
@@ -65,6 +66,15 @@ export function getBreadcrumbs(
   const matched = routes[pathname];
 
   if (matched) return [home, ...matched];
+  if (/^\/notes\/[^/]+$/.test(pathname))
+    return [
+      home,
+      {
+        label: "내 노트",
+        href: withDemoUser("/notes", userId),
+      },
+      { label: "메모" },
+    ];
   if (/^\/my\/learning\/[^/]+$/.test(pathname))
     return [
       home,

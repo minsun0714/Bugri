@@ -40,9 +40,12 @@ test("home and unknown routes have no guessed breadcrumb", () => {
 test("navigation preserves the demo identity and excludes personal destinations for visitors", () => {
   const member = getNavigationItems("friend");
   expect(
-    member.find(({ label }) => label === "퀴즈 만들기")
-      ?.href,
-  ).toBe("/quizzes/authoring?user=friend");
+    member.find(({ label }) => label === "내 노트")?.href,
+  ).toBe("/notes?user=friend");
+
+  expect(
+    member.some(({ label }) => label === "퀴즈 만들기"),
+  ).toBe(false);
   expect(
     getNavigationItems(null).some(
       ({ label }) => label === "내 퀴즈",
@@ -76,32 +79,46 @@ test("member and visitor headers expose only applicable links", async () => {
   const { HeaderNavigation } =
     await import("@/components/navigation/product-header");
   const { rerender } = render(
-    <HeaderNavigation
-      pathname="/quizzes/authoring"
-      userId={null}
-    />,
+    <HeaderNavigation pathname="/notes" userId={null} />,
+  );
+  expect(
+    screen.getByRole("link", { name: "내 노트" }),
+  ).toHaveAttribute("aria-current", "page");
+  expect(
+    screen.queryByRole("link", { name: "퀴즈 만들기" }),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "내 메뉴" }),
   );
   expect(
     screen.queryByRole("link", { name: "내 퀴즈" }),
   ).not.toBeInTheDocument();
   expect(
-    screen.getByRole("link", { name: "퀴즈 만들기" }),
-  ).toHaveAttribute("aria-current", "page");
+    screen.queryByRole("link", { name: "풀이 내역" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", {
+      name: "데모 사용자 선택",
+    }),
+  ).toBeInTheDocument();
   rerender(
     <HeaderNavigation
       pathname="/quizzes/authoring/results"
       userId="author"
     />,
   );
-  fireEvent.click(
-    screen.getByRole("button", { name: "내 메뉴" }),
-  );
+  expect(
+    screen.getByRole("link", { name: "내 노트" }),
+  ).toHaveAttribute("href", "/notes?user=author");
   expect(
     screen.getByRole("link", { name: "내 퀴즈" }),
   ).toHaveAttribute(
     "href",
     "/quizzes/authoring/manage?user=author",
   );
+  expect(
+    screen.getByRole("link", { name: "풀이 내역" }),
+  ).toHaveAttribute("href", "/my/learning?user=author");
   expect(
     screen.getByRole("link", { name: "Bugri 홈" }),
   ).toHaveAttribute("href", "/?user=author");
@@ -121,7 +138,7 @@ test("home is represented by the logo, not a duplicate menu item", () => {
 });
 
 test.each(["/", "/solve", "/quizzes/authoring"])(
-  "%s keeps a single header demo selector for members",
+  "%s keeps a single demo selector inside the profile menu",
   async (pathname) => {
     const { HeaderNavigation } =
       await import("@/components/navigation/product-header");
@@ -133,24 +150,63 @@ test.each(["/", "/solve", "/quizzes/authoring"])(
         onSignIn={onSignIn}
       />,
     );
+    expect(
+      screen.queryByRole("button", {
+        name: "데모 사용자 선택",
+      }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "내 메뉴" }),
+    );
+    expect(
+      screen.getAllByRole("button", {
+        name: "데모 사용자 선택",
+      }),
+    ).toHaveLength(1);
     fireEvent.click(
       screen.getByRole("button", {
         name: "데모 사용자 선택",
       }),
     );
     expect(onSignIn).toHaveBeenCalledTimes(1);
-    fireEvent.click(
-      screen.getByRole("button", { name: "내 메뉴" }),
-    );
-    expect(
-      screen.queryByRole("button", {
-        name: "데모 사용자 전환",
-      }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getAllByRole("button", {
-        name: "데모 사용자 선택",
-      }),
-    ).toHaveLength(1);
   },
 );
+
+test("header has one row: logo, notes, language, theme and profile menu on every width", async () => {
+  const { HeaderNavigation } =
+    await import("@/components/navigation/product-header");
+  render(
+    <HeaderNavigation pathname="/" userId="learner" />,
+  );
+  expect(
+    screen.queryByRole("button", { name: "메뉴 열기" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "Bugri 홈" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "내 노트" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", {
+      name: "다크 모드로 전환",
+    }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "내 메뉴" }),
+  ).toBeInTheDocument();
+});
+
+test("notes routes have breadcrumbs without exposing note IDs", () => {
+  expect(getBreadcrumbs("/notes", "learner")).toEqual([
+    { label: "홈", href: "/?user=learner" },
+    { label: "내 노트" },
+  ]);
+  expect(
+    getBreadcrumbs("/notes/note-secret", "learner"),
+  ).toEqual([
+    { label: "홈", href: "/?user=learner" },
+    { label: "내 노트", href: "/notes?user=learner" },
+    { label: "메모" },
+  ]);
+});

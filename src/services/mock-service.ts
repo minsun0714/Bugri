@@ -16,6 +16,8 @@ import type {
   AuthoringMessage,
   AttemptView,
   GenerationBatch,
+  Note,
+  NoteSummary,
   Operation,
   QuizContent,
   ReviewQuiz,
@@ -25,6 +27,7 @@ import { hashtags } from "@/mocks/users";
 
 import type {
   StoredAttempt,
+  StoredNote,
   StoredQuiz,
   UserState,
 } from "@/services/state";
@@ -82,6 +85,11 @@ const allowed: Record<Operation, string[]> = {
   editCandidate: ["batchId", "candidateId", "content"],
   deleteCandidate: ["batchId", "candidateId"],
   saveBatch: ["batchId", "mode", "candidateId"],
+  notes: ["page", "pageSize"],
+  note: ["noteId"],
+  createNote: ["content"],
+  updateNote: ["noteId", "content", "expectedVersion"],
+  deleteNote: ["noteId"],
   quizzes: ["scope"],
   reviewQuiz: ["quizId"],
   updatePending: [
@@ -327,7 +335,154 @@ export function execute<K extends Operation>(
       );
   };
 
+  const noteSummaryLength = 200;
+
+  const findNote = (includeDeleted = false) => {
+    text(r.noteId, "noteId");
+
+    // Only the actor's own snapshot is searched, so another user's note is indistinguishable from a missing one.
+    const found = s.notes?.find(
+      ({ noteId }) => noteId === r.noteId,
+    );
+
+    if (!found || (!includeDeleted && found.deletedAt))
+      throw new ServiceError(
+        "NOT_FOUND",
+        "메모를 찾을 수 없습니다.",
+        404,
+      );
+
+    return found;
+  };
+
+  const publicNote = ({
+    noteId,
+    content,
+    version,
+    createdAt,
+    updatedAt,
+  }: StoredNote): Note => ({
+    noteId,
+    content,
+    version,
+    createdAt,
+    updatedAt,
+  });
+
   switch (operation) {
+    case "notes": {
+      const { page = 1, pageSize = 20 } = r;
+
+      requireValue(
+        Number.isSafeInteger(page) && Number(page) >= 1,
+        "페이지를 확인하세요.",
+      );
+
+      requireValue(
+        Number.isSafeInteger(pageSize) &&
+          Number(pageSize) >= 1 &&
+          Number(pageSize) <= 50,
+        "페이지 크기를 확인하세요.",
+      );
+
+      // Newest first; insertion order breaks ties between notes created in the same millisecond.
+      const visible = (s.notes ?? [])
+        .filter(({ deletedAt }) => !deletedAt)
+        .reverse()
+        .sort((a, b) =>
+          a.createdAt < b.createdAt
+            ? 1
+            : a.createdAt > b.createdAt
+              ? -1
+              : 0,
+        );
+
+      const start = (Number(page) - 1) * Number(pageSize);
+
+      return {
+        items: visible
+          .slice(start, start + Number(pageSize))
+          .map(
+            ({
+              noteId,
+              content,
+              createdAt,
+              updatedAt,
+            }): NoteSummary => ({
+              noteId,
+              excerpt: [...content]
+                .slice(0, noteSummaryLength)
+                .join(""),
+              createdAt,
+              updatedAt,
+            }),
+          ),
+        page,
+        pageSize,
+        total: visible.length,
+      };
+    }
+
+    case "note":
+      return publicNote(findNote());
+
+    case "createNote": {
+      const { content } = r;
+
+      source(content, "content");
+
+      const note: StoredNote = {
+        noteId: `note-${id()}`,
+        content,
+        version: 1,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        deletedAt: null,
+      };
+
+      s.notes = [...(s.notes ?? []), note];
+
+      return publicNote(note);
+    }
+
+    case "updateNote": {
+      const note = findNote();
+
+      const { content } = r;
+
+      source(content, "content");
+
+      requireValue(
+        Number.isInteger(r.expectedVersion),
+        "버전이 필요합니다.",
+      );
+
+      if (r.expectedVersion !== note.version)
+        throw new ServiceError(
+          "VERSION_CONFLICT",
+          "메모가 다른 곳에서 변경되었습니다. 최신 내용을 다시 불러오세요.",
+          409,
+        );
+
+      note.content = content;
+      note.version++;
+      note.updatedAt = timestamp;
+
+      return publicNote(note);
+    }
+
+    case "deleteNote": {
+      const note = findNote(true);
+
+      if (!note.deletedAt) {
+        note.deletedAt = timestamp;
+        note.version++;
+        note.updatedAt = timestamp;
+      }
+
+      return { deleted: true };
+    }
+
     case "authoringConversation":
       return conversation;
 

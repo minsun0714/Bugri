@@ -64,7 +64,7 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 | 개념 | 공통 계약 및 2단계 규칙 |
 | --- | --- |
 | User | 내부 `userId`, Google `sub`(유일), displayName, learningTimeZone(IANA). 이메일은 소유권 키가 아니다. 1단계에는 더미 사용자만 둔다 |
-| Note (예정) | ownerUserId, 본문(Markdown·코드 블록, 최대 10,000자), 작성·수정 시각, deletedAt. 태그는 연결된 퀴즈 태그에서 계산한다 |
+| Note | 1단계 계약(NOTES): `noteId`, 본문(Markdown·코드 블록, 유니코드 코드 포인트 최대 10,000자), `version`, `createdAt`·`updatedAt`. 저장소에서는 사용자별 `UserState.notes`(선택 필드)에 `deletedAt`(soft delete)과 함께 보관하며 소유자는 저장소 키로 결정한다. 2단계는 ownerUserId를 가진다. 태그·연결 퀴즈는 note-to-quiz TASK에서 추가하며 태그는 연결된 퀴즈 태그에서 계산한다. 자세한 계약은 [API 메모 절](API.md#메모--notes) |
 | Quiz | 독립 quizId, ownerUserId, 상태, 활성·검토 중 revision, deletedAt(soft delete). 예정: noteId 연결, 저장 즉시 풀이 가능(검토·승인 제거) |
 | QuizRevision | 한 문제·정답·해설·원본 학습 내용·코드 블록·reviewed·최대 3개 해시태그. 풀이에 쓰인 버전은 불변 |
 | GenerationBatch | 요청당 후보 퀴즈 1~5개와 저장 여부. 후보마다 독립 quizId 부여 |

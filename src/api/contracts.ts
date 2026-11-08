@@ -151,6 +151,23 @@ export type PendingRequest = VersionRequest &
     | { action: "MARK_REVIEWED" }
   );
 
+/** Owner-only memo. Tags and linked quizzes arrive with the note-to-quiz task. */
+export interface Note {
+  noteId: string;
+  content: string;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NoteSummary {
+  noteId: string;
+  /** First part of the body, for list rows. */
+  excerpt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ApiOperations {
   authoringConversation: {
     request: Record<string, never>;
@@ -204,6 +221,35 @@ export interface ApiOperations {
       | { mode: "ALL" }
     );
     response: ReviewQuiz[];
+  };
+  notes: {
+    request: { page?: number; pageSize?: number };
+    response: {
+      items: NoteSummary[];
+      page: number;
+      pageSize: number;
+      total: number;
+    };
+  };
+  note: {
+    request: { noteId: string };
+    response: Note;
+  };
+  createNote: {
+    request: { content: string };
+    response: Note;
+  };
+  updateNote: {
+    request: {
+      noteId: string;
+      content: string;
+      expectedVersion: number;
+    };
+    response: Note;
+  };
+  deleteNote: {
+    request: { noteId: string };
+    response: { deleted: true };
   };
   quizzes: {
     request: { scope: QuizScope };

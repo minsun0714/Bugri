@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("product header and breadcrumbs preserve identity and expose mounted routes", async ({
   page,
 }, testInfo) => {
-  await page.goto("/quizzes/authoring?user=friend");
+  await page.goto("/notes?user=friend");
   await expect(page.getByRole("banner")).toHaveCount(1);
   await expect(
     page
@@ -15,8 +15,11 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
     exact: true,
   });
   await expect(
-    nav.getByRole("link", { name: "퀴즈 만들기" }),
+    nav.getByRole("link", { name: "내 노트" }),
   ).toHaveAttribute("aria-current", "page");
+  await expect(
+    nav.getByRole("link", { name: "퀴즈 만들기" }),
+  ).toHaveCount(0);
   await expect(
     page.getByText("Design workspace · 0.1"),
   ).toHaveCount(0);
@@ -60,59 +63,61 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
   ).toHaveAttribute("aria-current", "page");
 });
 
-test("mobile menu supports keyboard, dismissals, resize and navigation", async ({
+test("mobile header keeps the same items without a hamburger and the profile menu is keyboard-operable", async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/my/learning?user=author");
-  const trigger = page.getByRole("button", {
-    name: "메뉴 열기",
+  const banner = page.getByRole("banner");
+  await expect(
+    banner.getByRole("button", { name: "메뉴 열기" }),
+  ).toHaveCount(0);
+  await expect(
+    banner.getByRole("link", { name: "내 노트" }),
+  ).toBeVisible();
+  await expect(
+    banner.getByRole("combobox", {
+      name: "Language / 언어",
+    }),
+  ).toBeVisible();
+  await expect(
+    banner.getByRole("button", {
+      name: "다크 모드로 전환",
+    }),
+  ).toBeVisible();
+  const trigger = banner.getByRole("button", {
+    name: "내 메뉴",
+    exact: true,
   });
-  const mobile = page.getByRole("navigation", {
-    name: "모바일 주 메뉴",
+  const menu = page.getByRole("navigation", {
+    name: "내 메뉴",
   });
   await trigger.focus();
   await page.keyboard.press("Enter");
-  await expect(mobile).toBeVisible();
-  await page.keyboard.press("Tab");
-  await expect(
-    mobile.getByRole("link", { name: "퀴즈 만들기" }),
-  ).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(mobile).toHaveCount(0);
-  await expect(trigger).toBeFocused();
-  await trigger.click();
-  await page
-    .getByRole("banner")
-    .click({ position: { x: 2, y: 2 } });
-  await expect(mobile).toHaveCount(0);
-  await trigger.click();
+  await expect(menu).toBeVisible();
   await page.screenshot({
     path: testInfo.outputPath("navigation-mobile.png"),
   });
-  await mobile
-    .getByRole("link", { name: "퀴즈 만들기" })
-    .click();
-  await expect(page).toHaveURL(
-    /quizzes\/authoring\?user=author$/,
-  );
-  await expect(mobile).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
   await trigger.click();
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await expect(
-    page.getByRole("button", {
-      name: "메뉴 닫기",
-      includeHidden: true,
-    }),
-  ).toHaveCount(0);
-  await page.setViewportSize({ width: 320, height: 700 });
-  await expect(mobile).toHaveCount(0);
-  expect(
-    await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await page.mouse.click(2, 600);
+  await expect(menu).toHaveCount(0);
+  await banner
+    .getByRole("link", { name: "내 노트" })
+    .click();
+  await expect(page).toHaveURL(/\/notes\?user=author$/);
+  for (const width of [390, 360, 320]) {
+    await page.setViewportSize({ width, height: 700 });
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          innerWidth,
+      ),
+    ).toBe(true);
+  }
 });
 
 test("social demo toggles guest and member navigation without OAuth", async ({
@@ -130,6 +135,7 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     path: testInfo.outputPath("header-guest.png"),
   });
   await page
+    .getByRole("main")
     .getByRole("button", { name: "데모 사용자 선택" })
     .click();
   await page

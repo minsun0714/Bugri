@@ -69,14 +69,11 @@ test("language switching preserves author input, path and editor tab", async ({
   await expect(input).toHaveValue(content);
 });
 
-test("mobile menu offers keyboard-operable language selection without overflow", async ({
+test("header language selection is keyboard-operable on mobile without overflow", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/");
-  await page
-    .getByRole("button", { name: "메뉴 열기", exact: true })
-    .click();
   const picker = page.getByRole("combobox", {
     name: "Language / 언어",
   });
@@ -90,9 +87,9 @@ test("mobile menu offers keyboard-operable language selection without overflow",
   );
   await expect(picker).toBeFocused();
   await expect(
-    page.getByRole("navigation", {
-      name: "Mobile main navigation",
-    }),
+    page
+      .getByRole("banner")
+      .getByRole("link", { name: "My notes" }),
   ).toBeVisible();
   expect(
     await page.evaluate(
@@ -126,6 +123,8 @@ test("blocked storage still allows switching language", async ({
     "en",
   );
   await expect(
-    page.getByRole("link", { name: "Create quiz" }),
+    page
+      .getByRole("banner")
+      .getByRole("link", { name: "My notes" }),
   ).toBeVisible();
 });
