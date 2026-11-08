@@ -1,58 +1,57 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { Dropdown } from "@/components/ui/dropdown";
+import { Button } from "@/components/ui/index";
+import { ThemePreference } from "@/lib/theme/preference";
 import {
-  parseThemePreference,
-  ThemePreference,
-} from "@/lib/theme/preference";
-import {
+  getResolvedTheme,
   getServerThemePreference,
-  getThemePreference,
   setThemePreference,
   subscribeTheme,
 } from "@/lib/theme/store";
 
-const options = [
-  { value: ThemePreference.SYSTEM, label: "시스템" },
-  { value: ThemePreference.LIGHT, label: "라이트" },
-  { value: ThemePreference.DARK, label: "다크" },
-];
-
 export function ThemePicker() {
-  const preference = useSyncExternalStore(
+  const theme = useSyncExternalStore(
     subscribeTheme,
-    getThemePreference,
+    getResolvedTheme,
     getServerThemePreference,
   );
+  const dark = theme === ThemePreference.DARK;
 
   return (
-    <div className="relative w-27 shrink-0 lg:ml-auto [&_[role=listbox]]:left-auto [&_[role=listbox]]:right-0 [&_[role=listbox]]:min-w-36">
+    <Button
+      variant="ghost"
+      aria-label={
+        dark ? "라이트 모드로 전환" : "다크 모드로 전환"
+      }
+      onClick={() =>
+        setThemePreference(
+          dark
+            ? ThemePreference.LIGHT
+            : ThemePreference.DARK,
+        )
+      }
+      className="size-11 shrink-0 !rounded-full !border !border-line !bg-surface !p-0 !text-foreground hover:!bg-canvas hover:!transform-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:ml-auto"
+    >
       <svg
         aria-hidden="true"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.8"
-        className="pointer-events-none absolute left-3 top-3.5 z-10 size-4 text-muted"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-5"
       >
-        <circle cx="12" cy="12" r="8" />
-        <path
-          d="M12 4a8 8 0 0 1 0 16Z"
-          fill="currentColor"
-          stroke="none"
-        />
+        {dark ? (
+          <>
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
+          </>
+        ) : (
+          <path d="M20.5 13.5A8.5 8.5 0 0 1 10.5 3.5a8.5 8.5 0 1 0 10 10Z" />
+        )}
       </svg>
-      <Dropdown
-        label="화면 테마"
-        hideLabel
-        options={options}
-        value={preference}
-        onValueChange={(value) =>
-          setThemePreference(parseThemePreference(value))
-        }
-        triggerClassName="!gap-1 !rounded-full !pl-8 !pr-2 !py-2 !text-xs"
-      />
-    </div>
+    </Button>
   );
 }

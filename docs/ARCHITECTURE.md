@@ -205,6 +205,6 @@ PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따
 
 ### 화면 테마
 
-REQ-15의 표시 설정은 `src/lib/theme`의 타입·브라우저 저장 어댑터·외부 store로 분리한다. UI는 localStorage에 직접 접근하지 않으며 테마는 계정 데이터/API 요청이 아닌 기기 표시 설정이다. 루트의 정적 초기화 스크립트가 본문 파싱 전에 저장값/시스템 설정을 적용한다. `data-theme`와 CSS `color-scheme`을 동기화하고 헤더는 useSyncExternalStore로 선택값·시스템 변경·탭 간 저장 변경을 구독한다. globals.css의 의미 토큰으로 색을 전환하며 버그리와 방 재질은 별도로 보존한다.
+REQ-15의 표시 설정은 `src/lib/theme`의 타입·브라우저 저장 어댑터·외부 store로 분리한다. UI는 localStorage에 직접 접근하지 않으며 테마는 계정 데이터/API 요청이 아닌 기기 표시 설정이다. 루트의 정적 초기화 스크립트가 본문 파싱 전에 저장값/시스템 설정을 적용한다. `data-theme`와 CSS `color-scheme`을 동기화하고 헤더 토글은 useSyncExternalStore로 실제 적용 테마를 구독해 반대 테마로 전환한다. `/settings`의 라디오 선택은 저장 선호도를 구독하며 시스템 추종을 복원한다. 시스템 변경·탭 간 저장 변경도 함께 반영한다. globals.css의 의미 토큰으로 색을 전환하며 버그리와 방 재질은 별도로 보존한다.
 
 라이트는 `color-scheme: only light`로 Chrome Auto Dark의 자동 재색칠을 억제하고 다크는 `dark`로 선언한다. 이는 Chromium 에뮬레이션과 갤럭시 Chrome 실기기 검증을 구분한다. 헤더 없는 오류 화면에도 ThemeSync를 두어 시스템/탭 변경 구독을 유지한다.
