@@ -48,11 +48,11 @@ export function QuizCard({
 
   const heading = (
     <div
-      className={
+      className={`${
         compact
           ? quizCardStyles.compactTitle
           : quizCardStyles.title
-      }
+      } ${go && !action.disabled ? quizCardStyles.goPad : ""}`}
     >
       <span
         aria-hidden="true"
@@ -98,7 +98,7 @@ export function QuizCard({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={quizCardStyles.go}
+          className={`${quizCardStyles.go} ${compact ? quizCardStyles.goInsetCompact : quizCardStyles.goInset}`}
         >
           <path d="M7 17 17 7M8 7h9v9" />
         </svg>
