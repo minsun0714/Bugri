@@ -5,6 +5,19 @@ for (const width of [1280, 390]) {
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
+    await page.goto("/users/bugri-author");
+    await expect(
+      page.getByRole("button", {
+        name: "구독하기",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /데모.*구독/ }),
+    ).toHaveCount(0);
+    await page.screenshot({
+      path: testInfo.outputPath(`guest-${width}.png`),
+    });
     await page.goto("/users/bugri-author?user=friend");
     await page
       .getByRole("button", {

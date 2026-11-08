@@ -291,7 +291,7 @@ function Catalog({
           }}
         >
           {profile && !signedIn
-            ? t("데모 사용자 선택 후 구독하기")
+            ? t("구독하기")
             : t("개발자 구독하기")}
         </Button>
       )

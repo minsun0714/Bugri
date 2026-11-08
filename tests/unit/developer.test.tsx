@@ -155,7 +155,7 @@ test("public profile requires explicit demo selection and a separate subscriptio
   );
   fireEvent.click(
     screen.getByRole("button", {
-      name: "데모 사용자 선택 후 구독하기",
+      name: "구독하기",
     }),
   );
   expect(await api.request("subscriptions", {})).toEqual(
