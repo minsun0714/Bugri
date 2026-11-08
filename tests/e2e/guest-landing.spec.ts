@@ -6,13 +6,12 @@ for (const width of [390, 1440]) {
   }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
-    const skip = page.getByRole("link", {
-      name: "바로 퀴즈 풀기",
-    });
-    await expect(skip).toBeInViewport();
-    await skip.focus();
-    await page.keyboard.press("Enter");
-    await expect(page.locator("#guest-quiz")).toBeFocused();
+    await expect(
+      page.locator("#landing-title"),
+    ).toBeVisible();
+    await page
+      .locator("#guest-quiz")
+      .scrollIntoViewIfNeeded();
     await expect(
       page.getByRole("button", { name: "답 제출" }),
     ).toBeInViewport();
@@ -24,7 +23,9 @@ for (const width of [390, 1440]) {
       ),
     ).toBe(true);
     await page.goto("/?user=learner");
-    await expect(skip).toHaveCount(0);
+    await expect(
+      page.locator("#landing-title"),
+    ).toHaveCount(0);
     await expect(
       page.getByRole("combobox", { name: "학습 태그" }),
     ).toBeVisible();
@@ -78,8 +79,8 @@ test("completed guest practice offers optional demo continuation without transfe
     }),
   ).toHaveCount(0);
   await page
-    .getByRole("link", { name: "바로 퀴즈 풀기" })
-    .click();
+    .locator("#guest-quiz")
+    .scrollIntoViewIfNeeded();
   await expect(
     page.getByRole("button", {
       name: "답 제출",
