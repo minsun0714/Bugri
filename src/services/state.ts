@@ -1,3 +1,4 @@
+import type { QuizReaction } from "@/api/constants";
 import type {
   RewardGrant,
   ProfileAbout,
@@ -42,6 +43,10 @@ export interface StoredDay {
 export interface UserState {
   schemaVersion: 1;
   rewards?: RewardGrant[];
+  quizReactions?: {
+    quizId: string;
+    reaction: QuizReaction;
+  }[];
   profileAbout?: ProfileAbout;
   profileOrder?: ProfileOrder;
   /** One-time mock fixture upgrade; absent in older v1 snapshots. */

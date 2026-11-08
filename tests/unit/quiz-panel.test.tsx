@@ -145,3 +145,28 @@ test("completed member attempt displays credited coins and history link", () => 
     screen.getByRole("link", { name: "내역 보기" }),
   ).toHaveAttribute("href", "/coin-history?user=learner");
 });
+
+test("quiz evaluation shares the final action row with submit after answer controls", () => {
+  render(
+    <QuizPanel
+      quiz={quiz}
+      result={null}
+      focusKey="evaluation"
+      pending={false}
+      onSubmit={jest.fn()}
+      reaction={<button aria-label="좋아요">0</button>}
+    />,
+  );
+  const reaction = screen.getByRole("button", {
+    name: "좋아요",
+  });
+  const answer = screen.getByLabelText("참");
+  expect(
+    answer.compareDocumentPosition(reaction) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+  const submit = screen.getByRole("button", {
+    name: "답 제출",
+  });
+  expect(reaction.parentElement).toContainElement(submit);
+});

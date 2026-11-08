@@ -49,6 +49,7 @@ export function QuizPanel({
   onDirtyChange,
   onSubmit,
   children,
+  reaction,
 }: {
   quiz: LearningQuizView | null;
   result: AttemptResult | null;
@@ -62,6 +63,7 @@ export function QuizPanel({
   onDirtyChange?: (dirty: boolean) => void;
   onSubmit: (answer: Answer) => void;
   children?: ReactNode;
+  reaction?: ReactNode;
 }) {
   const t = useTranslation();
 
@@ -164,7 +166,7 @@ export function QuizPanel({
         ) : null}
         {quiz && (
           <>
-            <h2 className="mb-3 [&_.ui-badge]:bg-transparent [&_.ui-badge]:p-0 [&_.ui-badge]:text-xs [&_.ui-badge]:font-medium [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-muted">
+            <h2 className="mb-3 min-w-0 break-words [overflow-wrap:anywhere] [&_.ui-badge]:bg-transparent [&_.ui-badge]:p-0 [&_.ui-badge]:text-xs [&_.ui-badge]:font-medium [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-muted">
               <Badge>{quiz.title}</Badge>
             </h2>
             <div className="break-keep text-xl font-semibold leading-8 tracking-tight [overflow-wrap:anywhere] sm:text-2xl sm:leading-9 [&_pre]:text-sm [&_pre]:font-normal">
@@ -208,6 +210,7 @@ export function QuizPanel({
           !completedAt && (
             <AnswerForm
               key={focusKey}
+              reaction={reaction}
               question={quiz.question}
               pending={pending}
               onDirtyChange={onDirtyChange}
@@ -222,7 +225,16 @@ export function QuizPanel({
           )}
         </p>
       )}
-      {children}
+      {quiz && result ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {reaction}
+          {children && (
+            <div className="ml-auto">{children}</div>
+          )}
+        </div>
+      ) : (
+        children
+      )}
     </Card>
   );
 }

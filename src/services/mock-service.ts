@@ -1,4 +1,7 @@
 import { calculateRewards } from "@/services/bugcoin";
+import { quizReactionSummary } from "@/services/quiz-reactions";
+import { QuizReaction } from "@/api/constants";
+
 import {
   defaultProfileOrder,
   validProfileOrder,
@@ -158,6 +161,8 @@ const allowed: Record<Operation, string[]> = {
   publicLearningDay: ["publicId"],
   learningTimezone: [],
   updateTimezone: ["timeZone"],
+  quizReaction: ["quizId"],
+  updateQuizReaction: ["quizId", "reaction"],
   startAttempt: ["quizId", "context"],
   attempt: ["attemptId"],
   answer: ["attemptId", "answer"],
@@ -1302,6 +1307,47 @@ export function execute<K extends Operation>(
           learningState.attempts,
         ),
       };
+    }
+
+    case "quizReaction":
+
+    case "updateQuizReaction": {
+      text(r.quizId, "quizId");
+
+      const { quizId, reaction } = r;
+
+      if (
+        !available(
+          allQuizzes.find((quiz) => quiz.quizId === quizId),
+        )
+      )
+        throw new ServiceError(
+          "QUIZ_UNAVAILABLE",
+          "이 퀴즈는 더 이상 이용할 수 없습니다.",
+          409,
+        );
+
+      if (operation === "updateQuizReaction") {
+        requireValue(
+          reaction === null ||
+            reaction === QuizReaction.LIKE ||
+            reaction === QuizReaction.DISLIKE,
+          "평가 값을 확인하세요.",
+        );
+
+        s.quizReactions = (s.quizReactions ?? []).filter(
+          (entry) => entry.quizId !== quizId,
+        );
+
+        if (reaction !== null)
+          s.quizReactions.push({ quizId, reaction });
+      }
+
+      return quizReactionSummary(
+        s.userId,
+        quizId,
+        allStates,
+      );
     }
 
     case "startAttempt": {

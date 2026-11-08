@@ -1,5 +1,6 @@
 import type { RewardReason } from "@/api/constants";
 import type {
+  QuizReaction,
   ProfileSection,
   ProfileLinkKind,
 } from "@/api/constants";
@@ -27,6 +28,12 @@ export type Visibility = Exclude<
   QuizStatus,
   typeof QuizStatus.PENDING
 >;
+
+export interface QuizReactionSummary {
+  reaction: QuizReaction | null;
+  likeCount: number;
+  dislikeCount: number;
+}
 
 export interface Hashtag {
   id: string;
@@ -526,6 +533,17 @@ export interface ApiOperations {
   updateTimezone: {
     request: { timeZone: string };
     response: { timeZone: string };
+  };
+  quizReaction: {
+    request: { quizId: string };
+    response: QuizReactionSummary;
+  };
+  updateQuizReaction: {
+    request: {
+      quizId: string;
+      reaction: QuizReaction | null;
+    };
+    response: QuizReactionSummary;
   };
   startAttempt: {
     request: {

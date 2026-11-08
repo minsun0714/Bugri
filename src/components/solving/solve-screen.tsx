@@ -26,6 +26,7 @@ import {
   type SolvingLocation,
 } from "@/components/solving/use-quiz-solving";
 
+import { QuizReactionControl } from "@/components/solving/quiz-reaction";
 import { QuizPanel } from "@/components/solving/quiz-panel";
 import { GuestQuiz } from "@/components/solving/guest-quiz";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -39,6 +40,7 @@ function Session({
   const t = useTranslation();
 
   const router = useRouter();
+  const selectedUser = useSearchParams().get("user");
   const { userId, attemptId, hashtagId, mode, direct } =
     location;
   const flow = useQuizSolving(location);
@@ -170,6 +172,16 @@ function Session({
           )}
           {data && (
             <QuizPanel
+              reaction={
+                data.quiz && (
+                  <QuizReactionControl
+                    align="left"
+                    key={`${selectedUser}:${data.quizId}`}
+                    userId={selectedUser}
+                    quizId={data.quizId}
+                  />
+                )
+              }
               quiz={data.quiz}
               result={data.result}
               completedAt={data.completedAt}

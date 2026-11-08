@@ -1,6 +1,7 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
+import { QuizReactionControl } from "@/components/solving/quiz-reaction";
 import { QuizCard } from "@/components/ui/quiz-card";
 import { createQueryClient } from "@/api/query-client";
 
@@ -269,27 +270,36 @@ function Catalog({
                     },
                   }}
                   footer={
-                    <Link
-                      href={`/users/${encodeURIComponent(author.publicId)}${signedIn ? `?user=${encodeURIComponent(userId)}` : ""}`}
-                      className={tagCatalogStyles.author}
-                    >
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        className="size-4 shrink-0 text-primary/70"
+                    <>
+                      <Link
+                        href={`/users/${encodeURIComponent(author.publicId)}${signedIn ? `?user=${encodeURIComponent(userId)}` : ""}`}
+                        className={tagCatalogStyles.author}
                       >
-                        <circle cx="10" cy="6" r="3" />
-                        <path d="M4 17v-1a6 6 0 0 1 12 0v1" />
-                      </svg>
-                      <span className="min-w-0 break-words [overflow-wrap:anywhere]">
-                        {author.displayName} · @
-                        {author.publicId}
-                      </span>
-                    </Link>
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          className="size-4 shrink-0 text-primary/70"
+                        >
+                          <circle cx="10" cy="6" r="3" />
+                          <path d="M4 17v-1a6 6 0 0 1 12 0v1" />
+                        </svg>
+                        <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+                          {author.displayName} · @
+                          {author.publicId}
+                        </span>
+                      </Link>
+                      <div className="mt-3">
+                        <QuizReactionControl
+                          key={`${signedIn}:${userId}:${quizId}`}
+                          userId={signedIn ? userId : null}
+                          quizId={quizId}
+                        />
+                      </div>
+                    </>
                   }
                 />
               </li>
