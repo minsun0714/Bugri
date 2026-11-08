@@ -324,7 +324,7 @@ export function ActivityPeriods({
                             >
                               <time
                                 dateTime={date}
-                                className={`flex h-4 items-center justify-center text-[10px] font-medium sm:h-5 sm:text-xs ${date === today ? "bg-primary-solid text-on-primary" : future ? "text-muted" : "border-b border-line/60 bg-line text-muted"}`}
+                                className={`flex h-4 items-center justify-center text-xs font-medium sm:h-5 sm:text-xs ${date === today ? "bg-primary-solid text-on-primary" : future ? "text-muted" : "border-b border-line/60 bg-line text-muted"}`}
                               >
                                 {number}
                               </time>
@@ -342,7 +342,7 @@ export function ActivityPeriods({
                                   }
                                 >
                                   {count.toLocaleString()}
-                                  <span className="ml-0.5 text-[10px] font-medium">
+                                  <span className="ml-0.5 text-xs font-medium">
                                     {locale === "ko"
                                       ? "개"
                                       : ""}

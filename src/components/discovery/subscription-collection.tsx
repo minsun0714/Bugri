@@ -8,7 +8,11 @@ import { viewAllAction } from "@/components/ui/styles";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import type { Subscription } from "@/api/contracts";
-import { Button, Modal, TextField } from "@/components/ui";
+import {
+  Button,
+  Modal,
+  SearchField,
+} from "@/components/ui";
 import { SubscriptionControl } from "@/components/discovery/subscription-control";
 
 export interface SubscriptionEntry {
@@ -143,10 +147,8 @@ export function SubscriptionCollection({
         initialFocusSelector='input[type="search"]'
       >
         <div className="shrink-0 space-y-3 pb-3">
-          <TextField
-            type="search"
+          <SearchField
             label={t("내 구독 검색")}
-            hideLabel
             placeholder={t("이름, 아이디 또는 태그로 검색")}
             value={query}
             onChange={(event) => {

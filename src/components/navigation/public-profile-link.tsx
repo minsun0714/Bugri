@@ -8,7 +8,7 @@ import { ShopProvider } from "@/components/shop/provider";
 import { withDemoUser } from "@/components/navigation/routes";
 
 const itemClass =
-  "rounded-xl px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary";
+  "rounded-none px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary";
 
 type Props = { userId: string; onNavigate: () => void };
 

@@ -213,7 +213,7 @@ export function SelectionOverlay({
               role="menu"
               aria-label={t("겹침 순서 변경")}
               onKeyDown={menuKeyDown}
-              className="pointer-events-auto absolute left-[var(--menu-x)] top-[var(--menu-y)] z-50 w-44 rounded-xl border border-line bg-surface p-1 shadow-lg"
+              className="pointer-events-auto absolute left-[var(--menu-x)] top-[var(--menu-y)] z-50 w-44 overflow-hidden rounded-control border border-control-line bg-surface-raised p-0"
             >
               {[
                 [LayerAction.FORWARD, t("앞으로 가져오기")],
@@ -226,7 +226,7 @@ export function SelectionOverlay({
                   role="menuitem"
                   size="sm"
                   variant="ghost"
-                  className="w-full justify-start !rounded-lg"
+                  className="w-full justify-start !rounded-none"
                   disabled={disabled}
                   onClick={() => {
                     closeMenu();

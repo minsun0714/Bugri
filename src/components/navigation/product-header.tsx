@@ -121,6 +121,7 @@ export function HeaderNavigation({
               <button
                 ref={profileTrigger}
                 type="button"
+                aria-label={t("내 프로필")}
                 aria-expanded={profileOpen}
                 aria-controls={profileId}
                 onClick={() =>
@@ -134,14 +135,24 @@ export function HeaderNavigation({
                 >
                   B
                 </span>
-                <span>{t("내 프로필")}</span>
-                <span aria-hidden="true">⌄</span>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-4 shrink-0"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               {profileOpen && (
                 <nav
                   id={profileId}
                   aria-label={t("내 프로필 메뉴")}
-                  className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 gap-1 rounded-2xl border border-line bg-surface p-2 shadow-[0_16px_45px_-12px_#34204b40]"
+                  className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 divide-y divide-line overflow-hidden rounded-control border border-control-line bg-surface-raised"
                 >
                   <PublicProfileLink
                     userId={userId}
@@ -153,7 +164,7 @@ export function HeaderNavigation({
                       userId,
                     )}
                     onClick={() => setProfileOpen(false)}
-                    className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                    className="rounded-none px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
                     {t("내 퀴즈")}
                   </Link>
@@ -163,7 +174,7 @@ export function HeaderNavigation({
                       userId,
                     )}
                     onClick={() => setProfileOpen(false)}
-                    className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                    className="rounded-none px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
                     {t("풀이 내역")}
                   </Link>
@@ -173,7 +184,7 @@ export function HeaderNavigation({
                       userId,
                     )}
                     onClick={() => setProfileOpen(false)}
-                    className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                    className="rounded-none px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
                     {t("코인 내역")}
                   </Link>
@@ -183,7 +194,7 @@ export function HeaderNavigation({
                       setProfileOpen(false);
                       onSignOut?.();
                     }}
-                    className="rounded-xl px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                    className="rounded-none px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
                     {t("데모 나가기")}
                   </button>

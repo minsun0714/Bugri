@@ -100,7 +100,7 @@ export function Dropdown({
         className={
           variant === "compact"
             ? `flex h-11 w-full items-center justify-center gap-1 rounded-lg px-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-45 sm:text-sm ${triggerClassName}`
-            : `flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${triggerClassName} ${expanded ? "border-primary/20 bg-primary/10 text-primary" : "border-line bg-surface text-foreground hover:bg-canvas"}`
+            : `flex min-h-11 w-full items-center justify-between gap-3 border-0 px-4 py-3 text-left text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${triggerClassName} ${expanded ? "rounded-t-control rounded-b-none bg-surface-raised text-foreground ring-2 ring-inset ring-primary" : "rounded-control bg-surface-raised text-foreground hover:outline-2 hover:outline-control-line"}`
         }
       >
         <span className="min-w-0 truncate">
@@ -123,7 +123,7 @@ export function Dropdown({
           id={`${id}-options`}
           role="listbox"
           aria-labelledby={`${id}-label`}
-          className="absolute inset-x-0 top-[calc(100%+8px)] z-30 grid max-h-64 gap-1 overflow-y-auto rounded-3xl border border-line bg-surface p-2 shadow-[0_16px_45px_-12px_#34204b40]"
+          className="absolute inset-x-0 top-full z-30 grid max-h-64 divide-y divide-line overflow-y-auto overscroll-contain rounded-b-control border border-t-0 border-primary bg-surface-raised"
         >
           {options.map((option, index) => (
             <li
@@ -135,7 +135,7 @@ export function Dropdown({
                 event.preventDefault()
               }
               onClick={() => choose(index)}
-              className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-colors ${option.value === value ? "bg-primary/10 text-primary" : "text-foreground hover:bg-canvas"} ${activeIndex === index ? "ring-1 ring-inset ring-primary/30" : ""}`}
+              className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-none border-l-4 px-3 py-2.5 text-sm font-semibold transition-colors ${option.value === value ? "border-primary text-primary" : "border-transparent text-foreground hover:bg-canvas"} ${activeIndex === index ? "ring-1 ring-inset ring-primary/40" : ""}`}
             >
               <span className="min-w-0 flex-1 break-words">
                 {option.label}

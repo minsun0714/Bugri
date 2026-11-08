@@ -33,7 +33,7 @@ import {
   Avatar,
   Button,
   Skeleton,
-  TextField,
+  SearchField,
   Toast,
 } from "@/components/ui";
 import { useDemoSession } from "@/components/navigation/demo-session";
@@ -42,6 +42,10 @@ import {
   useSubscriptions,
 } from "@/components/discovery/developer-queries";
 import { SubscriptionControl } from "@/components/discovery/subscription-control";
+import {
+  pageTitle,
+  searchButtonStyle,
+} from "@/components/ui/styles";
 
 const linkStyle =
   "inline-flex min-h-11 items-center rounded-xl text-primary font-semibold hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
@@ -242,13 +246,11 @@ function DeveloperContent({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <DiscoveryMascot />
-          <h1 className="text-2xl leading-8 tracking-tight">
-            {t("개발자 탐색")}
-          </h1>
+          <h1 className={pageTitle}>{t("개발자 탐색")}</h1>
         </div>
       </div>
       <form
-        className="flex items-start gap-2 rounded-3xl border border-line bg-surface p-3 sm:gap-3 sm:p-4"
+        className="flex items-start gap-2 rounded-surface border border-line bg-surface p-3 sm:gap-3 sm:p-4"
         onSubmit={(event) => {
           event.preventDefault();
           if (Array.from(draft.value.trim()).length > 100) {
@@ -261,45 +263,27 @@ function DeveloperContent({
           search(draft.value.trim(), 1);
         }}
       >
-        <div className={discoveryStyles.searchField}>
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            className="pointer-events-none absolute left-3 top-3.5 size-5 text-muted"
-          >
-            <circle cx="10.5" cy="10.5" r="6.5" />
-            <path
-              d="m16 16 4.5 4.5"
-              strokeLinecap="round"
-            />
-          </svg>
-          <TextField
-            type="search"
-            label={t("개발자 검색")}
-            hideLabel
-            placeholder={t("이름 또는 아이디로 검색")}
-            value={draft.value}
-            onChange={(event) => {
-              setDraft({
-                source: query,
-                value: event.target.value,
-              });
-              setInputError(null);
-            }}
-            error={
-              inputError ??
-              (!validQuery
-                ? "검색어는 100자 이하여야 합니다."
-                : undefined)
-            }
-          />
-        </div>
+        <SearchField
+          label={t("개발자 검색")}
+          placeholder={t("이름 또는 아이디로 검색")}
+          value={draft.value}
+          onChange={(event) => {
+            setDraft({
+              source: query,
+              value: event.target.value,
+            });
+            setInputError(null);
+          }}
+          error={
+            inputError ??
+            (!validQuery
+              ? "검색어는 100자 이하여야 합니다."
+              : undefined)
+          }
+        />
         <Button
           type="submit"
-          className={discoveryStyles.searchButton}
+          className={searchButtonStyle}
           aria-disabled={navigating}
         >
           {t("검색")}
@@ -323,7 +307,7 @@ function DeveloperContent({
         </div>
       )}
       {signedIn && validUser && (
-        <details className="group rounded-3xl border border-line bg-surface px-5 py-2">
+        <details className="group rounded-surface border border-line bg-surface px-5 py-2">
           <summary
             ref={subscriptionSummary}
             className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-xl py-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden"
@@ -552,7 +536,7 @@ function DeveloperContent({
                             </p>
                           )}
                         </div>
-                        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line/70 pt-3">
+                        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
                           {summary && (
                             <Link
                               className={`${discoveryStyles.quizLink} text-sm font-semibold text-primary underline underline-offset-4`}
@@ -616,7 +600,7 @@ function DeveloperContent({
                   })}
                 </ul>
               ) : (
-                <div className="rounded-3xl border border-dashed border-line bg-surface px-5 py-10 text-center text-sm text-muted break-keep">
+                <div className="rounded-surface border border-line bg-canvas px-5 py-10 text-center text-sm text-muted break-keep">
                   {t(
                     "검색 결과가 없습니다. 검색어를 바꿔 보세요.",
                   )}

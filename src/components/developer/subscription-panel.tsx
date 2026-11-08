@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
 import type { SubscriptionTarget } from "@/api/contracts";
 import { useSubscribe } from "@/components/discovery/queries";
-import { Button, TextField } from "@/components/ui";
+import { Button, SearchField } from "@/components/ui";
 import { ResponsivePopover } from "@/components/ui/responsive-popover";
 import { useDemoSession } from "@/components/navigation/demo-session";
 
@@ -106,10 +106,9 @@ function SubscriptionContents({
         )}
       </div>
       <div className="shrink-0">
-        <TextField
+        <SearchField
           label={t("태그별 구독")}
           placeholder={t("구독할 태그 검색")}
-          type="search"
           value={query}
           maxLength={100}
           onChange={(event) => {

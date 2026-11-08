@@ -13,6 +13,7 @@ import {
   type ConversationProps,
 } from "@/features/quiz-authoring/hooks/use-conversation";
 import { styles } from "@/features/quiz-authoring/styles";
+import { pageTitle } from "@/components/ui/styles";
 
 export function Conversation(props: ConversationProps) {
   const t = useTranslation();
@@ -50,9 +51,7 @@ export function Conversation(props: ConversationProps) {
       className={styles.stack}
     >
       <div className={styles.actions}>
-        <h1 className="text-xl font-semibold tracking-tight">
-          {t("퀴즈 만들기")}
-        </h1>
+        <h1 className={pageTitle}>{t("퀴즈 만들기")}</h1>
       </div>
       <div>
         <Button onClick={() => setOpen(true)}>
@@ -97,7 +96,7 @@ export function Conversation(props: ConversationProps) {
                     className={
                       role === ConversationRole.USER
                         ? "w-fit max-w-[90%] justify-self-end rounded-2xl bg-primary/10 px-5 py-4"
-                        : "min-w-0 rounded-2xl border border-line bg-surface p-5"
+                        : "min-w-0 rounded-surface border border-line bg-surface p-5"
                     }
                   >
                     <span className="mb-2 block text-xs font-semibold text-muted">
@@ -116,7 +115,7 @@ export function Conversation(props: ConversationProps) {
         </div>
         <fieldset
           disabled={!!busy}
-          className="mt-3 min-w-0 shrink-0 rounded-2xl border border-line bg-surface p-3 [&_textarea]:h-24 [&_textarea]:min-h-0! [&_textarea]:max-h-[20dvh] [&_.markdown-preview]:max-h-[20dvh] [&_.markdown-preview]:overflow-y-auto"
+          className="mt-3 min-w-0 shrink-0 rounded-surface border border-line bg-surface p-3 [&_textarea]:h-24 [&_textarea]:min-h-0! [&_textarea]:max-h-[20dvh] [&_.markdown-preview]:max-h-[20dvh] [&_.markdown-preview]:overflow-y-auto"
         >
           <MarkdownEditor
             label={t("질문이나 학습 내용")}

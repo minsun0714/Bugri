@@ -98,7 +98,7 @@ export function CoinHistoryContent({
   return (
     <section
       aria-labelledby="bugcoin-history-heading"
-      className="rounded-3xl border border-line bg-surface px-5 py-6 sm:px-8 sm:py-8"
+      className="rounded-surface border border-line bg-surface px-5 py-6 sm:px-8 sm:py-8"
     >
       <h2
         id="bugcoin-history-heading"

@@ -23,13 +23,14 @@ import {
   Modal,
   Select,
   Tag,
-  TextField,
+  SearchField,
 } from "@/components/ui";
 import { ShowcaseHeader } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { ProductPreview } from "@/components/shop/product-preview";
 import { ShopProvider } from "@/components/shop/provider";
 import { useShop } from "@/components/shop/use-shop";
+import { pageTitle } from "@/components/ui/styles";
 
 const categories: Record<Category, string> = {
   KEYBOARD: "키보드",
@@ -193,7 +194,7 @@ function ShopContent({
   return (
     <>
       <div className="mb-7 flex min-w-0 items-center justify-between gap-4">
-        <h1 className="min-w-0 text-2xl">
+        <h1 className={`min-w-0 ${pageTitle}`}>
           {editing ? t("내 데스크") : t("상점")}
         </h1>
         <div aria-label={t("내 잔액")} className="shrink-0">
@@ -269,7 +270,7 @@ function ShopContent({
           <h2
             ref={collectionHeading}
             tabIndex={-1}
-            className="text-lg"
+            className={editing ? "text-lg" : "sr-only"}
           >
             {editing ? t("보유 상품") : t("상품 목록")}
           </h2>
@@ -279,9 +280,8 @@ function ShopContent({
               {t("개의 오브젝트")}
             </span>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_180px] lg:w-[460px]">
-              <TextField
-                type="search"
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-start">
+              <SearchField
                 label={t("상품 검색")}
                 placeholder={t("상품명 또는 설명 검색")}
                 value={search}
@@ -289,17 +289,21 @@ function ShopContent({
                   setSearch(event.target.value)
                 }
               />
-              <Dropdown
-                label={t("상품 정렬")}
-                options={sortOptions.map((option) => ({
-                  ...option,
-                  label: t(option.label),
-                }))}
-                value={sort}
-                onValueChange={(value) =>
-                  setSort(value as ProductSort)
-                }
-              />
+              <div className="sm:w-48 sm:shrink-0">
+                <Dropdown
+                  label={t("상품 정렬")}
+                  hideLabel
+                  options={sortOptions.map((option) => ({
+                    ...option,
+                    label: t(option.label),
+                  }))}
+                  value={sort}
+                  triggerClassName="!min-h-12"
+                  onValueChange={(value) =>
+                    setSort(value as ProductSort)
+                  }
+                />
+              </div>
             </div>
           )}
         </div>
@@ -416,7 +420,7 @@ function ShopContent({
                   className="group overflow-hidden !p-0"
                 >
                   <div className="relative flex h-52 items-center justify-center bg-canvas p-9 transition-colors group-hover:bg-primary/5">
-                    <span className="absolute left-5 top-4 text-[10px] font-bold tracking-[.14em] text-muted">
+                    <span className="absolute left-5 top-4 text-xs font-bold tracking-[.14em] text-muted">
                       {t(categories[category])}
                     </span>
                     <ProductPreview

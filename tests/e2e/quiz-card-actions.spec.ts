@@ -93,7 +93,9 @@ for (const width of [1280, 320]) {
           exact: true,
         }),
       ).toBeEnabled();
-      await expect(card).not.toContainText("→");
+      await expect(
+        card.locator("[data-card-go]"),
+      ).toBeVisible();
       await page.screenshot({
         path: `/tmp/bugri-card-actions/${width}-${path.split("/")[1]}.png`,
         fullPage: true,

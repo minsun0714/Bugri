@@ -17,6 +17,7 @@ import { FeatureSectionShell } from "@/components/navigation/feature-section-she
 import { Button, Modal } from "@/components/ui";
 import { TagExplorer } from "@/components/discovery/tag-explorer";
 import { tagDiscoveryStyles } from "@/components/discovery/styles";
+import { pageTitle } from "@/components/ui/styles";
 
 export function DiscoveryScreen({
   kind,
@@ -60,12 +61,10 @@ export function DiscoveryScreen({
         {isTags ? (
           <div className={tagDiscoveryStyles.heading}>
             <TagExplorer />
-            <h1 className="text-2xl tracking-tight sm:text-3xl">
-              {t("태그 탐색")}
-            </h1>
+            <h1 className={pageTitle}>{t("태그 탐색")}</h1>
           </div>
         ) : (
-          <h1 className="text-3xl">{t("개발자 탐색")}</h1>
+          <h1 className={pageTitle}>{t("개발자 탐색")}</h1>
         )}
         {signedIn && !isTags && (
           <FeatureSectionShell
