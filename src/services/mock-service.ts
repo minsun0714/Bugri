@@ -5,7 +5,7 @@ import {
   matchHistoryRecord,
 } from "@/services/history-search";
 
-import { QuizStatus } from "@/api/constants";
+import { AttemptContext, QuizStatus } from "@/api/constants";
 import type {
   ApiOperations,
   AttemptView,
@@ -15,14 +15,22 @@ import type {
   Operation,
   QuizContent,
   ReviewQuiz,
+  TodayReview,
 } from "@/api/contracts";
 
 import { hashtags } from "@/mocks/users";
 
+import {
+  addDays,
+  dateDistance,
+  firstReview,
+  nextReview,
+} from "@/services/review-schedule";
 import type {
   StoredAttempt,
   StoredNote,
   StoredQuiz,
+  StoredReviewSchedule,
   UserState,
 } from "@/services/state";
 import {
@@ -83,6 +91,7 @@ const allowed: Record<Operation, string[]> = {
   learningDay: [],
   learningTimezone: [],
   attemptHistory: ["filter", "query", "page", "pageSize"],
+  todayReview: [],
   startAttempt: ["quizId", "context"],
   attempt: ["attemptId"],
   answer: ["attemptId", "answer"],
@@ -174,6 +183,8 @@ export function execute<K extends Operation>(
     timeZone,
     correct,
     submittedAnswer,
+    context = AttemptContext.DIRECT,
+    nextReview: scheduled = null,
   }: StoredAttempt): AttemptView => {
     const q = allQuizzes.find(
       ({ quizId: currentQuizId }) =>
@@ -185,6 +196,7 @@ export function execute<K extends Operation>(
 
     return {
       attemptId,
+      context,
       quizId,
       revisionId,
       quiz: visible
@@ -210,6 +222,7 @@ export function execute<K extends Operation>(
               explanation: explanation ?? null,
             }
           : null,
+      nextReview: completedAt ? scheduled : null,
     };
   };
 
@@ -328,10 +341,53 @@ export function execute<K extends Operation>(
     sourceContent,
   });
 
+  const requireTimeZone = () => {
+    if (!s.timeZone)
+      throw new ServiceError(
+        "TIMEZONE_REQUIRED",
+        "학습 시간대를 설정하세요.",
+        409,
+      );
+
+    return s.timeZone;
+  };
+
+  /** The stored schedule, or the first review computed from `confirmedAt` when none was written. */
+  const scheduleOf = (
+    quiz: StoredQuiz,
+    timeZone: string,
+  ): StoredReviewSchedule =>
+    s.reviewSchedules?.find(
+      ({ quizId }) => quizId === quiz.quizId,
+    ) ?? {
+      quizId: quiz.quizId,
+      lastCorrect: null,
+      ...firstReview(quiz.confirmedAt!, timeZone),
+    };
+
+  const saveSchedule = (schedule: StoredReviewSchedule) => {
+    const list = (s.reviewSchedules ??= []);
+
+    const index = list.findIndex(
+      ({ quizId }) => quizId === schedule.quizId,
+    );
+
+    if (index === -1) list.push(schedule);
+    else list[index] = schedule;
+  };
+
   const confirm = (quiz: StoredQuiz) => {
     quiz.status = QuizStatus.CONFIRMED;
     quiz.confirmedAt = timestamp;
     touch(quiz);
+
+    // Fix the first review date now so a later zone change does not move it.
+    if (s.timeZone)
+      saveSchedule({
+        quizId: quiz.quizId,
+        lastCorrect: null,
+        ...firstReview(timestamp, s.timeZone),
+      });
   };
 
   switch (operation) {
@@ -636,11 +692,102 @@ export function execute<K extends Operation>(
       };
     }
 
+    case "todayReview": {
+      const timeZone = requireTimeZone();
+
+      const today = localDate(now, timeZone);
+
+      const tomorrow = addDays(today, 1);
+
+      const targets = s.quizzes
+        .filter((quiz) => available(quiz))
+        .map((quiz) => ({
+          quiz,
+          schedule: scheduleOf(quiz, timeZone),
+        }));
+
+      const due = targets
+        .filter(
+          ({ schedule }) => schedule.nextReviewDate <= today,
+        )
+        .sort(
+          (
+            { quiz: leftQuiz, schedule: left },
+            { quiz: rightQuiz, schedule: right },
+          ) =>
+            Number(right.lastCorrect === false) -
+              Number(left.lastCorrect === false) ||
+            (left.nextReviewDate < right.nextReviewDate
+              ? -1
+              : left.nextReviewDate > right.nextReviewDate
+                ? 1
+                : 0) ||
+            (leftQuiz.quizId < rightQuiz.quizId
+              ? -1
+              : leftQuiz.quizId > rightQuiz.quizId
+                ? 1
+                : 0),
+        );
+
+      const [first] = due;
+
+      const upcomingDates = targets
+        .map(({ schedule }) => schedule.nextReviewDate)
+        .filter((date) => date > today)
+        .sort();
+
+      const [upcomingDate] = upcomingDates;
+
+      const reviewed = new Set(
+        s.attempts
+          .filter(
+            ({ context, completedAt, learningDate }) =>
+              context === AttemptContext.REVIEW &&
+              completedAt &&
+              learningDate === today,
+          )
+          .map(({ quizId }) => quizId),
+      );
+
+      const result: TodayReview = {
+        learningDate: today,
+        timeZone,
+        dueCount: due.length,
+        next: first
+          ? {
+              quizId: first.quiz.quizId,
+              revisionId: first.quiz.revision.revisionId,
+              ownerUserId: first.quiz.ownerUserId,
+              title: first.quiz.revision.title,
+              question: first.quiz.revision.question,
+              hashtagIds: first.quiz.revision.hashtagIds,
+            }
+          : null,
+        tomorrowCount: upcomingDates.filter(
+          (date) => date === tomorrow,
+        ).length,
+        reviewedToday: reviewed.size,
+        totalCount: targets.length,
+        upcoming: upcomingDate
+          ? {
+              date: upcomingDate,
+              count: upcomingDates.filter(
+                (date) => date === upcomingDate,
+              ).length,
+            }
+          : null,
+      };
+
+      return result;
+    }
+
     case "startAttempt": {
       text(r.quizId);
 
       requireValue(
-        r.context === "DIRECT",
+        Object.values(AttemptContext).includes(
+          r.context as AttemptContext,
+        ),
         "풀이 진입 경로가 필요합니다.",
       );
 
@@ -655,8 +802,34 @@ export function execute<K extends Operation>(
           409,
         );
 
+      if (r.context === AttemptContext.REVIEW) {
+        const timeZone = requireTimeZone();
+
+        if (
+          scheduleOf(q!, timeZone).nextReviewDate >
+          localDate(now, timeZone)
+        )
+          throw new ServiceError(
+            "QUIZ_UNAVAILABLE",
+            "오늘 복습할 퀴즈가 아닙니다.",
+            409,
+          );
+
+        // Resume an unfinished review of the same version instead of piling up attempts.
+        const open = s.attempts.find(
+          ({ quizId, context, completedAt, revision }) =>
+            quizId === q!.quizId &&
+            context === AttemptContext.REVIEW &&
+            !completedAt &&
+            revision.revisionId === q!.revision.revisionId,
+        );
+
+        if (open) return attemptView(open);
+      }
+
       const a: StoredAttempt = {
         attemptId: id(),
+        context: r.context as AttemptContext,
         quizId: q!.quizId,
         ownerUserId: q!.ownerUserId,
         revision: JSON.parse(JSON.stringify(q!.revision)),
@@ -841,6 +1014,36 @@ export function execute<K extends Operation>(
           timeZone: s.timeZone,
           completedAt: timestamp,
         });
+      }
+
+      // Only a REVIEW submission moves the schedule, and only while the quiz is still due.
+      // Re-submissions return above, so one attempt never changes the schedule twice.
+      if (a.context === AttemptContext.REVIEW) {
+        const quiz = allQuizzes.find(
+          ({ quizId }) => quizId === a.quizId,
+        )!;
+
+        const current = scheduleOf(quiz, s.timeZone);
+
+        if (current.nextReviewDate <= date) {
+          const outcome = nextReview({
+            stage: current.stage,
+            correct: a.correct,
+            date,
+          });
+
+          saveSchedule({
+            quizId: quiz.quizId,
+            stage: outcome.stage,
+            nextReviewDate: outcome.nextReviewDate,
+            lastCorrect: a.correct,
+          });
+
+          a.nextReview = {
+            date: outcome.nextReviewDate,
+            days: dateDistance(date, outcome.nextReviewDate),
+          };
+        } else a.nextReview = null;
       }
 
       return attemptView(a);

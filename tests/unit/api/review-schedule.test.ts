@@ -1,6 +1,6 @@
 import { createApiClient } from "@/api/client";
 import { AttemptContext } from "@/api/constants";
-import type { Answer } from "@/api/contracts";
+import type { Answer, Question } from "@/api/contracts";
 import { createMockTransport } from "@/mocks/adapter";
 import { storageKey } from "@/mocks/storage";
 
@@ -36,12 +36,15 @@ const scheduleEntry = (
 ) =>
   state.reviewSchedules.find(
     (entry) => entry.quizId === quizId,
-  ) as { nextReviewDate: string };
+  ) as unknown as { nextReviewDate: string };
 
-beforeEach(() => {
+/** Creates the learner's seed state on the first day, before tests move the clock. */
+beforeEach(async () => {
   localStorage.clear();
   clock = noon;
   zone = "Asia/Seoul";
+
+  await make().request("todayReview", {});
 });
 
 const correctAnswer = async (
@@ -55,6 +58,49 @@ const correctAnswer = async (
 
   return revision.answer;
 };
+
+/** A valid answer for the question that is not the right one. */
+function wrongAnswer(
+  question: Question,
+  right: Answer,
+): Answer {
+  switch (right.type) {
+    case "TRUE_FALSE":
+      return { type: "TRUE_FALSE", value: !right.value };
+    case "SHORT_ANSWER":
+      return { type: "SHORT_ANSWER", text: "x-wrong" };
+    case "SINGLE_CHOICE": {
+      const { choices } = question as Extract<
+        Question,
+        { choices: unknown }
+      >;
+
+      const other = choices.find(
+        ({ id }) => id !== right.choiceId,
+      )!;
+
+      return { type: "SINGLE_CHOICE", choiceId: other.id };
+    }
+    case "MULTIPLE_CHOICE": {
+      const { choices } = question as Extract<
+        Question,
+        { choices: unknown }
+      >;
+
+      const missing = right.choiceIds.slice(1);
+
+      return {
+        type: "MULTIPLE_CHOICE",
+        choiceIds: missing.length
+          ? missing
+          : choices
+              .map(({ id }) => id)
+              .filter((id) => id !== right.choiceIds[0])
+              .slice(0, 1),
+      };
+    }
+  }
+}
 
 async function review(
   api: ReturnType<typeof make>,
@@ -72,18 +118,11 @@ async function review(
     quizId,
   );
 
-  const wrong: Answer =
-    right.type === "TRUE_FALSE"
-      ? { type: "TRUE_FALSE", value: !right.value }
-      : right.type === "SHORT_ANSWER"
-        ? { type: "SHORT_ANSWER", text: "x-wrong" }
-        : right.type === "SINGLE_CHOICE"
-          ? { type: "SINGLE_CHOICE", choiceId: "zzz" }
-          : { type: "MULTIPLE_CHOICE", choiceIds: ["zzz"] };
-
   return api.request("answer", {
     attemptId: started.attemptId,
-    answer: correct ? right : wrong,
+    answer: correct
+      ? right
+      : wrongAnswer(started.quiz!.question, right),
   });
 }
 
@@ -241,7 +280,7 @@ test("a quiz confirmed today comes back tomorrow, in the learner's zone", async 
 test("a state without schedules is read by computing from confirmedAt", async () => {
   const api = make("author");
 
-  await api.request("note", { noteId: "seed-note-author" });
+  await api.request("todayReview", {});
 
   const state = stored("author");
 
@@ -405,7 +444,7 @@ test("submitting the same review again keeps the first result and schedule", asy
   await expect(
     api.request("answer", {
       attemptId: started.attemptId,
-      answer: { type: "SHORT_ANSWER", text: "다른 답" },
+      answer: wrongAnswer(started.quiz!.question, answer),
     }),
   ).rejects.toMatchObject({
     status: 409,
@@ -554,12 +593,18 @@ test("a deleted quiz cannot be submitted and leaves the schedule alone", async (
 
   const before = scheduleOf("seed-quiz-7");
 
+  const answer = await correctAnswer(
+    api,
+    started.attemptId,
+    "seed-quiz-7",
+  );
+
   await api.request("deleteQuiz", { quizId: "seed-quiz-7" });
 
   await expect(
     api.request("answer", {
       attemptId: started.attemptId,
-      answer: { type: "SHORT_ANSWER", text: "x" },
+      answer,
     }),
   ).rejects.toMatchObject({
     detail: { code: "QUIZ_UNAVAILABLE" },
@@ -591,7 +636,8 @@ test("changing the time zone does not recompute stored schedules", async () => {
 test("a review without a known time zone is rejected", async () => {
   zone = "";
 
-  const api = make();
+  // A user whose state does not exist yet has no saved zone either.
+  const api = make("friend");
 
   await expect(
     api.request("todayReview", {}),
