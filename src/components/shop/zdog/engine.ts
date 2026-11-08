@@ -525,6 +525,31 @@ export function createDeskEngine(
     paintLayers(illustration, context, owners, order);
     context.restore();
     if (state.equipment.BACKGROUND) {
+      context.save();
+      context.beginPath();
+      const reveal = Math.max(
+        0,
+        Math.min(1, state.backgroundReveal ?? 1),
+      );
+      const diagonal = reveal * 2;
+      context.moveTo(0, 0);
+      if (diagonal <= 1) {
+        context.lineTo(canvas.width * diagonal, 0);
+        context.lineTo(0, canvas.height * diagonal);
+      } else {
+        context.lineTo(canvas.width, 0);
+        context.lineTo(
+          canvas.width,
+          canvas.height * (diagonal - 1),
+        );
+        context.lineTo(
+          canvas.width * (diagonal - 1),
+          canvas.height,
+        );
+        context.lineTo(0, canvas.height);
+      }
+      context.closePath();
+      context.clip();
       const pixelZoom =
         (zoom * canvas.width) / (width || 600);
       paintRoom(
@@ -542,6 +567,7 @@ export function createDeskEngine(
             perspectiveFit,
         ),
       );
+      context.restore();
     }
     if (state.directManipulation && !state.readOnly) {
       const bounds = picker.render(

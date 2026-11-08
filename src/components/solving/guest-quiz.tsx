@@ -1,6 +1,7 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
+import { GuestConversion } from "@/components/landing/guest-conversion";
 import { useState } from "react";
 import {
   useMutation,
@@ -98,6 +99,7 @@ function GuestRound({
         quiz={quiz.data}
         result={submit.data ?? null}
         focusKey={`guest-${round}`}
+        autoFocus={round > 0 || !!submit.data}
         pending={submit.isPending}
         onSubmit={(answer) => submit.mutate(answer)}
       >
@@ -107,6 +109,7 @@ function GuestRound({
           </div>
         )}
       </QuizPanel>
+      {submit.data && <GuestConversion />}
     </div>
   );
 }

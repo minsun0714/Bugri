@@ -16,7 +16,9 @@ test("browser language, explicit choice, persistence, and untouched quiz content
     "en",
   );
   await expect(
-    page.getByRole("heading", { name: "Today's quiz" }),
+    page.getByRole("heading", {
+      name: "Ready to try a question?",
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Submit answer" }),
@@ -42,7 +44,9 @@ test("browser language, explicit choice, persistence, and untouched quiz content
     .getByRole("option", { name: "한국어", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "오늘의 퀴즈" }),
+    page.getByRole("heading", {
+      name: "한 문제, 직접 풀어볼까요?",
+    }),
   ).toBeVisible();
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute(
@@ -141,6 +145,8 @@ test("blocked storage still allows switching language", async ({
     "en",
   );
   await expect(
-    page.getByRole("heading", { name: "Today's quiz" }),
+    page.getByRole("heading", {
+      name: "Ready to try a question?",
+    }),
   ).toBeVisible();
 });
