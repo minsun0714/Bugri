@@ -16,12 +16,12 @@ Bugri is a developer learning platform with AI-generated quizzes.
 
 - Implement only the requested scope. Documentation or review requests do not authorize application implementation. Respect worktree/file ownership and exclusions set by the user.
 - Current stage: Next.js 16 + TypeScript prototype, dummy users, Mock API/data, Jest/React Testing Library and Playwright, deployed to Vercel. No DB, MySQL/Prisma/mysql2 installation, real JWT/Google OAuth, or real AI calls.
-- Stage 2: Spring Boot + Java 21, MySQL 8.4 + Spring Data JPA, JWT/Google OAuth2, REST persistence and transactional purchases. Kubernetes remains a separate practice environment. Do not promote future requirements into stage 1.
+- Stage 2: Spring Boot + Java 21, MySQL 8.4 + Spring Data JPA, JWT/Google OAuth2, Spring AI, and REST persistence. Kubernetes remains a separate practice environment. Do not promote future requirements into stage 1.
 
 ## Required references and workflows
 
-- Before implementing a feature, read [PRD](docs/PRD.md), [architecture](docs/ARCHITECTURE.md), and [tasks](docs/TASKS.md). Product rules and REQ/AC live in the PRD; do not duplicate or silently change them here.
-- For API/Mock changes, also read [API contracts and usage](docs/API.md). Consult the relevant PRD sections for quiz generation/revisions, subscriptions, learning/timezones, and shop behavior.
+- Before implementing a feature, read [PRD](docs/PRD.md), [page structure](docs/PAGE_STRUCTURE.md), [architecture](docs/ARCHITECTURE.md), and [tasks](docs/TASKS.md). Product rules and REQ/AC live in the PRD; do not duplicate or silently change them here. Features listed under the PRD's "reconsider after user acquisition" section and documents in `docs/archive/` are not implementation references.
+- For API/Mock changes, also read [API contracts and usage](docs/API.md). Consult the relevant PRD sections for notes, quiz generation/revisions, review scheduling, and learning/timezones.
 - For code changes, read [coding conventions](docs/CODING_CONVENTIONS.md).
 - For requested feature implementation or fixes, use [implement-feature](.agents/skills/implement-feature/SKILL.md). Its verification reference also applies to refactoring and configuration changes.
 - After meaningful UI implementation or changes, use [ux-review-loop](.agents/skills/ux-review-loop/SKILL.md): delegate actual screen review to one independent UX sub-agent and one independent [UI designer](.agents/skills/ui-designer/SKILL.md) sub-agent, then let the implementer fix and reverify at most three times. This explicitly authorizes that review delegation; documentation-only work does not start the UI loop.

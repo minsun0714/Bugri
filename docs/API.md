@@ -143,7 +143,7 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 `learningDay`의 `dailyCounts`는 `{ learningDate, count }[]`를 날짜 오름차순으로 반환한다. 요청자 본인의 완료 Attempt에서 저장된 학습일·quizId를 중복 제거한 개수다. 같은 날 재풀이는 추가하지 않고 다른 날은 별도 집계한다. 정오와 현재 공개/삭제 상태는 필터링하지 않으며 미제출은 제외한다. 기록 없는 날짜는 UI에서 0으로 표시한다. `completedDates`/스트릭 판정은 기존대로 유지한다. 별도 저장 필드나 스냅샷 마이그레이션 없이 기존 Attempt로 계산한다.
 
-BugCoin 자동 보상은 [확정 정책](BUGCOIN_POLICY.md)을 적용한다. 기본 fixture 시작 잔액100은 유지한다. 기존 테스트용 `dailyReward`를 명시하면 과거 일일 완료 fixture 동작을 별도로 사용하며 제품 조립에서는 지정하지 않는다. XP·Streak 보상은 추가하지 않는다.
+BugCoin 자동 보상은 [확정 정책](archive/BUGCOIN_POLICY.md)을 적용한다. 기본 fixture 시작 잔액100은 유지한다. 기존 테스트용 `dailyReward`를 명시하면 과거 일일 완료 fixture 동작을 별도로 사용하며 제품 조립에서는 지정하지 않는다. XP·Streak 보상은 추가하지 않는다.
 
 ## 상점·저장소
 
