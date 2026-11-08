@@ -20,7 +20,7 @@ export function MobileNavigation({
     root,
     trigger,
     selectSection,
-  } = useMobileNavigation();
+  } = useMobileNavigation(product);
 
   const active = activePath ?? hashActive;
   const navigationId = useId();
@@ -28,7 +28,7 @@ export function MobileNavigation({
   return (
     <div
       ref={root}
-      className="sm:hidden"
+      className={product ? "lg:hidden" : "sm:hidden"}
       onBlur={(event) => {
         if (
           !event.currentTarget.contains(
@@ -45,7 +45,7 @@ export function MobileNavigation({
         aria-expanded={open}
         aria-controls={navigationId}
         onClick={() => setOpen(!open)}
-        className={`grid size-11 place-items-center rounded-2xl border transition-colors ${open ? "border-primary/20 bg-primary/10 text-primary" : "border-line bg-white text-foreground hover:bg-canvas"}`}
+        className={`grid size-11 place-items-center rounded-2xl border transition-colors ${open ? "border-primary/20 bg-primary/10 text-primary" : "border-line bg-surface text-foreground hover:bg-canvas"}`}
       >
         <svg
           width="22"
@@ -74,13 +74,13 @@ export function MobileNavigation({
               ? "모바일 주 메뉴"
               : "모바일 컴포넌트 섹션"
           }
-          className="absolute inset-x-3 top-[calc(100%+8px)] max-h-[calc(100dvh-100px)] overflow-y-auto rounded-3xl border border-line bg-white p-3 shadow-[0_16px_45px_-12px_#34204b40]"
+          className="absolute inset-x-3 top-[calc(100%+8px)] max-h-[calc(100dvh-100px)] overflow-y-auto rounded-3xl border border-line bg-surface p-3 shadow-[0_16px_45px_-12px_#34204b40]"
         >
           <div className="flex items-center justify-between px-3 pb-3 pt-2">
             <span className="text-[10px] font-bold tracking-[.18em] text-muted">
               EXPLORE BUGRI
             </span>
-            <span className="rounded-full bg-lime/50 px-2 py-1 text-[9px] font-semibold text-foreground">
+            <span className="rounded-full bg-success-soft px-2 py-1 text-[9px] font-semibold text-success-ink">
               {product ? "메뉴" : "UI COLLECTION"}
             </span>
           </div>
@@ -100,7 +100,7 @@ export function MobileNavigation({
                 className={`group flex min-h-14 items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-colors ${active === id ? "bg-primary/10 text-primary" : "text-foreground hover:bg-canvas"}`}
               >
                 <span
-                  className={`grid size-8 shrink-0 place-items-center rounded-xl font-mono text-[10px] ${active === id ? "bg-primary text-white" : "bg-canvas text-primary/70"}`}
+                  className={`grid size-8 shrink-0 place-items-center rounded-xl font-mono text-[10px] ${active === id ? "bg-primary-solid text-on-primary" : "bg-canvas text-primary/70"}`}
                 >
                   0{i + 1}
                 </span>

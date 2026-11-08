@@ -12,9 +12,9 @@ export const tagDiscoveryStyles = {
   filters:
     "flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-canvas p-1",
   filterButton:
-    "!min-h-11 !rounded-xl !border-0 !px-4 !shadow-none !transition-colors hover:!translate-y-0 active:!translate-y-0 [&[aria-pressed=true]]:!bg-primary [&[aria-pressed=true]]:!text-white [&[aria-pressed=false]]:!bg-transparent [&[aria-pressed=false]]:!text-muted",
+    "!min-h-11 !rounded-xl !border-0 !px-4 !shadow-none !transition-colors hover:!translate-y-0 active:!translate-y-0 [&[aria-pressed=true]]:!bg-primary-solid [&[aria-pressed=true]]:!text-on-primary [&[aria-pressed=false]]:!bg-transparent [&[aria-pressed=false]]:!text-muted",
   grid: "grid items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3",
-  icon: "flex size-12 shrink-0 items-center justify-center rounded-2xl bg-lime/55 text-lg font-bold text-primary",
+  icon: "flex size-12 shrink-0 items-center justify-center rounded-2xl bg-success-soft text-lg font-bold text-primary",
   card: "flex min-w-0 flex-col gap-4 rounded-3xl border border-line bg-surface p-4 shadow-[0_3px_0_var(--color-line)] sm:p-5",
   subscribed:
     "inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary",
@@ -40,13 +40,14 @@ export const discoveryStyles = {
     "inline-flex min-h-11 items-center gap-1.5 rounded-xl text-xs text-muted hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
   subscriptionButton:
     "!min-h-11 !min-w-26 !gap-1.5 !rounded-full !border !px-3.5 !text-xs !shadow-none [&:hover:not(:disabled)]:!translate-y-0",
-  subscribed: "!border-lime !bg-lime/40 !text-foreground",
+  subscribed:
+    "!border-lime !bg-success-soft !text-foreground",
   unsubscribed:
     "!border-primary/20 !bg-primary/5 !text-primary hover:!bg-primary/10",
 } as const;
 
 export const avatarTones = [
   "[&_.ui-avatar]:!size-12 [&_.ui-avatar]:!rounded-2xl [&_.ui-avatar]:!border-0 [&_.ui-avatar]:!bg-primary/10 [&_.ui-avatar]:!text-primary",
-  "[&_.ui-avatar]:!size-12 [&_.ui-avatar]:!rounded-2xl [&_.ui-avatar]:!border-0 [&_.ui-avatar]:!bg-lime/55 [&_.ui-avatar]:!text-foreground",
-  "[&_.ui-avatar]:!size-12 [&_.ui-avatar]:!rounded-2xl [&_.ui-avatar]:!border-0 [&_.ui-avatar]:!bg-sunny/40 [&_.ui-avatar]:!text-foreground",
+  "[&_.ui-avatar]:!size-12 [&_.ui-avatar]:!rounded-2xl [&_.ui-avatar]:!border-0 [&_.ui-avatar]:!bg-success-soft [&_.ui-avatar]:!text-foreground",
+  "[&_.ui-avatar]:!size-12 [&_.ui-avatar]:!rounded-2xl [&_.ui-avatar]:!border-0 [&_.ui-avatar]:!bg-warning-soft [&_.ui-avatar]:!text-foreground",
 ] as const;

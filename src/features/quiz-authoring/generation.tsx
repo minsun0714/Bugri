@@ -300,7 +300,7 @@ export function Generation(props: GenerationProps) {
         <div className="flex shrink-0 justify-end">
           <a
             href={reviewHref}
-            className="inline-flex min-h-10 items-center justify-center rounded-xl border-2 border-[#4b30ac] bg-primary px-4 py-2 text-sm font-semibold text-white shadow-[0_3px_0_#4b30ac]"
+            className="inline-flex min-h-10 items-center justify-center rounded-xl border-2 border-primary-edge bg-primary-solid px-4 py-2 text-sm font-semibold text-on-primary shadow-[0_3px_0_var(--color-primary-edge)]"
           >
             검토·승인
           </a>
