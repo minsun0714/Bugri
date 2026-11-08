@@ -19,8 +19,8 @@
 
 ## Domain Constants
 
-- Define domain status/mode values as shared `as const` objects in `src/api/constants.ts` and derive their union types from those objects. Use members such as `QuizStatus.PUBLIC` and `LearningMode.REPLAY` in application code, fixtures, and test inputs instead of repeating string literals.
-- Keep distinct concepts separate even if they share a wire value: `QuizScope.PUBLIC` is a list filter, while `QuizStatus.PUBLIC` is a quiz status.
+- Define domain status/mode values as shared `as const` objects in `src/api/constants.ts` and derive their union types from those objects. Use members such as `QuizStatus.PRIVATE` and `QuizScope.OWN` in application code, fixtures, and test inputs instead of repeating string literals.
+- Keep distinct concepts separate even if they could share a wire value: `QuizScope` is a list filter, while `QuizStatus` is a quiz status.
 - Preserve existing API/localStorage string values. Literal expectations are allowed in compatibility tests that intentionally verify serialized wire values.
 
 ## Destructuring

@@ -16,12 +16,12 @@ Bugri is a developer learning platform with AI-generated quizzes.
 
 - Implement only the requested scope. Documentation or review requests do not authorize application implementation. Respect worktree/file ownership and exclusions set by the user.
 - Current stage: Next.js 16 + TypeScript prototype, dummy users, Mock API/data, Jest/React Testing Library and Playwright, deployed to Vercel. No DB, MySQL/Prisma/mysql2 installation, real JWT/Google OAuth, or real AI calls.
-- Stage 2: Spring Boot + Java 21, MySQL 8.4 + Spring Data JPA, JWT/Google OAuth2, REST persistence and transactional purchases. Kubernetes remains a separate practice environment. Do not promote future requirements into stage 1.
+- Stage 2: Spring Boot + Java 21, MySQL 8.4 + Spring Data JPA, JWT/Google OAuth2, Spring AI, and REST persistence. Kubernetes remains a separate practice environment. Do not promote future requirements into stage 1.
 
 ## Required references and workflows
 
-- Before implementing a feature, read [PRD](docs/PRD.md), [architecture](docs/ARCHITECTURE.md), and [tasks](docs/TASKS.md). Product rules and REQ/AC live in the PRD; do not duplicate or silently change them here.
-- For API/Mock changes, also read [API contracts and usage](docs/API.md). Consult the relevant PRD sections for quiz generation/revisions, subscriptions, learning/timezones, and shop behavior.
+- Before implementing a feature, read [PRD](docs/PRD.md), [page structure](docs/PAGE_STRUCTURE.md), [architecture](docs/ARCHITECTURE.md), and [tasks](docs/TASKS.md). Product rules and REQ/AC live in the PRD; do not duplicate or silently change them here. Features listed under the PRD's "reconsider after user acquisition" section and documents in `docs/archive/` are not implementation references.
+- For API/Mock changes, also read [API contracts and usage](docs/API.md). Consult the relevant PRD sections for notes, quiz generation/revisions, review scheduling, and learning/timezones.
 - For code changes, read [coding conventions](docs/CODING_CONVENTIONS.md).
 - For requested feature implementation or fixes, use [implement-feature](.agents/skills/implement-feature/SKILL.md). Its verification reference also applies to refactoring and configuration changes.
 - After meaningful UI implementation or changes, use [ux-review-loop](.agents/skills/ux-review-loop/SKILL.md): delegate actual screen review to one independent UX sub-agent and one independent [UI designer](.agents/skills/ui-designer/SKILL.md) sub-agent, then let the implementer fix and reverify at most three times. This explicitly authorizes that review delegation; documentation-only work does not start the UI loop.
@@ -34,7 +34,7 @@ Bugri is a developer learning platform with AI-generated quizzes.
 - UI uses the typed API client, never Mock files or localStorage directly. Separate browser Mock adapters from HTTP/server code so Spring Boot can replace the Mock implementation.
 - Use read-only TypeScript seeds and dummy-user-isolated localStorage changes. Never persist user data in Vercel files or server memory. Browser storage can be lost and is not a security boundary.
 - Dummy identity and Mock permissions validate UX only. Do not introduce anonymous OwnerSession ownership or claim real authentication/security guarantees.
-- Never expose unsubmitted answers, explanations, or source content in solving/public responses. Owner-only review may include them. Preserve completed records and earned rewards when content becomes unavailable, as specified in the PRD.
+- Never expose unsubmitted answers, explanations, or source content in solving or list responses. Owner-only review may include them. Preserve completed records and learning streaks when content becomes unavailable, as specified in the PRD.
 - Never execute user-submitted code or commit secrets/.env files. No real-money checkout or payment gateway.
 - Preserve confirmed product requirements and undecided policies in the PRD/architecture; do not choose product defaults silently.
 
@@ -65,7 +65,7 @@ Bugri is a developer learning platform with AI-generated quizzes.
 
 ## Completion and review
 
-- Select verification by change risk and completion stage using the verification guide. Small changes may finish locally with scoped checks; code PR finalization and code integration require the final checks defined in the guide. Exclude unrelated shop/3D E2E according to its impact-based rules, and run required shop/3D E2E with one worker. Reuse successful results for unchanged code/tests/dependencies/runtime configuration. Documentation-only work does not run the application pipeline.
+- Select verification by change risk and completion stage using the verification guide. Small changes may finish locally with scoped checks; code PR finalization and code integration require the final checks defined in the guide. Select E2E specs by impact as the guide describes and record any exclusions. Reuse successful results for unchanged code/tests/dependencies/runtime configuration. Documentation-only work does not run the application pipeline.
 
 - Never claim an unexecuted check passed or skip/weaken tests to obtain a pass. Apply the [verification and failure-handling procedure](.agents/skills/implement-feature/references/verification.md) before reporting completion.
 - Require review by someone other than the implementer. The user makes the final merge decision.
