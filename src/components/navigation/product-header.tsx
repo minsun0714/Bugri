@@ -126,11 +126,11 @@ export function HeaderNavigation({
                 onClick={() =>
                   setProfileOpen((open) => !open)
                 }
-                className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-none border-0 border-b-2 ${profileOpen ? "border-primary" : "border-control-line"} bg-surface-raised px-3 text-xs font-semibold text-foreground hover:outline-2 hover:outline-control-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
+                className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-t-control rounded-b-none border-0 border-b-2 ${profileOpen ? "border-primary" : "border-control-line"} bg-surface-raised px-3 text-xs font-semibold text-foreground hover:outline-2 hover:outline-control-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
               >
                 <span
                   aria-hidden="true"
-                  className="grid size-7 place-items-center rounded-sm bg-primary-solid text-xs font-bold text-on-primary"
+                  className="grid size-7 place-items-center rounded-full bg-primary-solid text-xs font-bold text-on-primary"
                 >
                   B
                 </span>
@@ -141,7 +141,7 @@ export function HeaderNavigation({
                 <nav
                   id={profileId}
                   aria-label={t("내 프로필 메뉴")}
-                  className="absolute right-0 top-full z-30 grid min-w-44 divide-y divide-line rounded-none border border-t-0 border-primary bg-surface-raised"
+                  className="absolute right-0 top-full z-30 grid min-w-44 divide-y divide-line overflow-hidden rounded-b-control border border-t-0 border-primary bg-surface-raised"
                 >
                   <PublicProfileLink
                     userId={userId}
@@ -194,7 +194,7 @@ export function HeaderNavigation({
           <button
             type="button"
             onClick={onSignIn}
-            className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-none border-0 border-b-2 border-control-line bg-surface-raised px-3 text-xs font-semibold text-foreground hover:outline-2 hover:outline-control-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-t-control rounded-b-none border-0 border-b-2 border-control-line bg-surface-raised px-3 text-xs font-semibold text-foreground hover:outline-2 hover:outline-control-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {t("데모 사용자 선택")}
           </button>

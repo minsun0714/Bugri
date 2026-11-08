@@ -9,9 +9,9 @@ export const styles = {
   "ui-tag":
     "ui-tag border border-line bg-surface rounded-[20px] py-2 px-3.25 text-[12px] cursor-pointer text-muted font-semibold [&[aria-pressed='true']]:bg-accent-soft [&[aria-pressed='true']]:border-secondary-edge [&[aria-pressed='true']]:text-primary",
   "ui-field":
-    "ui-field flex flex-col gap-2.25 w-full [&_label]:text-[12px] [&_label]:font-[650] [&_input]:text-[13px] [&_input]:border-0 [&_input]:border-b-2 [&_input]:border-control-line [&_input]:rounded-none [&_input]:px-3.25 [&_input]:py-3 [&_input]:bg-surface-raised [&_input:hover:not(:focus-visible)]:outline-2 [&_input:hover:not(:focus-visible)]:outline-control-line [&_input:focus]:border-primary [&_input[aria-invalid='true']]:border-danger-ink [&_input]:text-foreground [&_input]:w-full [&_input]:min-w-0 [&_textarea]:text-[13px] [&_textarea]:border-0 [&_textarea]:border-b-2 [&_textarea]:border-control-line [&_textarea]:rounded-none [&_textarea]:px-3.25 [&_textarea]:py-3 [&_textarea]:bg-surface-raised [&_textarea:hover:not(:focus-visible)]:outline-2 [&_textarea:hover:not(:focus-visible)]:outline-control-line [&_textarea:focus]:border-primary [&_textarea[aria-invalid='true']]:border-danger-ink [&_textarea]:text-foreground [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:leading-[1.8] [&_select]:text-[13px] [&_select]:border-0 [&_select]:border-b-2 [&_select]:border-control-line [&_select]:rounded-none [&_select]:px-3.25 [&_select]:py-3 [&_select]:bg-surface-raised [&_select:hover:not(:focus-visible)]:outline-2 [&_select:hover:not(:focus-visible)]:outline-control-line [&_select:focus]:border-primary [&_select[aria-invalid='true']]:border-danger-ink [&_select]:text-foreground [&_select]:w-full [&_select]:min-w-0 [&_input:disabled]:opacity-60 [&_input:disabled]:cursor-not-allowed [&_input:disabled]:text-muted [&_textarea:disabled]:opacity-60 [&_textarea:disabled]:cursor-not-allowed [&_textarea:disabled]:text-muted [&_small]:text-xs [&_small]:text-muted [&_.error-text]:text-danger-ink [&_.counter]:text-right [&_.counter]:[font-variant-numeric:tabular-nums] [&_.tag-input-shell_input]:[flex:1_1_150px] [&_.tag-input-shell_input]:w-auto [&_.tag-input-shell_input]:min-w-[120px] [&_.tag-input-shell_input]:[border:0] [&_.tag-input-shell_input]:p-1.75 [&_.tag-input-shell_input]:bg-transparent [&_.tag-input-shell_input]:[outline:none]",
+    "ui-field flex flex-col gap-2.25 w-full [&_label]:text-[12px] [&_label]:font-[650] [&_input]:text-[13px] [&_input]:border-0 [&_input]:border-b-2 [&_input]:border-control-line [&_input]:rounded-t-control [&_input]:rounded-b-none [&_input]:px-3.25 [&_input]:py-3 [&_input]:bg-surface-raised [&_input:hover:not(:focus-visible)]:outline-2 [&_input:hover:not(:focus-visible)]:outline-control-line [&_input:focus]:border-primary [&_input[aria-invalid='true']]:border-danger-ink [&_input]:text-foreground [&_input]:w-full [&_input]:min-w-0 [&_textarea]:text-[13px] [&_textarea]:border-0 [&_textarea]:border-b-2 [&_textarea]:border-control-line [&_textarea]:rounded-t-control [&_textarea]:rounded-b-none [&_textarea]:px-3.25 [&_textarea]:py-3 [&_textarea]:bg-surface-raised [&_textarea:hover:not(:focus-visible)]:outline-2 [&_textarea:hover:not(:focus-visible)]:outline-control-line [&_textarea:focus]:border-primary [&_textarea[aria-invalid='true']]:border-danger-ink [&_textarea]:text-foreground [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:leading-[1.8] [&_select]:text-[13px] [&_select]:border-0 [&_select]:border-b-2 [&_select]:border-control-line [&_select]:rounded-t-control [&_select]:rounded-b-none [&_select]:px-3.25 [&_select]:py-3 [&_select]:bg-surface-raised [&_select:hover:not(:focus-visible)]:outline-2 [&_select:hover:not(:focus-visible)]:outline-control-line [&_select:focus]:border-primary [&_select[aria-invalid='true']]:border-danger-ink [&_select]:text-foreground [&_select]:w-full [&_select]:min-w-0 [&_input:disabled]:opacity-60 [&_input:disabled]:cursor-not-allowed [&_input:disabled]:text-muted [&_textarea:disabled]:opacity-60 [&_textarea:disabled]:cursor-not-allowed [&_textarea:disabled]:text-muted [&_small]:text-xs [&_small]:text-muted [&_.error-text]:text-danger-ink [&_.counter]:text-right [&_.counter]:[font-variant-numeric:tabular-nums] [&_.tag-input-shell_input]:[flex:1_1_150px] [&_.tag-input-shell_input]:w-auto [&_.tag-input-shell_input]:min-w-[120px] [&_.tag-input-shell_input]:[border:0] [&_.tag-input-shell_input]:p-1.75 [&_.tag-input-shell_input]:bg-transparent [&_.tag-input-shell_input]:[outline:none]",
   "ui-select-inline":
-    "ui-select-inline flex items-center gap-2 text-xs text-muted [&_select]:rounded-none [&_select]:border-0 [&_select]:border-b-2 [&_select]:border-control-line [&_select]:bg-surface-raised [&_select]:px-3 [&_select]:py-2 [&_select]:text-foreground",
+    "ui-select-inline flex items-center gap-2 text-xs text-muted [&_select]:rounded-t-control [&_select]:rounded-b-none [&_select]:border-0 [&_select]:border-b-2 [&_select]:border-control-line [&_select]:bg-surface-raised [&_select]:px-3 [&_select]:py-2 [&_select]:text-foreground",
   "ui-switch":
     'ui-switch inline-flex items-center gap-2.5 text-[13px] cursor-pointer relative [&_input]:absolute [&_input]:w-9 [&_input]:h-5.5 [&_input]:opacity-0 [&_>_span:first-of-type]:w-9 [&_>_span:first-of-type]:h-5.5 [&_>_span:first-of-type]:bg-secondary-edge [&_>_span:first-of-type]:rounded-[20px] [&_>_span:first-of-type]:p-0.75 [&_>_span:first-of-type::after]:[content:""] [&_>_span:first-of-type::after]:block [&_>_span:first-of-type::after]:w-4 [&_>_span:first-of-type::after]:h-4 [&_>_span:first-of-type::after]:bg-art-white [&_>_span:first-of-type::after]:rounded-full [&_>_span:first-of-type::after]:[transition:transform_0.15s] [&_input:checked_+_span]:bg-primary-solid [&_input:checked_+_span::after]:[transform:translateX(14px)] [&_input:focus-visible_+_span]:[outline:3px_solid_var(--color-primary)] [&_input:focus-visible_+_span]:outline-offset-[3px]',
   "ui-check":
@@ -21,7 +21,7 @@ export const styles = {
   "ui-avatar":
     "ui-avatar inline-grid place-items-center w-10 h-10 rounded-full bg-accent-soft text-primary font-bold text-[14px] shrink-0 border-2 border-secondary-edge [&.sm]:w-7 [&.sm]:h-7 [&.sm]:text-xs [&.lg]:w-14 [&.lg]:h-14 [&.lg]:text-[20px]",
   "ui-card":
-    "ui-card border border-line rounded-sm bg-surface p-6 min-w-0 max-[1100px]:p-5 max-[400px]:p-4.5",
+    "ui-card border border-line rounded-surface bg-surface p-6 min-w-0 max-[1100px]:p-5 max-[400px]:p-4.5",
   "ui-alert":
     "ui-alert flex gap-3 p-3.75 rounded-[8px] bg-success-soft text-success-ink text-[12px] [&_>_span]:font-extrabold [&_strong]:font-[650] [&_p]:text-xs [&_p]:mt-1.25 [&_p]:leading-[1.6] [&.warning]:bg-warning-soft [&.warning]:text-warning-ink [&.danger]:bg-danger-soft [&.danger]:text-danger-ink [&.neutral]:bg-neutral-soft [&.neutral]:text-neutral-ink",
   "ui-empty":
@@ -37,13 +37,13 @@ export const styles = {
   "tab-panel":
     "tab-panel pt-5.5 px-0 pb-0 text-[13px] text-muted",
   "ui-modal":
-    "ui-modal m-auto border border-line rounded-sm bg-surface text-foreground [&::backdrop]:bg-[#18291e66] [&::backdrop]:[backdrop-filter:blur(3px)] [&_p]:text-[14px] [&_p]:text-muted [&_p]:leading-[1.8] [&_p]:mb-6.25",
+    "ui-modal m-auto border border-line rounded-surface bg-surface text-foreground [&::backdrop]:bg-[#18291e66] [&::backdrop]:[backdrop-filter:blur(3px)] [&_p]:text-[14px] [&_p]:text-muted [&_p]:leading-[1.8] [&_p]:mb-6.25",
   "modal-standard":
     "p-6.25 [width:min(440px,_calc(100%_-_32px))]",
   "modal-room":
     "w-[calc(100%_-_40px)] max-w-[1124px] p-3 md:w-[calc(100%_-_96px)]",
   "conversation-modal":
-    "m-auto h-dvh max-h-dvh w-full max-w-none overflow-hidden border border-line bg-surface p-4 text-foreground open:flex open:flex-col sm:h-[min(850px,90dvh)] sm:w-[min(840px,calc(100%-48px))] sm:rounded-sm sm:p-6 [&::backdrop]:bg-black/50 [&::backdrop]:backdrop-blur-sm",
+    "m-auto h-dvh max-h-dvh w-full max-w-none overflow-hidden border border-line bg-surface p-4 text-foreground open:flex open:flex-col sm:h-[min(850px,90dvh)] sm:w-[min(840px,calc(100%-48px))] sm:rounded-surface sm:p-6 [&::backdrop]:bg-black/50 [&::backdrop]:backdrop-blur-sm",
   "modal-header":
     "modal-header flex items-center justify-between mb-3.75 [&_h2]:text-[20px]",
   "ui-toast":
@@ -53,7 +53,7 @@ export const styles = {
   pagination:
     "pagination flex items-center justify-center gap-1.5 [&_>_button:not(.ui-button)]:[border:0] [&_>_button:not(.ui-button)]:bg-transparent [&_>_button:not(.ui-button)]:w-8 [&_>_button:not(.ui-button)]:h-8 [&_>_button:not(.ui-button)]:rounded-[6px] [&_>_button:not(.ui-button)]:text-muted [&_>_button:not(.ui-button)]:cursor-pointer [&_>_button[aria-current='page']]:bg-primary-solid [&_>_button[aria-current='page']]:text-on-primary",
   "tag-input-shell":
-    "tag-input-shell flex flex-wrap items-center gap-2 p-2.5 border-0 border-b-2 border-control-line rounded-none bg-surface-raised [&:hover:not(:focus-within)]:outline-2 [&:hover:not(:focus-within)]:outline-control-line [&:focus-within]:border-primary",
+    "tag-input-shell flex flex-wrap items-center gap-2 p-2.5 border-0 border-b-2 border-control-line rounded-t-control rounded-b-none bg-surface-raised [&:hover:not(:focus-within)]:outline-2 [&:hover:not(:focus-within)]:outline-control-line [&:focus-within]:border-primary",
   "tag-input-chip":
     "tag-input-chip inline-flex items-center gap-1.75 border border-line rounded-[9px] pt-1.25 pr-1.75 pb-1.25 pl-2.5 bg-surface-raised text-foreground text-[12px] max-w-[100%] [overflow-wrap:anywhere] [&_button]:[border:0] [&_button]:bg-transparent [&_button]:text-muted [&_button]:text-[19px] [&_button]:cursor-pointer [&_button]:min-w-[26px] [&_button]:min-h-[26px] [&_button]:rounded-[5px] [&_button:hover]:bg-accent-soft",
   "tag-input-help":
@@ -65,7 +65,7 @@ export const styles = {
   "markdown-editor-compact":
     "[&_textarea]:!min-h-36 [&_textarea]:!border-t-0 [&_textarea]:!rounded-none [&_textarea]:!p-4 [&_textarea]:!font-sans [&_textarea]:!text-base [&_textarea]:!leading-7 [&_.markdown-preview]:!min-h-36 [&_.markdown-preview]:rounded-xl [&_.markdown-preview]:border [&_.markdown-preview]:border-line [&_.markdown-preview]:bg-surface [&_.markdown-preview]:!p-4 [&_.markdown-preview]:!text-base [&_.markdown-preview]:!leading-7",
   "editor-shell":
-    "editor-shell rounded-sm border border-line bg-surface focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15",
+    "editor-shell rounded-surface border border-line bg-surface focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15",
   "editor-tools":
     "editor-tools flex items-center justify-end flex-wrap gap-2 p-2.5",
   "editor-picker":
@@ -87,7 +87,7 @@ export const pageTitle =
 
 // One search box look: leading icon, 48px filled input with a bottom rule (same as ui-field). The submit button keeps the default 3D Button and only matches the input height.
 export const searchFieldStyle =
-  "relative min-w-0 flex-1 [&_input]:!h-12 [&_input]:!rounded-none [&_input]:!border-0 [&_input]:!border-b-2 [&_input]:!border-control-line [&_input]:!bg-surface-raised [&_input]:!pl-10 [&_input]:!pr-3 [&_input]:!text-base [&_input]:placeholder:text-muted [&_input:hover:not(:focus-visible)]:outline-2 [&_input:hover:not(:focus-visible)]:outline-control-line [&_input:focus]:!border-primary [&_input[aria-invalid='true']]:!border-danger-ink [&_small]:px-2";
+  "relative min-w-0 flex-1 [&_input]:!h-12 [&_input]:!rounded-t-control [&_input]:!rounded-b-none [&_input]:!border-0 [&_input]:!border-b-2 [&_input]:!border-control-line [&_input]:!bg-surface-raised [&_input]:!pl-10 [&_input]:!pr-3 [&_input]:!text-base [&_input]:placeholder:text-muted [&_input:hover:not(:focus-visible)]:outline-2 [&_input:hover:not(:focus-visible)]:outline-control-line [&_input:focus]:!border-primary [&_input[aria-invalid='true']]:!border-danger-ink [&_small]:px-2";
 export const searchButtonStyle =
   "!min-h-12 !rounded-2xl !px-5";
 export const searchFormStyle =
@@ -95,6 +95,6 @@ export const searchFormStyle =
 
 // Card surfaces. Solid is the default; the dashed note surface is for browse/reward cards (tags, shop).
 export const cardSurface =
-  "rounded-sm border border-line bg-surface";
+  "rounded-surface border border-line bg-surface";
 export const noteSurface =
-  "rounded-sm border-2 border-dashed border-control-line bg-canvas";
+  "rounded-surface border-2 border-dashed border-control-line bg-canvas";

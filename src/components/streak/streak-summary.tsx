@@ -29,8 +29,8 @@ export function StreakSummary({
       aria-labelledby="learning-streak-heading"
       className={
         publicId
-          ? "rounded-sm border border-line bg-surface p-4 sm:p-6"
-          : "rounded-sm border border-line bg-surface px-4 py-3"
+          ? "rounded-surface border border-line bg-surface p-4 sm:p-6"
+          : "rounded-surface border border-line bg-surface px-4 py-3"
       }
     >
       <h2

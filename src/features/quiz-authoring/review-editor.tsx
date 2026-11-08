@@ -259,7 +259,7 @@ export function ReviewEditor({
         </p>
       )}
       {!editing && quiz.active && quiz.pending && (
-        <details className="rounded-sm border border-line bg-surface p-5">
+        <details className="rounded-surface border border-line bg-surface p-5">
           <summary className="cursor-pointer font-semibold text-primary">
             {t("현재 공개본과 비교")}
           </summary>

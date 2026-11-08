@@ -13,7 +13,7 @@ export function FeatureSectionShell({
       className={
         compact
           ? "border-t border-line py-5"
-          : "rounded-sm border border-line bg-surface p-6 sm:p-8"
+          : "rounded-surface border border-line bg-surface p-6 sm:p-8"
       }
     >
       <h2

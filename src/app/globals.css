@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @theme {
+  /* Tunable corner radii; override --r-surface / --r-control on :root to retheme. */
+  --radius-surface: var(--r-surface, 0.125rem);
+  --radius-control: var(--r-control, 0.125rem);
   --color-primary: #6544dc;
   --color-foreground: #29243d;
   --color-muted: #716a84;
