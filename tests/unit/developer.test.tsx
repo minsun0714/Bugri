@@ -62,7 +62,7 @@ test("catalog filters do not subscribe and independent panel stays open while sa
     }),
   );
   expect(push).toHaveBeenCalledWith(
-    "/developers/bugri-author/quizzes?user=friend&page=1&tagPage=1&tag=typescript",
+    "/developers/bugri-author/quizzes?user=friend&page=1&tag=typescript",
     { scroll: false },
   );
   const api = await createBrowserApi({
@@ -120,7 +120,7 @@ test("multiple URL tags restore union and clicking a selected tag removes only t
   expect(tag).toHaveAttribute("aria-pressed", "true");
   fireEvent.click(tag);
   expect(push).toHaveBeenCalledWith(
-    "/developers/bugri-author/quizzes?user=friend&page=1&tagPage=1&tag=web",
+    "/developers/bugri-author/quizzes?user=friend&page=1&tag=web",
     { scroll: false },
   );
 });
@@ -240,50 +240,41 @@ test("profile subscribed control opens management before explicit unsubscribe", 
   ).toBe(false);
 });
 
-test("tag search starts collapsed, focuses on open and preserves a nonempty draft", async () => {
-  render(
-    <DemoSessionProvider>
-      <DeveloperScreen />
-    </DemoSessionProvider>,
-  );
-  const toggle = await screen.findByRole("button", {
-    name: "태그 검색",
-  });
-  expect(toggle).toHaveAttribute("aria-expanded", "false");
-  expect(
-    screen.queryByRole("searchbox"),
-  ).not.toBeInTheDocument();
-  fireEvent.click(toggle);
-  const input = screen.getByRole("searchbox", {
-    name: "이 개발자의 태그 검색",
-  });
-  expect(input).toHaveFocus();
-  fireEvent.click(toggle);
-  expect(
-    screen.queryByRole("searchbox"),
-  ).not.toBeInTheDocument();
-  fireEvent.click(toggle);
-  fireEvent.change(screen.getByRole("searchbox"), {
-    target: { value: "web" },
-  });
-  expect(toggle).toHaveAttribute("aria-disabled", "true");
-  fireEvent.click(toggle);
-  expect(screen.getByRole("searchbox")).toHaveValue("web");
-});
-
-test("URL tag search restores expanded input", async () => {
-  mockSearch = "user=friend&tagQuery=web";
+test("all tags remain visible without search or paging even with a legacy URL", async () => {
+  mockSearch =
+    "user=friend&tagQuery=web&tagPage=99&tag=typescript";
   render(
     <DemoSessionProvider>
       <DeveloperScreen />
     </DemoSessionProvider>,
   );
   expect(
-    await screen.findByRole("searchbox", {
-      name: "이 개발자의 태그 검색",
+    await screen.findByRole("button", {
+      name: "JavaScript (1)",
     }),
-  ).toHaveValue("web");
+  ).toBeVisible();
   expect(
-    screen.getByRole("button", { name: "태그 검색" }),
-  ).toHaveAttribute("aria-expanded", "true");
+    screen.getByRole("button", { name: "TypeScript (1)" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    screen.getByRole("button", { name: "Web (1)" }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("searchbox"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "태그 검색" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("navigation", {
+      name: "태그 페이지",
+    }),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "전체 퀴즈" }),
+  );
+  expect(push).toHaveBeenCalledWith(
+    "/developers/bugri-author/quizzes?user=friend&page=1",
+    { scroll: false },
+  );
 });

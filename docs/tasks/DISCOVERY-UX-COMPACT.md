@@ -50,3 +50,16 @@
 - dev3219 시작 시 기존 같은 워크트리 dev3000 lock으로 차단되어 최초 캡처 연결 실패. 기존 서버를 중단/재사용하지 않고 production3219를 별도 실행하여 캡처 완료. 기능 검사 실패와 구분한다.
 - 사용자 지적을 반영한 C2/R2: 기존 독립 UX/UI 리뷰어가 후속 확인. UI 실제 캡처6개, UX 키보드 태그선택→전체해제→좋아요→싫어요→퀴즈진입 직접 확인. 새 문제 없음. 스크린리더·전체Tab·임의 긴 데이터·네트워크 실패 독립 확인은 미실행.
 - 후속 변경파일: developer-screen.tsx 및 본 TASK/기존 리뷰 기록. 공통 컴포넌트·번역·API·저장·프로필 스타일 변경 없음. 관련 검증 이후 문서만 변경, 후속 커밋. push/PR/merge 없음.
+
+## 후속: 모든 태그 상시 표시
+
+- 사용자 확정 변경: 개발자별 목록의 태그 검색/접기/태그 페이지 UI를 없애고 모든 태그를 칩으로 펼쳐 표시. 기존 선택 tag 및 퀴즈 page URL은 유지, legacy tagQuery/tagPage는 표시를 제한하지 않음. 구독 설정 패널 검색·페이지는 별도 동작으로 유지.
+- hook에서 기존 developerTags를 최대50개씩 조회하여 전체 목록을 모음. API·서비스·저장 계약 불변, profile은 기존 첫10개 조회 유지. 부분 실패는 완성 목록으로 표시하지 않고 재시도 제공.
+- TDD: 101태그 전체 로드/후속 페이지 실패 테스트 미구현 실패 확인. 0/50/101개·순서/구독 필드·중복 없이 표시 및 오류 후 재시도 검증. retry 테스트의 React Query 알림 반영 시점을 waitFor로 기다리도록 수정(실제 요청 완료와 렌더 반영 구분).
+- 검증 계획: scoped 정적 검사·전체 타입, developer 및 developer-tags 관련 Jest, developer/discovery-ux-compact/profile-split E2E(구독 패널·URL·공개 프로필 회귀 포함). API나 공통 컴포넌트 변화 없는 페이지 동작 변경이므로 전체 pipeline 반복 제외. 상점/3D 무관.
+
+- 이번 후속 검증: Node22.23.3 scoped ESLint/Prettier·전체 typecheck 통과. Jest `tests/unit/developer.test.tsx tests/unit/developer-tags.test.tsx` 9건 통과. E2E `developer.spec.ts discovery-ux-compact.spec.ts profile-split.spec.ts --workers=1` 12건 통과(내부 production build 포함). 검색 삭제에 맞춰 이전 검색 테스트를 전체태그/legacy URL 검사로 대체했으며 구독 설정 검색 검사는 유지.
+- 한영1280/390/320 캡처 /tmp/bugri-all-tags, E2E /tmp/bugri-all-tags-e2e.log. 실제 seed3개에서 검색행 제거로 첫카드56px 상승, 6뷰 가로넘침 없음. 101태그는 hook 테스트로 검증했으며 100태그 실제 화면·스크롤 관찰로 주장하지 않는다.
+
+- C3/R3: 동일 독립 UX/UI 리뷰어 재검증 완료, 새 미해결 문제 없음. UX는 legacy URL→전체해제 키보드→구독패널 독립검색→Escape 복귀 직접 확인. 기존 UX-01은 검색 기능 제거로 해당 없음. 전체 수정 회차3회, 이후 코드 변경 없이 문서만 기록하고 커밋.
+- 이번 변경: developer-screen/queries/styles, 관련 unit2/E2E3 파일, PRD·API 표시 정책 설명, TASK/리뷰. 번역·공통 UI·서비스·Mock 저장 구조 변경 없음. push/PR/merge 없음.

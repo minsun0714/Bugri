@@ -188,10 +188,10 @@ Inventory/PublicProfile에 `transforms`를 추가했다. 공개 프로필은 사
 `reorderDesk`는 `PUT /me/desk/order`에 `{ order: DeskItem[] }`를 보내고 저장된 배열을 반환한다. 배열은 뒤에서 앞으로 순서이며 `BUGRI`, 기본/장착 `DESK`, 현재 장착한 KEYBOARD/MONITOR/ACCESSORY를 각각 한 번 포함한다. BACKGROUND와 미리보기 식별자는 허용하지 않는다. 빈 배열은 기본 깊이 정렬이다. 중복·누락·미장착 대상은 400으로 거부하고 기존 순서를 유지한다. 현재 더미 사용자의 순서만 변경하며 좌표·높이·잔액은 바꾸지 않는다. 장착/해제 시 기존 상대 순서를 유지하며 새 대상을 추가하거나 해제 대상을 제거한다. `inventory`/`publicProfile`의 `order`로 복원하며 기존 v1 스냅샷에는 빈 배열을 보충한다. 미리보기 기존 상품의 변경은 저장하지 않고, 실제 장착 시 추가 상품의 순서만 저장된 기존 순서에 삽입한다.
 ### 개발자의 공개 퀴즈 페이지
 
-- 탐색 결과의 공개 퀴즈 수는 `/developers/{publicId}/quizzes?user={viewerId}`로 연결하고 이름은 공개 프로필로 연결한다. `tag/page/tagQuery/tagPage`로 퀴즈 필터와 태그 검색·페이지를 복원한다.
+- 탐색 결과의 공개 퀴즈 수는 `/developers/{publicId}/quizzes?user={viewerId}`로 연결하고 이름은 공개 프로필로 연결한다. `tag/page`로 퀴즈 필터와 퀴즈 페이지를 복원한다. 이전 URL의 `tagQuery/tagPage`는 목록 태그 표시를 제한하지 않으며 다음 필터 조작 시 제거한다.
 - `developerQuizzes`: GET `/developers/{publicId}/quizzes`, 요청 `{publicId,page,pageSize,hashtagIds?:string[],hashtagId?}`. 다중 태그는 OR로 필터 후 정렬/전체 개수/페이지를 계산한다. 빈 배열은 전체이며 legacy hashtagId도 유지한다. HTTP는 반복 hashtagIds 쿼리, 화면 URL은 반복 tag 쿼리로 복원한다., 응답 `{user,subscribed,items:[{quizId,title,hashtagIds,updatedAt}],page,pageSize,total}`.
 - `developerTags`: GET `/developers/{publicId}/tags`, 요청 `{publicId,page,pageSize,query}`, 응답 `{items:[{id,name,quizCount,subscribed}],page,pageSize,total}`.
-- 두 조회는 지정 개발자의 삭제되지 않은 PUBLIC active 퀴즈만 사용한다. 태그는 이 퀴즈에서 사용된 등록 태그만 포함한다. ID 오름차순, page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 코드 포인트. 미등록 개발자는 NOT_FOUND(404). 화면은 퀴즈 20개/태그 10개씩 표시한다. 목록에는 문제·정답·해설·원문을 포함하지 않는다.
+- 두 조회는 지정 개발자의 삭제되지 않은 PUBLIC active 퀴즈만 사용한다. 태그는 이 퀴즈에서 사용된 등록 태그만 포함한다. ID 오름차순, page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 코드 포인트. 미등록 개발자는 NOT_FOUND(404). 화면은 퀴즈 20개씩 표시하며 태그는 기존 API를 페이지당 최대 50개씩 조회해 전부 모은 뒤 한 번에 표시한다. 요청·응답 계약은 유지하고 구독 설정 패널의 독립 검색·페이지 이동도 유지한다. 목록에는 문제·정답·해설·원문을 포함하지 않는다.
 - 개발자 구독은 PERSON, 태그 구독은 PERSON_HASHTAG(authorUserId,hashtagId)이며 기존 subscribe 계약을 사용한다. 태그 필터는 다중 선택/재선택 해제만 수행한다. 헤더 구독 설정(PC Popover/모바일 Drawer)에서 개발자 전체 및 태그별 구독/해제를 수행한다. 패널의 태그 검색과 페이지는 퀴즈 필터와 독립이며 저장 후에도 패널에 머문다. 성공 후 URL·검색 조건을 유지하고 developerQuizzes/developerTags/discovery/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다. 퀴즈 제목을 누를 때만 기존 직접 풀이로 이동한다.
 
 ## 비로그인 홈 체험 — 문서 합의, 구현 별도

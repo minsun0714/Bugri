@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 for (const locale of ["ko", "en"]) {
   for (const width of [1280, 390]) {
-    test(`compact catalogs and keyboard search ${locale} ${width}`, async ({
+    test(`compact catalogs and all tags ${locale} ${width}`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 900 });
@@ -14,36 +14,39 @@ for (const locale of ["ko", "en"]) {
       await page.goto(
         "/developers/bugri-author/quizzes?user=friend",
       );
-      const toggle = page.getByRole("button", {
-        name: locale === "ko" ? "태그 검색" : "Search tags",
+      await expect(
+        page.getByRole("button", {
+          name: "TypeScript (1)",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(page.getByRole("searchbox")).toHaveCount(
+        0,
+      );
+      await page.goto(
+        "/developers/bugri-author/quizzes?user=friend&tagQuery=web&tagPage=99&tag=typescript",
+      );
+      await expect(
+        page.getByRole("button", {
+          name: "JavaScript (1)",
+          exact: true,
+        }),
+      ).toBeVisible();
+      const tag = page.getByRole("button", {
+        name: "TypeScript (1)",
         exact: true,
       });
-      await expect(toggle).toHaveAttribute(
-        "aria-expanded",
-        "false",
-      );
-      await toggle.focus();
-      await page.keyboard.press("Enter");
-      const search = page.getByRole("searchbox", {
-        name:
-          locale === "ko"
-            ? "이 개발자의 태그 검색"
-            : "Search this developer's tags",
-      });
-      await expect(search).toBeFocused();
-      await toggle.click();
-      await expect(search).toBeHidden();
-      await toggle.click();
-      await search.fill("web");
-      await search.press("Enter");
-      await expect(page).toHaveURL(/tagQuery=web/);
-      await expect(toggle).toHaveAttribute(
-        "aria-disabled",
+      await expect(tag).toHaveAttribute(
+        "aria-pressed",
         "true",
       );
-      await expect(search).toBeVisible();
-      await page.reload();
-      await expect(search).toHaveValue("web");
+      await tag.focus();
+      await page.keyboard.press("Space");
+      await expect(tag).toHaveAttribute(
+        "aria-pressed",
+        "false",
+      );
+      await expect(page).not.toHaveURL(/tagQuery|tagPage/);
       await page.goto(
         "/tags/typescript/quizzes?user=friend",
       );

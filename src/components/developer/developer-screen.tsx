@@ -12,7 +12,6 @@ import { createQueryClient } from "@/api/query-client";
 
 import {
   useEffect,
-  useId,
   useRef,
   useState,
   useTransition,
@@ -36,7 +35,6 @@ import {
   Button,
   EmptyState,
   Skeleton,
-  TextField,
   Toast,
 } from "@/components/ui";
 import { developerStyles } from "@/components/developer/styles";
@@ -51,8 +49,6 @@ import { useDeveloper } from "@/components/developer/queries";
 
 interface Filters {
   page: number;
-  tagPage: number;
-  tagQuery: string;
   hashtagIds: string[];
 }
 
@@ -107,94 +103,6 @@ function PageControls({
   );
 }
 
-function TagSearch({
-  value,
-  busy,
-  onSearch,
-}: {
-  value: string;
-  busy: boolean;
-  onSearch: (query: string) => void;
-}) {
-  const t = useTranslation();
-
-  const [query, setQuery] = useState(value);
-  const [opened, setOpened] = useState(false);
-  const expanded = opened || !!query || !!value;
-  const searchId = useId();
-  const formRef = useRef<HTMLFormElement>(null);
-
-  useEffect(() => {
-    if (opened)
-      formRef.current?.querySelector("input")?.focus();
-  }, [opened]);
-
-  function toggleSearch() {
-    if (expanded) {
-      setOpened(false);
-      return;
-    }
-    setOpened(true);
-  }
-
-  return (
-    <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
-      <Button
-        size="sm"
-        variant="ghost"
-        className="!min-h-11 aria-disabled:cursor-default aria-disabled:opacity-60"
-        aria-disabled={!!query || !!value}
-        aria-expanded={expanded}
-        aria-controls={searchId}
-        onClick={toggleSearch}
-      >
-        {t("태그 검색")}
-        {!query && !value && (
-          <span aria-hidden="true">
-            {expanded ? "−" : "+"}
-          </span>
-        )}
-      </Button>
-      <form
-        ref={formRef}
-        id={searchId}
-        hidden={!expanded}
-        className={
-          expanded ? developerStyles.search : "hidden"
-        }
-        onSubmit={(event) => {
-          event.preventDefault();
-          onSearch(query.trim());
-        }}
-      >
-        <div className={developerStyles.searchField}>
-          <TextField
-            type="search"
-            label={t("이 개발자의 태그 검색")}
-            hideLabel
-            placeholder={t("태그 검색")}
-            value={query}
-            maxLength={100}
-            disabled={busy}
-            onChange={(event) =>
-              setQuery(event.target.value)
-            }
-          />
-        </div>
-        <Button
-          type="submit"
-          size="sm"
-          variant="secondary"
-          className={developerStyles.searchButton}
-          disabled={busy}
-        >
-          {t("검색")}
-        </Button>
-      </form>
-    </div>
-  );
-}
-
 function Catalog({
   userId,
   publicId,
@@ -219,7 +127,7 @@ function Catalog({
   const t = useTranslation();
 
   const { signedIn, signIn } = useDemoSession();
-  const { page, tagPage, tagQuery, hashtagIds } = filters;
+  const { page, hashtagIds } = filters;
   const { quizzes, tags, subscribe } = useDeveloper(
     userId,
     {
@@ -230,10 +138,11 @@ function Catalog({
     },
     {
       publicId,
-      page: tagPage,
-      pageSize: 10,
-      query: tagQuery,
+      page: 1,
+      pageSize: profile ? 10 : 50,
+      query: "",
     },
+    !profile,
   );
   const { data } = quizzes;
   const tagRegion = useRef<HTMLElement>(null);
@@ -579,20 +488,6 @@ function Catalog({
             aria-label={t("개발자의 태그")}
             className={developerStyles.filters}
           >
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <TagSearch
-                key={tagQuery}
-                value={tagQuery}
-                busy={subscriptionBusy}
-                onSearch={(query) =>
-                  onChange({
-                    ...filters,
-                    tagQuery: query,
-                    tagPage: 1,
-                  })
-                }
-              />
-            </div>
             {tags.isPending && <Skeleton />}
             {tags.error && (
               <div role="alert">
@@ -649,16 +544,6 @@ function Catalog({
                     {t("표시할 태그가 없습니다.")}
                   </p>
                 )}
-                <PageControls
-                  label={t("태그")}
-                  page={tagPage}
-                  total={tags.data.total}
-                  pageSize={10}
-                  busy={busy}
-                  onPage={(next) =>
-                    onChange({ ...filters, tagPage: next })
-                  }
-                />
               </>
             )}
           </section>
@@ -723,8 +608,6 @@ export function DeveloperScreen({
   };
   const filters: Filters = {
     page: positive(params.get("page")),
-    tagPage: positive(params.get("tagPage")),
-    tagQuery: params.get("tagQuery") ?? "",
     hashtagIds: [
       ...new Set(params.getAll("tag").filter(Boolean)),
     ].sort(),
@@ -759,14 +642,11 @@ export function DeveloperScreen({
             const query = new URLSearchParams({
               ...(signedIn ? { user: userId } : {}),
               page: String(next.page),
-              tagPage: String(next.tagPage),
             });
             for (const id of [
               ...new Set(next.hashtagIds),
             ].sort())
               query.append("tag", id);
-            if (next.tagQuery)
-              query.set("tagQuery", next.tagQuery);
             startTransition(() =>
               router.push(
                 `${profile ? `/users/${encodeURIComponent(publicId)}` : `/developers/${encodeURIComponent(publicId)}/quizzes`}?${query}`,

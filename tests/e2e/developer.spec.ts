@@ -137,21 +137,16 @@ for (const width of [1280, 390]) {
     expect(await subscriptions()).toEqual(before);
     await page.reload();
     await expect(quizzes.getByRole("link")).toHaveCount(1);
-    await tags
-      .getByRole("button", {
-        name: "태그 검색",
-        exact: true,
-      })
-      .click();
-    await tags.getByRole("searchbox").fill("web");
-    await tags.getByRole("searchbox").press("Enter");
+    await expect(tags.getByRole("searchbox")).toHaveCount(
+      0,
+    );
     await expect(
       tags.getByRole("button", {
         name: "Web (1)",
         exact: true,
       }),
     ).toBeVisible();
-    await expect(tag).toHaveCount(0);
+    await expect(tag).toBeVisible();
     await expect(
       quizzes.getByRole("button", {
         name: "typescript 필터 해제",
