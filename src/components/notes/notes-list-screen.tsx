@@ -12,6 +12,7 @@ import {
   Pagination,
   Skeleton,
 } from "@/components/ui";
+import { NoteTags } from "@/components/notes/note-tags";
 import { NotesGate } from "@/components/notes/notes-gate";
 import {
   notesPageSize,
@@ -111,27 +112,56 @@ function NotesList({ userId }: { userId: string }) {
         aria-label={t("내 노트")}
         className="divide-y divide-line/70"
       >
-        {items.map(({ noteId, excerpt, createdAt }) => (
-          <li key={noteId}>
-            <Link
-              href={`/notes/${encodeURIComponent(noteId)}?${new URLSearchParams({ user: userId })}`}
-              className={`${historyStyles.row} sm:grid-cols-[minmax(0,1fr)_auto]`}
-            >
-              <span className="col-span-2 line-clamp-2 min-w-0 text-sm font-medium leading-6 [overflow-wrap:anywhere] sm:col-span-1">
-                {previewText(excerpt) || t("내용 없음")}
-              </span>
-              <time
-                dateTime={createdAt}
-                className="col-span-2 text-xs tabular-nums text-muted sm:col-span-1 sm:text-right"
+        {items.map(
+          ({
+            noteId,
+            excerpt,
+            createdAt,
+            confirmedCount,
+            pendingCount,
+            hashtagIds,
+          }) => (
+            <li key={noteId}>
+              <Link
+                href={`/notes/${encodeURIComponent(noteId)}?${new URLSearchParams({ user: userId })}`}
+                className={`${historyStyles.row} sm:grid-cols-[minmax(0,1fr)_auto]`}
               >
-                {new Intl.DateTimeFormat(locale, {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }).format(new Date(createdAt))}
-              </time>
-            </Link>
-          </li>
-        ))}
+                <span className="col-span-2 line-clamp-2 min-w-0 text-sm font-medium leading-6 [overflow-wrap:anywhere] sm:col-span-1">
+                  {previewText(excerpt) || t("내용 없음")}
+                </span>
+                <time
+                  dateTime={createdAt}
+                  className="col-span-2 text-xs tabular-nums text-muted sm:col-span-1 sm:text-right"
+                >
+                  {new Intl.DateTimeFormat(locale, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format(new Date(createdAt))}
+                </time>
+                <span className="col-span-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted sm:col-span-full">
+                  <span>
+                    {confirmedCount > 0
+                      ? t("퀴즈 {0}개", {
+                          0: confirmedCount,
+                        })
+                      : t("퀴즈 없음")}
+                  </span>
+                  {pendingCount > 0 && (
+                    <span className="font-semibold text-primary">
+                      {t("확인 안 한 퀴즈 {0}개", {
+                        0: pendingCount,
+                      })}
+                    </span>
+                  )}
+                  <NoteTags
+                    userId={userId}
+                    hashtagIds={hashtagIds}
+                  />
+                </span>
+              </Link>
+            </li>
+          ),
+        )}
       </ul>
       {total > notesPageSize && (
         <div className="mt-4 flex justify-center border-t border-line pt-4">

@@ -26,23 +26,28 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
   await page
     .getByRole("button", { name: "내 메뉴", exact: true })
     .click();
+  await expect(
+    page
+      .getByRole("navigation", { name: "내 메뉴" })
+      .getByRole("link", { name: "내 퀴즈" }),
+  ).toHaveCount(0);
   await page
     .getByRole("navigation", { name: "내 메뉴" })
-    .getByRole("link", { name: "내 퀴즈" })
+    .getByRole("link", { name: "풀이 내역" })
     .click();
   await expect(page).toHaveURL(
-    /\/quizzes\/authoring\/manage\?user=friend$/,
+    /\/my\/learning\?user=friend$/,
   );
   await expect(
     page
       .getByRole("navigation", { name: "현재 위치" })
-      .getByText("내 퀴즈"),
+      .getByText("풀이 내역"),
   ).toHaveAttribute("aria-current", "page");
   await page.reload();
   await expect(
     page
       .getByRole("navigation", { name: "현재 위치" })
-      .getByText("내 퀴즈"),
+      .getByText("풀이 내역"),
   ).toHaveAttribute("aria-current", "page");
   await page.screenshot({
     path: testInfo.outputPath("navigation-desktop.png"),
@@ -59,7 +64,7 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
   await expect(
     page
       .getByRole("navigation", { name: "현재 위치" })
-      .getByText("내 퀴즈"),
+      .getByText("풀이 내역"),
   ).toHaveAttribute("aria-current", "page");
 });
 
@@ -152,12 +157,11 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     .click();
   await page
     .getByRole("navigation", { name: "내 메뉴" })
-    .getByRole("link", { name: "내 퀴즈" })
+    .getByRole("link", { name: "풀이 내역" })
     .click();
-  await expect(page).toHaveURL(/manage\?user=learner$/);
-  await expect(
-    page.getByRole("heading", { name: /내 퀴즈/ }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(
+    /my\/learning\?user=learner$/,
+  );
   await page
     .getByRole("button", { name: "내 메뉴", exact: true })
     .click();

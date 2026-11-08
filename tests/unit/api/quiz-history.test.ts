@@ -133,9 +133,7 @@ test("history and result reads never migrate or write legacy activity", async ()
     JSON.stringify(state),
   );
 
-  const before = localStorage.getItem(
-    storageKey("author"),
-  );
+  const before = localStorage.getItem(storageKey("author"));
 
   await api().request("attemptHistory", {});
 
@@ -320,9 +318,7 @@ test("a legacy completed attempt without an answer cannot be submitted again", a
     JSON.stringify(state),
   );
 
-  const before = localStorage.getItem(
-    storageKey("author"),
-  );
+  const before = localStorage.getItem(storageKey("author"));
 
   await expect(
     api().request("answer", {
@@ -357,7 +353,10 @@ test("records of another user's quiz keep their completion but hide content and 
 
   const learner = api("learner");
 
-  const history = await learner.request("attemptHistory", {});
+  const history = await learner.request(
+    "attemptHistory",
+    {},
+  );
 
   expect(history.total).toBe(1);
 

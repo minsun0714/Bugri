@@ -88,11 +88,12 @@ const allowed: Record<Operation, string[]> = {
   answer: ["attemptId", "answer"],
 };
 
-function quizReview({
-  deletedAt: _deletedAt,
-  ...quiz
-}: StoredQuiz): ReviewQuiz {
-  return quiz;
+function quizReview(quiz: StoredQuiz): ReviewQuiz {
+  const { deletedAt, ...view } = quiz;
+
+  void deletedAt;
+
+  return view;
 }
 
 export function execute<K extends Operation>(
@@ -528,6 +529,8 @@ export function execute<K extends Operation>(
         "확인하지 않은 퀴즈만 LLM으로 수정할 수 있습니다.",
       );
 
+      const { revision } = q;
+
       const {
         sourceContent,
         title,
@@ -535,7 +538,7 @@ export function execute<K extends Operation>(
         answer,
         explanation,
         hashtagIds,
-      } = q.revision;
+      } = revision;
 
       const [content] = generate(
         {
@@ -577,7 +580,9 @@ export function execute<K extends Operation>(
     case "confirmNoteQuizzes": {
       findNote();
 
-      const pending = liveQuizzes(r.noteId as string).filter(
+      const pending = liveQuizzes(
+        r.noteId as string,
+      ).filter(
         ({ status }) => status === QuizStatus.PENDING,
       );
 

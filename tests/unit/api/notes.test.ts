@@ -1,10 +1,7 @@
 import { createApiClient } from "@/api/client";
 import { createHttpTransport } from "@/api/http";
 import { createMockTransport } from "@/mocks/adapter";
-import {
-  initialState,
-  storageKey,
-} from "@/mocks/storage";
+import { initialState, storageKey } from "@/mocks/storage";
 
 let tick = 0;
 
@@ -334,7 +331,10 @@ test("a failed write keeps the previous stored state", async () => {
 });
 
 test("a snapshot without a notes field is reported as corrupt and preserved", async () => {
-  const { notes: _notes, ...stored } = initialState("learner");
+  const stored: Partial<ReturnType<typeof initialState>> =
+    initialState("learner");
+
+  delete stored.notes;
 
   const raw = JSON.stringify(stored);
 

@@ -1,10 +1,7 @@
 import { createApiClient } from "@/api/client";
 import { createMockTransport } from "@/mocks/adapter";
 import { generatedContents } from "@/mocks/quizzes";
-import {
-  initialState,
-  storageKey,
-} from "@/mocks/storage";
+import { initialState, storageKey } from "@/mocks/storage";
 
 const apiFor = (userId = "learner") =>
   createApiClient(
@@ -21,7 +18,8 @@ async function generate() {
   const api = apiFor();
 
   const note = await api.request("createNote", {
-    content: "TypeScript number, let, const와 HTTP 요청 응답",
+    content:
+      "TypeScript number, let, const와 HTTP 요청 응답",
   });
 
   const created = await api.request("generate", {
@@ -132,7 +130,10 @@ test("PENDING quizzes can be edited, refined and deleted; refine is PENDING-only
   const edited = await api.request("updateQuiz", {
     quizId: first.quizId,
     expectedVersion: first.version,
-    content: { ...generatedContents[0], title: "직접 수정" },
+    content: {
+      ...generatedContents[0],
+      title: "직접 수정",
+    },
   });
 
   expect(edited.revision.title).toBe("직접 수정");
@@ -185,7 +186,7 @@ test("a confirmed edit applies at once and leaves finished Attempts unchanged", 
     noteId: note.noteId,
   });
 
-  const { answer: correct } = generatedContents[0];
+  const [{ answer: correct }] = generatedContents;
 
   const attempt = await api.request("startAttempt", {
     quizId: quiz.quizId,
@@ -275,8 +276,11 @@ test("deleting a memo soft-deletes its quizzes but keeps history", async () => {
   ).toBe(true);
 
   expect(
-    (await api.request("attempt", { attemptId: attempt.attemptId }))
-      .quiz,
+    (
+      await api.request("attempt", {
+        attemptId: attempt.attemptId,
+      })
+    ).quiz,
   ).toBeNull();
 
   expect(
@@ -293,26 +297,34 @@ test("other users cannot reach a memo or its quizzes", async () => {
 
   await expect(
     friend.request("generate", { noteId: note.noteId }),
-  ).rejects.toMatchObject({ detail: { code: "NOT_FOUND" } });
+  ).rejects.toMatchObject({
+    detail: { code: "NOT_FOUND" },
+  });
 
   await expect(
     friend.request("noteQuizzes", {
       noteId: note.noteId,
       status: "PENDING",
     }),
-  ).rejects.toMatchObject({ detail: { code: "NOT_FOUND" } });
+  ).rejects.toMatchObject({
+    detail: { code: "NOT_FOUND" },
+  });
 
   await expect(
     friend.request("confirmNoteQuizzes", {
       noteId: note.noteId,
     }),
-  ).rejects.toMatchObject({ detail: { code: "NOT_FOUND" } });
+  ).rejects.toMatchObject({
+    detail: { code: "NOT_FOUND" },
+  });
 
   await expect(
     friend.request("reviewQuiz", {
       quizId: created[0].quizId,
     }),
-  ).rejects.toMatchObject({ detail: { code: "NOT_FOUND" } });
+  ).rejects.toMatchObject({
+    detail: { code: "NOT_FOUND" },
+  });
 });
 
 test("another schemaVersion is replaced, while a corrupt schemaVersion 2 is preserved", async () => {

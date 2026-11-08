@@ -11,8 +11,10 @@ export interface StoredQuiz extends ReviewQuiz {
   deletedAt: string | null;
 }
 
-export interface StoredNote
-  extends Omit<Note, keyof NoteQuizCounts> {
+export interface StoredNote extends Omit<
+  Note,
+  keyof NoteQuizCounts
+> {
   deletedAt: string | null;
 }
 

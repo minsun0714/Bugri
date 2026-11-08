@@ -105,9 +105,9 @@ test.each(
       },
     });
 
-    expect(localStorage.getItem(storageKey("learner"))).toBe(
-      before,
-    );
+    expect(
+      localStorage.getItem(storageKey("learner")),
+    ).toBe(before);
   },
 );
 
@@ -284,7 +284,9 @@ test("refinement failure leaves the PENDING content and earlier turns intact", a
     prompt: "코드를 추가",
   });
 
-  const before = localStorage.getItem(storageKey("learner"));
+  const before = localStorage.getItem(
+    storageKey("learner"),
+  );
 
   await expect(
     api("learner", {
@@ -394,10 +396,13 @@ test("only the owner can solve a CONFIRMED quiz", async () => {
       detail: { code: "QUIZ_UNAVAILABLE" },
     });
 
-  const attempt = await api("author").request("startAttempt", {
-    quizId: "seed-quiz-1",
-    context: "DIRECT",
-  });
+  const attempt = await api("author").request(
+    "startAttempt",
+    {
+      quizId: "seed-quiz-1",
+      context: "DIRECT",
+    },
+  );
 
   expect(attempt.completedAt).toBeNull();
 });
@@ -417,7 +422,11 @@ test("an attempt in progress cannot be submitted once the quiz belongs to someon
 
   localStorage.setItem(
     storageKey("learner"),
-    JSON.stringify({ ...stored, userId: "learner", quizzes: [] }),
+    JSON.stringify({
+      ...stored,
+      userId: "learner",
+      quizzes: [],
+    }),
   );
 
   await expect(
@@ -510,9 +519,7 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
 
   await client.request("learningDay", {});
 
-  const before = localStorage.getItem(
-    storageKey("author"),
-  );
+  const before = localStorage.getItem(storageKey("author"));
 
   const broken = api("author", {
     storage: {
@@ -716,7 +723,9 @@ test("moving from Seoul to New York changes later learning days but keeps past c
     await client.request("learningDay", {});
 
   expect(
-    dailyCounts.map(({ learningDate }) => learningDate).sort(),
+    dailyCounts
+      .map(({ learningDate }) => learningDate)
+      .sort(),
   ).toEqual(["2026-03-07", "2026-03-08"]);
 
   expect(completedDates).toEqual(

@@ -20,8 +20,7 @@ const sourceByNote: Record<string, string> = {
     "오늘 배운 내용을 아직 퀴즈로 만들지 않았다.",
   "seed-note-author":
     "TypeScript 타입 선언과 let, const 블록 스코프 메모.",
-  "seed-note-friend":
-    "HTTP 요청·응답과 const 재할당 메모.",
+  "seed-note-friend": "HTTP 요청·응답과 const 재할당 메모.",
 };
 
 const seedNote = (noteId: string): StoredNote => ({

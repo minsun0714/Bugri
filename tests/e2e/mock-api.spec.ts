@@ -77,7 +77,7 @@ async function load(page: Page) {
   });
 }
 
-test("browser generation → review → direct solve/replay survives reload", async ({
+test("browser generation → save → direct solve/replay survives reload", async ({
   page,
 }) => {
   await load(page);
@@ -87,25 +87,17 @@ test("browser generation → review → direct solve/replay survives reload", as
 
     const owner = window.mockApi("author");
 
-    const batch = await owner.request("generate", {
-      sourceContent: "코드\n```ts\nconst x = 1;\n```",
+    const note = await owner.request("createNote", {
+      content: "코드\n```ts\nconst x = 1;\n```",
     });
 
-    const [draft] = await owner.request("saveBatch", {
-      batchId: batch.batchId,
-      mode: "SINGLE",
-      candidateId: batch.candidates[0].candidateId,
+    const [created] = await owner.request("generate", {
+      noteId: note.noteId,
     });
 
-    const reviewed = await owner.request("updatePending", {
-      quizId: draft.quizId,
-      expectedVersion: draft.version,
-      action: "MARK_REVIEWED",
-    });
-
-    await owner.request("approve", {
-      quizId: draft.quizId,
-      expectedVersion: reviewed.version,
+    const draft = await owner.request("confirmQuiz", {
+      quizId: created.quizId,
+      expectedVersion: created.version,
     });
 
     const first = await owner.request("startAttempt", {
@@ -218,10 +210,9 @@ test("another tab observes quiz deletion and edits of the deleted quiz without o
       try {
         await window
           .mockApi("author")
-          .request("updatePending", {
+          .request("confirmQuiz", {
             quizId: "seed-quiz-1",
             expectedVersion: 1,
-            action: "MARK_REVIEWED",
           });
       } catch (error) {
         errors.push(

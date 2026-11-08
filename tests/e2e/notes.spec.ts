@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { startWithoutNotes } from "./empty-notes";
 
 const editor = (page: Page) =>
   page.getByRole("textbox", { name: /^메모/ });
@@ -16,6 +17,7 @@ async function saveQuickNote(page: Page, content = body) {
 test("home quick note → my notes → detail → edit → delete, restored after reload", async ({
   page,
 }, testInfo) => {
+  await startWithoutNotes(page);
   await page.goto("/?user=learner");
 
   await expect(
@@ -105,6 +107,7 @@ test("home quick note → my notes → detail → edit → delete, restored afte
 test("quick note keeps the input with a nearby error when blank or over the limit", async ({
   page,
 }) => {
+  await startWithoutNotes(page);
   await page.goto("/?user=learner");
 
   await editor(page).fill("   ");
@@ -143,10 +146,11 @@ test("quick note keeps the input with a nearby error when blank or over the limi
 test("notes are isolated between demo users and unavailable notes show a way back", async ({
   page,
 }) => {
+  await startWithoutNotes(page);
   await page.goto("/?user=learner");
   await saveQuickNote(page, "learner만의 메모");
   await page
-    .getByRole("link", { name: "메모 보기" })
+    .getByRole("link", { name: "퀴즈로 만들기" })
     .click();
 
   await expect(page).toHaveURL(/\/notes\/note-/);
@@ -187,6 +191,7 @@ test("notes are isolated between demo users and unavailable notes show a way bac
 test("visitors are asked to choose a demo user before notes", async ({
   page,
 }) => {
+  await startWithoutNotes(page);
   await page.goto("/notes");
 
   await expect(
@@ -212,10 +217,11 @@ test("visitors are asked to choose a demo user before notes", async ({
 test("an unsaved edit warns before leaving and can be kept", async ({
   page,
 }) => {
+  await startWithoutNotes(page);
   await page.goto("/?user=learner");
   await saveQuickNote(page, "원본 메모");
   await page
-    .getByRole("link", { name: "메모 보기" })
+    .getByRole("link", { name: "퀴즈로 만들기" })
     .click();
   await page.getByRole("button", { name: "수정" }).click();
   await editor(page).fill("바뀐 내용");
@@ -252,6 +258,7 @@ for (const width of [390, 360]) {
   test(`mobile ${width}px: one-row header and quick note without horizontal scroll`, async ({
     page,
   }, testInfo) => {
+    await startWithoutNotes(page);
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/?user=learner");
 

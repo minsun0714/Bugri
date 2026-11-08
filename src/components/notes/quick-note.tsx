@@ -106,7 +106,7 @@ export function QuickNote({ userId }: { userId: string }) {
                 href={`/notes/${encodeURIComponent(savedId)}?${new URLSearchParams({ user: userId })}`}
                 className="rounded font-semibold underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
               >
-                {t("메모 보기")}
+                {t("퀴즈로 만들기")}
               </Link>
             </>
           }

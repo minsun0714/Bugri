@@ -156,9 +156,9 @@ const invalidAnswer: Request<"answer"> = {
 void invalidAnswer;
 
 test("memo quiz operations use note and quiz paths", async () => {
-  const fetcher = jest.fn().mockResolvedValue(
-    response({ data: [] }),
-  );
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(response({ data: [] }));
 
   const client = createApiClient(
     createHttpTransport({ fetch: fetcher }),

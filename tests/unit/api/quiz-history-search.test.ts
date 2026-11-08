@@ -24,8 +24,7 @@ const search = (
 beforeEach(() => localStorage.clear());
 
 // History reads never write, so a write operation persists the seeded state first.
-const persist = () =>
-  api().request("learningDay", {});
+const persist = () => api().request("learningDay", {});
 
 test("without the demo flag history starts empty", async () => {
   const plain = createApiClient(

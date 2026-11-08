@@ -46,22 +46,10 @@ export function getBreadcrumbs(
     label: "홈",
     href: withDemoUser("/", userId),
   };
-  const own = {
-    label: "내 퀴즈",
-    href: userId
-      ? withDemoUser("/quizzes/authoring/manage", userId)
-      : undefined,
-  };
   const routes: Record<string, BreadcrumbItem[]> = {
     "/notes": [{ label: "내 노트" }],
     "/my/learning": [{ label: "풀이 내역" }],
     "/solve": [{ label: "퀴즈 풀이" }],
-    "/quizzes/authoring/manage": [{ label: "내 퀴즈" }],
-    "/quizzes/authoring": [own, { label: "퀴즈 만들기" }],
-    "/quizzes/authoring/results": [
-      own,
-      { label: "생성 결과" },
-    ],
   };
   const matched = routes[pathname];
 
