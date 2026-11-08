@@ -29,7 +29,10 @@ export function Breadcrumb({
             className="flex min-w-0 max-w-full items-start gap-2"
           >
             {index > 0 && (
-              <span aria-hidden="true" className="shrink-0">
+              <span
+                aria-hidden="true"
+                className="shrink-0 py-1"
+              >
                 /
               </span>
             )}
