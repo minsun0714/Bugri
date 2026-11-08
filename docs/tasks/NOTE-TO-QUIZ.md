@@ -1,6 +1,6 @@
 # NOTE-TO-QUIZ
 
-- 상태: 구현·검증 완료. UX/UI 리뷰 수정 3회 완료(차단 없음, 보류 항목은 UX 리뷰 문서 참고). 사용자의 최종 확인 전이며 병합 판단은 사용자 몫이다.
+- 상태: 구현·검증 완료. PR #61로 dev 병합 완료. UX/UI 리뷰 수정 3회 완료(차단 없음, 보류 항목은 UX 리뷰 문서 참고).
 - 기준: PRD REQ-01 AC-01d/e/f, REQ-02 AC-02a~j, REQ-05, REQ-09, §7; 사용자 확정(2026-11-08).
 - 브랜치: `feat/quiz`. push·PR 없음.
 - 제외: 복습 일정·오늘 복습(review-schedule), 노트 검색·태그 필터(notes-search), 방문자 체험(guest-demo), PRD 정책 변경.
@@ -22,7 +22,7 @@
 - 삭제: `approve`, `updatePending`(MARK_REVIEWED 포함), `regenerate`, `quizzes`(내 퀴즈 목록), `generationBatch`·`editCandidate`·`refineCandidate`·`deleteCandidate`·`saveBatch`, 작성 대화 3개(`authoringConversation`·`sendAuthoringMessage`·`generateFromConversation`), 오류 코드 `NOT_REVIEWED`, `QuizScope`·`ConversationRole`, `UserState.batches`·`authoringConversation`·`historyDemoVersion`, `/quizzes/authoring*` 3개 경로와 해당 컴포넌트·Mock 응답기.
 - 이름 변경: `discoverHashtags` → `hashtags`(GET /hashtags).
 - 추가: `generate({ noteId })`, `noteQuizzes`, `updateQuiz`, `refineQuiz`, `confirmQuiz`, `confirmNoteQuizzes`. 계약은 [API 메모의 퀴즈 절](../API.md#메모의-퀴즈--note-to-quiz).
-- 남긴 것과 이유: `reviewQuiz`(작성자 단건 조회, 오류 복구용), `QuizCard`(공통 UI 컴포넌트, 현재 화면 미사용이나 별도 정리 대상), `publicView` 헬퍼(기존부터 미사용).
+- 남긴 것과 이유: `reviewQuiz`(작성자 단건 조회, 오류 복구용), (`QuizCard`와 `publicView` 헬퍼는 미사용이라 [REVIEW-SCHEDULE](REVIEW-SCHEDULE.md)에서 제거했다).
 - `confirmedAt`만 기록했고 다음 복습일 계산은 하지 않았다(review-schedule).
 
 ## 판단·미결정으로 남긴 것

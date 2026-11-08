@@ -55,7 +55,7 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 
 ## 3. 공통 제품 모델과 2단계 영속화
 
-1단계의 타입과 2단계의 영속 엔티티는 같은 개념을 표현한다. 아래의 2단계 필드·제약은 향후 실제 구현 대상이다. "예정"은 새 PRD에 따라 추가할 개념이며 아직 코드에 없다.
+1단계의 타입과 2단계의 영속 엔티티는 같은 개념을 표현한다. 아래의 2단계 필드·제약은 향후 실제 구현 대상이다. "예정"은 새 PRD에 따라 추가할 개념이며 아직 코드에 없다. ReviewSchedule은 REVIEW-SCHEDULE에서 구현했다.
 
 | 개념 | 공통 계약 및 2단계 규칙 |
 | --- | --- |
@@ -64,7 +64,7 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 | Quiz | 독립 quizId, ownerUserId, noteId(연결 메모), 상태 PENDING(생성·아직 저장 안 함, 풀이·복습 제외)/CONFIRMED(저장함, 풀이·복습 대상), 현재 revision, LLM 수정 기록, confirmedAt, version, deletedAt(soft delete). 검토·승인·공개 단계는 없다 |
 | QuizRevision | 한 문제·정답·해설·원본 학습 내용(생성 당시 메모 본문 스냅샷)·코드 블록·최대 3개 해시태그. 수정할 때마다 새 revision이며 풀이에 쓰인 버전은 불변 |
 | 생성 요청 | 요청당 퀴즈 1~5개를 곧바로 PENDING Quiz로 저장한다. 별도 "후보"·묶음 개체는 두지 않으며, 같은 메모에서 다시 생성하면 기존 PENDING을 유지한 채 새로 추가한다 |
-| ReviewSchedule (예정) | userId·quizId·다음 복습일·현재 간격 단계. 정답이면 1→3→7→14→30일, 오답이면 다음 날·처음으로. 오늘 복습 풀이 결과로만 갱신 |
+| ReviewSchedule | 1단계 계약: 사용자별 `UserState.reviewSchedules`의 `{ quizId, stage, nextReviewDate, lastCorrect }`(stage는 1·3·7·14·30일 간격의 인덱스 0~4, `nextReviewDate`는 사용자 학습 시간대의 `YYYY-MM-DD`, `lastCorrect`는 직전 복습의 정오). 첫 복습일은 `confirmedAt`의 다음 날이고 항목이 없으면 `confirmedAt`으로 계산해 읽는다. 정답이면 다음 단계(30일 이후 유지), 오답이면 다음 날·처음 단계. 오늘 복습(`REVIEW` 풀이)의 첫 제출로만 갱신하고 퀴즈 수정은 일정을 유지하며 삭제된 퀴즈는 대상에서 빠진다. 2단계는 userId·quizId 유일 제약을 가진 테이블이다. 계산 규칙은 `src/services/review-schedule.ts`의 순수 함수이며 계약은 [API 오늘 복습 절](API.md#오늘-복습--review-schedule) |
 | LearningDay | userId·사용자 시간대 기준 학습일, 판정에 사용한 시간대. 완료된 날짜는 소급 변경하지 않고 같은 날짜 중복 집계 방지 |
 | Attempt | solverUserId·quizId·revisionId·제출 결과·completedAt(2단계 서버 UTC 시각). 시작한 버전으로 채점하며 미제출 정답은 비공개 |
 
@@ -87,10 +87,11 @@ REST 교체 시 기본 경로는 `/api/v1`이며 요청·응답 타입을 1단�
 | POST /notes/{id}/quizzes/generate, GET /notes/{id}/quizzes?status=, POST /notes/{id}/quizzes/confirm | 메모에서 PENDING 퀴즈 1~5개 생성·상태별 조회·남은 PENDING 일괄 저장 | Spring AI 생성 결과 영속화·메모 소유권 검사 |
 | GET /quizzes/{id}/review, PUT /quizzes/{id}, POST /quizzes/{id}/refine·confirm, DELETE /quizzes/{id} | 작성자 조회·직접 수정·LLM 수정(PENDING)·개별 저장·삭제 | JWT·내부 User ID 소유권 검사·버전 검사·영속화 |
 | GET /hashtags | 등록 태그 목록(태그 입력용) | 태그 조회 |
-| POST /quizzes/{id}/attempts, GET /attempts/{id}, POST /attempts/{id}/answer | 풀이·채점 UX, 미제출 정답 비노출 | JWT·버전별 채점·풀이 영속화 |
+| POST /quizzes/{id}/attempts(`context`: DIRECT·REVIEW), GET /attempts/{id}, POST /attempts/{id}/answer | 풀이·채점 UX, 미제출 정답 비노출, REVIEW 제출만 복습 일정 갱신 | JWT·버전별 채점·풀이 영속화 |
 | GET /learning/day, GET /me/learning-timezone, GET /me/attempts | 학습일·스트릭·감지된 시간대·풀이 내역 | 서버 UTC 완료 기록과 사용자 시간대 기준 조회 |
 | GET·POST /notes, GET·PUT·DELETE /notes/{id} | 메모 CRUD(삭제 시 연결 퀴즈 soft delete) | 같은 계약으로 영속화 |
-| (예정) 메모 검색, 오늘 복습 조회 | 새 PRD 구현 TASK에서 정의 | 같은 계약으로 영속화 |
+| GET /me/today-review | 오늘 복습할 개수·다음 문제(정답 비노출)·내일 복습 개수 | 서버가 사용자 시간대 기준으로 계산 |
+| (예정) 메모 검색 | 새 PRD 구현 TASK에서 정의 | 같은 계약으로 영속화 |
 | GET /auth/google/start, GET /auth/google/callback, GET /auth/me, POST /auth/logout | 실제 인증 경로 없음; 더미 사용자 상태만 제공 | Google OAuth2·JWT 발급/검증·로그아웃 |
 
 `ReviewQuiz`는 정답·해설을 포함하는 작성자용 DTO다. `AttemptView`와 목록에는 미제출 정답·해설·원본 학습 내용을 넣지 않는다. 제출 후 결과에만 정답·해설을 제공한다.
@@ -123,10 +124,6 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 표시 설정은 `src/lib/theme`의 타입·브라우저 저장 어댑터·외부 store로 분리한다. UI는 localStorage에 직접 접근하지 않으며 테마는 계정 데이터/API 요청이 아닌 기기 표시 설정이다. 루트의 정적 초기화 스크립트가 본문 파싱 전에 저장값/시스템 설정을 적용한다. `data-theme`와 CSS `color-scheme`을 동기화하고 헤더 토글은 useSyncExternalStore로 실제 적용 테마를 구독해 반대 테마로 전환한다. 시스템 변경·탭 간 저장 변경도 함께 반영한다. globals.css의 의미 토큰으로 색을 전환하며 버그리 고유색은 별도로 보존한다.
 
 라이트는 `color-scheme: only light`로 Chrome Auto Dark의 자동 재색칠을 억제하고 다크는 `dark`로 선언한다. 헤더 없는 오류 화면에도 ThemeSync를 두어 시스템/탭 변경 구독을 유지한다.
-
-### 퀴즈 카드
-
-QuizCard는 제목 Link/button의 after 영역을 카드 전체로 확장해 기본 접근 영역으로 사용하고, 비상호작용 본문은 pointer-events-none으로 클릭을 전달한다. 설정 버튼은 독립된 상위 클릭 영역이며 중첩 링크/버튼은 만들지 않는다. 키보드 포커스는 카드 외곽에 표시한다. 현재 화면에서는 QuizCard를 쓰지 않으며(내 퀴즈 목록 삭제) 컴포넌트와 규칙만 남아 있다.
 
 ### 화면 언어 — I18N-01
 

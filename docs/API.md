@@ -1,8 +1,8 @@
 # 1단계 API·Mock 계층 사용 계약
 
-현재 코드(`src/api/contracts.ts`, `src/api/http.ts`)가 제공하는 20개 연산의 사용 계약이다. 제품 규칙은 [PRD](PRD.md), 화면 흐름은 [페이지 구조](PAGE_STRUCTURE.md)를 따른다. 2026-11-08 범위 축소로 삭제한 연산(구독·탐색·상점·BugCoin·데스크·공개 프로필·반응·방문자 체험 등 34개)의 목록은 [REMOVE-OUT-OF-SCOPE](tasks/REMOVE-OUT-OF-SCOPE.md)에 있고, 이전 계약은 git 기록으로 확인한다.
+현재 코드(`src/api/contracts.ts`, `src/api/http.ts`)가 제공하는 21개 연산의 사용 계약이다. 제품 규칙은 [PRD](PRD.md), 화면 흐름은 [페이지 구조](PAGE_STRUCTURE.md)를 따른다. 2026-11-08 범위 축소로 삭제한 연산(구독·탐색·상점·BugCoin·데스크·공개 프로필·반응·방문자 체험 등 34개)의 목록은 [REMOVE-OUT-OF-SCOPE](tasks/REMOVE-OUT-OF-SCOPE.md)에 있고, 이전 계약은 git 기록으로 확인한다.
 
-메모(REQ-01)와 메모에서 만드는 퀴즈(REQ-02)는 [메모 절](#메모--notes)과 [메모의 퀴즈 절](#메모의-퀴즈--note-to-quiz)에 있다. 복습 주기(REQ-03) 계약은 아직 없으며 해당 구현 TASK에서 이 문서에 추가한다.
+메모(REQ-01)와 메모에서 만드는 퀴즈(REQ-02)는 [메모 절](#메모--notes)과 [메모의 퀴즈 절](#메모의-퀴즈--note-to-quiz)에 있다. 복습 주기(REQ-03)는 [오늘 복습 절](#오늘-복습--review-schedule)에 있다.
 
 ## UI 연결
 
@@ -32,12 +32,13 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 | 메모 | `notes` (GET /notes), `note` (GET /notes/{id}), `createNote` (POST /notes), `updateNote` (PUT /notes/{id}), `deleteNote` (DELETE /notes/{id}) |
 | 메모의 퀴즈 | `generate` (POST /notes/{id}/quizzes/generate), `noteQuizzes` (GET /notes/{id}/quizzes?status=), `confirmNoteQuizzes` (POST /notes/{id}/quizzes/confirm), `reviewQuiz` (GET /quizzes/{id}/review), `updateQuiz` (PUT /quizzes/{id}), `refineQuiz` (POST /quizzes/{id}/refine), `confirmQuiz` (POST /quizzes/{id}/confirm), `deleteQuiz` (DELETE /quizzes/{id}) |
 | 태그 | `hashtags` (GET /hashtags) — 등록 태그 목록 |
+| 오늘 복습 | `todayReview` (GET /me/today-review) |
 | 풀이 | `startAttempt` (POST /quizzes/{id}/attempts), `attempt` (GET /attempts/{id}), `answer` (POST /attempts/{id}/answer) |
 | 학습 기록 | `learningDay` (GET /learning/day), `learningTimezone` (GET /me/learning-timezone), `attemptHistory` (GET /me/attempts) |
 
 ## 화면 경로
 
-- `/`: 데모 사용자는 빠른 메모와 연속 학습일 요약, 방문자는 데모 사용자 선택 안내만 표시하는 임시 홈이다. "오늘 복습"은 후속 TASK에서 만든다.
+- `/`: 데모 사용자는 빠른 메모 → 오늘 복습 → 연속 학습일 요약, 방문자는 데모 사용자 선택 안내만 표시하는 임시 홈이다. 오늘 복습에서 푸는 풀이는 `?user={userId}&review={attemptId}`로 URL에 유지해 새로고침 후 문제·결과를 복원하며, 사용자 전환 시 `review`도 제거한다.
 - `/solve?user={userId}&quiz={quizId}`: 특정 퀴즈 직접 풀이. 결과 URL은 `/solve?user={userId}&attempt={attemptId}`이며 인자 없는 `/solve`는 홈으로 이동한다.
 - `/notes`, `/notes/{noteId}`: 내 노트와 메모 상세. 퀴즈 생성·확인·목록은 메모 상세에서만 한다. 이전 `/quizzes/authoring*` 경로는 삭제했다.
 - `/my/learning`, `/my/learning/[attemptId]`: 개인 풀이 내역(아래 절).
@@ -121,11 +122,43 @@ interface ReviewQuiz {
 
 ## 풀이
 
-`startAttempt({ quizId, context: 'DIRECT' })`는 삭제되지 않은 작성자 본인의 CONFIRMED 퀴즈에만 새 Attempt를 만든다. PENDING 퀴즈와 다른 사용자의 퀴즈는 직접 URL로 요청해도 409 QUIZ_UNAVAILABLE이다(PRD §7 모든 퀴즈는 작성자 전용). 각 시작은 새 Attempt다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다.
+`startAttempt({ quizId, context })`의 `context`는 `DIRECT`(메모 상세·풀이 내역 재도전 등 직접 풀이) 또는 `REVIEW`(홈 오늘 복습)이며 `AttemptContext` 상수(`src/api/constants.ts`)다. 그 외 값은 400 VALIDATION_ERROR다. 삭제되지 않은 작성자 본인의 CONFIRMED 퀴즈에만 새 Attempt를 만든다. PENDING 퀴즈와 다른 사용자의 퀴즈는 직접 URL로 요청해도 409 QUIZ_UNAVAILABLE이다(PRD §7 모든 퀴즈는 작성자 전용). `DIRECT`의 각 시작은 새 Attempt다. `REVIEW`는 그 퀴즈의 다음 복습일이 오늘이거나 지난 경우에만 시작할 수 있고(아니면 409 QUIZ_UNAVAILABLE, 시간대를 모르면 409 TIMEZONE_REQUIRED), 같은 revision의 미제출 `REVIEW` Attempt가 있으면 새로 만들지 않고 그것을 돌려준다(새로고침·중복 클릭 대응). 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다.
 
 제출 답은 형식별 Answer이며 시작 당시 revision으로 채점한다. 동일 답 재전송은 최초 결과를 반환하며 답 변경은 409 ALREADY_ANSWERED다. 미제출 Attempt 응답은 원본·정답·해설을 포함하지 않는다. 삭제된 퀴즈, 다른 사용자의 퀴즈, PENDING 퀴즈는 제출할 수 없다(409 QUIZ_UNAVAILABLE). 메모를 삭제해 함께 삭제된 퀴즈도 같다. 완료 기록·정오는 유지하고 이용 불가 문제의 본문·해설은 숨기며 풀이 내역은 `title: null`로 표시하고 재도전을 숨긴다.
 
-Attempt 키는 `['solving', userId, 'attempt', attemptId]`다. 제출 성공 시 Attempt 캐시를 응답으로 교체하고 `learningDay`, `history`를 무효화한다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
+`AttemptView`에는 `context`, 퀴즈를 쓸 수 있을 때의 `noteId`(원래 메모 보기용), 제출한 `REVIEW` 풀이가 일정을 바꿨을 때의 `nextReview: { date, days }`(그 외 null)가 포함된다. `nextReview`는 제출 시 저장되어 새로고침 후에도 같은 값이 보인다.
+
+`REVIEW` 풀이를 처음 제출할 때만 복습 일정이 갱신된다(아래 오늘 복습 절). `DIRECT` 풀이와 재도전은 일정을 바꾸지 않지만 학습일은 인정한다. 같은 풀이의 재제출은 최초 결과를 돌려주고 일정을 다시 바꾸지 않는다.
+
+Attempt 키는 `['solving', userId, 'attempt', attemptId]`다. 제출 성공 시 Attempt 캐시를 응답으로 교체하고 `learningDay`, `history`, `review`를 무효화한다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
+
+## 오늘 복습 — REVIEW-SCHEDULE
+
+`todayReview({})`는 시간대 감지·갱신 뒤 사용자의 현재 학습 시간대 기준 "오늘"로 계산한다. 시간대를 알 수 없으면 409 TIMEZONE_REQUIRED, 알 수 없는 요청 필드는 400이다.
+
+```ts
+interface TodayReview {
+  learningDate: string;   // 오늘(YYYY-MM-DD)
+  timeZone: string;
+  dueCount: number;       // 다음 복습일이 오늘이거나 지난 퀴즈
+  next: LearningQuizView | null; // 다음에 풀 문제. 정답·해설·원문 없음
+  tomorrowCount: number;  // 내일 복습할 퀴즈
+  reviewedToday: number;  // 오늘 REVIEW 풀이를 끝낸 퀴즈 수
+  totalCount: number;     // 복습 대상 전체(삭제되지 않은 본인의 CONFIRMED)
+  upcoming: { date: string; count: number } | null; // 오늘 이후 가장 가까운 복습일과 개수
+}
+```
+
+- 대상은 본인의 삭제되지 않은 CONFIRMED 퀴즈다. PENDING·삭제·다른 사용자의 퀴즈는 제외한다. 복습일이 지난 퀴즈도 나오고 하루 개수 제한은 없다.
+- 순서: 직전 복습에서 틀린 퀴즈(`lastCorrect === false`) 먼저, 그다음 복습일이 오래된 순, 동률은 quizId 오름차순. `next`는 그 첫 번째다. "틀렸던 문제"는 직전 복습 결과를 뜻한다(PRD가 정의하지 않은 해석).
+- 화면 상태: `totalCount === 0` 첫 메모 안내, `dueCount > 0` 시작, `dueCount === 0`이면 `reviewedToday > 0`은 "오늘 복습 끝"+내일 개수(0이면 `upcoming`), 아니면 "오늘 복습할 퀴즈가 없어요"+내일/`upcoming`.
+- 간격: 맞히면 1 → 3 → 7 → 14 → 30일 순서로 다음 단계, 30일 이후 유지. 틀리면 다음 날(1일)이고 처음 단계로 돌아간다. 새 복습일은 풀이한 날(학습일)부터 센다. 계산은 `src/services/review-schedule.ts`의 순수 함수(`nextReview`, `firstReview`, `addDays`)다.
+- 갱신 조건: `REVIEW` 풀이의 첫 제출이고 그 퀴즈의 복습일이 제출 시점에 아직 오늘이거나 지났을 때만 갱신한다(다른 곳에서 이미 일정이 넘어갔으면 풀이는 완료되지만 일정은 그대로, `nextReview: null`). 재제출·`DIRECT`·재도전은 갱신하지 않는다. 퀴즈를 수정해도 일정은 유지한다. 삭제된 퀴즈는 대상에서 빠지고 제출할 수 없다(409 QUIZ_UNAVAILABLE).
+- 첫 복습일: `confirmQuiz`·`confirmNoteQuizzes`가 CONFIRMED로 만들 때 `confirmedAt`의 사용자 시간대 날짜 다음 날로 일정을 기록한다. 일정 항목이 없는 퀴즈(이전 저장 데이터)는 읽을 때 `confirmedAt`과 현재 시간대로 같은 값을 계산한다.
+- 시간대가 바뀌어도 저장된 일정 날짜는 다시 계산하지 않는다. "오늘"만 새 시간대 기준이 된다.
+- 저장: `UserState.reviewSchedules?: { quizId, stage(0~4), nextReviewDate, lastCorrect }[]`(선택 필드, `schemaVersion: 2` 유지). 형식이 잘못되면 STORAGE_CORRUPT다. `StoredAttempt`에는 선택 필드 `context`(없으면 DIRECT)와 `nextReview`가 있다.
+- UI 연결: Query 키 `['review', userId, 'today']`. 풀이 제출 성공 시 무효화하며 다른 화면의 변경은 홈 재진입 시 다시 읽는다. 오늘 복습의 풀이 UI는 `QuizPanel`을 재사용한다.
+- 시드(`seedReviewPlans`, 생성 시점의 오늘 기준 상대값): learner는 오래된 2개(하나는 직전 오답)·오늘 2개·내일 2개·그 이후 2개, author는 내일 1개·4일 뒤 1개, friend는 2일 뒤·6일 뒤로 오늘 복습이 없다.
 
 ## 시간대와 학습일
 
@@ -143,14 +176,15 @@ Attempt 키는 `['solving', userId, 'attempt', attemptId]`다. 제출 성공 시
 - 제목은 저장된 revision에서만 읽는다. 접근 불가·삭제된 문제 또는 제목 없는 과거 기록은 title=null. 목록에는 답안·정답·해설·원문을 포함하지 않는다.
 - 상세는 기존 `attempt`와 `QuizPanel`을 재사용한다. 본인 저장소에 없는 Attempt는 404. `/my/learning/[attemptId]`는 완료 기록만 보여 주며 목록의 filter/page/user를 복귀 링크에 유지한다. 결과의 누락 필드는 ‘기록 없음’으로 표시하며 현재 버전으로 보충하지 않는다.
 - `attemptHistory`와 `attempt` 조회는 시간대 감지·갱신·데모 마이그레이션을 수행하지 않으며 저장소·스트릭을 변경하지 않는다.
-- 재도전은 `startAttempt(context: DIRECT)` 후 `/solve?user=…&attempt=…`로 이동한다. 기존 기록은 보존한다. PRD에 따라 재도전 결과는 복습 일정에 영향을 주지 않는다(복습 주기 구현 시 적용). Query 키는 `['history', userId, filter, query, page]`다.
+- 재도전은 `startAttempt(context: DIRECT)` 후 `/solve?user=…&attempt=…`로 이동한다. 기존 기록은 보존한다. PRD에 따라 재도전 결과는 복습 일정에 영향을 주지 않는다(`DIRECT` 풀이는 일정을 바꾸지 않는다). Query 키는 `['history', userId, filter, query, page]`다.
 
 ## 저장소
 
-localStorage 키는 `bugri:mock:v1:{userId}`다(키 이름의 `v1`은 유지한다). 각 사용자의 메모·퀴즈·풀이·학습일·시간대를 한 스냅샷(`schemaVersion: 2`)으로 저장한다. 모든 요청은 최신 저장소를 다시 읽고 요청자 자신의 키만 변경한다. 변경된 스냅샷은 단일 setItem으로 저장한 후 성공을 반환한다.
+localStorage 키는 `bugri:mock:v1:{userId}`다(키 이름의 `v1`은 유지한다). 각 사용자의 메모·퀴즈·풀이·복습 일정·학습일·시간대를 한 스냅샷(`schemaVersion: 2`)으로 저장한다. 모든 요청은 최신 저장소를 다시 읽고 요청자 자신의 키만 변경한다. 변경된 스냅샷은 단일 setItem으로 저장한 후 성공을 반환한다.
 
 - 키에 있는 `schemaVersion`이 숫자이고 2가 아니면(예: 이전 1) 데이터를 옮기지 않고 버린 뒤 새 시드로 초기화한다(데모 프로토타입 결정). 이전 형식의 구독·지갑·작성 대화 등 잔재도 함께 사라진다.
 - `schemaVersion: 2` 데이터가 손상됐거나 형식이 맞지 않으면 STORAGE_CORRUPT이며 자동으로 지우지 않는다. 접근/용량 오류는 STORAGE_UNAVAILABLE이다.
+- 복습 일정(`reviewSchedules`)은 선택 필드라 없는 `schemaVersion: 2` 데이터도 그대로 읽고(없으면 `confirmedAt`으로 계산), 버전 번호는 올리지 않는다.
 - 시드(`src/mocks/seed.ts`, 읽기 전용): learner는 CONFIRMED 8개짜리 메모, PENDING 2개짜리 메모, 퀴즈 없는 메모. author·friend는 각각 CONFIRMED 2개짜리 메모 하나. 풀이 내역 데모(`demoHistory`, 제품 빌드의 `NEXT_PUBLIC_DEMO_HISTORY=1`)는 새로 초기화되는 learner 상태에 완료 Attempt 12개를 시드하며 기존 상태에는 합치지 않는다.
 
 더미 사용자는 learner/author/friend다. 데이터는 실제 보안 경계가 아니며 브라우저에서 열람·변조 가능하다. localStorage 삭제 시 seed로 돌아가고 다른 브라우저/기기와 공유하지 않는다. 동시 탭의 경합을 직렬화하는 DB 거래 보장은 없으며 2단계에서 구현한다. seed 파일·서버 메모리·Vercel 파일에 사용자 변경을 쓰지 않는다.

@@ -1,32 +1,8 @@
-import type {
-  LearningQuizView,
-  Question,
-} from "@/api/contracts";
-import type {
-  StoredAttempt,
-  StoredQuiz,
-} from "@/services/state";
+import type { Question } from "@/api/contracts";
+import type { StoredAttempt } from "@/services/state";
 
 export function questionKey(question: Question): string {
   return JSON.stringify(question);
-}
-
-export function publicView({
-  quizId,
-  ownerUserId,
-  revision,
-}: StoredQuiz): LearningQuizView {
-  const { revisionId, title, question, hashtagIds } =
-    revision;
-
-  return {
-    quizId,
-    ownerUserId,
-    revisionId,
-    title,
-    question,
-    hashtagIds,
-  };
 }
 
 export function localDate(
