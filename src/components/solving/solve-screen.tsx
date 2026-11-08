@@ -25,6 +25,7 @@ import {
   type SolvingLocation,
 } from "@/components/solving/use-quiz-solving";
 
+import { QuizReactionControl } from "@/components/solving/quiz-reaction";
 import { QuizPanel } from "@/components/solving/quiz-panel";
 import { GuestQuiz } from "@/components/solving/guest-quiz";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -175,6 +176,13 @@ function Session({
                 })
               }
             >
+              {data.quiz && data.result && (
+                <QuizReactionControl
+                  key={`${userId}:${data.quizId}`}
+                  userId={userId}
+                  quizId={data.quizId}
+                />
+              )}
               {(data.quiz && data.result) ||
               (!direct &&
                 (data.completedAt || !data.quiz)) ? (

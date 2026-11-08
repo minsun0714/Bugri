@@ -164,6 +164,16 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "PATCH",
     path: "/me/learning-timezone",
   },
+  quizReaction: {
+    method: "GET",
+    path: "/quizzes/{id}/reaction",
+    pathKey: "quizId",
+  },
+  updateQuizReaction: {
+    method: "PUT",
+    path: "/quizzes/{id}/reaction",
+    pathKey: "quizId",
+  },
   startAttempt: {
     method: "POST",
     path: "/quizzes/{id}/attempts",

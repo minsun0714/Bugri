@@ -1,3 +1,4 @@
+import { QuizReaction } from "@/api/constants";
 import { publicLearningTimeZones } from "@/mocks/learning-history";
 import { moveDeskIndependently } from "@/lib/desk-independent";
 import { tagQuizzes } from "@/services/tag-quizzes";
@@ -153,6 +154,8 @@ const allowed: Record<Operation, string[]> = {
   publicLearningDay: ["publicId"],
   learningTimezone: [],
   updateTimezone: ["timeZone"],
+  quizReaction: ["quizId"],
+  updateQuizReaction: ["quizId", "reaction"],
   startAttempt: ["quizId", "context"],
   attempt: ["attemptId"],
   answer: ["attemptId", "answer"],
@@ -1268,6 +1271,61 @@ export function execute<K extends Operation>(
         dailyCounts: dailyQuizCounts(
           learningState.attempts,
         ),
+      };
+    }
+
+    case "quizReaction":
+
+    case "updateQuizReaction": {
+      text(r.quizId, "quizId");
+
+      const { quizId, reaction } = r;
+
+      if (
+        !available(
+          allQuizzes.find((quiz) => quiz.quizId === quizId),
+        )
+      )
+        throw new ServiceError(
+          "QUIZ_UNAVAILABLE",
+          "이 퀴즈는 더 이상 이용할 수 없습니다.",
+          409,
+        );
+
+      if (
+        !s.attempts.some(
+          (attempt) =>
+            attempt.quizId === quizId &&
+            attempt.completedAt,
+        )
+      )
+        throw new ServiceError(
+          "FORBIDDEN",
+          "문제를 푼 뒤 평가할 수 있습니다.",
+          403,
+        );
+
+      if (operation === "updateQuizReaction") {
+        requireValue(
+          reaction === null ||
+            reaction === QuizReaction.LIKE ||
+            reaction === QuizReaction.DISLIKE,
+          "평가 값을 확인하세요.",
+        );
+
+        s.quizReactions = (s.quizReactions ?? []).filter(
+          (entry) => entry.quizId !== quizId,
+        );
+
+        if (reaction !== null)
+          s.quizReactions.push({ quizId, reaction });
+      }
+
+      return {
+        reaction:
+          s.quizReactions?.find(
+            (entry) => entry.quizId === quizId,
+          )?.reaction ?? null,
       };
     }
 

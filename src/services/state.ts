@@ -1,3 +1,4 @@
+import type { QuizReaction } from "@/api/constants";
 import type {
   ProfileAbout,
   Answer,
@@ -39,6 +40,10 @@ export interface StoredDay {
 
 export interface UserState {
   schemaVersion: 1;
+  quizReactions?: {
+    quizId: string;
+    reaction: QuizReaction;
+  }[];
   profileAbout?: ProfileAbout;
   /** One-time mock fixture upgrade; absent in older v1 snapshots. */
   learningDemoVersion?: 1;

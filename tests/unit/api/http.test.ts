@@ -147,7 +147,19 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(51);
+  expect(Object.keys(endpoints)).toHaveLength(53);
+
+  expect(endpoints.quizReaction).toEqual({
+    method: "GET",
+    path: "/quizzes/{id}/reaction",
+    pathKey: "quizId",
+  });
+
+  expect(endpoints.updateQuizReaction).toEqual({
+    method: "PUT",
+    path: "/quizzes/{id}/reaction",
+    pathKey: "quizId",
+  });
 
   expect(endpoints.transformDesk).toEqual({
     method: "PUT",

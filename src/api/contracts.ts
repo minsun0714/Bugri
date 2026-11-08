@@ -1,3 +1,4 @@
+import type { QuizReaction } from "@/api/constants";
 import type { ProfileLinkKind } from "@/api/constants";
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 import {
@@ -519,6 +520,17 @@ export interface ApiOperations {
   updateTimezone: {
     request: { timeZone: string };
     response: { timeZone: string };
+  };
+  quizReaction: {
+    request: { quizId: string };
+    response: { reaction: QuizReaction | null };
+  };
+  updateQuizReaction: {
+    request: {
+      quizId: string;
+      reaction: QuizReaction | null;
+    };
+    response: { reaction: QuizReaction | null };
   };
   startAttempt: {
     request: {

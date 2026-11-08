@@ -255,3 +255,10 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - 네트워크 연결 실패는 기존 `NETWORK_ERROR`(합성502), 시간 초과는 `REQUEST_TIMEOUT`(합성504)다. 서버의 실제 HTTP 응답과 구분하려면 상태와 `detail.code`를 함께 확인한다.
 - 계약에 맞는 오류 envelope는 기존 status/code/requestId를 보존한다. 프록시 HTML 등 비계약 오류 응답도 실제 HTTP status를 보존하며 404는 NOT_FOUND, 403은 FORBIDDEN, 5xx는 SERVER_ERROR, 그 외는 HTTP_ERROR로 변환한다. 정상 HTTP 응답의 잘못된 envelope는 INVALID_RESPONSE(합성502)다. 원본 HTML·파싱 예외는 사용자 메시지에 포함하지 않는다.
 - 전송 계층은 요청을 자동 재전송하지 않는다. 특히 응답이 유실된 변경 요청은 처리 여부가 불명확할 수 있으므로 기존 답안·구매의 재조회/중복 방지 계약을 유지한다.
+
+### 개별 문제 평가 — AC-05j
+
+- `quizReaction({ quizId })`: GET `/quizzes/{id}/reaction`, `{ reaction: "LIKE" | "DISLIKE" | null }`. 현재 사용자의 완료 풀이와 현재 퀴즈 접근 가능 여부를 확인한다.
+- `updateQuizReaction({ quizId, reaction })`: PUT 같은 경로. 동일 DTO를 반환하며 null은 취소다. 토글이 아니라 목표 값을 저장하므로 같은 요청 재전송은 멱등이다. 미완료는 FORBIDDEN, 이용 불가는 QUIZ_UNAVAILABLE, 잘못된 값은 VALIDATION_ERROR다.
+- 선택 필드 `UserState.quizReactions`는 사용자별 quizId/반응 배열이다. 기존 v1에서 필드가 없으면 빈 선택이며 손상/중복 값은 저장소 오류로 보존한다. 브라우저 저장 실패는 기존 반응을 유지한다. 방문자 계약은 변경하지 않는다.
+- Query 키는 `["quizReaction", userId, quizId]`, 성공 시 해당 캐시를 응답으로 교체한다. 집계/목록에 반응 데이터가 없어 다른 목록 무효화는 필요 없다. 자동 mutation 재시도는 없으며 사용자·문제 전환으로 UI를 초기화한다.

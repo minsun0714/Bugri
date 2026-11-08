@@ -1,3 +1,4 @@
+import { QuizReaction } from "@/api/constants";
 import { validateProfileAbout } from "@/lib/profile-about";
 import { deskItems, validOrder } from "@/lib/desk-order";
 import {
@@ -88,6 +89,30 @@ function validateState(
   userId: string,
 ): asserts value is UserState {
   object(value);
+
+  if (value.quizReactions !== undefined) {
+    requireValue(
+      Array.isArray(value.quizReactions),
+      "저장된 평가가 올바르지 않습니다.",
+    );
+
+    const seen = new Set<string>();
+
+    for (const entry of value.quizReactions) {
+      object(entry);
+
+      requireValue(
+        typeof entry.quizId === "string" &&
+          entry.quizId.length > 0 &&
+          !seen.has(entry.quizId) &&
+          (entry.reaction === QuizReaction.LIKE ||
+            entry.reaction === QuizReaction.DISLIKE),
+        "저장된 평가가 올바르지 않습니다.",
+      );
+
+      seen.add(entry.quizId);
+    }
+  }
 
   if (value.profileAbout !== undefined)
     requireValue(
