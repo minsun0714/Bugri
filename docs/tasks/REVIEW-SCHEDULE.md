@@ -1,6 +1,6 @@
 # REVIEW-SCHEDULE
 
-- 상태: 구현 완료. UX/UI 리뷰·최종 검증 결과는 아래 기록을 확인한다(미완료 항목은 "남은 일"). 병합 판단은 사용자 몫이다.
+- 상태: 구현·검증 완료. UX/UI 리뷰 반영(C1) 후 재검증 통과. 병합 판단은 사용자 몫이다.
 - 기준: PRD REQ-03(AC-03a~f), REQ-04(AC-04a·d), AC-02e, AC-05a·c, AC-09e, §7. 홈 구성은 PAGE_STRUCTURE 홈 절.
 - 브랜치: `feat/review-schedule`(dev `f0414fb`에서 분기). push·PR 없음.
 - 제외: 내 노트 검색·태그 필터(feat/notes-search), 방문자 예시 체험, PRD 정책 변경.
@@ -43,11 +43,24 @@
 - `src/components/ui/quiz-card`와 `tests/unit/quiz-card.test.tsx`: 소스·ui-preview·전시 어디에서도 import하지 않고 자체 테스트만 사용하여 제거했다. ARCHITECTURE의 "퀴즈 카드" 절도 삭제했다.
 - `publicView`: 사용처가 없어 제거했다(`learning.ts`의 미사용 타입 import 포함).
 
+## UX/UI 리뷰 요약
+
+[docs/ux-reviews/REVIEW-SCHEDULE.md](../ux-reviews/REVIEW-SCHEDULE.md) 참고. UX R0 7건 중 4건 수정·3건 보류, UI R0 7건 중 2건 수정·5건 보류, UX R1 재검증 통과.
+
 ## 남은 일·결정 필요
 
 - AC-02g(메모 상세에서 CONFIRMED 퀴즈의 다음 복습일 표시)는 이번 요청 범위에 없어 구현하지 않았다. 필요하면 `ReviewQuiz`/`noteQuizzes`에 다음 복습일을 추가해 후속으로 한다.
+- 보류한 리뷰 항목: 메모 상세에 다녀온 뒤 복귀 경로(UX-05), 메모만 있고 퀴즈 없는 홈의 다음 행동(UX-06), 잘못된 `review` 링크의 주 버튼(UX-07), 풀이 중 제목 틀·버튼 스타일·버튼 위치·오류 표현·카드 패딩 정렬(UI-2·4·5·6·7).
+- 범위 밖 발견: 공유 `QuizText`가 문제 본문 `function identity<T>(...)`의 `<T>`를 표시하지 않는다(별도 작업 필요). 영어 상태에서 `router.replace` 뒤 문서 제목이 한국어로 바뀐다(기존 문제).
 - 풀이 내역 상세의 "원래 메모 보기"(PAGE_STRUCTURE에서 후속 검토)는 범위 밖이다.
 
 ## 검증 기록
 
-(최종 검증 후 아래에 기록한다.)
+- 환경: Node v22.23.3, 브랜치 `feat/review-schedule`(검증 시점 HEAD는 UI R0 수정 커밋 `73b3d98`; 이후 코드 변경 없음, 문서만 추가).
+- 변경 분류: API·저장·화면 변경(고위험) → 최종 검증 전체.
+- `PLAYWRIGHT_PORT=3199 npm run verify`(lint → typecheck → Jest `--runInBand` → `test:tools` → build → E2E 전체) 종료 코드 0.
+  - Jest 33개 스위트 218개 통과(`quiz-card.test.tsx` 제거로 스위트 -1, 테스트 -1 반영). 도구 테스트 pass 3·fail 0. build 성공. Playwright 64개 통과(기존 57 + review.spec 7).
+  - E2E는 전체를 실행했고 제외한 spec 없음.
+- 개별: `tests/unit/review-schedule.test.ts` 11개, `tests/unit/api/review-schedule.test.ts` 22개, `tests/e2e/review.spec.ts` 7개(풀이→다음 복습일·오답 내일·마치기·새로고침 복원·원래 메모 보기·DIRECT 재도전 후 일정 불변·퀴즈 없음·오늘 복습 없음·모바일 첫 화면).
+- CI(`.github/workflows/verify.yml`)도 `npm run verify`를 실행하지만 푸시 전이라 CI 결과는 아직 없다.
+- 미실행·한계: 다크·영어 화면과 키보드 흐름은 리뷰어의 Playwright MCP 수동 확인이며 E2E로 고정하지 않았다. 스크린리더 실제 낭독, 줄인 모션, 뒤로 가기, 시작/제출 실패 화면은 미확인.
