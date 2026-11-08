@@ -33,7 +33,7 @@ import {
   Avatar,
   Button,
   Skeleton,
-  TextField,
+  SearchField,
   Toast,
 } from "@/components/ui";
 import { useDemoSession } from "@/components/navigation/demo-session";
@@ -42,7 +42,10 @@ import {
   useSubscriptions,
 } from "@/components/discovery/developer-queries";
 import { SubscriptionControl } from "@/components/discovery/subscription-control";
-import { pageTitle } from "@/components/ui/styles";
+import {
+  pageTitle,
+  searchButtonStyle,
+} from "@/components/ui/styles";
 
 const linkStyle =
   "inline-flex min-h-11 items-center rounded-xl text-primary font-semibold hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
@@ -260,45 +263,27 @@ function DeveloperContent({
           search(draft.value.trim(), 1);
         }}
       >
-        <div className={discoveryStyles.searchField}>
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            className="pointer-events-none absolute left-3 top-3.5 size-5 text-muted"
-          >
-            <circle cx="10.5" cy="10.5" r="6.5" />
-            <path
-              d="m16 16 4.5 4.5"
-              strokeLinecap="round"
-            />
-          </svg>
-          <TextField
-            type="search"
-            label={t("개발자 검색")}
-            hideLabel
-            placeholder={t("이름 또는 아이디로 검색")}
-            value={draft.value}
-            onChange={(event) => {
-              setDraft({
-                source: query,
-                value: event.target.value,
-              });
-              setInputError(null);
-            }}
-            error={
-              inputError ??
-              (!validQuery
-                ? "검색어는 100자 이하여야 합니다."
-                : undefined)
-            }
-          />
-        </div>
+        <SearchField
+          label={t("개발자 검색")}
+          placeholder={t("이름 또는 아이디로 검색")}
+          value={draft.value}
+          onChange={(event) => {
+            setDraft({
+              source: query,
+              value: event.target.value,
+            });
+            setInputError(null);
+          }}
+          error={
+            inputError ??
+            (!validQuery
+              ? "검색어는 100자 이하여야 합니다."
+              : undefined)
+          }
+        />
         <Button
           type="submit"
-          className={discoveryStyles.searchButton}
+          className={searchButtonStyle}
           aria-disabled={navigating}
         >
           {t("검색")}

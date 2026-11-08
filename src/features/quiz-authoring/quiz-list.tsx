@@ -6,7 +6,12 @@ import {
   QuizStatus,
   type QuizSummary,
 } from "@/api/contracts";
-import { Badge, Button, EmptyState } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  EmptyState,
+  SearchField,
+} from "@/components/ui";
 import { pageTitle, styles } from "@/components/ui/styles";
 import { QuizCard } from "@/components/ui/quiz-card";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -273,37 +278,17 @@ export function QuizList({
           </div>
 
           <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_minmax(220px,auto)] md:items-end">
-            <label className="grid gap-2 text-xs font-semibold">
-              <span className="sr-only">
-                {t("퀴즈 검색")}
-              </span>
-              <span className="relative block">
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted"
-                >
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m16 16 4 4" />
-                </svg>
-                <input
-                  type="search"
-                  aria-label={t("퀴즈 검색")}
-                  value={query}
-                  onChange={(event) =>
-                    onViewChange({
-                      query: event.target.value,
-                      page: 1,
-                    })
-                  }
-                  placeholder={t("제목이나 태그 검색")}
-                  className="min-h-11 w-full rounded-2xl border border-line bg-surface py-3 pl-10 pr-4 text-[13px] text-foreground placeholder:text-muted"
-                />
-              </span>
-            </label>
+            <SearchField
+              label={t("퀴즈 검색")}
+              value={query}
+              onChange={(event) =>
+                onViewChange({
+                  query: event.target.value,
+                  page: 1,
+                })
+              }
+              placeholder={t("제목이나 태그 검색")}
+            />
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
               <Dropdown
                 label={t("정렬")}

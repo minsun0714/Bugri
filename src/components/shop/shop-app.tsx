@@ -23,7 +23,7 @@ import {
   Modal,
   Select,
   Tag,
-  TextField,
+  SearchField,
 } from "@/components/ui";
 import { ShowcaseHeader } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
@@ -281,8 +281,7 @@ function ShopContent({
             </span>
           ) : (
             <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_180px] lg:w-[460px]">
-              <TextField
-                type="search"
+              <SearchField
                 label={t("상품 검색")}
                 placeholder={t("상품명 또는 설명 검색")}
                 value={search}

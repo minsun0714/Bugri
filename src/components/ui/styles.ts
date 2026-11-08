@@ -84,3 +84,11 @@ export const viewAllAction =
 // Single size for every page-level h1 so sibling screens share one heading scale.
 export const pageTitle =
   "text-2xl font-bold leading-8 tracking-tight text-foreground";
+
+// One search box look: leading icon, 48px bordered input. The submit button keeps the default 3D Button and only matches the input height.
+export const searchFieldStyle =
+  "relative min-w-0 flex-1 [&_input]:!h-12 [&_input]:!rounded-2xl [&_input]:!bg-surface [&_input]:!pl-10 [&_input]:!pr-3 [&_input]:!text-base [&_input]:placeholder:text-muted [&_small]:px-2";
+export const searchButtonStyle =
+  "!min-h-12 !rounded-2xl !px-5";
+export const searchFormStyle =
+  "flex items-start gap-2 sm:gap-3";

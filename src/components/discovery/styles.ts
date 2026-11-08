@@ -3,12 +3,6 @@ export const tagDiscoveryStyles = {
     "flex min-h-11 items-center gap-3 sm:min-h-14 sm:gap-4",
   searchPanel:
     "space-y-4 rounded-3xl border border-line bg-surface p-3 shadow-[0_3px_0_var(--color-line)] sm:p-5",
-  searchForm:
-    "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 sm:gap-3",
-  searchField:
-    "min-w-0 [&_input]:!h-12 [&_input]:!rounded-2xl [&_input]:!bg-canvas [&_input]:!text-sm [&_input]:placeholder:text-muted",
-  searchButton:
-    "!h-12 !min-h-12 !rounded-2xl !px-4 !shadow-none sm:!px-6",
   filters:
     "flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-canvas p-1",
   filterButton:
@@ -29,10 +23,6 @@ export const tagDiscoveryStyles = {
 };
 
 export const discoveryStyles = {
-  searchField:
-    "relative min-w-0 flex-1 [&_input]:!h-12 [&_input]:!rounded-2xl [&_input]:!border-0 [&_input]:!bg-canvas/70 [&_input]:!pl-10 [&_input]:!pr-2 [&_input]:!text-base [&_small]:px-2",
-  searchButton:
-    "!min-h-12 !rounded-2xl !border-0 !px-5 !shadow-none",
   card: "flex min-w-0 flex-col gap-3 rounded-3xl border border-line bg-surface p-4 sm:p-5 shadow-[0_2px_0_var(--color-line)] transition-[border-color,box-shadow] hover:border-primary/25 hover:shadow-[0_2px_0_var(--color-line),0_10px_24px_-16px_var(--color-primary)]",
   personLink:
     "inline-flex min-h-11 max-w-full items-center rounded-lg break-all text-lg font-bold tracking-tight text-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",

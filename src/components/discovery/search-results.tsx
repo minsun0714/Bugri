@@ -6,7 +6,11 @@ import {
 
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import { viewAllAction } from "@/components/ui/styles";
+import {
+  searchButtonStyle,
+  searchFormStyle,
+  viewAllAction,
+} from "@/components/ui/styles";
 
 import Link from "next/link";
 import {
@@ -22,8 +26,8 @@ import type {
 } from "@/api/contracts";
 import {
   Button,
+  SearchField,
   Skeleton,
-  TextField,
   Toast,
 } from "@/components/ui";
 import { useDiscovery } from "@/components/discovery/queries";
@@ -215,11 +219,7 @@ export function DiscoverySearch({
         }
       >
         <form
-          className={
-            isTags
-              ? tagDiscoveryStyles.searchForm
-              : "flex flex-wrap items-end justify-end gap-3"
-          }
+          className={searchFormStyle}
           onSubmit={(event) => {
             event.preventDefault();
             if (invalidInput) return;
@@ -230,45 +230,31 @@ export function DiscoverySearch({
             });
           }}
         >
-          <div
-            className={
-              isTags
-                ? tagDiscoveryStyles.searchField
-                : "min-w-0 flex-1"
+          <SearchField
+            label={
+              request.kind === DiscoveryKind.USER
+                ? t("개발자 검색")
+                : t("태그 검색")
             }
-          >
-            <TextField
-              hideLabel={isTags}
-              type="search"
-              label={
-                request.kind === DiscoveryKind.USER
-                  ? t("개발자 검색")
-                  : t("태그 검색")
-              }
-              placeholder={
-                request.kind === DiscoveryKind.USER
-                  ? t("개발자 이름 또는 ID")
-                  : t("태그 이름 검색")
-              }
-              value={input}
-              error={
-                invalidInput
-                  ? t("검색어는 100자 이하여야 합니다.")
-                  : undefined
-              }
-              readOnly={busy}
-              onChange={(event) =>
-                setInput(event.target.value)
-              }
-            />
-          </div>
-          <Button
-            type="submit"
-            className={
-              isTags
-                ? tagDiscoveryStyles.searchButton
+            placeholder={
+              request.kind === DiscoveryKind.USER
+                ? t("개발자 이름 또는 ID")
+                : t("태그 이름 검색")
+            }
+            value={input}
+            error={
+              invalidInput
+                ? t("검색어는 100자 이하여야 합니다.")
                 : undefined
             }
+            readOnly={busy}
+            onChange={(event) =>
+              setInput(event.target.value)
+            }
+          />
+          <Button
+            type="submit"
+            className={searchButtonStyle}
             disabled={busy || invalidInput}
           >
             {t("검색")}
