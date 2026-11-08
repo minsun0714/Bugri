@@ -1,6 +1,7 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
+import { HomeStreak } from "@/components/streak/home-streak";
 import { ActivityPeriods } from "@/components/streak/activity-periods";
 import { ApiClientError } from "@/api/client";
 import { Button } from "@/components/ui";
@@ -26,7 +27,11 @@ export function StreakSummary({
   return (
     <section
       aria-labelledby="learning-streak-heading"
-      className="rounded-3xl border border-line bg-surface p-4 sm:p-6"
+      className={
+        publicId
+          ? "rounded-3xl border border-line bg-surface p-4 sm:p-6"
+          : "rounded-2xl border border-line bg-surface px-4 py-3"
+      }
     >
       <h2
         id="learning-streak-heading"
@@ -60,6 +65,8 @@ export function StreakSummary({
             </Button>
           </div>
         </div>
+      ) : data && !publicId ? (
+        <HomeStreak key={userId} data={data} />
       ) : data ? (
         <div className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_minmax(0,2fr)] lg:items-start lg:gap-8">
           <div

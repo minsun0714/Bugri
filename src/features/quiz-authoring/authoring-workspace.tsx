@@ -3,6 +3,7 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { QuizReactionControl } from "@/components/solving/quiz-reaction";
 import { Creation } from "@/features/quiz-authoring/creation";
+import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
@@ -86,6 +87,7 @@ function Workspace({
   mode: "create" | "manage" | "results";
 }) {
   const t = useTranslation();
+  const router = useRouter();
 
   const search = useSyncExternalStore(
     subscribe,
@@ -259,6 +261,12 @@ function Workspace({
         userId={userId}
         initialBatch={batch.data}
         onGenerated={showResults}
+        onComplete={() => {
+          setDirty(false);
+          router.replace(
+            `/quizzes/authoring/manage?user=${encodeURIComponent(userId)}`,
+          );
+        }}
         onDirty={setDirty}
       />
     );

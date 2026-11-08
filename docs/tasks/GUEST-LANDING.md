@@ -130,3 +130,55 @@
 - 사용자 요청으로 명조체 적용을 철회하고 제목을 사이트 기본 font-sans로 복원. localFont·전용토큰·폰트자산/라이선스/출처파일 제거. 직전 하단삭제·단색/간격 및 스크롤/동작 유지. 동작없는 폰트수정으로 변경정적검사·타입 및 PC/모바일 인접화면·독립리뷰로 확인, 전체pipeline/상점3D E2E 제외.
 
 - Node22.23.3 변경ESLint/Prettier·전체typecheck·diff검사 통과. PC1440×900/모바일390×900 첫장면·책상캡처 확인, computed font는 기존Arial/Apple SD Gothic Neo/Malgun Gothic/sans-serif, 넘침없고 삭제된상점링크0. 독립UX/UI R0 필수문제0·수정0회. Jest/build/E2E 재실행없음(동작없는서체복원). 문서후커밋, push/PR 없음.
+
+## PR 최종 검증
+
+- 사용자 PR생성요청. 기준dev(4a01e23)를 병합, 영어번역추가 충돌은 랜딩과 최신dev 신규키 모두 보존. 공개범위/보상정책 변경없음. 최종 전체lint/typecheck/Jest/tools·productionbuild·영향별E2E 준비.
+- E2E: 상점·3D전용 제외 외 모든spec, 공통배경renderer회귀를 위해 desk-3d/room-projection/room-theme-bugri 및 랜딩3D 포함, worker1. 구매/드래그/회전/확대/상점편집은 해당 입력·좌표·구매계약 변경없어 제외. 최신dev 추가 profile-subscription-state/quiz-space 포함.
+
+- 최종검증 Node22.23.3: 전체lint/typecheck 통과, 전체Jest71suites/371tests 및 도구3개 통과. productionbuild포함 선택34spec/175E2E(worker1,3109) 통과. 초기lint는 E2E의 test-results 초기화와 경합해 ENOENT 발생, 제품/검사규칙 변경없이 E2E종료후 순차재실행 통과(재시도1회).
+- 기존 독립UX/UI·폰트복원 최종리뷰 증거 재사용. dev통합은 번역키 양쪽보존, 그 외자동병합. 최종검증후 작업기록문서만 갱신. 실제기기/Safari/SR과 영향없는 상점구매/편집·세부좌표 E2E 미검증. 사용자 PR요청에 따른 push/PR생성 준비 완료.
+
+<details>
+<summary>PR 최종 E2E 선택 명령</summary>
+
+```sh
+npm run test:e2e -- \
+  tests/e2e/bugcoin-rewards.spec.ts \
+  tests/e2e/coin-history.spec.ts \
+  tests/e2e/design-system.spec.ts \
+  tests/e2e/desk-3d.spec.ts \
+  tests/e2e/developer-discovery-repair.spec.ts \
+  tests/e2e/developer.spec.ts \
+  tests/e2e/discovery-split.spec.ts \
+  tests/e2e/error-handling.spec.ts \
+  tests/e2e/guest-landing-3d.spec.ts \
+  tests/e2e/guest-landing-return.spec.ts \
+  tests/e2e/guest-landing.spec.ts \
+  tests/e2e/home-quiz-review.spec.ts \
+  tests/e2e/locale.spec.ts \
+  tests/e2e/markdown-editor.spec.ts \
+  tests/e2e/mock-api.spec.ts \
+  tests/e2e/navigation.spec.ts \
+  tests/e2e/profile-about.spec.ts \
+  tests/e2e/profile-layout.spec.ts \
+  tests/e2e/profile-order.spec.ts \
+  tests/e2e/profile-polish.spec.ts \
+  tests/e2e/profile-split.spec.ts \
+  tests/e2e/profile-streak.spec.ts \
+  tests/e2e/profile-subscription-state.spec.ts \
+  tests/e2e/quiz-authoring.spec.ts \
+  tests/e2e/quiz-card-actions.spec.ts \
+  tests/e2e/quiz-reactions.spec.ts \
+  tests/e2e/quiz-space.spec.ts \
+  tests/e2e/room-projection.spec.ts \
+  tests/e2e/room-theme-bugri.spec.ts \
+  tests/e2e/solving.spec.ts \
+  tests/e2e/streak.spec.ts \
+  tests/e2e/tag-catalog.spec.ts \
+  tests/e2e/tag-discovery.spec.ts \
+  tests/e2e/theme.spec.ts \
+  --workers=1
+```
+
+</details>
