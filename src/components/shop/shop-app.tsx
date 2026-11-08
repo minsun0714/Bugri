@@ -270,7 +270,7 @@ function ShopContent({
           <h2
             ref={collectionHeading}
             tabIndex={-1}
-            className="text-lg"
+            className={editing ? "text-lg" : "sr-only"}
           >
             {editing ? t("보유 상품") : t("상품 목록")}
           </h2>
@@ -280,7 +280,7 @@ function ShopContent({
               {t("개의 오브젝트")}
             </span>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_180px] lg:w-[460px]">
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-start">
               <SearchField
                 label={t("상품 검색")}
                 placeholder={t("상품명 또는 설명 검색")}
@@ -289,17 +289,21 @@ function ShopContent({
                   setSearch(event.target.value)
                 }
               />
-              <Dropdown
-                label={t("상품 정렬")}
-                options={sortOptions.map((option) => ({
-                  ...option,
-                  label: t(option.label),
-                }))}
-                value={sort}
-                onValueChange={(value) =>
-                  setSort(value as ProductSort)
-                }
-              />
+              <div className="sm:w-48 sm:shrink-0">
+                <Dropdown
+                  label={t("상품 정렬")}
+                  hideLabel
+                  options={sortOptions.map((option) => ({
+                    ...option,
+                    label: t(option.label),
+                  }))}
+                  value={sort}
+                  triggerClassName="!min-h-12"
+                  onValueChange={(value) =>
+                    setSort(value as ProductSort)
+                  }
+                />
+              </div>
             </div>
           )}
         </div>
