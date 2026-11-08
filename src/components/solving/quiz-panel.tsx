@@ -48,6 +48,7 @@ export function QuizPanel({
   pending,
   onDirtyChange,
   onSubmit,
+  resultNote,
   children,
 }: {
   quiz: LearningQuizView | null;
@@ -60,6 +61,8 @@ export function QuizPanel({
   pending: boolean;
   onDirtyChange?: (dirty: boolean) => void;
   onSubmit: (answer: Answer) => void;
+  /** Shown under the explanation of a submitted result, e.g. the next review date. */
+  resultNote?: ReactNode;
   children?: ReactNode;
 }) {
   const t = useTranslation();
@@ -185,6 +188,7 @@ export function QuizPanel({
                 {result.explanation ?? t("기록 없음")}
               </QuizText>
             </div>
+            {resultNote}
           </section>
         ) : (
           !completedAt && (

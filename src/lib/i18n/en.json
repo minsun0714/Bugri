@@ -315,5 +315,20 @@
   "확인 안 한 퀴즈 {0}개": "{0} unconfirmed quizzes",
   "확인 안 한 퀴즈 {0}개 · 이어서 확인": "{0} unconfirmed quizzes · Continue",
   "연결된 퀴즈 {0}개도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.": "The {0} linked quizzes are deleted too. Quizzes you already solved stay in your history.",
-  "완료": "Done"
+  "완료": "Done",
+  "오늘 복습": "Today's review",
+  "오늘 복습 {0}개": "Today's review: {0}",
+  "복습 시작": "Start review",
+  "다음 문제": "Next question",
+  "복습 마치기": "Finish review",
+  "원래 메모 보기": "View original note",
+  "다음 복습: 내일 ({0})": "Next review: tomorrow ({0})",
+  "다음 복습: {0}일 뒤 ({1})": "Next review: in {0} days ({1})",
+  "오늘 복습 끝": "Today's review is done",
+  "오늘 복습할 퀴즈가 없어요": "No quizzes to review today",
+  "내일 복습할 퀴즈 {0}개": "{0} to review tomorrow",
+  "다음 복습 {0} · {1}개": "Next review {0} · {1}",
+  "메모를 퀴즈로 만들면 여기서 복습해요": "Turn a note into a quiz and review it here",
+  "오늘 복습 불러오는 중…": "Loading today's review…",
+  "오늘 복습을 불러오지 못했어요.": "Couldn't load today's review."
 }

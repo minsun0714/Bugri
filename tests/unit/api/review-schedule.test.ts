@@ -67,8 +67,10 @@ function wrongAnswer(
   switch (right.type) {
     case "TRUE_FALSE":
       return { type: "TRUE_FALSE", value: !right.value };
+
     case "SHORT_ANSWER":
       return { type: "SHORT_ANSWER", text: "x-wrong" };
+
     case "SINGLE_CHOICE": {
       const { choices } = question as Extract<
         Question,
@@ -81,6 +83,7 @@ function wrongAnswer(
 
       return { type: "SINGLE_CHOICE", choiceId: other.id };
     }
+
     case "MULTIPLE_CHOICE": {
       const { choices } = question as Extract<
         Question,
@@ -137,6 +140,7 @@ test("the learner seed has quizzes due today, overdue and due tomorrow", async (
   expect(today.tomorrowCount).toBe(2);
   expect(today.reviewedToday).toBe(0);
   expect(today.totalCount).toBe(8);
+
   expect(today.upcoming).toEqual({
     date: "2026-11-09",
     count: 2,
@@ -193,6 +197,7 @@ test("author and friend have no review due today but see what is coming", async 
   expect(author.next).toBeNull();
   expect(author.totalCount).toBe(2);
   expect(author.tomorrowCount).toBe(1);
+
   expect(author.upcoming).toEqual({
     date: "2026-11-09",
     count: 1,
@@ -206,6 +211,7 @@ test("author and friend have no review due today but see what is coming", async 
   expect(friend.dueCount).toBe(0);
   expect(friend.tomorrowCount).toBe(0);
   expect(friend.totalCount).toBe(2);
+
   expect(friend.upcoming).toEqual({
     date: "2026-11-10",
     count: 1,
@@ -220,7 +226,9 @@ test("PENDING and deleted quizzes are not review targets and users are isolated"
   // The learner's PENDING seed quizzes are not counted.
   expect(before.totalCount).toBe(8);
 
-  await api.request("deleteQuiz", { quizId: "seed-quiz-7" });
+  await api.request("deleteQuiz", {
+    quizId: "seed-quiz-7",
+  });
 
   const afterQuiz = await api.request("todayReview", {});
 
@@ -257,9 +265,12 @@ test("a quiz confirmed today comes back tomorrow, in the learner's zone", async 
 
   await api.request("generate", { noteId: note.noteId });
 
-  const confirmed = await api.request("confirmNoteQuizzes", {
-    noteId: note.noteId,
-  });
+  const confirmed = await api.request(
+    "confirmNoteQuizzes",
+    {
+      noteId: note.noteId,
+    },
+  );
 
   expect(confirmed.length).toBeGreaterThan(0);
 
@@ -394,6 +405,7 @@ test("an overdue quiz is rescheduled from the day it was reviewed", async () => 
 
   // Review on 2026-12-18, stage 2 → 3 for a 14-day interval.
   expect(done.learningDate).toBe("2026-12-18");
+
   expect(done.nextReview).toEqual({
     date: "2027-01-01",
     days: 14,
@@ -484,6 +496,7 @@ test("a review attempt cannot advance a quiz that is no longer due", async () =>
 
   expect(done.completedAt).not.toBeNull();
   expect(done.nextReview).toBeNull();
+
   expect(scheduleOf("seed-quiz-8").nextReviewDate).toBe(
     "2026-11-20",
   );
@@ -560,8 +573,10 @@ test("editing a quiz keeps its schedule, and the open review uses its starting v
     quizId: "seed-quiz-7",
   });
 
+  const { revision } = quiz;
+
   const { revisionId, sourceContent, ...content } =
-    quiz.revision;
+    revision;
 
   void revisionId;
   void sourceContent;
@@ -576,7 +591,7 @@ test("editing a quiz keeps its schedule, and the open review uses its starting v
 
   const done = await api.request("answer", {
     attemptId: started.attemptId,
-    answer: quiz.revision.answer,
+    answer: revision.answer,
   });
 
   expect(done.correct).toBe(true);
@@ -599,7 +614,9 @@ test("a deleted quiz cannot be submitted and leaves the schedule alone", async (
     "seed-quiz-7",
   );
 
-  await api.request("deleteQuiz", { quizId: "seed-quiz-7" });
+  await api.request("deleteQuiz", {
+    quizId: "seed-quiz-7",
+  });
 
   await expect(
     api.request("answer", {
@@ -654,7 +671,11 @@ test("a malformed schedule is reported as corrupt storage", async () => {
   const state = stored();
 
   state.reviewSchedules = [
-    { quizId: "seed-quiz-5", stage: 9, nextReviewDate: "x" },
+    {
+      quizId: "seed-quiz-5",
+      stage: 9,
+      nextReviewDate: "x",
+    },
   ];
 
   localStorage.setItem(
@@ -671,7 +692,9 @@ test("a malformed schedule is reported as corrupt storage", async () => {
 
 test("todayReview rejects unknown request fields", async () => {
   await expect(
-    make().request("todayReview", { userId: "author" } as never),
+    make().request("todayReview", {
+      userId: "author",
+    } as never),
   ).rejects.toMatchObject({
     detail: { code: "VALIDATION_ERROR" },
   });

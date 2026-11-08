@@ -5,7 +5,10 @@ import {
   matchHistoryRecord,
 } from "@/services/history-search";
 
-import { AttemptContext, QuizStatus } from "@/api/constants";
+import {
+  AttemptContext,
+  QuizStatus,
+} from "@/api/constants";
 import type {
   ApiOperations,
   AttemptView,
@@ -198,6 +201,7 @@ export function execute<K extends Operation>(
       attemptId,
       context,
       quizId,
+      noteId: visible ? q!.noteId : null,
       revisionId,
       quiz: visible
         ? {
@@ -708,7 +712,8 @@ export function execute<K extends Operation>(
 
       const due = targets
         .filter(
-          ({ schedule }) => schedule.nextReviewDate <= today,
+          ({ schedule }) =>
+            schedule.nextReviewDate <= today,
         )
         .sort(
           (
@@ -1041,7 +1046,10 @@ export function execute<K extends Operation>(
 
           a.nextReview = {
             date: outcome.nextReviewDate,
-            days: dateDistance(date, outcome.nextReviewDate),
+            days: dateDistance(
+              date,
+              outcome.nextReviewDate,
+            ),
           };
         } else a.nextReview = null;
       }

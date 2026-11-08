@@ -33,14 +33,18 @@ test("the first review date uses the learner's local date, not UTC", () => {
 test("the first review across a spring-forward day is still the next calendar day", () => {
   // New York 2026-03-08 01:30 EST; DST starts at 02:00 the same day.
   expect(
-    firstReview("2026-03-08T06:30:00.000Z", "America/New_York")
-      .nextReviewDate,
+    firstReview(
+      "2026-03-08T06:30:00.000Z",
+      "America/New_York",
+    ).nextReviewDate,
   ).toBe("2026-03-09");
 
   // 2026-11-01 01:30 EDT (UTC-4), DST ends at 02:00 that day.
   expect(
-    firstReview("2026-11-01T05:30:00.000Z", "America/New_York")
-      .nextReviewDate,
+    firstReview(
+      "2026-11-01T05:30:00.000Z",
+      "America/New_York",
+    ).nextReviewDate,
   ).toBe("2026-11-02");
 });
 
@@ -67,7 +71,10 @@ test("consecutive correct answers reach 30 days and stay there", () => {
     const next = nextReview({ ...current, correct: true });
 
     intervals.push(next.intervalDays);
-    current = { stage: next.stage, date: next.nextReviewDate };
+    current = {
+      stage: next.stage,
+      date: next.nextReviewDate,
+    };
   }
 
   expect(intervals).toEqual([3, 7, 14, 30, 30, 30, 30]);

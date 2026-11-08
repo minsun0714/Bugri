@@ -5,7 +5,10 @@ import type {
   QuizStatus,
 } from "@/api/constants";
 
-export { AttemptContext, QuizStatus } from "@/api/constants";
+export {
+  AttemptContext,
+  QuizStatus,
+} from "@/api/constants";
 
 export interface Hashtag {
   id: string;
@@ -101,6 +104,8 @@ export interface AttemptView {
   attemptId: string;
   context: AttemptContext;
   quizId: string;
+  /** The memo the quiz came from; null once the quiz is no longer available. */
+  noteId: string | null;
   revisionId: string;
   quiz: LearningQuizView | null;
   completedAt: string | null;

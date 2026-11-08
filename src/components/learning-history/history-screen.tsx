@@ -8,7 +8,10 @@ import {
 } from "next/navigation";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/api/query-client";
-import { AttemptHistoryFilter } from "@/api/constants";
+import {
+  AttemptContext,
+  AttemptHistoryFilter,
+} from "@/api/constants";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import {
   useLocale,
@@ -501,7 +504,7 @@ function HistoryResult({
                     start.mutate(
                       {
                         quizId: data.quizId,
-                        context: "DIRECT",
+                        context: AttemptContext.DIRECT,
                       },
                       {
                         onSuccess: ({

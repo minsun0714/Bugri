@@ -1,4 +1,7 @@
-import { AttemptContext, QuizStatus } from "@/api/constants";
+import {
+  AttemptContext,
+  QuizStatus,
+} from "@/api/constants";
 import {
   historyDemoAttempts,
   learningDays,
@@ -220,7 +223,8 @@ function validateState(
     "복습 일정이 손상되었습니다.",
   );
 
-  for (const entry of (reviewSchedules ?? []) as unknown[]) {
+  for (const entry of (reviewSchedules ??
+    []) as unknown[]) {
     object(entry);
 
     requireValue(

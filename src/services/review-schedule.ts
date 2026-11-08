@@ -18,14 +18,22 @@ export interface ReviewOutcome extends ReviewStep {
 }
 
 /** Calendar arithmetic on YYYY-MM-DD strings. Noon UTC keeps it independent of any zone or DST. */
-export function addDays(date: string, days: number): string {
-  return new Date(Date.parse(`${date}T12:00:00Z`) + days * dayMs)
+export function addDays(
+  date: string,
+  days: number,
+): string {
+  return new Date(
+    Date.parse(`${date}T12:00:00Z`) + days * dayMs,
+  )
     .toISOString()
     .slice(0, 10);
 }
 
 /** Signed number of calendar days from `from` to `to`. */
-export function dateDistance(from: string, to: string): number {
+export function dateDistance(
+  from: string,
+  to: string,
+): number {
   return Math.round(
     (Date.parse(`${to}T12:00:00Z`) -
       Date.parse(`${from}T12:00:00Z`)) /
@@ -59,7 +67,7 @@ export function nextReview({
 }): ReviewOutcome {
   const next = correct ? Math.min(stage + 1, lastStage) : 0;
 
-  const intervalDays = reviewIntervals[next];
+  const { [next]: intervalDays } = reviewIntervals;
 
   return {
     stage: next,
