@@ -8,7 +8,7 @@ import { useLocale } from "@/lib/i18n/use-translation";
 export function LanguagePicker() {
   const locale = useLocale();
   return (
-    <div className="w-27 shrink-0 [&_[role=listbox]]:left-auto [&_[role=listbox]]:right-0 [&_[role=listbox]]:min-w-36">
+    <div className="w-27 shrink-0 [&_[role=listbox]]:left-auto [&_[role=listbox]]:right-0 [&_[role=listbox]]:min-w-36 [&_[role=listbox]]:top-[calc(100%+8px)] [&_[role=listbox]]:rounded-control [&_[role=listbox]]:border-t [&_[role=listbox]]:border-control-line">
       <Dropdown
         label="Language / 언어"
         hideLabel
@@ -22,7 +22,7 @@ export function LanguagePicker() {
             value === Locale.EN ? Locale.EN : Locale.KO,
           )
         }
-        triggerClassName="!px-3 !py-2 !text-xs"
+        triggerClassName="!rounded-full !border !border-line !bg-surface !px-3 !py-2 !text-xs"
       />
     </div>
   );

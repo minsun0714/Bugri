@@ -100,7 +100,7 @@ export function Dropdown({
         className={
           variant === "compact"
             ? `flex h-11 w-full items-center justify-center gap-1 rounded-lg px-1 text-xs font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-45 sm:text-sm ${triggerClassName}`
-            : `flex min-h-11 w-full items-center justify-between gap-3 rounded-t-control rounded-b-none border-0 border-b-2 px-4 py-3 text-left text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${triggerClassName} ${expanded ? "border-primary bg-surface-raised text-foreground" : "border-control-line bg-surface-raised text-foreground hover:outline-2 hover:outline-control-line"}`
+            : `flex min-h-11 w-full items-center justify-between gap-3 border-0 px-4 py-3 text-left text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${triggerClassName} ${expanded ? "rounded-t-control rounded-b-none bg-surface-raised text-foreground ring-2 ring-inset ring-primary" : "rounded-control bg-surface-raised text-foreground hover:outline-2 hover:outline-control-line"}`
         }
       >
         <span className="min-w-0 truncate">
