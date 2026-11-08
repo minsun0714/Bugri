@@ -18,10 +18,11 @@ import { AnswerForm } from "@/components/solving/answer-form";
 import { solvingStyles } from "@/components/solving/styles";
 
 function answerText(
-  answer: Answer,
+  answer: Answer | null,
   question: Question,
   t: (message: string) => string,
 ): string {
+  if (!answer) return t("기록 없음");
   const choices =
     "choices" in question ? question.choices : [];
   const label = (id: string) =>
@@ -108,9 +109,11 @@ export function QuizPanel({
         tabIndex={-1}
         aria-label={
           result
-            ? result.correct
+            ? result.correct === true
               ? t("정답입니다")
-              : t("오답입니다")
+              : result.correct === false
+                ? t("오답입니다")
+                : t("기록 없음")
             : (quiz?.title ?? t("풀이 완료"))
         }
         className="scroll-mt-6 outline-none"
@@ -137,7 +140,7 @@ export function QuizPanel({
                     ? t("정답입니다")
                     : verdict === false
                       ? t("오답입니다")
-                      : t("풀이 완료")}
+                      : t("기록 없음")}
                 </span>
               </h2>
               <p className="mt-1 text-xs text-muted">
@@ -180,8 +183,10 @@ export function QuizPanel({
         ) : null}
         {quiz && (
           <>
-            <h2 className="mb-3 min-w-0 break-words [overflow-wrap:anywhere] [&_.ui-badge]:bg-transparent [&_.ui-badge]:p-0 [&_.ui-badge]:text-xs [&_.ui-badge]:font-medium [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-muted">
-              <Badge>{quiz.title}</Badge>
+            <h2 className="mb-3 min-w-0 break-words [overflow-wrap:anywhere] [&_.ui-badge]:block [&_.ui-badge]:max-w-full [&_.ui-badge]:bg-transparent [&_.ui-badge]:p-0 [&_.ui-badge]:text-xs [&_.ui-badge]:font-medium [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-muted">
+              <Badge>
+                {quiz.title || t("이용할 수 없는 퀴즈")}
+              </Badge>
             </h2>
             <div className="break-keep text-xl font-semibold leading-8 tracking-tight [overflow-wrap:anywhere] sm:text-2xl sm:leading-9 [&_pre]:text-sm [&_pre]:font-normal">
               <QuizText>{quiz.question.prompt}</QuizText>
@@ -195,7 +200,7 @@ export function QuizPanel({
             aria-label={t("제출 결과")}
             className="space-y-6 border-t border-line pt-6"
           >
-            <div className="grid gap-4 rounded-2xl border border-line bg-canvas/50 p-4 sm:grid-cols-2">
+            <div className="grid gap-4 [overflow-wrap:anywhere] rounded-2xl border border-line bg-canvas/50 p-4 sm:grid-cols-2">
               <p>
                 {t("내 답:")}{" "}
                 {answerText(
@@ -217,7 +222,9 @@ export function QuizPanel({
               <h3 className="text-xs font-medium text-muted">
                 {t("해설")}
               </h3>
-              <QuizText>{result.explanation}</QuizText>
+              <QuizText>
+                {result.explanation ?? t("기록 없음")}
+              </QuizText>
             </div>
           </section>
         ) : (

@@ -312,7 +312,8 @@ function validateState(
   }
 
   const revision = (
-    r: NonNullable<UserState["quizzes"][number]["active"]>,
+    r: UserState["attempts"][number]["revision"],
+    partialHistory = false,
   ) => {
     object(r);
 
@@ -337,6 +338,7 @@ function validateState(
     validateContent(
       content,
       hashtags.map(({ id }) => id),
+      partialHistory,
     );
   };
 
@@ -506,7 +508,7 @@ function validateState(
       );
     }
 
-    revision(a.revision);
+    revision(a.revision, !!a.completedAt);
   }
 
   for (const d of days) {

@@ -174,6 +174,7 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/quizzes/{id}/reaction",
     pathKey: "quizId",
   },
+  attemptHistory: { method: "GET", path: "/me/attempts" },
   startAttempt: {
     method: "POST",
     path: "/quizzes/{id}/attempts",

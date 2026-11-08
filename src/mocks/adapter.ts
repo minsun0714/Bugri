@@ -234,7 +234,12 @@ export function createMockTransport(
 
         const before = JSON.stringify(state);
 
+        const readOnlyHistory =
+          operation === "attemptHistory" ||
+          operation === "attempt";
+
         if (
+          !readOnlyHistory &&
           operation !== "publicLearningDay" &&
           operation !== "profileOrder" &&
           !state.timeZone
@@ -272,6 +277,7 @@ export function createMockTransport(
         // Upgrade only the actor's legacy snapshot. Service-level subscribe deduplicates targets.
         // Commit the marker with the requested operation so a failed write never partially migrates.
         if (
+          !readOnlyHistory &&
           operation !== "publicLearningDay" &&
           operation !== "profileOrder" &&
           state.learningDemoVersion === undefined
@@ -285,6 +291,7 @@ export function createMockTransport(
         }
 
         if (
+          !readOnlyHistory &&
           operation !== "publicLearningDay" &&
           operation !== "profileOrder" &&
           state.coinHistoryDemoVersion === undefined

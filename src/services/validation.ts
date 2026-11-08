@@ -183,7 +183,19 @@ export function validateAnswer(
 export function validateContent(
   value: unknown,
   hashtagIds: string[],
-): asserts value is QuizContent {
+): asserts value is QuizContent;
+
+export function validateContent(
+  value: unknown,
+  hashtagIds: string[],
+  partialHistory: boolean,
+): void;
+
+export function validateContent(
+  value: unknown,
+  hashtagIds: string[],
+  partialHistory = false,
+): void {
   object(value);
 
   keys(value, [
@@ -202,8 +214,12 @@ export function validateContent(
     hashtagIds: contentHashtagIds,
   } = value;
 
-  text(title, "title");
-  text(explanation, "explanation");
+  if (!partialHistory || title != null)
+    text(title, "title");
+
+  if (!partialHistory || explanation != null)
+    text(explanation, "explanation");
+
   object(q);
 
   const { type, prompt, choices } = q;
@@ -265,7 +281,8 @@ export function validateContent(
     "hashtagIds",
   );
 
-  validateAnswer(answer, q as unknown as Question);
+  if (!partialHistory || answer != null)
+    validateAnswer(answer, q as unknown as Question);
 }
 
 export function isCorrect(

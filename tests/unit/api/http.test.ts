@@ -147,7 +147,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(55);
+  expect(Object.keys(endpoints)).toHaveLength(56);
 
   expect(endpoints.quizReaction).toEqual({
     method: "GET",
@@ -459,5 +459,37 @@ test("profile section order uses public GET and actor PUT", async () => {
       method: "PUT",
       body: JSON.stringify(request),
     }),
+  );
+});
+
+test("attempt history uses a private GET endpoint and query filters", async () => {
+  const fetcher = jest.fn().mockResolvedValue(
+    response({
+      data: {
+        items: [],
+        total: 0,
+        page: 2,
+        pageSize: 20,
+      },
+    }),
+  );
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await client.request("attemptHistory", {
+    filter: "INCORRECT",
+    page: 2,
+    pageSize: 20,
+  });
+
+  expect(fetcher).toHaveBeenCalledWith(
+    "/api/v1/me/attempts?filter=INCORRECT&page=2&pageSize=20",
+    expect.objectContaining({ method: "GET" }),
+  );
+
+  expect(fetcher.mock.calls[0][1]).not.toHaveProperty(
+    "body",
   );
 });

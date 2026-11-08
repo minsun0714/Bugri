@@ -1,3 +1,4 @@
+import type { AttemptHistoryFilter } from "@/api/constants";
 import type {
   RewardNonPaymentReason,
   RewardReason,
@@ -165,10 +166,10 @@ export interface LearningSelection {
 }
 
 export interface AttemptResult {
-  submittedAnswer: Answer;
-  correct: boolean;
-  answer: Answer;
-  explanation: string;
+  submittedAnswer: Answer | null;
+  correct: boolean | null;
+  answer: Answer | null;
+  explanation: string | null;
 }
 
 /** Immutable submission-time explanation; absent on legacy attempts. */
@@ -556,6 +557,24 @@ export interface ApiOperations {
       reaction: QuizReaction | null;
     };
     response: QuizReactionSummary;
+  };
+  attemptHistory: {
+    request: {
+      filter?: AttemptHistoryFilter;
+      page?: number;
+      pageSize?: number;
+    };
+    response: {
+      items: {
+        attemptId: string;
+        title: string | null;
+        correct: boolean | null;
+        completedAt: string;
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+    };
   };
   startAttempt: {
     request: {
