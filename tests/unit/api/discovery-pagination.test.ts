@@ -361,3 +361,99 @@ test("isolating subscriptions preserves the existing learning order across autho
 
   expect(selection.quiz?.quizId).toBe("seed-quiz-1");
 });
+
+test("populated tags precede empty tags before paging without count sorting or subscription changes", () => {
+  const content = {
+    revisionId: "r1",
+    sourceContent: "source",
+    reviewed: true,
+    title: "quiz",
+    question: { type: "TRUE_FALSE" as const, prompt: "q" },
+    answer: { type: "TRUE_FALSE" as const, value: true },
+    explanation: "answer",
+    hashtagIds: ["b", "d"],
+  };
+
+  const base = {
+    quizId: "q1",
+    ownerUserId: "author",
+    status: QuizStatus.PUBLIC,
+    version: 1,
+    active: content,
+    pending: null,
+    updatedAt: "2026-01-01",
+    deletedAt: null,
+  };
+
+  const input = {
+    users: [],
+    hashtags: ["d", "a", "c", "b"].map((id) => ({
+      id,
+      name: `match-${id}`,
+    })),
+    subscriptions: [
+      {
+        type: "HASHTAG" as const,
+        hashtagId: "a",
+        subscriptionId: "sub-a",
+      },
+    ],
+    quizzes: [
+      base,
+      {
+        ...base,
+        quizId: "q2",
+        active: { ...content, hashtagIds: ["d"] },
+      },
+    ],
+  };
+
+  const before = JSON.stringify(input);
+
+  const pages = [1, 2, 3, 4].map((page) =>
+    searchDiscovery(input, {
+      kind: DiscoveryKind.HASHTAG,
+      query: "match",
+      page,
+      pageSize: 1,
+    }),
+  );
+
+  const items = pages.flatMap(({ items }) => items);
+
+  expect(
+    items.map(
+      (item) =>
+        item.type === DiscoveryKind.HASHTAG &&
+        item.hashtag.id,
+    ),
+  ).toEqual(["b", "d", "a", "c"]);
+
+  expect(
+    items.map(
+      (item) =>
+        item.type === DiscoveryKind.HASHTAG &&
+        item.publicQuizCount,
+    ),
+  ).toEqual([1, 2, 0, 0]);
+
+  expect(items.map(({ subscribed }) => subscribed)).toEqual(
+    [false, false, true, false],
+  );
+
+  expect(pages.every(({ total }) => total === 4)).toBe(
+    true,
+  );
+
+  expect(JSON.stringify(input)).toBe(before);
+
+  expect(
+    searchDiscovery(input, {
+      kind: DiscoveryKind.HASHTAG,
+      query: "",
+      page: 1,
+      pageSize: 1,
+      subscribedOnly: true,
+    }).items,
+  ).toEqual([items[2]]);
+});

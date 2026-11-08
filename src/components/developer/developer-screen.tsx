@@ -35,7 +35,6 @@ import {
   Button,
   EmptyState,
   Skeleton,
-  TextField,
   Toast,
 } from "@/components/ui";
 import { developerStyles } from "@/components/developer/styles";
@@ -50,8 +49,6 @@ import { useDeveloper } from "@/components/developer/queries";
 
 interface Filters {
   page: number;
-  tagPage: number;
-  tagQuery: string;
   hashtagIds: string[];
 }
 
@@ -106,52 +103,6 @@ function PageControls({
   );
 }
 
-function TagSearch({
-  value,
-  busy,
-  onSearch,
-}: {
-  value: string;
-  busy: boolean;
-  onSearch: (query: string) => void;
-}) {
-  const t = useTranslation();
-
-  const [query, setQuery] = useState(value);
-
-  return (
-    <form
-      className={developerStyles.search}
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSearch(query.trim());
-      }}
-    >
-      <div className={developerStyles.searchField}>
-        <TextField
-          type="search"
-          label={t("이 개발자의 태그 검색")}
-          hideLabel
-          placeholder={t("태그 검색")}
-          value={query}
-          maxLength={100}
-          disabled={busy}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </div>
-      <Button
-        type="submit"
-        size="sm"
-        variant="secondary"
-        className={developerStyles.searchButton}
-        disabled={busy}
-      >
-        {t("검색")}
-      </Button>
-    </form>
-  );
-}
-
 function Catalog({
   userId,
   publicId,
@@ -176,7 +127,7 @@ function Catalog({
   const t = useTranslation();
 
   const { signedIn, signIn } = useDemoSession();
-  const { page, tagPage, tagQuery, hashtagIds } = filters;
+  const { page, hashtagIds } = filters;
   const { quizzes, tags, subscribe } = useDeveloper(
     userId,
     {
@@ -187,10 +138,11 @@ function Catalog({
     },
     {
       publicId,
-      page: tagPage,
-      pageSize: 10,
-      query: tagQuery,
+      page: 1,
+      pageSize: profile ? 10 : 50,
+      query: "",
     },
+    !profile,
   );
   const { data } = quizzes;
   const tagRegion = useRef<HTMLElement>(null);
@@ -221,20 +173,25 @@ function Catalog({
       @{data.user.publicId}
     </h1>
   ) : (
-    <div className="min-w-0 flex-1">
+    <div className="min-w-40 max-w-full flex-1">
       <h1 className="break-words text-lg sm:text-2xl">
         {data.user.displayName}
         {t("의 퀴즈")}
       </h1>
-      <Link
-        className="mt-1 inline-flex min-h-8 max-w-full items-center break-all text-sm text-muted hover:text-primary hover:underline"
-        href={withDemoUser(
-          `/users/${encodeURIComponent(publicId)}`,
-          signedIn ? userId : null,
-        )}
-      >
-        @{data.user.publicId}
-      </Link>
+      <div className="flex flex-wrap items-center gap-x-3">
+        <Link
+          className="inline-flex min-h-11 max-w-full items-center rounded-lg break-all text-sm text-muted underline underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+          href={withDemoUser(
+            `/users/${encodeURIComponent(publicId)}`,
+            signedIn ? userId : null,
+          )}
+        >
+          @{data.user.publicId}
+        </Link>
+        <span className="text-sm text-muted">
+          {t("공개 퀴즈 {0}개", { 0: data.total })}
+        </span>
+      </div>
     </div>
   );
   const subscription =
@@ -304,14 +261,24 @@ function Catalog({
         profile ? developerStyles.profileQuizzes : "min-w-0"
       }
     >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg">
-          {profile ? t("최신 공개 퀴즈") : t("공개 퀴즈")}{" "}
-          <span className="text-muted">
-            {profile ? data.items.length : data.total}
-            {t("개")}
-          </span>
-        </h2>
+      <div
+        className={
+          profile
+            ? "mb-4 flex flex-wrap items-center justify-between gap-2"
+            : hashtagIds.length > 0
+              ? "mb-3 flex flex-wrap items-center justify-between gap-2"
+              : "hidden"
+        }
+      >
+        {profile && (
+          <h2 className="text-lg">
+            {profile ? t("최신 공개 퀴즈") : t("공개 퀴즈")}{" "}
+            <span className="text-muted">
+              {profile ? data.items.length : data.total}
+              {t("개")}
+            </span>
+          </h2>
+        )}
         {profile && (
           <Link
             href={`/developers/${encodeURIComponent(publicId)}/quizzes?user=${encodeURIComponent(userId)}`}
@@ -341,20 +308,6 @@ function Catalog({
                 #{id} ×
               </button>
             ))}
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={busy}
-              onClick={() =>
-                onChange({
-                  ...filters,
-                  hashtagIds: [],
-                  page: 1,
-                })
-              }
-            >
-              {t("전체 퀴즈")}
-            </Button>
           </div>
         )}
       </div>
@@ -375,17 +328,42 @@ function Catalog({
                     href: `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`,
                   }}
                   footer={
-                    <div className="mt-3">
-                      <QuizReactionControl
-                        key={`${signedIn}:${userId}:${quizId}`}
-                        userId={signedIn ? userId : null}
-                        quizId={quizId}
-                      />
+                    <div
+                      className={
+                        profile
+                          ? "mt-3"
+                          : "mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1"
+                      }
+                    >
+                      {!profile && (
+                        <span className="min-w-0 max-w-full break-words text-sm text-muted [overflow-wrap:anywhere]">
+                          {hashtagIds
+                            .map((id) => `#${id}`)
+                            .join(" ")}
+                        </span>
+                      )}
+                      <div
+                        className={
+                          profile
+                            ? undefined
+                            : "ml-auto max-w-full"
+                        }
+                      >
+                        <QuizReactionControl
+                          key={`${signedIn}:${userId}:${quizId}`}
+                          userId={signedIn ? userId : null}
+                          quizId={quizId}
+                        />
+                      </div>
                     </div>
                   }
-                  metadata={hashtagIds
-                    .map((id) => `#${id}`)
-                    .join(" ")}
+                  metadata={
+                    profile
+                      ? hashtagIds
+                          .map((id) => `#${id}`)
+                          .join(" ")
+                      : undefined
+                  }
                 />
               </li>
             ),
@@ -480,7 +458,7 @@ function Catalog({
     );
 
   return (
-    <div className={profile ? "space-y-4" : "space-y-5"}>
+    <div className={profile ? "space-y-4" : "space-y-3"}>
       <header className={developerStyles.header}>
         <span
           aria-hidden="true"
@@ -503,30 +481,13 @@ function Catalog({
           )}
         </p>
       )}
-      <div className={profile ? "space-y-8" : "space-y-5"}>
+      <div className={profile ? "space-y-8" : "space-y-3"}>
         {!profile && (
           <section
             ref={tagRegion}
             aria-label={t("개발자의 태그")}
             className={developerStyles.filters}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold">
-                {t("태그")}
-              </h2>
-              <TagSearch
-                key={tagQuery}
-                value={tagQuery}
-                busy={subscriptionBusy}
-                onSearch={(query) =>
-                  onChange({
-                    ...filters,
-                    tagQuery: query,
-                    tagPage: 1,
-                  })
-                }
-              />
-            </div>
             {tags.isPending && <Skeleton />}
             {tags.error && (
               <div role="alert">
@@ -542,39 +503,47 @@ function Catalog({
             )}
             {tags.data && (
               <>
-                <FilterChips
-                  options={tags.data.items.map(
-                    ({ id, name, quizCount }) => ({
-                      id,
-                      label: name,
-                      count: quizCount,
-                    }),
-                  )}
-                  value={hashtagIds}
-                  disabled={navigating}
-                  onChange={(selected) =>
-                    onChange({
-                      ...filters,
-                      hashtagIds: selected,
-                      page: 1,
-                    })
-                  }
-                />
+                <div className="flex flex-wrap items-center gap-2 [&>ul]:contents">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="!min-h-11 !rounded-xl !border-line !bg-surface !text-sm !font-normal !text-muted !shadow-none aria-pressed:!border-primary/30 aria-pressed:!bg-primary/10 aria-pressed:!text-primary"
+                    aria-pressed={hashtagIds.length === 0}
+                    disabled={busy}
+                    onClick={() =>
+                      onChange({
+                        ...filters,
+                        hashtagIds: [],
+                        page: 1,
+                      })
+                    }
+                  >
+                    {t("전체 퀴즈")}
+                  </Button>
+                  <FilterChips
+                    options={tags.data.items.map(
+                      ({ id, name, quizCount }) => ({
+                        id,
+                        label: name,
+                        count: quizCount,
+                      }),
+                    )}
+                    value={hashtagIds}
+                    disabled={navigating}
+                    onChange={(selected) =>
+                      onChange({
+                        ...filters,
+                        hashtagIds: selected,
+                        page: 1,
+                      })
+                    }
+                  />
+                </div>
                 {!tags.data.items.length && (
                   <p className="mt-4 text-sm text-muted">
                     {t("표시할 태그가 없습니다.")}
                   </p>
                 )}
-                <PageControls
-                  label={t("태그")}
-                  page={tagPage}
-                  total={tags.data.total}
-                  pageSize={10}
-                  busy={busy}
-                  onPage={(next) =>
-                    onChange({ ...filters, tagPage: next })
-                  }
-                />
               </>
             )}
           </section>
@@ -594,8 +563,6 @@ export function DeveloperScreen({
   afterHeader?: ReactNode;
   activity?: ReactNode;
 }) {
-  const t = useTranslation();
-
   const { publicId } = useParams<{ publicId: string }>();
   const params = useSearchParams();
   const { signedIn } = useDemoSession();
@@ -639,8 +606,6 @@ export function DeveloperScreen({
   };
   const filters: Filters = {
     page: positive(params.get("page")),
-    tagPage: positive(params.get("tagPage")),
-    tagQuery: params.get("tagQuery") ?? "",
     hashtagIds: [
       ...new Set(params.getAll("tag").filter(Boolean)),
     ].sort(),
@@ -648,19 +613,7 @@ export function DeveloperScreen({
 
   return (
     <QueryClientProvider client={client}>
-      <div className="space-y-6">
-        {!profile && (
-          <Link
-            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary focus-visible:text-primary"
-            href={withDemoUser(
-              "/discover/developers",
-              signedIn ? userId : null,
-            )}
-          >
-            <span aria-hidden="true">←</span>
-            {t("탐색으로 돌아가기")}
-          </Link>
-        )}
+      <div className={profile ? "space-y-6" : "space-y-3"}>
         <Catalog
           key={`${userId}:${publicId}`}
           profile={profile}
@@ -675,14 +628,11 @@ export function DeveloperScreen({
             const query = new URLSearchParams({
               ...(signedIn ? { user: userId } : {}),
               page: String(next.page),
-              tagPage: String(next.tagPage),
             });
             for (const id of [
               ...new Set(next.hashtagIds),
             ].sort())
               query.append("tag", id);
-            if (next.tagQuery)
-              query.set("tagQuery", next.tagQuery);
             startTransition(() =>
               router.push(
                 `${profile ? `/users/${encodeURIComponent(publicId)}` : `/developers/${encodeURIComponent(publicId)}/quizzes`}?${query}`,

@@ -487,7 +487,7 @@ export function DiscoverySearch({
                             <path d="M5 6H3v10a2 2 0 0 0 2 2M8 7h5M8 10h5M8 13h3" />
                           </svg>
                           {publicQuizCount === 0 ? (
-                            t("공개 퀴즈 없음")
+                            t("현재 공개 퀴즈 없음")
                           ) : (
                             <>
                               {t("공개 퀴즈")}{" "}

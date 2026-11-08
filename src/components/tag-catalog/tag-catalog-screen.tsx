@@ -23,7 +23,6 @@ import { ApiClientError } from "@/api/client";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import { useTagQuizzes } from "@/components/tag-catalog/queries";
 import { useSubscribe } from "@/components/discovery/queries";
-import { TagExplorer } from "@/components/discovery/tag-explorer";
 import { tagDiscoveryStyles } from "@/components/discovery/styles";
 import { SubscriptionMenu } from "@/components/discovery/subscription-menu";
 import { Button, Skeleton, Toast } from "@/components/ui";
@@ -165,7 +164,7 @@ function Catalog({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {backLink}
       <section
         aria-labelledby="tag-title"
@@ -173,19 +172,16 @@ function Catalog({
       >
         <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
           <div className="flex min-w-0 max-w-full items-center gap-3">
-            <TagExplorer />
-            <div className="min-w-0 space-y-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
               <h1
                 id="tag-title"
-                className="w-fit max-w-full break-all rounded-2xl bg-success-soft px-3 py-2 text-2xl sm:text-3xl"
+                className="w-fit max-w-full break-all rounded-2xl bg-success-soft px-3 py-2 text-xl sm:text-2xl"
               >
                 #{data.hashtag.name}
               </h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="text-sm text-muted">
-                  {t("공개 퀴즈")}
-                  {data.total}
-                  {t("개")}
+                  {t("공개 퀴즈 {0}개", { 0: data.total })}
                 </p>
                 {subscribed && (
                   <span
@@ -253,7 +249,6 @@ function Catalog({
         className="space-y-4"
         aria-busy={navigating}
       >
-        <h2 className="text-lg">{t("공개 퀴즈")}</h2>
         {data.items.length ? (
           <ul className="space-y-4">
             {data.items.map(({ quizId, title, author }) => (

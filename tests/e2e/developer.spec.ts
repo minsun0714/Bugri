@@ -17,14 +17,22 @@ for (const width of [1280, 390]) {
       }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", {
-        name: "탐색으로 돌아가기",
-        exact: true,
-      }),
+      page
+        .getByRole("navigation", { name: "현재 위치" })
+        .getByRole("link", {
+          name: "개발자 탐색",
+          exact: true,
+        }),
     ).toHaveAttribute(
       "href",
       "/discover/developers?user=friend",
     );
+    await expect(
+      page.getByRole("link", {
+        name: "탐색으로 돌아가기",
+        exact: true,
+      }),
+    ).toHaveCount(0);
     const tags = page.getByRole("region", {
       name: "개발자의 태그",
     });
@@ -137,21 +145,22 @@ for (const width of [1280, 390]) {
     expect(await subscriptions()).toEqual(before);
     await page.reload();
     await expect(quizzes.getByRole("link")).toHaveCount(1);
-    await tags.getByRole("searchbox").fill("web");
-    await tags.getByRole("searchbox").press("Enter");
+    await expect(tags.getByRole("searchbox")).toHaveCount(
+      0,
+    );
     await expect(
       tags.getByRole("button", {
         name: "Web (1)",
         exact: true,
       }),
     ).toBeVisible();
-    await expect(tag).toHaveCount(0);
+    await expect(tag).toBeVisible();
     await expect(
       quizzes.getByRole("button", {
         name: "typescript 필터 해제",
       }),
     ).toBeVisible();
-    await quizzes
+    await tags
       .getByRole("button", {
         name: "전체 퀴즈",
         exact: true,

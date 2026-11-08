@@ -7,6 +7,8 @@
   "공개 퀴즈를 불러오지 못했습니다": "Could not load public quizzes",
   "다시 불러오기": "Reload",
   "공개 퀴즈": "Public quizzes",
+  "공개 퀴즈 {0}개": "Public quizzes: {0}",
+  "현재 공개 퀴즈 없음": "No public quizzes yet",
   "개": "",
   "✓ 구독 중": "✓ Subscribed",
   "학습하기 →": "Start learning →",

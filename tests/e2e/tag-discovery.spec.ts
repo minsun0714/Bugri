@@ -53,7 +53,7 @@ test("guest consent preserves search, requires explicit subscription, and manage
     }),
   ).toBeDisabled();
   await expect(
-    page.getByText("공개 퀴즈 없음", { exact: true }),
+    page.getByText("현재 공개 퀴즈 없음", { exact: true }),
   ).toBeVisible();
   const menu = page.getByRole("button", {
     name: "Java 구독 메뉴",
