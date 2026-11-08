@@ -4,4 +4,3 @@
 - TDD: 슬라이더 부재 단위 테스트의 미구현 실패 확인. 기존 회전 테스트를 화살표 드래그/키보드 조작과 배치 각도 출력으로 변경하고 저장·실패 초안 유지·복원 기대값은 유지한다.
 - 검증: 관련 단위 13개·E2E 6개 통과 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 13 suites/73 tests·도구 3 tests·build·Playwright 22 tests). 로그 `.bugri-hooks/no-rotation-slider-verify.log`. 슬라이더 부재·드래그 중 각도·키보드 회전·실패 초안 보존·저장 복원 확인, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

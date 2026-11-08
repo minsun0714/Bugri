@@ -5,5 +5,3 @@
 
 - [독립 UX/UI 리뷰](../ux-reviews/PROFILE-HEADER-ACTIONS.md): 새 UX리뷰어320/390실제조작+코드검토, 새 UI리뷰어1280/390/320캡처확인. 필수문제0개/R0수정0회. 본인/게스트/타인·두 편집진입/초점복귀·순서저장 확인. 실기기터치/스크린리더 미확인.
 - Nodev22.23.3 관련Jest9개·변경파일ESLint/Prettier·전체타입·diff검사 통과. productionE2E 최초13개중11통과/모달2실패(3D준비중안내 높이40px차이). 준비완료 대기만 추가해 높이동일기대 유지, 수정후모달3개재통과. 앱/나머지테스트/환경동일하여 최초 나머지10개 성공재사용. 실패수정1회. 로그 `/tmp/profile-header-e2e.log`, `/tmp/profile-header-order-r1.log`, `/tmp/profile-header-unit.log`. UI 한정 로컬완료로 전체verify는 재실행하지 않았다. 검증 후 변경은 결과 기록뿐이며 로컬커밋한다. push/PR/병합 없음.
-
-

@@ -5,4 +5,3 @@
 - 재현/관련 검증: 수정 전 기존 Canvas 확대 E2E 2개는 통과했지만 조작 후 회전 버튼 위 확대 E2E 2개는 PC/모바일 모두 실패했다. 수정 후 관련 E2E 8개 통과. 실제 회전 드래그 뒤 휠 확대, 메뉴 위 축소, ctrlKey wheel 형태의 트랙패드 확대 입력, 배치 좌표/각도 보존, 모달 스크롤 유지, 영역 밖 wheel 미차단, 초기화 및 기존 배율 상한/하한을 확인했다. TypeScript 통과.
 - 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 16 suites/94 tests·도구 3 tests·build·Playwright 53 tests). 로그 `.bugri-hooks/zoom-controls-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

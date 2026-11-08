@@ -7,4 +7,3 @@
 - 관련 검증: Node22.23.3, 새단위2개/구독컴포넌트2개 및 개발자탐색E2E7개 통과. 테스트의 Playwright 전용 exact 옵션2곳을 RTL의 기본정확이름 일치로 바로잡고 전체타입·scoped ESLint/Prettier 통과. [독립 UX/UI R0](../ux-reviews/DISCOVERY-SUBSCRIPTIONS.md) 실제PC/mobile 필수문제0개, 수정회차0. 대량페이지는 단위검증이며 실제1000명 성능/서버페이지조회 검증이 아님.
 
 - 최종 통합 전체검증: HEAD13fcd7c 기반 최종 앱/테스트 변경, Node v22.23.3에서 `npm run verify -- -- --workers=1` exit0. lint·TypeScript·Jest49 suites/238 tests·도구3개·production build·E2E148개(6.3분) 모두 통과. 로그 `.bugri-hooks/DISCOVERY-SUBSCRIPTIONS-INTEGRATION-verify.log`. 앞선 DISCOVERY-REPAIR/CUTE 및 외부병합 통합까지 이 최종 결과로 완료한다. 검증 후 변경은 TASKS/리뷰기록뿐이며 앱·테스트·설정은 동일하다. 독립리뷰 한계/기존공통헤더 선택초점P3 보류는 각리뷰기록 유지. 로컬커밋하며 push/PR/merge는 수행하지 않는다.
-

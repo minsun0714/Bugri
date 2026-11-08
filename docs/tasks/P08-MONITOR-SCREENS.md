@@ -5,4 +5,3 @@
 - 실패 분석: 화면 무늬의 도형 분포가 깊이 정렬에 영향을 주어 미드나잇 화면이 본체에 가려지는 문제를 발견했다. 본체와 화면을 같은 표시 그룹에 두고 본체 다음에 화면을 그리도록 수정했다. 새 회귀 테스트는 Canvas 타입 누락, 회전 전 선택 누락, Escape가 모달 닫기 대신 편집 취소로 처리되는 진입 문제로 실패했다. 타입/선택/명시적 닫기 단계를 보완했으며 기대값은 유지했다.
 - 검증: 모니터 두 종류의 앞면 화면 픽셀 표시·180도 뒷면 숨김·0도 복원 E2E 통과. 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/75 tests·도구 3 tests·build·Playwright 25 tests). 로그 `.bugri-hooks/monitor-screens-verify-final.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

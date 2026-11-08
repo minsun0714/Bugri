@@ -19,4 +19,3 @@
 - 실패한 세 파일 단일worker 재실행6개 통과 후 전체2차는123개 통과·room-zoom PC 1개 mouse.move 시간제한 실패. 공유 실행 환경의 병렬 부하 가능성을 분리하기 위해 최종3차는 `npm run verify -- -- --workers=1`로 전체 동일 파이프라인과124개 E2E를 순차 실행한다. Hook 기본명령은 인자를 받지 않아3차를 수동 실행하며 상태의 시도횟수·명령·실제 종료코드를 기록한다. 테스트 기대값·30초 제한·검사항목은 유지한다.
 
 - 최종3차 Node v22.23.3 `npm run verify -- -- --workers=1` 전체 통과: lint·TypeScript·Jest195개·도구3개·production build·E2E124개(4.8분). 동일한 검사를 순차 실행했으며 시간제한·기대값은 변경하지 않았다. 실제종료0과Hook상태비활성 기록, 로그 `.bugri-hooks/PROFILE-FORM-POLISH-verify.log`. 수정 코드Prettier·diff check 통과. 필수 미해결 없음, 실기 등 독립리뷰 한계는 기록 유지.
-

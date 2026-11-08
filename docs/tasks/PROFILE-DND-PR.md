@@ -11,4 +11,3 @@
 - Node v22.23.3, `beb2b70`에서 `npm run verify -- -- --workers=2` exit 0: ESLint·전체 TypeScript·Jest 62 suites/311 tests·도구 테스트 3개·production build·Chromium E2E 197개 통과. 로그 `/tmp/profile-dnd-pr-theme-verify.log`. 이전 결과를 대체하는 최종 통합 검증이며 실패·재시도 없음.
 - [독립 UX/UI 통합 리뷰](../ux-reviews/PROFILE-DND-INTEGRATION.md): 두 테마·PC/모바일 본인/방문자 화면과 저장/취소/포커스/탐색을 직접 확인해 필수 문제 0개, 수정 0회. upstream 코드·문서 보존 정적 리뷰도 완료. 실기기·스크린리더 등 한계는 리뷰 문서에 기록했다.
 - 검증 후 변경은 작업 기록·리뷰 문서뿐이므로 성공 결과를 재사용한다. 문서 링크·diff check 확인 후 PR을 Ready로 갱신하며 병합은 하지 않는다.
-

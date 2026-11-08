@@ -9,4 +9,3 @@
 - 첫 전체 verify: lint·타입·Jest 41 suites/193 tests·도구 3 tests·build 통과, E2E 118/119 통과. profile-split은 Next의 이전 경로 숨김 보관으로 마이페이지/데스크의 `내 잔액` 두 요소를 찾는 strict locator 오류였다. 현재 main의 잔액 표시 및 공개 이동 후 모든 보관된 잔액의 숨김·현재 main의 부재를 검증하도록 선택자를 수정했다(수정·재실행 1회). 개인 정보 비노출 검증은 유지했다. 새 테스트 2개의 Prettier 후속 줄바꿈도 정리했다.
 
 - 최종 검증: 마지막 테스트 변경 후 Node v22.23.3에서 Hook을 직접 실행하여 `npm run verify` 전체 통과(lint·TypeScript·Jest 41 suites/193 tests·도구 3 tests·production build·Playwright 119 tests). 로그 `.bugri-hooks/verify-2.log`; Hook 성공 비활성화 확인. 관련 파일 Prettier 및 `git diff --check` 통과. 범위 내 독립 UX/코드 리뷰 완료, 최종 병합 판단은 사용자에게 남긴다. push·PR·merge 없음.
-

@@ -6,4 +6,3 @@
 
 - B 구현 및 독립 UX/UI R2·R3 완료. 질문/선택지/결과 위계와 모바일 레이아웃, 키보드 선택/다음/재도전/모달 복원을 확인했다. 이전 HOME-QUIZ-01의 초기 응답 focus 경합은 StrictMode 회귀 테스트와 초기 focus 보호로 보완했다. [리뷰·실제 캡처](../ux-reviews/HOME-QUIZ-02.md).
 - 최종 Node v22.23.3에서 `PLAYWRIGHT_PORT=3195 npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest43 suites/203 tests·도구3개·production build·E2E126개. 동시 실행 수만1로 조정했으며 전체 검사 범위 유지. 로그 `/tmp/bugri-b-verify-final.log`. 관련 Prettier와 diff check 통과. 연속 학습 파일 diff 없음. 커밋하며 push·PR·merge하지 않는다.
-

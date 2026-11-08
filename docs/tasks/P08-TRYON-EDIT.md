@@ -6,4 +6,3 @@
 - 실패/수정: 최초 E2E는 기존 좁은 모달 너비로 실패했다. 오류 메시지 함수 분리 후 공개 페이지 import 누락과 새 RTL 테스트의 Playwright 전용 exact 옵션으로 빌드가 실패해 수정했다. 전체 검증에서 성공 알림이 조회 상태에 과하게 의존해 누락되는 단위 테스트 실패가 나서 실제 저장 성공한 배치 스냅샷으로 알림을 판단하도록 수정했다. 변경된 초안에는 이전 성공 알림을 표시하지 않는다.
 - 검증: 관련 상점 단위 12개·관련 E2E 6개 통과. 마지막 수정 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 13 suites/72 tests·도구 3 tests·build·Playwright 20 tests). 로그 `.bugri-hooks/tryon-edit-verify-final.log`. PC/모바일 모달 캡처 확인, 드래그/회전 저장·새로고침·취소·부분 실패 재시도 검증, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

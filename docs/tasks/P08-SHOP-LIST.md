@@ -4,4 +4,3 @@
 - TDD: 상점/보관함 버튼 부재·상품 10개 표시 테스트의 미구현 실패 확인. 기존 구매/장착 회귀의 진입 경로를 상품 모달로 갱신하고 보유 상품 관리 단위 검사는 `/my`에서 실행한다.
 - 검증: 관련 단위 7개·E2E 5개 통과 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 13 suites/73 tests·도구 3 tests·build·Playwright 20 tests). 로그 `.bugri-hooks/shop-list-verify.log`. 실제 PC/모바일 화면에서 탭 제거와 상품 목록 표시 확인. 기존 장착/자유 배치/높이/공개 저장 검증은 새 모달 진입 경로로 유지했으며 `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

@@ -8,4 +8,3 @@
 
 - 최종 Node v22.23.3 전체 `npm run verify` 통과(수동 호출한 검증 Hook `.bugri-hooks/verify-2.log`): lint·TypeScript·Jest 193개·도구 테스트 3개·production build·Playwright 119개. 첫 전체 검증은 신규 API 2개로 기존 엔드포인트 개수 44 기대가 실패해 승인된 46개 계약과 새 경로를 검증하도록 갱신했으며 관련 HTTP 테스트 9개 재통과 후 전체 재실행했다. 수정 파일 Prettier 및 diff check 통과.
 - 사용자 후속 스크린샷 리뷰의 정보 묶음·편집 버튼 배치·본문 위계 개선 제안은 [UX 기록](../ux-reviews/PROFILE-ABOUT.md)에 별도로 남겼다. 리뷰 요청이므로 추가 화면 재배치는 구현하지 않았다. 전체 테스트 통과는 해당 후속 UX 제안이 해결됐다는 뜻이 아니다.
-

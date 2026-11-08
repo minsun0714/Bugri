@@ -8,4 +8,3 @@
 - TDD: 높이 API/높이 UI 미구현 실패 2개와 저장 성공 후 표시 복귀 실패 1개를 확인했다. 높이 0/0.7/2.4/5 저장·공개 복원, 지하/비유한 거부, 프리셋/키보드/취소/저장 실패 초안, 실제 수직 드래그·가림 픽셀·새로고침·공개 보기 전용을 검증한다. 기존 키보드 가림/자유 배치 E2E도 유지한다.
 - 최종 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest 12 suites/70 tests·포트 도구 3 tests·build·Playwright 13 tests. 중간 전체 검증의 새 API 테스트 공백 규칙 오류를 수정 후 다시 통과했다. 로그 `.bugri-hooks/height-verify-final.log`. 변경 파일 Prettier·`git diff --check` 통과. 바닥 키보드가 다리 사이에 보이는 화면과 위에서 상판에 가려지는 캡처 `.bugri-hooks/previews/height-floor-side.png`, `height-floor-top.png` 확인.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

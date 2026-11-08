@@ -6,4 +6,3 @@
 - 실패 분석: 의도한 미구현 E2E 2개는 상점에 상시 Canvas가 남아 있어 실패했다. 구현 후 닫기 포커스 복원 누락을 발견해 실행 버튼 참조로 복원했다(중간 검사는 참조 연결 전 빌드를 사용해 같은 오류가 재현됨). 추가 구매 테스트는 카메라 output과 구매 알림의 status 역할 중복으로 실패해 구매 알림으로 선택자를 한정했다. 마지막 관련 E2E 3개·상점 단위 6개 통과. 기존 구매/장착·WebGL 미사용·버그리 검사는 새 모달 진입 경로로 갱신하고 검증 내용은 유지했다.
 - 최종 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest 12 suites/70 tests·도구 3 tests·build·Playwright 18 tests. 로그 `.bugri-hooks/tryon-verify.log`. PC/모바일 상품 목록·모달 화면 확인, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

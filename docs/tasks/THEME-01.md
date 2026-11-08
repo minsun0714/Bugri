@@ -19,5 +19,3 @@
 - 통합 독립리뷰: upstream공통CTA·중복제거·단위테스트와 다크토큰/페이지네이션 보존 확인. UX390px다크 두사용자 생성이동, UI1280/390px양테마 두사용자 총8상태 확인, 추가결함없음. 관련단위11개 통과. 전체검증 진행중.
 
 - PR 통합 검증: Node22.23.3 lint·전체타입·Jest60 suites/304개·도구3개·production build 통과. 전체 E2E190/191 통과, 모바일 구독 모달1개가30초 timeout으로 실패했다(`/tmp/bugri-theme-pr-verify.log`). 코드/테스트 변경 없이 `npm run test:e2e -- tests/e2e/developer-discovery-repair.spec.ts --workers=1` 재실행8개 모두통과(`/tmp/bugri-theme-pr-recheck.log`). 원인은 확정하지 않았으며 최초전체verify exit1을 전체일괄통과로 표현하지 않는다. 성공결과는동일코드에서재사용한다. 실기기미확인·간헐실패이력을명시한 Draft PR을 게시한다. 검증대상061eddd+dev59c4a10 통합이며 이후변경은기록뿐이다.
-
-

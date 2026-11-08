@@ -8,4 +8,3 @@
 - 중간 E2E는 저장 직후 비동기 화면 반영 전의 기존 x/회전값을 읽어 실패했다. 기대값은 유지하고 x>2·회전90의 화면 반영을 명시적으로 기다리도록 수정했다. 임시 포트 점유 fixture의 연결 정리 지연은 소유한 임시 서버만 종료한 뒤 연결을 즉시 닫는 fixture로 다시 확인했다.
 - 최종 Node v22.23.3 전체 `npm run verify` exit 0: lint·TypeScript·Jest 12 suites/67 tests·포트 도구 3 tests·build·Playwright 12 tests. 3107/3108을 실제 점유시킨 상태에서 자동 3109 선택, 검증 후 두 임시 서버 정리까지 확인했다. 로그 `.bugri-hooks/free-port-verify-clean.log`. 변경 파일 Prettier와 `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 구현자 외 리뷰 대기). push·PR·merge 없음.
-

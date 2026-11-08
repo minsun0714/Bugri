@@ -7,4 +7,3 @@
 - 실패 분석: 모바일에서 회전 후 임의의 중간 색상 픽셀을 고르는 측정값이 2px 달라졌다. 실제 외곽선은 1px 이내였으며 역회전의 안티앨리어싱으로 픽셀 집합이 달라진 것이었다. 위치 측정을 네 외곽선 비교로 바로잡고 1px 허용치는 유지했다.
 - 검증: 상점 단위 7개, 관련 기존 E2E 5개와 최종 독립 이동 E2E 2개 통과. Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/77 tests·도구 3 tests·build·Playwright 27 tests). 로그 `.bugri-hooks/shop-desk-selection-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

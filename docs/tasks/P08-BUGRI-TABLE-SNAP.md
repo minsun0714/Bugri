@@ -6,4 +6,3 @@
 - 관련 검증: 단위 3개와 E2E 10개 통과. 이동·회전된 책상과 고정 아이템 좌표계 변환, 상판 밖/가장자리 처리, PC/모바일 상판 드롭·카메라 회전·저장/공개 복원·확대 상태·초기화/미저장을 확인했다. 45도/135도 실제 Canvas 화면에서 발의 상판 접촉을 확인했다. 전체 검증에는 드래그 취소 후 원래 위치 유지도 추가했다.
 - 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 16 suites/88 tests·도구 3 tests·build·Playwright 39 tests). 로그 `.bugri-hooks/bugri-tabletop-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

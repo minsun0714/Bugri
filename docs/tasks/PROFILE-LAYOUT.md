@@ -12,4 +12,3 @@
 
 - 최종 Node v22.23.3 전체 `npm run verify` 통과(수동 검증 Hook3차, `.bugri-hooks/PROFILE-LAYOUT-verify.log`): lint·TypeScript·Jest193개·도구3개·production build·Playwright122개. 수정 파일 Prettier·diff check 통과. 검증1/2차 중단은 각각 사용자 후속 요청 반영과 이전 내비게이션 기대 갱신을 위한 것이며 성공 근거는 최종3차뿐이다.
 - 독립 UX 수정·재검토3회(C1 도메인, C2 사용자 토스트 요청, C3 사용자 위치 요청) 완료. PC/모바일 직접 확인, 필수 미해결 없음. 스크린리더 실기·실제 외부 사이트 도착 등은 리뷰 기록의 미확인 범위를 유지한다. 최종 스크린샷 리뷰의 추가 개선 후보는 평가만 했으며 구현 완료 주장에 포함하지 않는다.
-

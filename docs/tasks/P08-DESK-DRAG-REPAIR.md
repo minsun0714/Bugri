@@ -7,4 +7,3 @@
 - 검증 보완: 실제 모바일 화면 재현용으로 만든 `.bugri-hooks/inspect-foot.cjs`가 ESLint 검색에 포함되어 require 규칙으로 전체 검증이 중단됐다. 일회성 재현 스크립트를 삭제하고 검증을 다시 실행했다. lint 설정이나 규칙은 변경하지 않았다.
 - 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 16 suites/90 tests·도구 3 tests·build·Playwright 43 tests). 로그 `.bugri-hooks/foot-orbit-verify-final.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

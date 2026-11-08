@@ -8,4 +8,3 @@
 - 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3114 npm run verify` 통과(lint·TypeScript·Jest 12 suites/66 tests·build·Playwright 11 tests). 로그 `.bugri-hooks/visibility-verify.log`. 변경 파일 Prettier와 `git diff --check` 통과. 수정 전/후 캡처 `.bugri-hooks/previews/keyboard-disappear.png`, `keyboard-fixed.png` 확인.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
 - 후속 자동 Hook 검증은 기본 포트 3107 점유로 Playwright 서버 시작 전에 실패했다(`.bugri-hooks/verify-1.log`). lint·TypeScript·단위 66개·build는 통과했고 자동 E2E는 미실행이다. 앞선 전용 포트 3114 수동 전체 검증 통과와 구분한다. 후속 조사 시 3107 리스너는 확인되지 않았다. Hook 지시대로 환경 blocked 처리했으며, Hook 실행 환경에 전용 `PLAYWRIGHT_PORT` 전달 후 재검증이 필요하다. DONE으로 표시하지 않는다.
-

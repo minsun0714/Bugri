@@ -9,4 +9,3 @@
 - 최종코드 scoped ESLint·TypeScript·관련단위4개 통과, 독립UX/UI C1/R1 실제PC/mobile에서 자동스크롤후열림유지/실제scroll닫힘/Tab/Escape/상위모달유지 및SVG상하15px 확인. 자동검사의키보드경합1건은 독립수동검토에서재현되지않았으나해결로간주하지않는다.
 
 - 후속 사용자 요청: 현재 변경을 PR로 게시. 미통과E2E와 재시도한도 상태는 유지하고 최신popover/SVG변경을 커밋하여 dev대상Draft PR에 포함한다. 이전의커밋보류를 게시요청으로해제할뿐 DONE/검증성공으로전환하지않는다. 최종head 전체verify도 미실행으로본문에명시한다.
-

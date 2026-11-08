@@ -8,4 +8,3 @@
 - Node v22.23.3, 마지막 코드 변경 후 `PLAYWRIGHT_PORT=3195 npm run verify` 전체 통과: lint·TypeScript·Jest 43 suites/202 tests·도구 테스트 3개·production build·Playwright 126 tests. `git diff --check` 통과. 최종 로그 `/tmp/bugri-home-verify-final.log`.
 - 실패·수정 기록: 초기 API 테스트는 방문자 미구현으로 실패를 확인했고 이후 테스트 fixture의 다른 작성자 후보 및 PENDING 유효성 오류를 수정했다. 전체 검증 1차는 endpoint 개수/데모 provider mock, 2차는 RTL 선택자 타입 오류, 3차는 닫힌 모달 입력 중복·데모 새로고침 기대·room-zoom timeout으로 실패했다. 관련 검사 재실행 후 전체 4차가 통과했다. timeout 대상 room-zoom은 변경 없이 관련 재실행과 최종 전체 실행에서 통과했다. 검사를 생략하거나 기대를 약화하지 않았고 데모 기대는 명시 사용자 URL 정책에 맞췄다.
 - push·PR·merge 없음. 최종 병합 판단은 사용자에게 남긴다.
-

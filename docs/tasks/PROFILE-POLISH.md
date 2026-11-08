@@ -11,4 +11,3 @@
 - [독립 UX·UI 리뷰](../ux-reviews/PROFILE-POLISH.md): R0 두 역할 모두 필수 문제0개, 리뷰 발견 문제로 인한 수정0회. 본인 편집/저장, 모바일, 방문자, 퀴즈 이동을 직접 확인했고 마지막 문구도 최종 빌드 PC·모바일에서 추가 확인했다.
 
 - 최종 Node v22.23.3 전체 `npm run verify` 통과(수동 검증 Hook1차, `.bugri-hooks/PROFILE-POLISH-verify.log`): lint·TypeScript·Jest193개·도구3개·production build·Playwright124개. 수정 코드 Prettier·diff check 통과. 데스크 파일 변경 없음. 독립 리뷰 필수 미해결 없음이며 스크린리더 실기 등 한계는 리뷰 기록에 유지한다.
-

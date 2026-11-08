@@ -12,5 +12,3 @@
 - 사용자 후속 승인(“ㅇㅋ 수정해”)으로 중단된 테스트 수정을 재개했다. developer 테스트는 전체 보기 링크를 findByRole로 기다리고, public-profile 테스트의 Mock은 전달된 activity를 렌더한다. 링크 주소·구독·기본 배치·개인정보 비노출 기대는 유지했다. 관련 Jest5개 통과(`/tmp/profile-order-test-update.log`), 독립 정적 리뷰 및 전체 verify 진행. 앱 코드·UI·의존성은 R1과 같아 기존 UX/UI 리뷰 근거를 유지한다.
 
 - 후속 최종 검증: Node v22.23.3 `npm run verify -- -- --workers=2` exit0. lint·전체타입·Jest61 suites/303개·도구3개·production build·E2E187개 모두 통과. 로그 `/tmp/bugri-profile-order-final-verify.log`. 독립 정적 리뷰에서 두 테스트의 기존 assertion 보존 및 변경 적절성 확인. 변경 테스트 Prettier·git diff --check 통과. 사용자 후속 승인 이후 추가 검증 실패 없음. 검증 후 변경은 결과 문서뿐이며 순서 편집 기능과 테스트를 함께 로컬 커밋한다. push/PR/병합하지 않는다.
-
-

@@ -8,4 +8,3 @@
 - 최종 Node v22.23.3 `npm run verify`: lint·typecheck·Jest53 suites/268 tests·도구3개·production build 통과. E2E163개 통과/2개 실패. 데스크/상점 관련은 모두 통과. 로그 `/tmp/bugri-desk-shared-verify.log`.
 - 미통과: 변경하지 않은 developer-discovery-repair.spec.ts:65 구독 해제 후 버튼 포커스 복원 실패, navigation.spec.ts:148 화면 캡처30초 시간 초과. 구독 관리 경로는 기존 통합 기록에도 미해결 이력이 있다. 이 두 경로의 코드/기대값을 수정하거나 실패를 제외하지 않았다. 전체 통과/DONE/병합 준비 완료로 기록하지 않는다.
 - 마지막 앱 코드 이후 변경은 리뷰·검증 기록뿐이다. 변경 코드 Prettier·git diff --check 확인. push/PR 생성 없음.
-

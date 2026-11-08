@@ -5,4 +5,3 @@
 - 관련 단위9개·PC/모바일 E2E6개 통과. 새 컨텍스트 독립 UX 리뷰에서 사용빈→구매→사용-30/잔액70, 지급/전체복귀·페이지 초기화·방향키·모바일 직접 확인. 필수 문제0개, 수정0회. [관점별 리뷰 및 한계](../ux-reviews/P08-COIN-FILTER.md).
 
 - Node v22.23.3 최종 `npm run verify` 통과: lint·TypeScript·Jest41 suites/199 tests·도구3 tests·build·Playwright123 tests. 로그 `.bugri-hooks/verify-1.log`, 관련 Prettier/diff check 통과. 커밋하며 push·PR은 하지 않는다.
-

@@ -6,4 +6,3 @@
 - 관련 검증: 상점 단위 30개·E2E 12개 통과. 세 상품의 바닥 높이→상판 드래그 중 반영, 취소/재드롭, 시점 회전 후 배치 유지, 기존 모니터의 임시 재배치 미저장, 신규 모니터 명시적 장착/새로고침 복원, 초기화, 책상 밖 자유 배치 및 버그리/높이 회귀를 확인했다. 실제 모니터 Canvas의 45도/135도 화면에서 받침 접촉을 확인했다.
 - 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 16 suites/94 tests·도구 3 tests·build·Playwright 49 tests). 로그 `.bugri-hooks/item-surface-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

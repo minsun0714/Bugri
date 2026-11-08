@@ -7,4 +7,3 @@
 - 검증: 관련 단위 17개·E2E 7개 통과. PC/모바일에서 기존·추가 상품 개별 이동과 선택 유지, 닫기/재열기 원상복원, 초기화 후 두 배치 복원, 선택 버튼 부재 확인. 단위 검사에서 기존 상품/기본 책상 변경의 API 미호출과 실제 장착 시 추가 상품만 저장하는 것을 확인했다. 실제 모바일 화면에서 초기화만 표시되는 것 확인.
 - 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/77 tests·도구 3 tests·build·Playwright 25 tests). 로그 `.bugri-hooks/trial-existing-reset-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

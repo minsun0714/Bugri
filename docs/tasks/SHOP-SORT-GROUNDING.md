@@ -4,4 +4,3 @@
 - 컴포넌트 정렬·키보드/모바일 E2E, 접점 기하·실제 화면·독립 UX/UI 리뷰, 마지막 전체 verify 수행. 이전 Hook 실패 횟수를 유지한다.
 
 - 최종 Node v22.23.3 `PLAYWRIGHT_PORT=3418 npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest47 suites/231개·도구3개·production build·E2E143개. 로그 `.bugri-hooks/shop-ground-verify-3.log`. 상단 정리와 후속 정렬/접지 모두 검증 완료. [접지/정렬 독립 UX/UI R0](../ux-reviews/SHOP-SORT-GROUNDING.md) 필수문제0·수정0회, 기존 모달초점/모바일 창문 프레이밍은 범위 밖 보류. 변경 파일 Prettier·diff check 통과, 커밋하며 push/PR/merge 없음.
-

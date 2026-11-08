@@ -7,4 +7,3 @@
 - 로그: `/tmp/bugri-theme-toggle-verify.log`, `/tmp/bugri-theme-toggle-unit-retry.log`, `/tmp/bugri-theme-toggle-e2e-final.log`. 전체 E2E 198개 중 196개 통과, 기존 bugri-tabletop PC/모바일 2개가 새로고침 로딩 대기 시간 초과로 실패했다(`/tmp/bugri-theme-toggle-full-e2e.log`). 초기 전체 검증 성공으로 표현하지 않는다. 사용자 pull 오류 해결 요청에 따라 현재 작업을 커밋하고 origin/dev f87b0a4를 통합한 뒤 새 검증 기준으로 재확인한다. 실제 모바일 강제 다크·스크린리더는 미확인. push·PR·merge 없음.
 - dev 통합: 사용자 pull 오류 요청 후 기능 커밋 `f1a2f1f`에 `origin/dev f87b0a4`를 통합했다. product-header/theme-picker 충돌은 upstream 언어 선택·번역과 새 토글을 모두 유지해 해결했다. 설정 화면과 토글 접근성 이름도 번역한다. 독립 UX/UI R2에서 ko/en·1280/320·게스트/데모 8조합과 두 기능 보존을 재확인했다.
 - 통합 검사: Node v22.23.3 lint·전체 타입·Jest64 suites/317개·도구3개 통과. 관련 E2E20개 통과. 최종 production build·선택 E2E129개 모두 통과. 로그 `/tmp/bugri-theme-merge-build.log`, `/tmp/bugri-theme-merge-final-e2e.log`. 최종 코드 검사 후 변경은 검증 기록뿐이다. 새 지침에 따른 24개 실행 spec과 상점/3D 전용 제외 목록·근거는 리뷰 문서에 기록했다. 이전 실패 이력은 유지하며 npm run verify 전체 통과로 표현하지 않는다.
-

@@ -4,4 +4,3 @@
 - 검증: 변경 파일 lint/format, 관련 코인 테스트와 PC/모바일 화면, 독립 UX/UI 리뷰. 시각 전용 변경으로 전체 검증은 요구하지 않는다.
 
 - 결과: 작은 금색 코인·홈과 같은 카드/필터 곡률·연보라 선택색 적용. Node v22.23.3 scoped lint/format·Jest 9개·production build와 1280/390px 필터/키보드/넘침 확인 통과. 독립 UX/UI R0 및 코드 리뷰 필수 문제 없음, 수정 0회. [근거·미확인 범위](../ux-reviews/COIN-SOFT.md).
-

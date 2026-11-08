@@ -5,5 +5,3 @@
 
 - Nodev22.23.3 변경파일ESLint/Prettier·전체타입·관련Jest5개·production빌드·관련E2E25개 통과. 처음에는머신load56.62에서기존Jest5초timeout1건/빌드포함서버준비120초timeout발생. 기대/시간제한을유지하고Jest→별도production빌드→1workerE2E로순차재실행하여통과(재시도1회). 기존Playwright설정을상속한임시설정은서버명령에서이미완료한빌드만분리하고검증후삭제했다. 로그 `/tmp/viewall-unit-r1.log`, `/tmp/viewall-build.log`, `/tmp/viewall-e2e-r1.log`.
 - 실제1280/320의4화면8상태 모두기본muted/hoverforeground/포커스foreground·14px·높이44px확인(`/tmp/viewall-metrics.json`). 전체개발자보기는현재직접노출되지않는공통검색USER분기의공유스타일적용코드만확인. [독립UX/UI리뷰](../ux-reviews/VIEW-ALL-STYLE.md) R0필수문제0개/수정0회. UX는320Enter탐색/모달/Escape/검색초기화직접확인, UI는16개PC/mobile기본/포커스캡처확인. 스타일/문구만변경으로전체verify는재실행하지않았다. 검증후변경은문서결과뿐, 로컬커밋하며push/PR/병합없음.
-
-

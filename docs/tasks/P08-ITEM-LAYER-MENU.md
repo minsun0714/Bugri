@@ -6,4 +6,3 @@
 - 검증: 관련 단위 75개·E2E 5개 통과. PC/모바일 네 가지 순서 변경, 버그리를 책상으로 드래그, 새로고침/공개 복원, 미리보기 초기화/미저장, 저장 실패 재시도, 사용자 격리/잘못된 순서 거부를 확인했다. 모바일 메뉴 화면도 확인했다.
 - 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 15 suites/85 tests·도구 3 tests·build·Playwright 35 tests). 로그 `.bugri-hooks/desk-layer-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

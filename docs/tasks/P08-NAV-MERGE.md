@@ -10,4 +10,3 @@
 - 세 번째 파일 `/shop`: 공통 ProductLayout 안에 기존 상품·구매·장착 미리보기와 사용자 쿼리/Suspense를 보존했다. 관련 상점 단위 테스트 9개와 route ESLint 통과. 모든 Git 충돌 표시 해소.
 - 후속 전체 검증 1차는 공개 데스크의 Header preview prop 타입 오류로 중단. 공통 Header가 기존 preview를 ShowcaseHeader로 전달하도록 복구하고 TypeScript 통과.
 - 전체 검증 2차(`.bugri-hooks/navigation-merge-verify-2.log`): lint·TypeScript 통과, Jest 180개 통과/2개 실패. 실패는 dev 내비게이션의 최신 프로필 드롭다운/‘개발자·태그 탐색’과 기존 테스트의 상단 ‘내 퀴즈’/‘탐색’ 기대 불일치다. 메뉴 유지 방향을 사용자에게 확인하며 기대값은 아직 수정하지 않았다. build·E2E 및 독립 UX 검증 미실행. 커밋/push 전 검증 대기, Draft 유지.
-

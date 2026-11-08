@@ -5,4 +5,3 @@
 - 관련 프로필 E2E2개 통과. 별도 새 컨텍스트 UX/UI 리뷰어가1280/390/320 실제 화면·줄바꿈·정렬·포커스·Enter/사용자쿼리 이동을 확인했다. 두 역할 문제0개/수정0회. [역할별 근거와 한계](../ux-reviews/P08-MY-ACTION.md).
 
 - 최종 Node v22.23.3 전체 verify 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). 로그 `.bugri-hooks/verify-1.log`. 관련 Prettier/diff check 통과, 커밋하며 push하지 않는다.
-

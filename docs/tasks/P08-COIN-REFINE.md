@@ -6,4 +6,3 @@
 - 관련 단위9개·PC/모바일 코인/프로필 E2E8개 통과. 독립 UX R0에서 화면 위계·768px너비·모바일5행·필터/페이지·키보드·구매후70/-30 직접 확인. 필수/일반 문제0개, 수정0회. 모바일 이동기의 소폭 스크롤은 선택적 개선으로 보류(가독성 유지). [리뷰/한계](../ux-reviews/P08-COIN-REFINE.md).
 
 - 최종 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest41 suites/199 tests·도구3 tests·build·Playwright123 tests. 로그 `.bugri-hooks/verify-1.log`, 관련 Prettier/diff check 통과. UI리뷰 수정0회, push·PR 없음.
-

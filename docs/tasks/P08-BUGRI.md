@@ -6,4 +6,3 @@
 - 실패 분석: 최초 미구현 테스트는 버그리 픽셀 0으로 실패했다. 책상 위 배치는 드래그 상품을 가려 기존 픽셀 회귀가 실패해 책상 옆으로 옮겼다. 이후 실행은 빌드 중 다른 프로세스가 3107을 점유해 EADDRINUSE로 실패했다. Playwright가 다른 서버의 URL 응답을 준비 완료로 오인하지 않도록 자신이 실행한 서버의 Ready 로그를 기다리게 수정했다. 기존 포트 +1 재시도는 유지한다.
 - 검증: Node v22.23.3 관련 E2E 5개 통과 후 최종 `npm run verify` 통과(lint·TypeScript·Jest 12 suites/70 tests·포트 도구 3 tests·build·Playwright 15 tests). 로그 `.bugri-hooks/bugri-verify.log`. 모바일/PC 실제 화면도 확인했다. 테스트 기대값은 약화하지 않았다.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

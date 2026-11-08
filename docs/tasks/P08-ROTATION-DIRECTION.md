@@ -5,4 +5,3 @@
 - TDD: 방향을 검사하도록 강화한 PC/모바일 E2E 2개가 수정 전 324° 기대/36° 실제로 실패한 것을 확인했다. 수정 후 오른쪽 60px와 왼쪽 30px 드래그, 드래그 중/종료 각도, 저장·복원 E2E 2개 통과.
 - 검증: Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/75 tests·도구 3 tests·build·Playwright 24 tests), `git diff --check` 통과. 로그 `.bugri-hooks/rotation-direction-verify.log`.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

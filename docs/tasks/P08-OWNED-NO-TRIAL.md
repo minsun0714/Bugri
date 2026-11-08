@@ -6,4 +6,3 @@
 - 실패 분석: 구매 후 버튼 부재 단위 테스트의 의도한 실패 확인. 첫 전체 verify에서는 기존 E2E 10개가 구매 후 제거된 미리보기 버튼을 클릭하여 실패했다. 승인된 새 흐름에 맞춰 미리보기 안에서 구매하거나 내 데스크에서 장착하도록 진입만 수정했으며 기존 이동·회전·저장·가림 검증은 유지했다.
 - 검증: 관련 단위 7개·E2E 13개 통과. PC/모바일에서 가로 버튼 배치, 구매 전후 가격/버튼 상대 위치와 카드 높이 유지, 보유 상품 버튼 부재와 미보유 상품 취소 후 저장 상태 보존 확인. 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/75 tests·도구 3 tests·build·Playwright 24 tests). 로그 `.bugri-hooks/owned-no-trial-layout-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

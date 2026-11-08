@@ -6,4 +6,3 @@
 - Node v22.23.3에서 최종 `PLAYWRIGHT_PORT=3337 npm run verify -- -- --workers=1` 통과: lint·TypeScript·Jest45 suites/228개·도구3개·production build·E2E142개(8.5분). 로그 `/tmp/bugri-tags-verify-final.log`. 변경 코드 Prettier 및 diff check 통과.
 - Hook을 arm했으나 자동 로드는 확인되지 않아 검증 절차를 직접 수행하고 실제 명령·종료코드·로그를 로컬 상태에 기록했다. 첫 전체 검증은 리뷰 C1 반영을 위해 작업 소유 프로세스만 중단했고 성공으로 계산하지 않았다. 초기 관련검사의 TypeScript 테스트 작성 오류 및 Modal 초점 결함/선택자 범위 문제는 수정·재검증했다.
 - 기능 커밋을 생성하며 push·PR·병합은 수행하지 않는다.
-

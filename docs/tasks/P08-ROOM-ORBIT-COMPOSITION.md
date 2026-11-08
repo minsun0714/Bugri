@@ -6,4 +6,3 @@
 - 후속 구현: 방 내부의 2점 원근 투영과 near-plane 클리핑을 Canvas 2D로 적용한다. 정면 양쪽의 벽을 함께 표시하고 기존 창문 텍스처를 투영한다. 가구·러그의 yaw/pitch 회전과 조작/저장 좌표는 유지한다. 사용자 스크린샷에 해당하는 ±10도 시점에서 바닥 영역 중심 및 벽의 실제 회전을 검사한다. 기존 코드에서 PC 바닥 중심 검사가 실패했고 첫 수정 후 관련 E2E 8개가 통과했다. 최종 검증 진행 중.
 
 - 최종 검증: 사용자 스크린샷과 같은 달빛 작업실 최소 배율의 ±10도 화면에서 좌우 벽·바닥 구도와 가구 중앙을 직접 확인했다. 창문은 벽 평면 역투영 샘플링으로 이음선을 제거했다. 관련 E2E 8개 통과, 마지막 코드 변경 후 Node v22.23.3 npm run verify 전체 통과(lint·TypeScript·Jest 17 suites/98 tests·도구 3 tests·build·E2E 79 tests). 로그 .bugri-hooks/perspective-verify.log. git diff --check 통과. 방 고정 없이 원근 구도로 중앙 배치를 보정한 구현이며 IN_PROGRESS(독립 리뷰 대기), push·PR·merge 없음.
-

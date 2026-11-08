@@ -6,4 +6,3 @@
 
 - 결과: Node v22.23.3 scoped ESLint/Prettier·전체 TypeScript·Jest 4 suites/19개·production build·관련 E2E 16개 통과. 최초 타입 오류 수정 1회 후 통과. 전체 verify는 미실행(페이지 이동 변경의 로컬 완료 범위).
 - 독립 UX/UI R0와 코드 리뷰 완료, 필수 문제 없음·UI 수정 0회. [리뷰 및 검증 근거](../ux-reviews/COIN-ROUTE.md). 화면은 PC/모바일 캡처, 조작은 E2E 근거로 확인. 로딩·오류·게스트 시각 상태는 이번 리뷰에서 미확인.
-

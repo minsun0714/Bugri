@@ -6,4 +6,3 @@
 - 관련 단위 7개 통과(페이지 분할·경계·사용자 변경·내역 감소 보정 포함). 독립 UX 최초 리뷰에서 별도 Chromium 1280px/390px의 10/10/1 분할, 이전/다음 비활성화, Enter·Shift+Tab·포커스 유지, 잔액 유지와 가로 넘침 없음 직접 확인. 필수 문제 없음, 수정 0회. 사용자 변경/감소는 리뷰어 코드 검토와 메인 단위 테스트 범위이며 스크린리더 음성은 미검증. 캡처 `/tmp/coin-review-pagination-390.png`, `/tmp/coin-review-pagination-1280.png`.
 
 - 마지막 코드 변경 후 Node v22.23.3 전체 `npm run verify` 통과: lint·TypeScript·Jest 41 suites/195 tests·도구 3 tests·production build·Playwright 121 tests. Hook 직접 실행 로그 `.bugri-hooks/verify-1.log`, 성공 비활성화 확인. 관련 Prettier·git diff --check 통과. 독립 UX/범위 코드 리뷰 완료. 커밋하며 이번 변경은 push·PR·merge하지 않는다.
-

@@ -6,4 +6,3 @@
 - 실패 분석: 모바일에서 대칭 원점 기준 축소 때문에 기존 키보드가 지나치게 작아져 가시 픽셀 검사가 실패했다. 두 책상의 중간을 화면 중심으로 사용하도록 구현을 수정했으며 기존 기대값을 유지한 관련 E2E 9개가 통과했다.
 - 검증: 관련 단위 15개·E2E 9개 통과 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/75 tests·도구 3 tests·build·Playwright 24 tests). 로그 `.bugri-hooks/additive-preview-verify.log`. 실제 모바일 화면에서 기존 책상/키보드/버그리와 추가 책상 동시 표시 확인, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

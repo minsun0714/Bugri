@@ -7,4 +7,3 @@
 - verify2는 새 너비 요청을 반영한 최종 검증으로 오인하지 않도록 해당 작업의 프로세스 그룹만 종료했고, 최신 코드로 verify3을 시작했다. 사용자 실행 중인 동일 워크트리 dev서버3000은 유지한다. 별도3153 dev 시작은 Next의 중복서버 감지로 종료되어 독립 화면 확인은 같은 워크트리3000의 격리 브라우저 context로 진행한다.
 
 - 최종 최신 변경 후 Node v22.23.3 전체 verify3 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). `.bugri-hooks/verify-3.log`. 독립 R1에서3154 production PC/모바일 헤더와 본문 양끝 정렬, 세로3항목/코인5개 보존 확인. 기존3000 dev의 로딩 지속은 원인 미확정으로 리뷰 문서에 기록. 최종 증거는production과E2E다. diff check통과, 커밋하며push하지 않는다.
-

@@ -7,4 +7,3 @@
 - 후속 명칭 변경으로 기존 진행중 verify1은 해당 작업 프로세스만 중단하고 최신 코드로 verify2를 시작했다. R1 UX/UI에서 최종명칭 한 줄·61px행·화살표·개인관리그룹·키보드·author유지 이동을 확인했다. 사용자 명칭 수정1회/리뷰 회귀0개.
 
 - 최종 Node v22.23.3 전체 verify2 통과(lint·TypeScript·Jest199개·도구3개·build·E2E123개). 로그 `.bugri-hooks/verify-2.log`, 관련 Prettier/diff check 통과. 커밋하며 push하지 않는다.
-

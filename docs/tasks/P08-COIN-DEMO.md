@@ -7,4 +7,3 @@
 - 첫 전체 verify는 새 테스트의 줄 간격 lint3건으로 실패해 scoped ESLint/Prettier 후 재검증했다(수정·재실행1회). 기능 기대값 변경 없음.
 
 - 최종 Node v22.23.3 `npm run verify` 통과: lint·TypeScript·Jest41 suites/197 tests·도구3 tests·build·Playwright121 tests. 로그 `.bugri-hooks/verify-2.log`. diff check/관련 Prettier 통과. 미리보기 전용 서버3149에서 실제 화면 확인 가능. 커밋하며 push·PR은 하지 않는다.
-

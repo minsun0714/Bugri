@@ -6,4 +6,3 @@
 - 검증: 관련 단위 31개·E2E 7개 통과. 버그리 구매 없이 저장, 사용자 격리/공개 복원, 잘못된 변환 거부 및 저장값 보존, HTTP 계약, 미리보기 미저장/초기화, 테마별 전체 색감/시점 회전/장착/새로고침/공개 복원 확인. PC·모바일 실제 테마 화면 확인.
 - 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 14 suites/80 tests·도구 3 tests·build·Playwright 31 tests). 로그 `.bugri-hooks/room-bugri-verify-final.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

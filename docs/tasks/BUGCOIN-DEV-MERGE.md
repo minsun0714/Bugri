@@ -6,4 +6,3 @@
 
 - 검증 결과(Node22.23.3): 전체 lint(초기 절단본의 unused import 경고는 복원 후 해당 파일 재검사로 해소), 전체 typecheck, Jest66 suites/337 tests, 도구3개, production build 통과. 선택25파일 E2E129개 worker1 순차 실행 전부 통과(2.7분, port3430). 한국어/영어 보상합계·사유·링크, 구매, 구독/프로필/내비게이션 포함. 제외26파일의 상세3D 테스트를 통과했다고 주장하지 않는다. 기존 전체검증 실패 이력은 보존한다.
 - 독립 코드 재리뷰: QuizPanel 전체본문/export·보상props/표시/링크·upstream 번역 및 두 문서 내용 보존, 추가 차단 오류 없음. 검증 후 변경은 작업 기록뿐이다. 원격재조회에서 MERGE_HEAD와 origin/dev가 동일한 f87b0a4임을 확인했다.
-

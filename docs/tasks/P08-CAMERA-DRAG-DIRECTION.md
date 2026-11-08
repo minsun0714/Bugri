@@ -6,4 +6,3 @@
 - 관련 검증: 신규 방향 E2E 2개와 상하 회전/아이템 상판 배치 회귀를 포함한 E2E 12개 통과. 좌우 왕복, 실제 앞쪽 픽셀 이동, 상하 각도 및 배치 좌표 보존을 확인했다. 기존 모니터·키보드·소품·버그리의 배치와 상하 회전도 통과했다.
 - 마지막 코드 변경 후 Node v22.23.3 `npm run verify` 통과(lint·TypeScript·Jest 16 suites/94 tests·도구 3 tests·build·Playwright 51 tests). 로그 `.bugri-hooks/camera-direction-verify.log`, `git diff --check` 통과.
 - 상태: IN_PROGRESS(구현·필수 검증 완료, 독립 리뷰 대기). push·PR·merge 없음.
-

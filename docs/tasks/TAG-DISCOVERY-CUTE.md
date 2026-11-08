@@ -5,4 +5,3 @@
 - 별도 UI 설계 위임, 실제 홈/탐색 화면 비교 후 구현하고 새 컨텍스트 독립 UX/UI 리뷰와 최종 전체 검증을 수행한다.
 
 - 탐색용 돋보기 버그리와 `태그 이름 검색` placeholder 적용. 독립 UX/UI R2 완료. Node v22.23.3 전체 검증 lint·타입·Jest234개·도구3개·빌드·E2E145개 통과(`/tmp/bugri-tag-cute-final-verify.log`). 이후 placeholder 문구만 변경해 해당 파일 lint/Prettier와 dev3002 모바일 검색을 추가 확인했다. [리뷰·검증 범위](../ux-reviews/TAG-DISCOVERY-CUTE.md).
-

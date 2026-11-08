@@ -8,4 +8,3 @@
 - 최종 기능검증: Node22.23.3 `npm run verify -- -- --workers=2` exit0. lint·전체타입·Jest57 suites/285개·도구3개·production build·E2E173개 통과. 로그 `/tmp/bugri-error-handling-verify.log`. E2E 시작 전 기존 '오류 코드: STORAGE_CORRUPT' 부재 검사를 새 안전한 안내 부재 검사로 일치시키고 해당파일 lint/format도 확인했다. 이후 변경은 검증 기록뿐이다.
 - ERROR-PAGES/ERROR-TRANSPORT/ERROR-QUERY 상태: DONE(기능구현·전체검증). [Query 독립 UX/UI·통합근거](../ux-reviews/ERROR-QUERY.md): 필수문제0·시각수정0회, 선택적 모바일문장 줄바꿈1건 보류. global 실제root장애·실HTTP503/네트워크주입은 미확인, 정적문서/HTTP단위/Query통합근거와 구분한다.
 - 사용자 후속 요청으로 PR 게시와 최신dev충돌해결을 수행한다. 최신dev b08085b의 코인전용화면·헤더사용자선택통합을 이어서 검증하며, 위 결과는 통합 전 코드의 검증이다.
-
