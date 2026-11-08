@@ -10,12 +10,8 @@ export function GuestLanding() {
   return (
     <section
       aria-labelledby="landing-title"
-      className="relative isolate mb-12 overflow-hidden rounded-[32px] border border-line bg-surface px-6 py-10 sm:px-10 lg:px-14 lg:py-16"
+      className="relative isolate mb-12 py-10 lg:py-16"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-36 size-120 rounded-full bg-accent-soft/50 blur-3xl"
-      />
       <div className="relative grid items-center gap-10 lg:min-h-96 lg:grid-cols-2 lg:gap-4">
         <div className="relative z-10 motion-safe:animate-landing-enter">
           <p className="mb-6 flex items-center gap-2 font-mono text-xs font-bold tracking-[0.18em] text-primary">
