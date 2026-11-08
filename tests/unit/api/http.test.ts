@@ -242,3 +242,32 @@ test("attempt history uses a private GET endpoint and query filters", async () =
     "body",
   );
 });
+
+test("notes search sends the query, repeated tag ids and the untagged flag as GET parameters", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(response({ data: {} }));
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await client.request("notes", {
+    query: "hooks",
+    tagIds: ["web", "java"],
+    untagged: true,
+    page: 2,
+  });
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/notes?query=hooks&tagIds=web&tagIds=java&untagged=true&page=2",
+    expect.objectContaining({ method: "GET" }),
+  );
+
+  await client.request("noteTags", {});
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/notes/tags",
+    expect.objectContaining({ method: "GET" }),
+  );
+});

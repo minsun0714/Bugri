@@ -115,6 +115,7 @@ describe("query", () => {
 
   test("matches the body, ignoring case and word order", async () => {
     const a = await addNote("React Hooks 정리");
+
     await addNote("다른 내용");
 
     expect(await ids({ query: "  hooks   react " })).toEqual([
@@ -163,9 +164,9 @@ describe("query", () => {
 
     const api = make();
 
-    const [byTitle] = (
-      await api.request("notes", { query: "클로저" })
-    ).items;
+    const {
+      items: [byTitle],
+    } = await api.request("notes", { query: "클로저" });
 
     expect(byTitle).toMatchObject({
       matchedIn: "QUIZ",
@@ -173,9 +174,9 @@ describe("query", () => {
       matchedExcerpt: null,
     });
 
-    const [byPrompt] = (
-      await api.request("notes", { query: "체인" })
-    ).items;
+    const {
+      items: [byPrompt],
+    } = await api.request("notes", { query: "체인" });
 
     expect(byPrompt).toMatchObject({
       matchedIn: "QUIZ",
@@ -184,9 +185,9 @@ describe("query", () => {
 
     expect(byPrompt.matchedExcerpt).toContain("체인");
 
-    const [byChoice] = (
-      await api.request("notes", { query: "베타" })
-    ).items;
+    const {
+      items: [byChoice],
+    } = await api.request("notes", { query: "베타" });
 
     expect(byChoice.matchedExcerpt).toContain("베타");
   });

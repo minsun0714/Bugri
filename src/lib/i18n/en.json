@@ -315,5 +315,14 @@
   "확인 안 한 퀴즈 {0}개": "{0} unconfirmed quizzes",
   "확인 안 한 퀴즈 {0}개 · 이어서 확인": "{0} unconfirmed quizzes · Continue",
   "연결된 퀴즈 {0}개도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.": "The {0} linked quizzes are deleted too. Quizzes you already solved stay in your history.",
-  "완료": "Done"
+  "완료": "Done",
+  "내 노트 검색": "Search notes",
+  "메모와 퀴즈 내용 검색": "Search memos and quizzes",
+  "태그 필터": "Tag filter",
+  "태그 없음": "No tags",
+  "검색 결과 {0}개": "{0} results",
+  "“{0}”와 일치하는 메모가 없어요": "No notes match “{0}”",
+  "조건에 맞는 메모가 없어요": "No notes match these filters",
+  "조건 초기화": "Reset filters",
+  "주소의 검색 조건이 올바르지 않아요": "The search conditions in the address are not valid"
 }
