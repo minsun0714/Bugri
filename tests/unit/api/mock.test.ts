@@ -63,7 +63,7 @@ test("generation is owner-only; individual then bulk save does not duplicate can
 });
 
 test("direct solving never exposes answers; wrong answers and replays count once per day", async () => {
-  const api = make();
+  const api = make("author");
 
   const attempt = await api.request("startAttempt", {
     quizId: "seed-quiz-1",

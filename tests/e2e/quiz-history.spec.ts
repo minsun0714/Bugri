@@ -1,13 +1,19 @@
 import { test, expect, type Page } from "@playwright/test";
 import { initialState } from "@/mocks/storage";
-import { QuizStatus } from "@/api/constants";
 
 async function seedHistory(page: Page, hidden = false) {
-  const owner = initialState("author");
   const state = initialState("learner");
-  const quiz = owner.quizzes.find(
-    ({ quizId }) => quizId === "seed-quiz-1",
-  )!;
+  // Quizzes are author-only, so the learner's records point at the learner's own copy.
+  const quiz = {
+    ...structuredClone(
+      initialState("author").quizzes.find(
+        ({ quizId }) => quizId === "seed-quiz-1",
+      )!,
+    ),
+    quizId: "owned-quiz-1",
+    ownerUserId: "learner",
+  };
+  state.quizzes.push(quiz);
   const revision = structuredClone(quiz.active!);
   revision.title = "HistoryTypeScript".repeat(12);
   state.attempts = Array.from(
@@ -16,7 +22,7 @@ async function seedHistory(page: Page, hidden = false) {
       attemptId: `history-${String(index).padStart(2, "0")}`,
       quizId: quiz.quizId,
       revision,
-      ownerUserId: "author",
+      ownerUserId: "learner",
       submittedAnswer: {
         type: "SINGLE_CHOICE" as const,
         choiceId: index % 2 ? "b" : "a",
@@ -35,22 +41,18 @@ async function seedHistory(page: Page, hidden = false) {
     },
   ];
   state.timeZone = "Asia/Seoul";
-  if (hidden) quiz.status = QuizStatus.PRIVATE;
+  if (hidden) quiz.deletedAt = "2026-11-08T14:00:00Z";
   await page.addInitScript(
-    ({ state, owner }) => {
+    ({ state }) => {
       if (!localStorage.getItem("history-test-seeded")) {
         localStorage.setItem(
           "bugri:mock:v1:learner",
           JSON.stringify(state),
         );
-        localStorage.setItem(
-          "bugri:mock:v1:author",
-          JSON.stringify(owner),
-        );
         localStorage.setItem("history-test-seeded", "yes");
       }
     },
-    { state, owner },
+    { state },
   );
 }
 
@@ -340,7 +342,12 @@ async function seedSearchHistory(page: Page) {
   const friend = initialState("friend");
   const state = initialState("learner");
 
-  const records = [...author.quizzes, ...friend.quizzes];
+  // Quizzes are author-only, so the learner's records point at learner-owned copies.
+  const records = [...author.quizzes, ...friend.quizzes].map(
+    (quiz) => ({ ...quiz, ownerUserId: "learner" }),
+  );
+
+  state.quizzes.push(...structuredClone(records));
 
   state.attempts = records.map((quiz, index) => ({
     attemptId: `search-${index}`,

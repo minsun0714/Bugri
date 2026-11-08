@@ -13,7 +13,7 @@
 1. 제품 방향 문서 정리 (`docs/product-refocus`)
 2. 제외 기능 코드 삭제 ([REMOVE-OUT-OF-SCOPE](tasks/REMOVE-OUT-OF-SCOPE.md), PR #53 병합). API·아키텍처·검증 지침 문서는 1번 브랜치에서 갱신
 3. 내 노트: 메모 API·목록·상세, 홈 빠른 메모, 헤더 정리
-   - 선행 수정(코드가 PRD와 다름, 별도 브랜치 가능): 다른 사용자의 퀴즈 풀이 차단(작성자 전용, PRD §7), 접속 시 브라우저 시간대 재감지·갱신(AC-04d)
+   - 선행 수정 완료([OWNER-ONLY-TIMEZONE](tasks/OWNER-ONLY-TIMEZONE.md)): 다른 사용자의 퀴즈 풀이 차단(작성자 전용, PRD §7), 접속 시 브라우저 시간대 재감지·갱신(AC-04d)
 4. 메모로 퀴즈 만들기: 저장 즉시 내 퀴즈, LLM 태그 자동 부여(Mock). PENDING·승인·PUBLIC 상태와 `discoverHashtags` 이름 등 남은 잔재 정리
 5. 복습 주기와 홈 "오늘 복습", 연속 학습일 연결
 6. 내 노트 검색·태그 필터
