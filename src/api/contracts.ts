@@ -1,6 +1,7 @@
 import type {
   AttemptHistoryFilter,
   AttemptHistoryMatch,
+  NoteMatch,
   QuizStatus,
 } from "@/api/constants";
 
@@ -137,6 +138,12 @@ export interface NoteSummary extends NoteQuizCounts {
   excerpt: string;
   createdAt: string;
   updatedAt: string;
+  /** Null without a query. BODY when the memo body alone matched, otherwise QUIZ. */
+  matchedIn: NoteMatch | null;
+  /** Title of the CONFIRMED quiz that matched; only for QUIZ. */
+  matchedQuizTitle: string | null;
+  /** Short snippet of the matched quiz question; only for QUIZ when the title did not match. */
+  matchedExcerpt: string | null;
 }
 
 export interface ApiOperations {
@@ -146,12 +153,29 @@ export interface ApiOperations {
     response: ReviewQuiz[];
   };
   notes: {
-    request: { page?: number; pageSize?: number };
+    request: {
+      page?: number;
+      pageSize?: number;
+      /** Trimmed, at most 100 characters; every space-separated word must match. */
+      query?: string;
+      /** Registered tag ids; a memo with any of them matches. */
+      tagIds?: string[];
+      /** Also include memos without tags. Combined with tagIds by OR. */
+      untagged?: boolean;
+    };
     response: {
       items: NoteSummary[];
       page: number;
       pageSize: number;
       total: number;
+    };
+  };
+  /** Tag choices for the current user's live memos. */
+  noteTags: {
+    request: Record<string, never>;
+    response: {
+      tags: { hashtagId: string; count: number }[];
+      untaggedCount: number;
     };
   };
   note: {

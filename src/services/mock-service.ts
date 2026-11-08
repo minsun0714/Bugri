@@ -4,6 +4,7 @@ import {
   historyQueryWords,
   matchHistoryRecord,
 } from "@/services/history-search";
+import { matchNote } from "@/services/note-search";
 
 import { QuizStatus } from "@/api/constants";
 import type {
@@ -67,7 +68,8 @@ const tagIds = hashtags.map(({ id }) => id);
 
 const allowed: Record<Operation, string[]> = {
   generate: ["noteId"],
-  notes: ["page", "pageSize"],
+  notes: ["page", "pageSize", "query", "tagIds", "untagged"],
+  noteTags: [],
   note: ["noteId"],
   createNote: ["content"],
   updateNote: ["noteId", "content", "expectedVersion"],
@@ -336,7 +338,13 @@ export function execute<K extends Operation>(
 
   switch (operation) {
     case "notes": {
-      const { page = 1, pageSize = 20 } = r;
+      const {
+        page = 1,
+        pageSize = 20,
+        query = "",
+        tagIds: selectedTags = [],
+        untagged = false,
+      } = r;
 
       requireValue(
         Number.isSafeInteger(page) && Number(page) >= 1,
@@ -350,8 +358,32 @@ export function execute<K extends Operation>(
         "페이지 크기를 확인하세요.",
       );
 
+      requireValue(
+        typeof query === "string" &&
+          [...query.trim()].length <= historyQueryMaxLength,
+        "검색어는 100자 이하여야 합니다.",
+      );
+
+      requireValue(
+        Array.isArray(selectedTags) &&
+          selectedTags.every(
+            (tag) =>
+              typeof tag === "string" && tagIds.includes(tag),
+          ),
+        "태그를 확인하세요.",
+      );
+
+      requireValue(
+        typeof untagged === "boolean",
+        "태그 없음 필터를 확인하세요.",
+      );
+
+      const words = historyQueryWords(query as string);
+      const tagFilter = selectedTags as string[];
+      const filtering = tagFilter.length > 0 || untagged;
+
       // Newest first; insertion order breaks ties between notes created in the same millisecond.
-      const visible = s.notes
+      const newestFirst = s.notes
         .filter(({ deletedAt }) => !deletedAt)
         .reverse()
         .sort((a, b) =>
@@ -362,17 +394,55 @@ export function execute<K extends Operation>(
               : 0,
         );
 
+      type Candidate = {
+        note: StoredNote;
+        counts: NoteQuizCounts;
+        match: ReturnType<typeof matchNote>;
+      };
+
+      // Filter and search first, then page: total counts the matches only.
+      const matched = newestFirst.flatMap((note): Candidate[] => {
+        const counts = noteCounts(note.noteId);
+
+        if (
+          filtering &&
+          !(
+            (untagged && !counts.hashtagIds.length) ||
+            counts.hashtagIds.some((tag) =>
+              tagFilter.includes(tag),
+            )
+          )
+        )
+          return [];
+
+        if (!words.length) return [{ note, counts, match: null }];
+
+        const match = matchNote(
+          note.content,
+          liveQuizzes(note.noteId)
+            .filter(
+              ({ status }) => status === QuizStatus.CONFIRMED,
+            )
+            .map(({ revision: { title, question } }) => ({
+              title,
+              question,
+            })),
+          words,
+        );
+
+        return match ? [{ note, counts, match }] : [];
+      });
+
       const start = (Number(page) - 1) * Number(pageSize);
 
       return {
-        items: visible
+        items: matched
           .slice(start, start + Number(pageSize))
           .map(
             ({
-              noteId,
-              content,
-              createdAt,
-              updatedAt,
+              note: { noteId, content, createdAt, updatedAt },
+              counts,
+              match,
             }): NoteSummary => ({
               noteId,
               excerpt: [...content]
@@ -380,12 +450,34 @@ export function execute<K extends Operation>(
                 .join(""),
               createdAt,
               updatedAt,
-              ...noteCounts(noteId),
+              ...counts,
+              matchedIn: match?.matchedIn ?? null,
+              matchedQuizTitle: match?.matchedQuizTitle ?? null,
+              matchedExcerpt: match?.matchedExcerpt ?? null,
             }),
           ),
         page,
         pageSize,
-        total: visible.length,
+        total: matched.length,
+      };
+    }
+
+    case "noteTags": {
+      const live = s.notes
+        .filter(({ deletedAt }) => !deletedAt)
+        .map(({ noteId }) => noteCounts(noteId).hashtagIds);
+
+      return {
+        tags: hashtags
+          .map(({ id: hashtagId }) => ({
+            hashtagId,
+            count: live.filter((tags) =>
+              tags.includes(hashtagId),
+            ).length,
+          }))
+          .filter(({ count }) => count > 0),
+        untaggedCount: live.filter((tags) => !tags.length)
+          .length,
       };
     }
 
