@@ -20,4 +20,4 @@
 - 스크립트 출력 `{"decision": "block", "reason": ...}`이 Claude Code Stop Hook 형식과 일치함을 코드로 확인.
 - 문서 전용 예외 적용: 앱 lint/typecheck/Jest/build/E2E 미실행.
 - 미검증: 실제 Claude 세션의 Hook 로딩·신뢰 승인·arm 후 검증 실행. 새 세션에서 `/hooks`로 확인한다.
-- 남은 작업: `AGENT_SETUP.md`, `CLAUDE.md`의 "Claude Hook 미등록" 문구 갱신.
+- `AGENT_SETUP.md`, `CLAUDE.md`, `CLAUDE-SETUP.md`의 "Claude Hook 미등록" 문구를 등록 상태에 맞게 갱신. 변경된 로컬 링크 `CLAUDE-HOOK.md` 존재 확인.
