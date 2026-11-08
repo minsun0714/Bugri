@@ -1,20 +1,11 @@
 "use client";
 
-import localFont from "next/font/local";
 import { useLandingReturn } from "@/components/landing/use-landing-return";
 import { KnowledgePuzzle } from "@/components/landing/knowledge-puzzle";
 import { RewardDesk } from "@/components/landing/reward-desk";
 import { styles } from "@/components/ui/styles";
 import { landingStyles } from "@/components/landing/styles";
 import { useTranslation } from "@/lib/i18n/use-translation";
-
-const editorial = localFont({
-  src: "./fonts/hahmlet-medium.woff2",
-  weight: "500",
-  display: "swap",
-  variable: "--font-landing-editorial",
-  fallback: ["Batang", "Georgia", "serif"],
-});
 
 export function GuestLanding() {
   const t = useTranslation();
@@ -24,7 +15,7 @@ export function GuestLanding() {
     <section
       ref={section}
       aria-labelledby="landing-title"
-      className={`${editorial.variable} relative mb-12 [view-timeline-name:--learning-story] [view-timeline-axis:block] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-[490svh]`}
+      className="relative mb-12 [view-timeline-name:--learning-story] [view-timeline-axis:block] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-[490svh]"
     >
       <div className="py-6 motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:sticky motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:top-0 motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:flex motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-svh motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:max-h-[1000px] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:flex-col motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:justify-center md:py-10">
         <div className="mb-5 flex items-center justify-between gap-4">
