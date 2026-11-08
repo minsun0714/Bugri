@@ -64,7 +64,9 @@ test("solving today's review one question at a time shows each next date and end
   await solveCurrent(page, "클로저", false);
 
   await expect(
-    page.getByText(/^다음 복습: 내일 \(\d{4}-\d{2}-\d{2}\)$/),
+    page.getByText(
+      /^다음 복습: 내일 \(\d{4}-\d{2}-\d{2}\)$/,
+    ),
   ).toBeVisible();
 
   await expect(
@@ -105,14 +107,25 @@ test("solving today's review one question at a time shows each next date and end
     page.getByText(/^다음 복습: 3일 뒤 \(/),
   ).toBeVisible();
 
+  // The last result does not read as "0 left".
+  await expect(
+    page.getByRole("heading", { name: "오늘 복습 0개" }),
+  ).toHaveCount(0);
+
   // Nothing is left, so the last button finishes the review.
   await page
-    .getByRole("button", { name: "복습 마치기", exact: true })
+    .getByRole("button", {
+      name: "복습 마치기",
+      exact: true,
+    })
     .click();
 
-  await expect(
-    page.getByRole("heading", { name: "오늘 복습 끝" }),
-  ).toBeVisible();
+  const done = page.getByRole("heading", {
+    name: "오늘 복습 끝",
+  });
+
+  await expect(done).toBeVisible();
+  await expect(done).toBeFocused();
 
   // Two quizzes were already due tomorrow, plus the one answered wrong.
   await expect(
@@ -121,7 +134,9 @@ test("solving today's review one question at a time shows each next date and end
 
   await expect(page).not.toHaveURL(/review=/);
 
-  await expect(page.getByText("1일 연속 학습")).toBeVisible();
+  await expect(
+    page.getByText("1일 연속 학습"),
+  ).toBeVisible();
 });
 
 test("a reload restores the open question and its result", async ({
@@ -136,7 +151,10 @@ test("a reload restores the open question and its result", async ({
 
   // The question comes back unanswered and without the answer.
   await expect(
-    page.getByRole("button", { name: "답 제출", exact: true }),
+    page.getByRole("button", {
+      name: "답 제출",
+      exact: true,
+    }),
   ).toBeDisabled();
 
   await expect(
@@ -214,7 +232,9 @@ test("a direct solve and its retry count as study but leave the schedule alone",
     page.getByRole("heading", { name: "오늘 복습 4개" }),
   ).toBeVisible();
 
-  await expect(page.getByText("1일 연속 학습")).toBeVisible();
+  await expect(
+    page.getByText("1일 연속 학습"),
+  ).toBeVisible();
 });
 
 test("a user with no quiz is pointed to the first memo", async ({
@@ -263,7 +283,9 @@ test("a user with quizzes but none due sees what comes next", async ({
   await page.goto("/?user=friend");
 
   await expect(
-    page.getByText(/^다음 복습 \d{4}-\d{2}-\d{2} · 1개$/),
+    page.getByText(
+      /^다음 복습: 2일 뒤 \(\d{4}-\d{2}-\d{2}\) · 1개$/,
+    ),
   ).toBeVisible();
 });
 

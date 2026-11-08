@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { ApiClientError } from "@/api/client";
 import type {
@@ -12,6 +13,7 @@ import { QuizPanel } from "@/components/solving/quiz-panel";
 import { useReviewSession } from "@/components/review/use-review-session";
 import { reviewStyles } from "@/components/review/styles";
 import { Button, Skeleton } from "@/components/ui";
+import { dateDistance } from "@/services/review-schedule";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
 function NextReviewNote({
@@ -71,12 +73,30 @@ function Idle({
   );
 }
 
-function Rest({ review }: { review: TodayReviewData }) {
+function Rest({
+  review,
+  focusHeading,
+}: {
+  review: TodayReviewData;
+  focusHeading: boolean;
+}) {
   const t = useTranslation();
 
-  const { reviewedToday, tomorrowCount, upcoming } = review;
+  const heading = useRef<HTMLHeadingElement>(null);
+
+  const {
+    learningDate,
+    reviewedToday,
+    tomorrowCount,
+    upcoming,
+  } = review;
 
   const done = reviewedToday > 0;
+
+  // After finishing, keyboard and screen reader users land on the result instead of the page body.
+  useEffect(() => {
+    if (focusHeading) heading.current?.focus();
+  }, [focusHeading]);
 
   return (
     <section
@@ -84,12 +104,10 @@ function Rest({ review }: { review: TodayReviewData }) {
       className={reviewStyles.section}
     >
       <h2
+        ref={heading}
+        tabIndex={-1}
         id="today-review-heading"
-        className={
-          done
-            ? reviewStyles.headingDone
-            : reviewStyles.heading
-        }
+        className={`${done ? reviewStyles.headingDone : reviewStyles.heading} outline-none`}
       >
         {done && <span aria-hidden="true">✓</span>}
         {done
@@ -104,9 +122,10 @@ function Rest({ review }: { review: TodayReviewData }) {
         </p>
       ) : upcoming ? (
         <p className={reviewStyles.detail}>
-          {t("다음 복습 {0} · {1}개", {
-            0: upcoming.date,
-            1: upcoming.count,
+          {t("다음 복습: {0}일 뒤 ({1}) · {2}개", {
+            0: dateDistance(learningDate, upcoming.date),
+            1: upcoming.date,
+            2: upcoming.count,
           })}
         </p>
       ) : null}
@@ -153,20 +172,39 @@ export function TodayReview({
 
   const active = attemptId ? attempt.data : undefined;
 
+  const section = useRef<HTMLElement>(null);
+  const [finished, setFinished] = useState(false);
+
+  // Starting, moving on and restoring bring the review to the top of the screen, so the question
+  // and the next action are visible without scrolling past the quick note.
+  const shownId = active?.attemptId;
+
+  useEffect(() => {
+    if (!shownId) return;
+
+    section.current?.scrollIntoView?.({
+      block: "start",
+      behavior: "instant",
+    });
+  }, [shownId]);
+
   const remaining = data?.dueCount ?? 0;
 
   if (attemptId) {
     return (
       <section
+        ref={section}
         aria-labelledby="today-review-heading"
-        className="space-y-3"
+        className="scroll-mt-4 space-y-3"
       >
         <h2
           id="today-review-heading"
           className={reviewStyles.heading}
         >
           {data
-            ? t("오늘 복습 {0}개", { 0: remaining })
+            ? remaining === 0
+              ? t("오늘 복습 끝")
+              : t("오늘 복습 {0}개", { 0: remaining })
             : t("오늘 복습")}
         </h2>
         {attempt.isPending && <Skeleton />}
@@ -232,7 +270,10 @@ export function TodayReview({
                 ) : (
                   <Button
                     loading={isFetching}
-                    onClick={session.close}
+                    onClick={() => {
+                      setFinished(true);
+                      session.close();
+                    }}
                   >
                     {t("복습 마치기")}
                   </Button>
@@ -298,7 +339,7 @@ export function TodayReview({
       {data.totalCount === 0 ? (
         <Empty />
       ) : data.dueCount === 0 ? (
-        <Rest review={data} />
+        <Rest review={data} focusHeading={finished} />
       ) : (
         <Idle
           review={data}
