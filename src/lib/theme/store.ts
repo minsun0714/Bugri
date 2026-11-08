@@ -17,6 +17,13 @@ export function getThemePreference(): ThemePreference {
   );
 }
 
+export function getResolvedTheme(): ThemePreference {
+  return document.documentElement.dataset.theme ===
+    ThemePreference.DARK
+    ? ThemePreference.DARK
+    : ThemePreference.LIGHT;
+}
+
 export function getServerThemePreference(): ThemePreference {
   return ThemePreference.SYSTEM;
 }

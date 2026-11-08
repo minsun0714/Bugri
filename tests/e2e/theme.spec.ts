@@ -8,15 +8,21 @@ for (const width of [1280, 320]) {
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/discover/developers?user=learner");
     const root = page.locator("html");
-    const picker = page.getByRole("combobox", {
-      name: "화면 테마",
+    const picker = page.getByRole("button", {
+      name: /모드로 전환/,
     });
     const mascot = page.locator(".bugri-pet").first();
     await expect(root).toHaveAttribute(
       "data-theme",
       "dark",
     );
-    await expect(picker).toHaveText("시스템");
+    await expect(picker).toHaveAccessibleName(
+      "라이트 모드로 전환",
+    );
+    await expect(root).toHaveAttribute(
+      "data-theme-preference",
+      "system",
+    );
     await expect(mascot).toBeVisible();
     const colors = await mascot.evaluate((node) =>
       Array.from(node.querySelectorAll("div, span")).map(
@@ -31,15 +37,14 @@ for (const width of [1280, 320]) {
     );
     await picker.focus();
     await page.keyboard.press("Enter");
-    await page.keyboard.press("Home");
-    await page.keyboard.press("ArrowDown");
-    await page.keyboard.press("Enter");
     await expect(picker).toBeFocused();
     await expect(root).toHaveAttribute(
       "data-theme",
       "light",
     );
-    await expect(picker).toHaveText("라이트");
+    await expect(picker).toHaveAccessibleName(
+      "다크 모드로 전환",
+    );
     expect(
       await mascot.evaluate((node) =>
         Array.from(node.querySelectorAll("div, span")).map(
@@ -76,19 +81,23 @@ for (const width of [1280, 320]) {
       "light",
     );
     await picker.click();
-    await page
-      .getByRole("option", { name: "다크", exact: true })
-      .click();
     await expect(root).toHaveCSS("color-scheme", "dark");
     await page.emulateMedia({ colorScheme: "light" });
     await expect(root).toHaveAttribute(
       "data-theme",
       "dark",
     );
-    await picker.click();
+    if (width < 1024)
+      await page
+        .getByRole("button", { name: "메뉴 열기" })
+        .click();
     await page
-      .getByRole("option", { name: "시스템", exact: true })
+      .getByRole("link", { name: /화면 설정$/ })
       .click();
+    await expect(page).toHaveURL(/settings\?user=learner/);
+    await page
+      .getByRole("radio", { name: "시스템 설정 따르기" })
+      .check();
     await expect(root).toHaveAttribute(
       "data-theme",
       "light",
@@ -98,6 +107,16 @@ for (const width of [1280, 320]) {
       "data-theme",
       "dark",
     );
+    if (width < 1024) {
+      const themeBox = await picker.boundingBox();
+      const demoBox = await page
+        .getByRole("button", {
+          name: "데모 사용자 선택",
+          exact: true,
+        })
+        .boundingBox();
+      expect(demoBox!.y - themeBox!.y).toBeLessThan(70);
+    }
     expect(
       await page.evaluate(
         () =>
@@ -146,10 +165,7 @@ test("unavailable browser storage still permits an explicit selection", async ({
     "dark",
   );
   await page
-    .getByRole("combobox", { name: "화면 테마" })
-    .click();
-  await page
-    .getByRole("option", { name: "라이트", exact: true })
+    .getByRole("button", { name: /모드로 전환/ })
     .click();
   await expect(page.locator("html")).toHaveAttribute(
     "data-theme",
@@ -191,10 +207,7 @@ test("site theme preserves room canvas artwork", async ({
     .toBeGreaterThan(1000);
   const before = await readArtwork();
   await page
-    .getByRole("combobox", { name: "화면 테마" })
-    .click();
-  await page
-    .getByRole("option", { name: "다크", exact: true })
+    .getByRole("button", { name: /모드로 전환/ })
     .click();
   await expect(page.locator("html")).toHaveAttribute(
     "data-theme",
@@ -225,8 +238,8 @@ test("Chrome auto dark mode preserves the mascot in both site themes", async ({
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/discover/developers");
   const session = await page.context().newCDPSession(page);
-  const picker = page.getByRole("combobox", {
-    name: "화면 테마",
+  const picker = page.getByRole("button", {
+    name: /모드로 전환/,
   });
   const mascot = page.locator(".bugri-pet").first();
   for (const label of ["라이트", "다크"]) {
@@ -235,9 +248,11 @@ test("Chrome auto dark mode preserves the mascot in both site themes", async ({
       { enabled: false },
     );
     await picker.click();
-    await page
-      .getByRole("option", { name: label, exact: true })
-      .click();
+    await expect(picker).toHaveAccessibleName(
+      label === "라이트"
+        ? "다크 모드로 전환"
+        : "라이트 모드로 전환",
+    );
     const original = await mascot.screenshot({
       animations: "disabled",
     });
@@ -250,3 +265,82 @@ test("Chrome auto dark mode preserves the mascot in both site themes", async ({
     ).toEqual(original);
   }
 });
+
+test("guest settings restore system following and keyboard toggles both ways", async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/discover/developers");
+  await page
+    .getByRole("button", { name: "다크 모드로 전환" })
+    .focus();
+  await page.keyboard.press("Space");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-theme",
+    "dark",
+  );
+  await page.keyboard.press("Enter");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-theme",
+    "light",
+  );
+  await page
+    .getByRole("link", { name: "화면 설정", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/settings$/);
+  await page
+    .getByRole("radio", { name: "시스템 설정 따르기" })
+    .check();
+  await page.reload();
+  await expect(
+    page.getByRole("radio", { name: "시스템 설정 따르기" }),
+  ).toBeChecked();
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(
+    page.getByRole("button", {
+      name: "라이트 모드로 전환",
+    }),
+  ).toBeVisible();
+});
+
+for (const width of [1280, 320]) {
+  test(`English appearance settings preserve system behavior at ${width}px`, async ({
+    browser,
+    baseURL,
+  }) => {
+    const context = await browser.newContext({
+      baseURL,
+      locale: "en-US",
+      colorScheme: "light",
+      viewport: { width, height: 900 },
+    });
+    const page = await context.newPage();
+    await page.goto("/discover/developers?user=learner");
+    await page
+      .getByRole("button", { name: "Switch to dark mode" })
+      .click();
+    if (width < 1024)
+      await page
+        .getByRole("button", { name: "Open menu" })
+        .click();
+    await page
+      .getByRole("link", { name: /Appearance settings$/ })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "Appearance settings",
+      }),
+    ).toBeVisible();
+    await page
+      .getByRole("radio", {
+        name: "Follow system settings",
+      })
+      .check();
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-theme",
+      "light",
+    );
+    await expect(page).toHaveURL(/settings\?user=learner/);
+    await context.close();
+  });
+}

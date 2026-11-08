@@ -115,7 +115,14 @@ export function HeaderNavigation({
         <div className="hidden lg:block">
           <LanguagePicker />
         </div>
-        <div className="col-span-3 row-start-2 flex items-center justify-end gap-2">
+        <div className="col-span-3 row-start-2 flex flex-wrap items-center justify-end gap-2">
+          <Link
+            href={withDemoUser("/settings", userId)}
+            className="hidden min-h-11 items-center rounded-full px-3 text-xs font-medium text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:inline-flex"
+          >
+            {t("화면 설정")}
+          </Link>
+
           {userId && (
             <div ref={profileRoot} className="relative">
               <button
@@ -191,11 +198,21 @@ export function HeaderNavigation({
         </div>
         <MobileNavigation
           key={`${pathname}-${userId}`}
-          sections={items.map(({ href, label }) => [
-            href,
-            label,
-          ])}
-          activePath={active ?? ""}
+          sections={[
+            ...items.map(({ href, label }) => [
+              href,
+              label,
+            ]),
+            [
+              withDemoUser("/settings", userId),
+              "화면 설정",
+            ],
+          ]}
+          activePath={
+            pathname === "/settings"
+              ? withDemoUser("/settings", userId)
+              : (active ?? "")
+          }
           product
         />
       </div>
