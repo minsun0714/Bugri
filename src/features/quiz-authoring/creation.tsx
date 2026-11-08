@@ -3,7 +3,7 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { InputValidationError } from "@/api/errors";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import type { GenerationBatch } from "@/api/contracts";
 import { Button, Modal } from "@/components/ui";
@@ -21,12 +21,14 @@ export function Creation({
   userId,
   initialBatch,
   onGenerated,
+  onComplete,
   onDirty,
 }: {
   api: ApiClient;
   userId: string;
   initialBatch?: GenerationBatch;
   onGenerated: (batch: GenerationBatch) => void;
+  onComplete: () => void;
   onDirty: (dirty: boolean) => void;
 }) {
   const t = useTranslation();
@@ -41,6 +43,20 @@ export function Creation({
   const [error, setError] = useState<unknown>(null);
   const [editing, setEditing] = useState(false);
   const locked = useRef(false);
+  const completed = useRef(false);
+  const allHandled =
+    !!batch &&
+    !editing &&
+    batch.candidates.every(
+      ({ savedQuizId }) => !!savedQuizId,
+    );
+
+  useEffect(() => {
+    if (!allHandled || completed.current) return;
+
+    completed.current = true;
+    onComplete();
+  }, [allHandled, onComplete]);
 
   function closeModal() {
     const hasUnhandledCandidates = batch?.candidates.some(
@@ -131,7 +147,7 @@ export function Creation({
       </div>
       {!open && <RequestError error={error} />}
       <Modal
-        open={open}
+        open={open && !allHandled}
         onClose={closeModal}
         title={t("버그리와 퀴즈 다듬기")}
         layout="conversation"

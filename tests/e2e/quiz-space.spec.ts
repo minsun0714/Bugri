@@ -91,6 +91,23 @@ for (const locale of ["ko", "en"]) {
       height: 900,
     });
     await expect(write).toHaveCount(0);
+    const writingPanel = page.getByRole("region", {
+      name: locale === "ko" ? "작성" : "Write",
+      exact: true,
+    });
+    const previewPanel = page.getByRole("region", {
+      name: locale === "ko" ? "미리보기" : "Preview",
+      exact: true,
+    });
+    const writingBox = (await writingPanel.boundingBox())!;
+    const previewBox = (await previewPanel.boundingBox())!;
+    expect(
+      Math.abs(writingBox.height - previewBox.height),
+    ).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(writingBox.y - previewBox.y),
+    ).toBeLessThanOrEqual(1);
+
     await expect(input).toHaveValue(source);
     await expect(page.locator("pre code")).toBeVisible();
     await expect(page.locator("body")).toHaveJSProperty(
@@ -254,3 +271,119 @@ for (const locale of ["ko", "en"]) {
     });
   });
 }
+
+for (const action of [
+  "임시저장",
+  "바로 공개",
+  "퀴즈 삭제",
+]) {
+  test(`completed ${action} flow redirects without a leave warning`, async ({
+    page,
+  }) => {
+    await page.goto("/quizzes/authoring?user=learner");
+    await page
+      .getByRole("textbox")
+      .fill("HTTP 요청과 응답");
+    await page
+      .getByRole("button", {
+        name: "퀴즈 만들기",
+        exact: true,
+      })
+      .click();
+    const dialogs: string[] = [];
+    page.on("dialog", async (dialog) => {
+      dialogs.push(dialog.message());
+      await dialog.accept();
+    });
+    const modal = page.getByRole("dialog");
+    await expect(modal.getByRole("tab")).toHaveCount(4);
+    const batchUrl = page.url();
+    for (let index = 1; index <= 4; index += 1) {
+      if (index > 1 && action !== "퀴즈 삭제") {
+        await modal
+          .getByRole("tab", {
+            name: `퀴즈 ${index}`,
+            exact: true,
+          })
+          .click();
+      }
+      await modal
+        .getByRole("button", { name: action, exact: true })
+        .click();
+      if (index < 4) {
+        await expect(page).toHaveURL(batchUrl);
+        if (action === "퀴즈 삭제")
+          await expect(modal.getByRole("tab")).toHaveCount(
+            4 - index,
+          );
+        else
+          await expect(
+            modal.getByRole("tab", {
+              name: new RegExp(`^퀴즈 ${index} ·`),
+            }),
+          ).toBeVisible();
+      }
+    }
+    await expect(page).toHaveURL(
+      /\/quizzes\/authoring\/manage\?user=learner$/,
+    );
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByRole("article")).toHaveCount(
+      action === "퀴즈 삭제" ? 0 : 4,
+    );
+    expect(
+      dialogs.filter((message) =>
+        /저장하지 않은|모달을 닫으면/.test(message),
+      ),
+    ).toEqual([]);
+    await page.screenshot({
+      path: `/tmp/bugri-quiz-followup/completed-${action}.png`,
+      fullPage: true,
+    });
+    await page.goto(batchUrl);
+    await expect(page).toHaveURL(
+      /\/quizzes\/authoring\/manage\?user=learner$/,
+    );
+  });
+}
+
+test("desktop empty and long preview panels match writing height", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/quizzes/authoring?user=author");
+  const writing = page.getByRole("region", {
+    name: "작성",
+    exact: true,
+  });
+  const preview = page.getByRole("region", {
+    name: "미리보기",
+    exact: true,
+  });
+  for (const content of [
+    "",
+    "HTTP 응답\n\n" +
+      "응답 상태와 본문을 확인합니다.\n\n".repeat(15),
+  ]) {
+    await page.getByRole("textbox").fill(content);
+    await expect(writing).toBeVisible();
+    const left = (await writing.boundingBox())!;
+    const right = (await preview.boundingBox())!;
+    expect(
+      Math.abs(left.height - right.height),
+    ).toBeLessThanOrEqual(1);
+    const shell = (await writing
+      .getByRole("group")
+      .boundingBox())!;
+    const markdown = (await preview
+      .locator(".markdown-preview")
+      .boundingBox())!;
+    expect(
+      Math.abs(shell.height - markdown.height),
+    ).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path: `/tmp/bugri-quiz-followup/desktop-${content ? "long" : "empty"}.png`,
+      fullPage: true,
+    });
+  }
+});

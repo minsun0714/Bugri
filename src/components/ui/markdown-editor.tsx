@@ -86,6 +86,9 @@ export function MarkdownEditor({
     layout === "split" ||
     (layout === "responsive" && desktop);
 
+  const responsiveSplit =
+    layout === "responsive" && desktop;
+
   const compact = density === "compact";
   const codeButton = (
     <Button
@@ -100,7 +103,7 @@ export function MarkdownEditor({
 
   const editor = (
     <div
-      className={styles["editor-shell"]}
+      className={`${styles["editor-shell"]} ${responsiveSplit ? "flex flex-1 flex-col [&_textarea]:flex-1" : ""}`}
       role="group"
       aria-label={t("Markdown 작성")}
     >
@@ -156,7 +159,7 @@ export function MarkdownEditor({
 
   const preview = (
     <div
-      className={`${styles["markdown-preview"]} ${layout === "responsive" ? "min-w-0 max-w-full [&_pre]:max-w-full" : ""} ${layout === "responsive" && !value.trim() ? "!min-h-0" : ""}`}
+      className={`${styles["markdown-preview"]} ${layout === "responsive" ? "min-w-0 max-w-full [&_pre]:max-w-full" : ""} ${responsiveSplit ? "flex-1" : ""} ${layout === "responsive" && !desktop && !value.trim() ? "!min-h-0" : ""}`}
     >
       {value.trim() ? (
         <Markdown
@@ -211,12 +214,10 @@ export function MarkdownEditor({
         </div>
       )}
       {split ? (
-        <div
-          className={`grid min-w-0 gap-5 lg:grid-cols-2 ${layout === "responsive" ? "items-start" : ""}`}
-        >
+        <div className="grid min-w-0 gap-5 lg:grid-cols-2">
           <section
             aria-label={t("작성")}
-            className="min-w-0 rounded-2xl border border-line bg-surface p-4"
+            className={`min-w-0 rounded-2xl border border-line bg-surface p-4 ${responsiveSplit ? "flex flex-col" : ""}`}
           >
             <h2 className="mb-3 text-sm font-semibold">
               {t("작성")}
@@ -225,7 +226,7 @@ export function MarkdownEditor({
           </section>
           <section
             aria-label={t("미리보기")}
-            className="min-w-0 rounded-2xl border border-line bg-surface p-4"
+            className={`min-w-0 rounded-2xl border border-line bg-surface p-4 ${responsiveSplit ? "flex flex-col" : ""}`}
           >
             <h2 className="mb-3 text-sm font-semibold">
               {t("미리보기")}

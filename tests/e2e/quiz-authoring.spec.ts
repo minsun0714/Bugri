@@ -169,21 +169,21 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
         exact: true,
       })
       .click();
-    await expect(
-      candidates.getByText("임시저장됨", { exact: true }),
-    ).toBeVisible();
+    if (index < 4) {
+      await expect(
+        candidates.getByText("임시저장됨", { exact: true }),
+      ).toBeVisible();
+    }
   }
+  await expect(page).toHaveURL(
+    /\/quizzes\/authoring\/manage\?user=learner$/,
+  );
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(
-    candidates.getByRole("tab", {
-      name: /^퀴즈 [1-4] · 임시저장됨$/,
-    }),
+    page
+      .getByRole("region", { name: "내 퀴즈 목록" })
+      .getByRole("article"),
   ).toHaveCount(4);
-  await expect(
-    page.getByRole("link", { name: "검토·승인" }),
-  ).toBeVisible();
-  await expect(
-    candidates.getByRole("link", { name: "검토·승인" }),
-  ).toHaveCount(0);
   await management.reload();
   await expect(
     management
@@ -206,38 +206,29 @@ test("generation focuses on requests, preserves conversation and saves to a sepa
       .getByRole("region", { name: "내 퀴즈 목록" })
       .getByRole("article"),
   ).toHaveCount(4);
-  page.once("dialog", (dialog) => dialog.accept());
-  await candidates
-    .getByRole("button", { name: "퀴즈 삭제" })
-    .click();
-  await expect(candidates.getByRole("tab")).toHaveCount(3);
-  await management.reload();
-  await expect(
-    management
-      .getByRole("region", { name: "내 퀴즈 목록" })
-      .getByRole("article"),
-  ).toHaveCount(3);
-  for (let remaining = 2; remaining >= 0; remaining -= 1) {
-    page.once("dialog", (dialog) => dialog.accept());
-    await candidates
-      .getByRole("button", { name: "퀴즈 삭제" })
+  for (let remaining = 3; remaining >= 0; remaining -= 1) {
+    await page
+      .getByRole("article")
+      .first()
+      .getByRole("button", { name: /검토하기$/ })
       .click();
-    await expect(candidates.getByRole("tab")).toHaveCount(
-      remaining,
-    );
+    page.once("dialog", (dialog) => dialog.accept());
+    await page
+      .getByRole("button", {
+        name: "퀴즈 삭제",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page
+        .getByRole("region", { name: "내 퀴즈 목록" })
+        .getByRole("article"),
+    ).toHaveCount(remaining);
   }
-  await expect(
-    page.getByText("남은 퀴즈가 없습니다"),
-  ).toBeVisible();
   await page.reload();
   await expect(
-    page.getByText("남은 퀴즈가 없습니다"),
+    page.getByText("저장한 퀴즈가 없습니다"),
   ).toBeVisible();
-  await expect(
-    page.getByText(
-      "저장된 데이터를 읽을 수 없어요. 기존 데이터는 보존했어요.",
-    ),
-  ).toHaveCount(0);
   await management.reload();
   await expect(
     management
@@ -333,8 +324,13 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
       })
       .click();
   }
+  await expect(page).toHaveURL(
+    /\/quizzes\/authoring\/manage\?user=learner$/,
+  );
   await page
-    .getByRole("link", { name: "검토·승인" })
+    .getByRole("article")
+    .first()
+    .getByRole("button", { name: /검토하기$/ })
     .click();
   const review = page.getByRole("region", {
     name: "퀴즈 검토",
@@ -751,12 +747,16 @@ test("initial results hide chat and publish only the displayed quiz", async ({
       })
       .click();
   }
+  await expect(page).toHaveURL(
+    /\/quizzes\/authoring\/manage\?user=learner$/,
+  );
   await page.reload();
-  await expect(
-    dialog.getByRole("tab", { name: "퀴즈 1 · 공개됨" }),
-  ).toBeVisible();
-  await dialog
-    .getByRole("link", { name: "검토·승인" })
+  const published = page.getByRole("article").filter({
+    has: page.getByText("공개 중", { exact: true }),
+  });
+  await expect(published).toHaveCount(1);
+  await published
+    .getByRole("button", { name: /관리하기$/ })
     .click();
   await expect(
     page.getByRole("region", {
