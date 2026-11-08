@@ -23,7 +23,7 @@ export const tagDiscoveryStyles = {
 };
 
 export const discoveryStyles = {
-  card: "flex min-w-0 flex-col gap-3 rounded-sm border border-line bg-surface p-4 sm:p-5 transition-colors hover:border-foreground",
+  card: "flex min-w-0 flex-col gap-3 rounded-sm border-2 border-dashed border-control-line bg-canvas p-4 sm:p-5 transition-colors hover:border-foreground",
   personLink:
     "inline-flex min-h-11 max-w-full items-center rounded-lg break-all text-lg font-bold tracking-tight text-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
   quizLink:
