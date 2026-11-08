@@ -419,17 +419,42 @@ function Catalog({
                     href: `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`,
                   }}
                   footer={
-                    <div className="mt-3">
-                      <QuizReactionControl
-                        key={`${signedIn}:${userId}:${quizId}`}
-                        userId={signedIn ? userId : null}
-                        quizId={quizId}
-                      />
+                    <div
+                      className={
+                        profile
+                          ? "mt-3"
+                          : "mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1"
+                      }
+                    >
+                      {!profile && (
+                        <span className="min-w-0 max-w-full break-words text-sm text-muted [overflow-wrap:anywhere]">
+                          {hashtagIds
+                            .map((id) => `#${id}`)
+                            .join(" ")}
+                        </span>
+                      )}
+                      <div
+                        className={
+                          profile
+                            ? undefined
+                            : "ml-auto max-w-full"
+                        }
+                      >
+                        <QuizReactionControl
+                          key={`${signedIn}:${userId}:${quizId}`}
+                          userId={signedIn ? userId : null}
+                          quizId={quizId}
+                        />
+                      </div>
                     </div>
                   }
-                  metadata={hashtagIds
-                    .map((id) => `#${id}`)
-                    .join(" ")}
+                  metadata={
+                    profile
+                      ? hashtagIds
+                          .map((id) => `#${id}`)
+                          .join(" ")
+                      : undefined
+                  }
                 />
               </li>
             ),
@@ -554,23 +579,7 @@ function Catalog({
             aria-label={t("개발자의 태그")}
             className={developerStyles.filters}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="!min-h-11 aria-pressed:!bg-primary/10"
-                aria-pressed={hashtagIds.length === 0}
-                disabled={busy}
-                onClick={() =>
-                  onChange({
-                    ...filters,
-                    hashtagIds: [],
-                    page: 1,
-                  })
-                }
-              >
-                {t("전체 퀴즈")}
-              </Button>
+            <div className="flex flex-wrap items-center justify-end gap-3">
               <TagSearch
                 key={tagQuery}
                 value={tagQuery}
@@ -599,24 +608,42 @@ function Catalog({
             )}
             {tags.data && (
               <>
-                <FilterChips
-                  options={tags.data.items.map(
-                    ({ id, name, quizCount }) => ({
-                      id,
-                      label: name,
-                      count: quizCount,
-                    }),
-                  )}
-                  value={hashtagIds}
-                  disabled={navigating}
-                  onChange={(selected) =>
-                    onChange({
-                      ...filters,
-                      hashtagIds: selected,
-                      page: 1,
-                    })
-                  }
-                />
+                <div className="flex flex-wrap items-center gap-2 [&>ul]:contents">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="!min-h-11 !rounded-xl !border-line !bg-surface !text-sm !font-normal !text-muted !shadow-none aria-pressed:!border-primary/30 aria-pressed:!bg-primary/10 aria-pressed:!text-primary"
+                    aria-pressed={hashtagIds.length === 0}
+                    disabled={busy}
+                    onClick={() =>
+                      onChange({
+                        ...filters,
+                        hashtagIds: [],
+                        page: 1,
+                      })
+                    }
+                  >
+                    {t("전체 퀴즈")}
+                  </Button>
+                  <FilterChips
+                    options={tags.data.items.map(
+                      ({ id, name, quizCount }) => ({
+                        id,
+                        label: name,
+                        count: quizCount,
+                      }),
+                    )}
+                    value={hashtagIds}
+                    disabled={navigating}
+                    onChange={(selected) =>
+                      onChange({
+                        ...filters,
+                        hashtagIds: selected,
+                        page: 1,
+                      })
+                    }
+                  />
+                </div>
                 {!tags.data.items.length && (
                   <p className="mt-4 text-sm text-muted">
                     {t("표시할 태그가 없습니다.")}

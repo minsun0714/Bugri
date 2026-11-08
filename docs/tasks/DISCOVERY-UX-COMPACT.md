@@ -38,3 +38,15 @@
 - 변경된 코드/번역/테스트 13파일 `npx prettier --check` 통과, `git diff --check` 통과. 문서 참조와 요청 범위 정합성 확인.
 - 전체 npm run verify 통과로 표현하지 않는다. 영향 없는 상점·3D 전용 E2E 제외, 별도 스크린리더/다크/전체 키보드 순회는 위 리뷰 한계 유지.
 - 최종 검증 이후 변경은 이 문서와 리뷰 기록뿐이다. 테스트 결과를 재사용하여 커밋한다. 푸시/PR/병합 없음.
+
+## 후속: 필터 가로정렬·카드 밀도
+
+- 사용자 피드백: 전체 퀴즈를 태그와 같은 줄로 정렬, 태그와 좋아요/싫어요를 한 줄로 묶어 카드 높이 축소. 기존 작업 후속으로 이 파일에서 기록한다.
+- 범위: developer-screen의 비프로필 목록 표현만. 공통 QuizCard/FilterChips/QuizReactionControl과 공개 프로필 기본 배치 불변. 줄바꿈은 좁은 폭·긴 태그에서 허용.
+- 검증: 표현/배치 변경으로 scoped lint/Prettier, 타입, 관련 developer Jest와 developer/discovery-ux-compact/quiz-card-actions/quiz-reactions/profile-split E2E. 한영1280/390 화면, 독립 UX/UI 후속 리뷰. API·저장·공통 컴포넌트 불변이므로 전체 pipeline 반복 안 함. 상점·3D 제외.
+
+- 후속 결과: Node22.23.3 scoped ESLint·Prettier·전체 typecheck·developer Jest6건·선정 E2E25건 통과. E2E 내부 production build 통과. `git diff --check` 통과. 기존 전체 검증 결과와 후속 영향 검사 결과를 구분한다.
+- 화면: ko/en ×1280/390/320, 높이900. 전체 버튼과 첫 태그 y/height 일치(44px), 카드 태그+반응 한 행, 320 긴 태그 조합은 반응 다음 행 허용. /tmp/bugri-compact-followup 캡처 및 measurements.log, E2E /tmp/bugri-compact-followup-e2e.log.
+- dev3219 시작 시 기존 같은 워크트리 dev3000 lock으로 차단되어 최초 캡처 연결 실패. 기존 서버를 중단/재사용하지 않고 production3219를 별도 실행하여 캡처 완료. 기능 검사 실패와 구분한다.
+- 사용자 지적을 반영한 C2/R2: 기존 독립 UX/UI 리뷰어가 후속 확인. UI 실제 캡처6개, UX 키보드 태그선택→전체해제→좋아요→싫어요→퀴즈진입 직접 확인. 새 문제 없음. 스크린리더·전체Tab·임의 긴 데이터·네트워크 실패 독립 확인은 미실행.
+- 후속 변경파일: developer-screen.tsx 및 본 TASK/기존 리뷰 기록. 공통 컴포넌트·번역·API·저장·프로필 스타일 변경 없음. 관련 검증 이후 문서만 변경, 후속 커밋. push/PR/merge 없음.
