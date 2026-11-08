@@ -114,24 +114,17 @@ export function createMockTransport(
           );
         }
 
-        // Fresh reads on every request observe other dummy users and tabs. Only actor-owned state is written.
-        const state = readState(storage, userId, {
-          demoHistory: options.demoHistory,
-        });
+        const now = options.now?.() ?? new Date();
 
-        const allStates = [state];
-
+        // Every write-allowed request re-detects the device zone; a valid, different zone replaces the saved one.
+        // Stored attempts and learning days keep their own zone. Failed detection keeps the saved value.
         const readOnlyHistory =
           operation === "attemptHistory" ||
           operation === "attempt";
 
-        const before = JSON.stringify(state);
+        let detected: string | undefined;
 
-        // Every write-allowed request re-detects the device zone; a valid, different zone replaces the saved one.
-        // Stored attempts and learning days keep their own zone. Failed detection keeps the saved value.
         if (!readOnlyHistory) {
-          let detected: string | undefined;
-
           try {
             detected = options.detectTimeZone
               ? options.detectTimeZone()
@@ -140,7 +133,23 @@ export function createMockTransport(
           } catch {
             /* explicit setting remains available */
           }
+        }
 
+        // Fresh reads on every request observe other dummy users and tabs. Only actor-owned state is written.
+        // A brand-new seed gets review dates relative to "today" in the zone this request detected.
+        const state = readState(storage, userId, {
+          demoHistory: options.demoHistory,
+          now,
+          timeZone: timeZoneValid(detected)
+            ? detected
+            : (fallbackTimeZone ?? null),
+        });
+
+        const allStates = [state];
+
+        const before = JSON.stringify(state);
+
+        if (!readOnlyHistory) {
           if (timeZoneValid(detected)) {
             if (state.timeZone !== detected)
               state.timeZone = detected;
@@ -155,7 +164,7 @@ export function createMockTransport(
           allQuizzes: allStates.flatMap(
             ({ quizzes }) => quizzes,
           ),
-          now: options.now?.() ?? new Date(),
+          now,
           id: () => globalThis.crypto.randomUUID(),
           generate: options.generate ?? defaultGenerate,
         };

@@ -117,3 +117,105 @@ export const seeds: Record<
     ),
   },
 };
+
+export interface SeedReviewPlan {
+  quizId: string;
+  /** Index into the 1 → 3 → 7 → 14 → 30 day intervals. */
+  stage: number;
+  /** Days from the day the state is first created; negative means overdue. */
+  dueInDays: number;
+  lastCorrect: boolean | null;
+}
+
+/**
+ * Review schedules relative to the day a user's state is first created, so the demo always shows
+ * what is due today, overdue and due tomorrow. The author and friend have nothing due today.
+ */
+export const seedReviewPlans: Record<
+  string,
+  SeedReviewPlan[]
+> = {
+  learner: [
+    // Overdue by 3 days, last answered correctly.
+    {
+      quizId: "seed-quiz-5",
+      stage: 2,
+      dueInDays: -3,
+      lastCorrect: true,
+    },
+    // Overdue by 1 day, answered wrong last time: comes first.
+    {
+      quizId: "seed-quiz-6",
+      stage: 0,
+      dueInDays: -1,
+      lastCorrect: false,
+    },
+    // Due today.
+    {
+      quizId: "seed-quiz-7",
+      stage: 1,
+      dueInDays: 0,
+      lastCorrect: true,
+    },
+    {
+      quizId: "seed-quiz-8",
+      stage: 0,
+      dueInDays: 0,
+      lastCorrect: null,
+    },
+    // Due tomorrow.
+    {
+      quizId: "seed-quiz-9",
+      stage: 2,
+      dueInDays: 1,
+      lastCorrect: true,
+    },
+    {
+      quizId: "seed-quiz-10",
+      stage: 0,
+      dueInDays: 1,
+      lastCorrect: false,
+    },
+    // Later.
+    {
+      quizId: "seed-quiz-11",
+      stage: 3,
+      dueInDays: 5,
+      lastCorrect: true,
+    },
+    {
+      quizId: "seed-quiz-12",
+      stage: 4,
+      dueInDays: 12,
+      lastCorrect: true,
+    },
+  ],
+  author: [
+    {
+      quizId: "seed-quiz-1",
+      stage: 0,
+      dueInDays: 1,
+      lastCorrect: null,
+    },
+    {
+      quizId: "seed-quiz-2",
+      stage: 1,
+      dueInDays: 4,
+      lastCorrect: true,
+    },
+  ],
+  friend: [
+    {
+      quizId: "seed-quiz-3",
+      stage: 1,
+      dueInDays: 2,
+      lastCorrect: true,
+    },
+    {
+      quizId: "seed-quiz-4",
+      stage: 2,
+      dueInDays: 6,
+      lastCorrect: true,
+    },
+  ],
+};

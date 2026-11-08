@@ -1,5 +1,6 @@
 "use client";
 
+import { AttemptContext } from "@/api/constants";
 import { useSolvingQueries } from "@/components/solving/queries";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
@@ -38,7 +39,7 @@ export function useQuizSolving(location: SolvingLocation) {
       startMutation(
         {
           quizId: id,
-          context: "DIRECT",
+          context: AttemptContext.DIRECT,
         },
         {
           onSuccess: (created) => {

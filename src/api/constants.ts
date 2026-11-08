@@ -25,6 +25,15 @@ export const AttemptHistoryMatch = {
 export type AttemptHistoryMatch =
   (typeof AttemptHistoryMatch)[keyof typeof AttemptHistoryMatch];
 
+/** How a solving attempt was entered. Only REVIEW attempts move the review schedule. */
+export const AttemptContext = {
+  DIRECT: "DIRECT",
+  REVIEW: "REVIEW",
+} as const;
+
+export type AttemptContext =
+  (typeof AttemptContext)[keyof typeof AttemptContext];
+
 /** Where a memo search query matched; null when no query was given. */
 export const NoteMatch = {
   BODY: "BODY",

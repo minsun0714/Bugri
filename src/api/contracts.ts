@@ -1,11 +1,15 @@
 import type {
+  AttemptContext,
   AttemptHistoryFilter,
   AttemptHistoryMatch,
   NoteMatch,
   QuizStatus,
 } from "@/api/constants";
 
-export { QuizStatus } from "@/api/constants";
+export {
+  AttemptContext,
+  QuizStatus,
+} from "@/api/constants";
 
 export interface Hashtag {
   id: string;
@@ -89,9 +93,20 @@ export interface AttemptResult {
   explanation: string | null;
 }
 
+/** Schedule written by a submitted REVIEW attempt. */
+export interface NextReview {
+  /** Next review date (YYYY-MM-DD, the learner's zone when answered). */
+  date: string;
+  /** Days from the answer's learning date to `date`. */
+  days: number;
+}
+
 export interface AttemptView {
   attemptId: string;
+  context: AttemptContext;
   quizId: string;
+  /** The memo the quiz came from; null once the quiz is no longer available. */
+  noteId: string | null;
   revisionId: string;
   quiz: LearningQuizView | null;
   completedAt: string | null;
@@ -99,6 +114,26 @@ export interface AttemptView {
   timeZone: string | null;
   correct: boolean | null;
   result: AttemptResult | null;
+  /** Set only when a submitted REVIEW attempt changed the schedule. */
+  nextReview: NextReview | null;
+}
+
+/** Today's review for the home screen. Never contains answers or explanations. */
+export interface TodayReview {
+  learningDate: string;
+  timeZone: string;
+  /** Quizzes whose next review date is today or earlier. */
+  dueCount: number;
+  /** The quiz to solve next (wrong ones first, then oldest), or null. */
+  next: LearningQuizView | null;
+  /** Quizzes that come back tomorrow. */
+  tomorrowCount: number;
+  /** Distinct quizzes reviewed today (REVIEW attempts completed today). */
+  reviewedToday: number;
+  /** Live CONFIRMED quizzes, i.e. everything that can be reviewed. */
+  totalCount: number;
+  /** The nearest review after today and how many quizzes fall on it. */
+  upcoming: { date: string; count: number } | null;
 }
 
 export interface LearningDay {
@@ -265,10 +300,14 @@ export interface ApiOperations {
       total: number;
     };
   };
+  todayReview: {
+    request: Record<string, never>;
+    response: TodayReview;
+  };
   startAttempt: {
     request: {
       quizId: string;
-      context: "DIRECT";
+      context: AttemptContext;
     };
     response: AttemptView;
   };

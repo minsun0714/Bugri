@@ -85,6 +85,7 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/me/learning-timezone",
   },
   attemptHistory: { method: "GET", path: "/me/attempts" },
+  todayReview: { method: "GET", path: "/me/today-review" },
   startAttempt: {
     method: "POST",
     path: "/quizzes/{id}/attempts",

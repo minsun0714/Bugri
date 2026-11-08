@@ -1,10 +1,18 @@
-import { QuizStatus } from "@/api/constants";
+import {
+  AttemptContext,
+  QuizStatus,
+} from "@/api/constants";
 import {
   historyDemoAttempts,
   learningDays,
 } from "@/mocks/learning-history";
-import { seeds } from "@/mocks/seed";
+import { seedReviewPlans, seeds } from "@/mocks/seed";
 import { hashtags } from "@/mocks/users";
+import { localDate } from "@/services/learning";
+import {
+  addDays,
+  reviewIntervals,
+} from "@/services/review-schedule";
 import type { UserState } from "@/services/state";
 import {
   object,
@@ -27,12 +35,41 @@ export function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
+export interface InitialStateOptions {
+  demoHistory?: boolean;
+  /**
+   * Creation time. With it the seed gets review schedules relative to today in `timeZone` (UTC when
+   * unknown). Without it the schedules are computed from each quiz's `confirmedAt`.
+   */
+  now?: Date;
+  timeZone?: string | null;
+}
+
 /** The history demo adds completed Attempts on the learner's CONFIRMED seed quizzes. */
 export function initialState(
   userId: string,
-  { demoHistory = false }: { demoHistory?: boolean } = {},
+  {
+    demoHistory = false,
+    now,
+    timeZone,
+  }: InitialStateOptions = {},
 ): UserState {
   const { notes = [], quizzes = [] } = seeds[userId] ?? {};
+
+  const today = now
+    ? localDate(now, timeZone ?? "UTC")
+    : null;
+
+  const reviewSchedules = today
+    ? (seedReviewPlans[userId] ?? []).map(
+        ({ quizId, stage, dueInDays, lastCorrect }) => ({
+          quizId,
+          stage,
+          nextReviewDate: addDays(today, dueInDays),
+          lastCorrect,
+        }),
+      )
+    : undefined;
 
   return clone({
     schemaVersion: 2,
@@ -44,6 +81,7 @@ export function initialState(
       : [],
     days: [...learningDays],
     timeZone: null,
+    ...(reviewSchedules ? { reviewSchedules } : {}),
   });
 }
 
@@ -177,6 +215,39 @@ function validateState(
     revision(a.revision, !!a.completedAt);
   }
 
+  const { reviewSchedules } = value as unknown as UserState;
+
+  requireValue(
+    reviewSchedules === undefined ||
+      Array.isArray(reviewSchedules),
+    "복습 일정이 손상되었습니다.",
+  );
+
+  for (const entry of (reviewSchedules ??
+    []) as unknown[]) {
+    object(entry);
+
+    requireValue(
+      typeof entry.quizId === "string" &&
+        Number.isInteger(entry.stage) &&
+        Number(entry.stage) >= 0 &&
+        Number(entry.stage) < reviewIntervals.length &&
+        typeof entry.nextReviewDate === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(entry.nextReviewDate) &&
+        (entry.lastCorrect === null ||
+          typeof entry.lastCorrect === "boolean"),
+      "복습 일정이 손상되었습니다.",
+    );
+  }
+
+  for (const a of attempts) {
+    requireValue(
+      a.context === undefined ||
+        Object.values(AttemptContext).includes(a.context),
+      "풀이 경로가 손상되었습니다.",
+    );
+  }
+
   for (const d of days) {
     object(d);
 
@@ -193,7 +264,7 @@ function validateState(
 export function readState(
   storage: StoragePort,
   userId: string,
-  options: { demoHistory?: boolean } = {},
+  options: InitialStateOptions = {},
 ): UserState {
   let raw: string | null;
 

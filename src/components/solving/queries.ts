@@ -1,6 +1,7 @@
 "use client";
 
 import { createBrowserApi } from "@/api/browser";
+import type { AttemptContext } from "@/api/constants";
 import { type Answer } from "@/api/contracts";
 import {
   useMutation,
@@ -37,7 +38,7 @@ export function useSolvingQueries(
       context,
     }: {
       quizId: string;
-      context: "DIRECT";
+      context: AttemptContext;
     }) =>
       (await apiFor(userId)).request("startAttempt", {
         quizId,
@@ -58,10 +59,11 @@ export function useSolvingQueries(
         data,
       );
       await Promise.all(
-        ["learningDay", "history"].map((resource) =>
-          cache.invalidateQueries({
-            queryKey: [resource, userId],
-          }),
+        ["learningDay", "history", "review"].map(
+          (resource) =>
+            cache.invalidateQueries({
+              queryKey: [resource, userId],
+            }),
         ),
       );
     },

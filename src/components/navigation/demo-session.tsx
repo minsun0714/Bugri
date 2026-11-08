@@ -61,6 +61,7 @@ export function DemoSessionProvider({
     const next = new URLSearchParams(params);
     next.set("user", selected);
     next.delete("attempt");
+    next.delete("review");
     next.delete("tag");
     next.delete("mode");
     setOpen(false);

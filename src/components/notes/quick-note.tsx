@@ -14,7 +14,14 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 
 const toastDuration = 8_000;
 
-export function QuickNote({ userId }: { userId: string }) {
+export function QuickNote({
+  userId,
+  emphasized = false,
+}: {
+  userId: string;
+  /** No quiz exists yet, so writing the first memo is the next step. */
+  emphasized?: boolean;
+}) {
   const t = useTranslation();
 
   const create = useCreateNote(userId);
@@ -58,7 +65,7 @@ export function QuickNote({ userId }: { userId: string }) {
   return (
     <section
       aria-labelledby="quick-note-heading"
-      className="rounded-surface border border-line bg-surface p-4 sm:p-5"
+      className={`rounded-surface border bg-surface p-4 sm:p-5 ${emphasized ? "border-primary ring-2 ring-primary/30" : "border-line"}`}
     >
       <h2
         id="quick-note-heading"
