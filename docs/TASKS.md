@@ -1796,6 +1796,21 @@
 - [독립 UX/UI 통합 리뷰](ux-reviews/PROFILE-DND-INTEGRATION.md): 두 테마·PC/모바일 본인/방문자 화면과 저장/취소/포커스/탐색을 직접 확인해 필수 문제 0개, 수정 0회. upstream 코드·문서 보존 정적 리뷰도 완료. 실기기·스크린리더 등 한계는 리뷰 문서에 기록했다.
 - 검증 후 변경은 작업 기록·리뷰 문서뿐이므로 성공 결과를 재사용한다. 문서 링크·diff check 확인 후 PR을 Ready로 갱신하며 병합은 하지 않는다.
 
+## BUGCOIN-POLICY — 풀이 보상 정책
+
+- 상태: IN_PROGRESS(구현 반영, 전체 E2E 검증 차단). REQ-09/AC-09a 및 사용자 확정 금액. 기존 제출·지갑·사용자별 저장을 재사용하며 순수 BugCent 계산, 멱등 지급, 출제 보상, 168시간 복습을 검증한다. CRUD·디자인·상점 기능은 중복 구현하지 않는다.
+- 기존 문서의 지급량 미결정/기본0을 이번 요청으로 대체한다. 방문자 체험에는 저장 세션이 없으므로 익명 청구는 후속 계약으로 남긴다.
+- 구현: `services/bugcoin.ts` 순수 정수 계산, `answer` 완료와 solver/creator 지급 동시 저장, 수령자별 wallet/구매 잔액 합산, 불변 생성 시각, 결과 합계·내역 연결. 기존 schemaVersion1 원장/가격 단위와 명시적 dailyReward 테스트 fixture를 호환한다.
+- 테스트 우선: 신규 모듈 부재·API 지급 필드 미구현·결과 표시 미구현 실패를 각각 확인 후 구현했다. 요구13항목을 계산/API 테스트20개로 검증하고 결과 컴포넌트1개·PC/모바일 E2E2개를 추가했다.
+- 독립 코드 리뷰: 생성 시각 복원 검증 보완 및 실제 Revision 변경 테스트로 강화, 재리뷰 차단 사항 없음. [독립 UX/UI R0](ux-reviews/BUGCOIN-POLICY.md) 필수 문제0, UI수정0회; 직접 조작과 캡처 리뷰의 한계 구분.
+- 검증 환경: Node22.23.3. 불완전 node_modules는 기존 디렉터리를 /tmp에 보관하고 동일 lockfile의 별도 경로 npm ci로 복원(패키지/lockfile 변경 없음). 관련161개와 최종 집중25개 통과, 변경파일 Prettier·lint·타입·diff 검사 통과. Stop Hook을 arm 후 스크립트에 이벤트를 직접 전달해 전체 verify 실행(세션 자동 로드 여부 미확인); 3430부터 자동 포트 선택. 최종 결과는 아래에 기록한다.
+- 통합 주의: `contracts.ts`, `mock-service.ts`, `storage.ts`와 풀이 화면 변경을 함께 반영. 생성 경로 두 곳의 createdAt과 RewardReason·rewards 복원 검증을 누락하지 않는다. 기존 coin 단위 가격/원장에 cents를 그대로 넣지 않는다. 익명 청구는 세션 부재로 후속 계약만 문서화.
+- 첫 전체 verify: lint·타입·Jest332개·도구3개·build 통과, E2E198/199 통과. 기존 mock-api E2E가 보상0 시절 잔액70을 기대해 실제72와 불일치했다. 확정 정책(100+1+1−30)에 맞춰72 및 두 사유 각1건 검증으로 갱신했으며 앱 코드 변경 없음. 관련 E2E4개 재실행 통과 후 같은 Hook 상태로 최종 전체 재검증했다.
+
+- 최종 전체 검증: Hook3회차 lint·typecheck·Jest64 suites/332 tests·도구3개·build 통과, Playwright192/199 통과·7실패. 보상 E2E2개 및 mock-api2개는 모두 통과. 2회차 시간초과3개가 있던 파일은 별도 재실행12개 모두 통과했으나, 최종 실행에는 다른 기존 화면의 실패도 발생했다. 보상 외 실패를 해결한 것으로 간주하지 않는다.
+- 미해결 E2E: desk-visibility(390), developer-discovery-repair 모바일구독, item-tabletop 모니터(390), navigation 현재위치, room-theme-bugri(1100), shop-extra-items(1100), shop-tryon-edit(1100). 시간초과·브라우저 종료/디스플레이오류·탐색 assertion이 관찰됨. 실제 원인 확정 전 환경 문제로 단정하지 않는다. `.bugri-hooks/verify-1.log`~`verify-3.log` 보존, Hook blocked 기록 후 비활성화. 재시도 한도에 따라 추가 반복 없이 전체 완료/DONE 판정 보류.
+- 변경 파일: API `src/api/constants.ts`, `contracts.ts`; 서비스 `src/services/bugcoin.ts`, `mock-service.ts`, `state.ts`; Mock `src/mocks/adapter.ts`, `quizzes.ts`, `storage.ts`; 화면 `src/components/coins/coin-history.tsx`, `src/components/solving/quiz-panel.tsx`, `solve-screen.tsx`; 테스트 `tests/unit/api/bugcoin.test.ts`, `bugcoin-flow.test.ts`, `tests/unit/quiz-panel.test.tsx`, `tests/e2e/bugcoin-rewards.spec.ts`, `mock-api.spec.ts`; 문서 `docs/PRD.md`, `ARCHITECTURE.md`, `API.md`, `BUGCOIN_POLICY.md`, `TASKS.md`, `ux-reviews/BUGCOIN-POLICY.md`.
+
 ## I18N-01 — 한국어·영어 화면 언어
 
 - 상태: IN_PROGRESS — 구현 커밋, 최종 검증 미완료. REQ-16에 따라 서비스 UI만 번역하며 퀴즈·프로필·사용자 입력은 원문 유지. 브라우저 언어 감지, 명시 선택 저장, 공통 헤더 언어 선택, 오류·접근성 문구를 포함한다.
@@ -1835,3 +1850,31 @@
 - 통합 최종 검증 선택: 전체 lint·typecheck·Jest·도구 테스트·production build 및 비상점/3D E2E 전체(coin-history, design-system, developer-discovery-repair, developer, discovery-split, error-handling, home-quiz-review, locale, markdown-editor, mock-api, navigation, profile-about/layout/order/polish/split/streak, quiz-authoring/card-actions/reactions, solving, streak, tag-catalog/discovery, theme)와 shop-locale을 worker1로 실행한다. 상품 배치/구매 규칙·렌더러는 동일하므로 desk-*·my-desk·기존 shop*·bugri-tabletop·camera-drag-direction·front-height-drag·item-tabletop·monitor-screens·room-*·scene-centering·stable-placement-view·trial-zoom은 제외한다. shop-locale에서 변경된 표시·검색·정렬·언어 전환 및 구매 후 보관함 표시는 포함한다.
 - 통합 초기 타입 검사는 새 `/settings` 경로와 이전 Next 생성 타입이 불일치해 실패했다. 통합 production build가 경로 타입을 재생성한 뒤 typecheck를 재실행했다(수정3: 생성 산출물 갱신, 앱/테스트 코드 변경 없음). 기능 테스트의 최초 의도 실패 외 수정·재검증3회 기록을 유지한다. 통합 정적 독립 리뷰에서도 양쪽 문서/번역과 언어 선택·테마 토글 공존을 확인했다.
 - 최종 통합 결과: `d2c10a1` 코드·Node v22.23.3에서 lint·typecheck·Jest67 suites/329개·도구3개·production build 및 선택 E2E136개(worker1) 모두 통과. 로그 `/tmp/shop-i18n-final-{lint-2,types-2,jest,tools,e2e}.log`. 전체 3D를 포함한 verify 통과를 뜻하지 않는다. 변경 코드 Prettier·diff check 통과, 검증 후 변경은 결과 문서뿐이다. 독립 UX/UI R0 필수문제0 및 통합 정적 리뷰 완료. 기능/병합/검증기록을 로컬 커밋하며 push·PR 없음.
+
+## BUGCOIN-DEV-MERGE — origin/dev 다국어 통합
+
+- 상태: DONE(충돌 해결·선정된 통합 검증 완료). 사용자 요청으로 이미 진행 중이던 HEAD(bebb3f0)와 origin/dev(f87b0a4) 병합 충돌3개를 해결한다. ARCHITECTURE/TASKS는 양쪽 섹션과 기존 실패 기록을 보존하고, QuizPanel은 Link·번역 hook·보상 표시를 함께 유지한다. 보상 사유5개와 내역 링크 영어 번역 및 영어 지급→내역 통합 테스트를 추가한다.
+- 독립 코드 리뷰에서 최초 충돌 해결 도중 QuizPanel 본문 절단 오류 발견. 원본3개로 다시3-way 병합해 복원하고 재리뷰·검증한다.
+- 검증 선택: 새 dev 검증 지침 적용. 전체 lint·typecheck·Jest·도구·production build와 비3D 전체 E2E, 구매/지갑 흐름 shop.spec.ts 및 다국어 locale.spec.ts를 실행한다. 구독·프로필·navigation 등 과거 실패도 포함한다. 상점/3D 포함 E2E는 worker1개로 순차 실행한다. 상세 배치·회전·확대·캔버스 검사는 렌더링/입력 로직 변경이 없어 제외한다(기존 실패 기록을 통과로 바꾸지 않음). 정확한 선택/제외 목록은 `.bugri-hooks/coin-dev-merge/e2e-selection.txt`, `e2e-excluded.txt`에 기록한다. 자동 전체 Hook 대신 수동 분할 검증.
+
+- 검증 결과(Node22.23.3): 전체 lint(초기 절단본의 unused import 경고는 복원 후 해당 파일 재검사로 해소), 전체 typecheck, Jest66 suites/337 tests, 도구3개, production build 통과. 선택25파일 E2E129개 worker1 순차 실행 전부 통과(2.7분, port3430). 한국어/영어 보상합계·사유·링크, 구매, 구독/프로필/내비게이션 포함. 제외26파일의 상세3D 테스트를 통과했다고 주장하지 않는다. 기존 전체검증 실패 이력은 보존한다.
+- 독립 코드 재리뷰: QuizPanel 전체본문/export·보상props/표시/링크·upstream 번역 및 두 문서 내용 보존, 추가 차단 오류 없음. 검증 후 변경은 작업 기록뿐이다. 원격재조회에서 MERGE_HEAD와 origin/dev가 동일한 f87b0a4임을 확인했다.
+
+## BUGCOIN-LIKES-MERGE / ZERO-REWARD — 후속 통합·미지급 사유
+
+- 사용자 승인 미지급 사유 툴팁 작업 중 사용자 pull로 origin/dev532537e의 평가 기능과5개 충돌 발생. 보상과 평가의 상태/서비스/import/사전/테스트 및 문서 양쪽을 보존해 해결했다. 관련4 suites/23개 통과, 최종 통합 검증은 이어지는 미지급 사유 변경과 함께 수행한다.
+- ZERO-REWARD 상태: DONE(구현·선정된 통합 검증 완료). 0.00 옆 기존 Tooltip을 재사용한다. 제출 시 판정 사유·기준 학습일·시간대·복습가능시각을 저장하고 조회/재제출에서 재계산하지 않는다. 과거 사유 없는 결과는 일반 안내만 표시한다. 한국어/영어·모바일·키보드와 정상지급/방문자 미표시를 검증한다.
+- ZERO-REWARD 구현: evaluateRewards가 지급과 함께 판정 스냅샷 생성, 정상 제출의 Attempt에 저장·응답, 복원 검증. 0 결과에만 기존 Tooltip을 연결하고 금액과아이콘은 함께 배치. 오답/복습대기+일일보너스기지급/본인생성대기/생성시각미상/소급불가를 구분하며 과거무사유는 일반안내. 한국어/영어 지원.
+- TDD: pull 충돌로 인한 첫 실행 실패는 TDD 근거에서 제외. 충돌 해결 후 미구현 rewardOutcome4실패와 Tooltip미구현2실패를 확인한 뒤 구현. 관련 단위/API/컴포넌트39개·타입 통과. 독립 코드리뷰 차단오류0.
+- [독립 UX/UI 리뷰](ux-reviews/ZERO-REWARD.md): R0 nowrap 상속에 의한 문장잘림 발견→C1 금액에만nowrap→R1 두 역할 해결확인. UI수정1회. 구현자PC/모바일 오답·재도전·0복습·새로고침 동일사유 직접확인. 독립 실제터치/스크린리더 등 한계는 리뷰기록 참고.
+- 최종검증 범위: Node22.23.3, 수동 lint·typecheck·전체Jest·도구·build 후 비3D전체 및 shop구매흐름 E2E를worker1로 순차실행. dev평가/카드 통합 포함27파일. 상세배치/회전/캔버스26파일은 렌더링·입력변경이 없어 새dev지침에 따라 제외. 선택/제외목록 `.bugri-hooks/zero-reward/e2e-{selection,excluded}.txt`. 과거 실패기록은 보존하며 전체모든E2E통과로 표현하지 않는다.
+
+- 추가 사용자 pull: origin/dev1c5004e 테마토글과 진행중파일이 겹쳐 tooltip 작업을 명명된stash로 보관했다. 테마병합 en.json충돌에서 두사전을 보존하고 관련11개통과 후3306472에 병합. stash재적용 사전충돌은 stashbase 대비 새8개키만 최신사전에 반영하여 해결했다. 독립리뷰가 양부모번역·tooltip8키·코드복원을 확인했다.
+- 최종 결과(3306472+ZERO-REWARD): 전체 lint·typecheck·Jest68 suites/358 tests·도구3개·production build 통과. 선택27파일 E2E148개 worker1/port3430에서 전부 통과(2.5분). 변경파일 Prettier·diff 검사 통과. 상세3D26파일 제외 근거는 위 기록 참조. 검증 후 변경은 기록문서뿐이며 결과를 재사용한다. 로그 `.bugri-hooks/zero-reward/{static-final,unit-final,tools-final,build-final,e2e-final}.log`.
+
+## SHOP-I18N-REWARD-MERGE — 보상 정책 dev 통합
+
+- 상태: DONE(충돌 해결·선정된 통합 검증 완료). 사용자 요청으로 진행 중인 HEAD a853e7b와 origin/dev 18bbfd1 병합의 API/TASKS 충돌을 해결한다. 상점 상품 표시 언어와 BugCoin 정책/미지급 사유 계약·작업 기록을 모두 보존한다. 앱 코드는 자동 병합 결과를 유지한다.
+- 검증 계획: Node22.23.3에서 전체 lint·typecheck·Jest·도구·production build 및 비상점/3D 전체 E2E와 shop.spec.ts/shop-locale.spec.ts를 worker1로 실행한다. 새 보상·저장 변경의 지갑/구매 영향은 포함하고, 렌더러·배치/회전/확대 입력은 바뀌지 않아 상세3D 전용 spec은 제외한다. 선택/제외 목록은 `.bugri-hooks/shop-reward-merge/`에 기록한다. 이전 기능 검증 결과를 새 통합 코드의 성공으로 재사용하지 않는다.
+- 독립 정적 리뷰: merge-base 대비 API/TASKS 양부모 추가문구 보존, 보상 API·서비스·저장소·풀이UI는 MERGE_HEAD와 동일, 카탈로그·상점·상품seed는 HEAD와 동일함을 확인했다. en.json 중복키0/HEAD 키누락·값변경0, dev 대비 빠진15개 상품명은 카탈로그 이전분이다. 미해결 인덱스·충돌마커 없음, 차단 결함0. 선택28파일/제외26파일을 기록했다.
+- 최종 결과: Node v22.23.3, 전체 lint·typecheck·Jest69 suites/361개·도구3개·production build 및 선택28파일 E2E150개(worker1/port3471) 전부 통과. 실패/재시도0, diff check통과. 로그 `.bugri-hooks/shop-reward-merge/{lint,types,jest,tools,e2e}.log`. 검증 후 변경은 결과 문서뿐이며 전체3D 검증 성공으로 표현하지 않는다. 원격dev 재조회도18bbfd1로 동일했다. 병합 커밋을 PR38 브랜치에 푸시하고 검증 근거를 갱신하며 PR 자체 병합은 하지 않는다.

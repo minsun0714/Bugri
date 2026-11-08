@@ -19,6 +19,11 @@ import {
 const PAGE_SIZE = 5;
 
 const reasons: Record<LedgerEntry["reason"], string> = {
+  FIRST_CORRECT: "최초 정답 보상",
+  RETRY_CORRECT: "재도전 정답 보상",
+  DAILY_CORRECT: "일일 첫 정답 보너스",
+  REVIEW: "복습 보상",
+  CREATOR: "출제 보상",
   SEED: "데모 지급",
   DAILY_COMPLETION: "일일 학습 보상",
   PURCHASE: "상품 구매",

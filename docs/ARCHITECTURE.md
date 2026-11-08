@@ -139,7 +139,7 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 - 1단계 Jest·React Testing Library: 입력 글자 수·코드 블록·퀴즈 1~5개·개별/일괄 저장·구독 조건·학습 태그·다음 문제·다시 풀기·하루 1개 완료 조건·BugCoin 구매/장착 UX. Playwright: 더미 사용자로 생성→저장→풀이→구독→태그 변경·다음 문제·다시 풀기→구매→장착 E2E. Vercel 배포에서 Mock API와 화면을 확인한다.
 - 2단계: Spring Boot 서비스·REST 계약·MySQL 통합 테스트로 Google OAuth2·JWT·내부 User ID 소유권, 저장 복원, 학습일 중복 집계 방지, 중복 구매·BugCoin 차감의 원자성을 확인한다. 1단계 테스트 통과를 실제 보안·영속성 검증으로 간주하지 않는다.
 - 확정: 1단계 Next.js·TypeScript·Mock API·더미 사용자·Jest·Playwright·Vercel, DB·실제 인증 제외. 2단계 Spring Boot·Java 21·MySQL 8.4·Spring Data JPA·Google OAuth2·JWT·실제 REST API.
-- 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부·시간대 변경 전후 일일 보상 중복 판정 세부 기준, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, BugCoin 지급량, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
+- 미결정: 실제 AI 제공자·연동 시점, 문제 형식, 시간대 미감지 시 기본 시간대 값·Vercel IP 시간대 제공 가능 여부, JWT 만료·갱신·폐기, 더미 데이터 이전 여부, 2단계 배포 환경과 MySQL 호스팅. Kubernetes는 별도 실습 환경이다.
 
 3D 데스크(P08-3D)는 React 편집 UI → Three.js 렌더러/OrbitControls/TransformControls → 타입 transformEquipment API → Mock 서비스 검증 → 사용자별 저장 순서다. 렌더러는 카메라·모델 표시·입력 좌표 변환을 담당하고, 배치 제약은 순수 `desk-spatial.ts`를 UI와 서비스에서 공유한다. 키보드·모니터·소품은 상판의 자식 좌표이며 책상 이동·회전 시 함께 변환된다. 기존 2D 배치는 읽기 시 호환 변환하고 구매 기록을 유지한다. 상세 계약은 API.md의 3D 데스크 배치 절을 따른다.
 
@@ -209,6 +209,11 @@ REQ-15의 표시 설정은 `src/lib/theme`의 타입·브라우저 저장 어댑
 
 라이트는 `color-scheme: only light`로 Chrome Auto Dark의 자동 재색칠을 억제하고 다크는 `dark`로 선언한다. 이는 Chromium 에뮬레이션과 갤럭시 Chrome 실기기 검증을 구분한다. 헤더 없는 오류 화면에도 ThemeSync를 두어 시스템/탭 변경 구독을 유지한다.
 
+## BugCoin 확정 보상 연결
+
+[보상 정책](BUGCOIN_POLICY.md)에 따라 순수 `services/bugcoin.ts`가 입력 시각·전체 제출 이력·지급 기록으로 BugCent를 계산한다. `answer`는 완료 기록과 `rewards`를 풀이자 스냅샷 한 번 쓰기로 저장한다. 출제자 지급도 수령자를 지정한 같은 기록이며, 지갑과 구매 잔액은 모든 사용자 스냅샷의 수령자별 지급을 합산한다. 다른 사용자 저장소를 수정하지 않는다. 저장소 삭제 시 출제자 지급 근거도 유실될 수 있고 탭 간 동시 쓰기·실제 보안·영속 트랜잭션은 보장하지 않는다.
+
+기존 원장/상품/구매의 BugCoin 단위는 호환 유지한다. 계산 경계에서 기존 정수 금액을 BugCent로 변환하고 신규 정수 보상과 합산한 뒤 응답 표시 단위로만 나눈다. Spring Boot에서는 제출·문제별/일별 보상 유일성·출제자 지급·잔액 변경을 서버 시각과 DB 트랜잭션으로 교체한다.
 ### 개별 문제 평가
 
 공개 퀴즈 목록·풀이 전후의 QuizReactionControl → reaction-queries → typed API → Mock 서비스로 연결한다. 현재 접근 가능 여부를 서비스에서 확인하고 quizId당 사용자 선택 하나를 선택적 v1 quizReactions에 저장한다. 사유·추천은 추가하지 않는다. quizReactionSummary는 같은 브라우저의 전체 더미 사용자 반응을 합산해 두 개수를 반환한다. 재풀이에서도 quizId 기준 선택을 복원한다. 방문자 버튼은 기존 데모 선택 모달로 연결하며 공개 집계만 읽고 평가를 저장하지 않는다.

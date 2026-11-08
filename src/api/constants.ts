@@ -124,3 +124,26 @@ export const ProfileSection = {
 
 export type ProfileSection =
   (typeof ProfileSection)[keyof typeof ProfileSection];
+
+export const RewardReason = {
+  FIRST_CORRECT: "FIRST_CORRECT",
+  RETRY_CORRECT: "RETRY_CORRECT",
+  DAILY_CORRECT: "DAILY_CORRECT",
+  REVIEW: "REVIEW",
+  CREATOR: "CREATOR",
+} as const;
+
+export type RewardReason =
+  (typeof RewardReason)[keyof typeof RewardReason];
+
+export const RewardNonPaymentReason = {
+  INCORRECT: "INCORRECT",
+  REVIEW_WAIT: "REVIEW_WAIT",
+  OWNER_WAIT: "OWNER_WAIT",
+  CREATION_UNKNOWN: "CREATION_UNKNOWN",
+  LEGACY_CORRECT: "LEGACY_CORRECT",
+  DAILY_ALREADY_PAID: "DAILY_ALREADY_PAID",
+} as const;
+
+export type RewardNonPaymentReason =
+  (typeof RewardNonPaymentReason)[keyof typeof RewardNonPaymentReason];
