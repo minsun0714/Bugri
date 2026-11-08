@@ -3,7 +3,7 @@
 - 상태: DONE
 - 범위: 태그/개발자 탐색과 각 공개 퀴즈 목록. REQ-08 구독 및 AC-12j 공개 탐색 흐름 유지.
 - 선행 확인: PRD, ARCHITECTURE, API, CODING_CONVENTIONS, 기존 DEVELOPER-CATALOG-HEADER/TAG-QUIZ-CATALOG 및 공통 UI. feat/discovery-ux 시작 시 clean, Node v22.23.3.
-- 구현: 태그 공개 유무 그룹을 기존 ID 순으로 페이지네이션 전 정렬, 빈 상태/링크 명확화, 목록 헤더 압축, 개발자 태그 검색 접기. 계약/저장 구조 및 공개 프로필 기본 동작 유지.
+- 구현: 태그 공개 유무 그룹을 기존 ID 순으로 페이지네이션 전 정렬, 빈 상태/링크 명확화, 목록 헤더 압축, 개발자 태그 전체 나열 및 검색·페이지 UI 제거. 계약/저장 구조 및 공개 프로필 기본 동작 유지.
 - 검증 계획: 정렬 경계/누락/중복/구독 단위 테스트 우선, 검색 펼침/초점/URL 컴포넌트 테스트, 관련 E2E 및 한영 PC/모바일 캡처, 독립 UX/UI 리뷰. 서비스 정렬 영향은 탐색으로 한정되지만 최종 서비스 변경 기준의 lint/type/Jest/tools/build 및 상점·3D 제외 E2E 수행. 상점/데스크 소비 동작·토큰·의존성 불변이므로 해당 전용 spec 제외. Hook은 활성화하지 않는다.
 
 ## 진행 및 검증 근거
@@ -72,3 +72,13 @@
 - 결과: Node22.23.3 scoped ESLint/Prettier·typecheck·developer E2E6건 통과(내부 production build 포함). 1280/390 브레드크럼 href 및 중복링크 부재 assertion 통과. /tmp/bugri-backlink 한영1280/390/320 캡처·가로넘침 측정 완료, 메인이 ko390/en1280 실제이미지 확인. 브레드크럼→작성자 정보가 바로 이어짐.
 - 독립 ui_review 코드 검토: 비profile 중복링크/불필요 번역 훅만 제거, 브레드크럼 사용자정보·키보드 복귀 경로 유지, 문제 없음. 코드 기반 한계 명시(독립 실제화면 리뷰로 주장하지 않음). 단순 링크 제거로 추가 전체 UX루프 없음.
 - 코드/테스트/본TASK 3파일만 후속 커밋. push/PR/merge 없음.
+
+## PR 최종 검증 및 게시
+
+- 사용자 PR 생성 요청에 따라 `feat/discovery-ux` → `dev`로 게시한다. 기존 동일 head PR 없음 확인. 기존 단계의 push/PR 미실행 기록은 당시 이력이며 이번 요청으로 게시 범위를 승인받았다. 병합은 하지 않는다.
+- 검증 코드: `a1ee214` (`dev`의 `4a01e23` 통합 완료). Node v22.23.3. 최종 diff는 탐색 UX19파일이며 pull로 들어온 작성 화면 변경은 base에 이미 포함되어 PR diff에 중복되지 않는다.
+- `npm run lint` 통과. 직전 동일 커밋에서 성공한 `npm run typecheck` 재사용(코드·테스트·의존성·런타임 설정 동일). 변경 파일 Prettier 및 `git diff origin/dev...HEAD --check` 통과.
+- `npm test -- --runInBand`: 70 suites / 374 tests 통과. `npm run test:tools`: 3개 통과.
+- `npm run test:e2e -- <선정 29 specs> --workers=1`: 159개 모두 통과(2.5분). 앞서 기록한 최종28spec에 dev 통합으로 추가된 `quiz-space.spec.ts`를 포함했다. 내부 `BUGRI_UI_PREVIEW=1 npm run build` production build 통과. 이번 최종 검사 실패 없음.
+- 상점·3D 전용 spec 제외 및 혼합 프로필/Mock 검사 유지 근거는 앞선 선정과 동일. 전체 npm run verify 통과로 표현하지 않음. 스크린리더/100태그 실제화면 등 독립 리뷰 한계 유지.
+- 로그: /tmp/bugri-pr-lint.log, /tmp/bugri-pr-jest.log, /tmp/bugri-pr-tools.log, /tmp/bugri-pr-e2e.log. 최종 성공 후 변경은 본 검증 기록뿐이므로 코드 검사 결과 재사용 후 기록 커밋·푸시·PR 생성.
