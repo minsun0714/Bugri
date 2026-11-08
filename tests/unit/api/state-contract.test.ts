@@ -22,6 +22,8 @@ test("constant-based writes keep stored wire values and restore existing state",
     context: "DIRECT",
   });
 
+  expect(QuizStatus.PENDING).toBe("PENDING");
+
   const saved = JSON.parse(
     localStorage.getItem(storageKey("author"))!,
   );
@@ -29,9 +31,9 @@ test("constant-based writes keep stored wire values and restore existing state",
   const { quizzes } = saved;
   const [quiz] = quizzes;
 
-  // Literal expectations deliberately guard the pre-existing API/storage contract.
-  expect(quiz.status).toBe(QuizStatus.PUBLIC);
-  expect(quiz.status).toBe("PUBLIC");
+  // Literal expectations deliberately guard the API/storage wire values.
+  expect(quiz.status).toBe(QuizStatus.CONFIRMED);
+  expect(quiz.status).toBe("CONFIRMED");
 
   expect(
     (
@@ -39,7 +41,7 @@ test("constant-based writes keep stored wire values and restore existing state",
         quizId: "seed-quiz-1",
       })
     ).status,
-  ).toBe("PUBLIC");
+  ).toBe("CONFIRMED");
 });
 
 test("runtime validation still rejects unknown attempt contexts", async () => {

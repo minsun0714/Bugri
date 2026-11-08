@@ -40,7 +40,7 @@ test("without the demo flag history starts empty", async () => {
   ).toBe(0);
 });
 
-test("demo history is merged once, is idempotent and never duplicates on later writes", async () => {
+test("demo history is seeded once with the fresh state and never duplicates on later writes", async () => {
   await persist();
   await persist();
 
@@ -48,8 +48,6 @@ test("demo history is merged once, is idempotent and never duplicates on later w
     localStorage.getItem(storageKey("learner"))!,
   );
 
-  expect(state.historyDemoVersion).toBe(1);
-  // The demo attempts are merged once; the persisting writes add none.
   expect(state.attempts).toHaveLength(12);
 
   expect(

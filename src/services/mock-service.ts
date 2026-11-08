@@ -5,18 +5,12 @@ import {
   matchHistoryRecord,
 } from "@/services/history-search";
 
-import {
-  QuizStatus,
-  ConversationRole,
-  QuizScope,
-} from "@/api/constants";
+import { QuizStatus } from "@/api/constants";
 import type {
   ApiOperations,
-  AuthoringConversation,
-  AuthoringMessage,
   AttemptView,
-  GenerationBatch,
   Note,
+  NoteQuizCounts,
   NoteSummary,
   Operation,
   QuizContent,
@@ -67,42 +61,25 @@ export interface ServiceContext {
   now: Date;
   id: () => string;
   generate: MockGenerator;
-  reply?: (
-    messages: AuthoringMessage[],
-    content: string,
-  ) => unknown;
 }
 
 const tagIds = hashtags.map(({ id }) => id);
 
 const allowed: Record<Operation, string[]> = {
-  authoringConversation: [],
-  sendAuthoringMessage: ["content", "expectedVersion"],
-  generateFromConversation: ["draft", "expectedVersion"],
-  generate: ["sourceContent"],
-  generationBatch: ["batchId"],
-  refineCandidate: ["batchId", "candidateId", "prompt"],
-  editCandidate: ["batchId", "candidateId", "content"],
-  deleteCandidate: ["batchId", "candidateId"],
-  saveBatch: ["batchId", "mode", "candidateId"],
+  generate: ["noteId"],
   notes: ["page", "pageSize"],
   note: ["noteId"],
   createNote: ["content"],
   updateNote: ["noteId", "content", "expectedVersion"],
   deleteNote: ["noteId"],
-  quizzes: ["scope"],
+  noteQuizzes: ["noteId", "status"],
   reviewQuiz: ["quizId"],
-  updatePending: [
-    "quizId",
-    "expectedVersion",
-    "action",
-    "sourceContent",
-    "content",
-  ],
-  regenerate: ["quizId", "expectedVersion", "prompt"],
-  approve: ["quizId", "expectedVersion"],
+  updateQuiz: ["quizId", "expectedVersion", "content"],
+  refineQuiz: ["quizId", "expectedVersion", "prompt"],
+  confirmQuiz: ["quizId", "expectedVersion"],
+  confirmNoteQuizzes: ["noteId"],
   deleteQuiz: ["quizId"],
-  discoverHashtags: [],
+  hashtags: [],
   learningDay: [],
   learningTimezone: [],
   attemptHistory: ["filter", "query", "page", "pageSize"],
@@ -112,23 +89,10 @@ const allowed: Record<Operation, string[]> = {
 };
 
 function quizReview({
-  quizId,
-  ownerUserId,
-  status,
-  version,
-  active,
-  pending,
-  updatedAt,
+  deletedAt: _deletedAt,
+  ...quiz
 }: StoredQuiz): ReviewQuiz {
-  return {
-    quizId,
-    ownerUserId,
-    status,
-    version,
-    active,
-    pending,
-    updatedAt,
-  };
+  return quiz;
 }
 
 export function execute<K extends Operation>(
@@ -197,7 +161,7 @@ export function execute<K extends Operation>(
   const available = (q: StoredQuiz | undefined) =>
     !!q &&
     !q.deletedAt &&
-    !!q.active &&
+    q.status === QuizStatus.CONFIRMED &&
     q.ownerUserId === s.userId;
 
   const attemptView = ({
@@ -265,23 +229,6 @@ export function execute<K extends Operation>(
     return a;
   };
 
-  const getBatch = () => {
-    text(r.batchId, "batchId");
-
-    const b = s.batches.find(
-      (b) => b.batchId === r.batchId,
-    );
-
-    if (!b)
-      throw new ServiceError(
-        "NOT_FOUND",
-        "생성 결과를 찾을 수 없습니다.",
-        404,
-      );
-
-    return b;
-  };
-
   const generate = (
     input: GeneratorInput,
     single = false,
@@ -311,35 +258,13 @@ export function execute<K extends Operation>(
     }
   };
 
-  const conversation: AuthoringConversation =
-    s.authoringConversation ?? {
-      version: 0,
-      messages: [],
-      draft: "",
-      latestBatchId: null,
-    };
-
-  const conversationVersion = () => {
-    requireValue(
-      Number.isInteger(r.expectedVersion),
-      "대화 버전이 필요합니다.",
-    );
-
-    if (r.expectedVersion !== conversation.version)
-      throw new ServiceError(
-        "VERSION_CONFLICT",
-        "다른 탭에서 대화가 변경되었습니다. 최신 대화를 불러오세요.",
-        409,
-      );
-  };
-
   const noteSummaryLength = 200;
 
   const findNote = (includeDeleted = false) => {
     text(r.noteId, "noteId");
 
     // Only the actor's own snapshot is searched, so another user's note is indistinguishable from a missing one.
-    const found = s.notes?.find(
+    const found = s.notes.find(
       ({ noteId }) => noteId === r.noteId,
     );
 
@@ -351,6 +276,31 @@ export function execute<K extends Operation>(
       );
 
     return found;
+  };
+
+  const liveQuizzes = (noteId: string) =>
+    s.quizzes.filter(
+      (quiz) => quiz.noteId === noteId && !quiz.deletedAt,
+    );
+
+  const noteCounts = (noteId: string): NoteQuizCounts => {
+    const linked = liveQuizzes(noteId);
+
+    const confirmed = linked.filter(
+      ({ status }) => status === QuizStatus.CONFIRMED,
+    );
+
+    return {
+      confirmedCount: confirmed.length,
+      pendingCount: linked.length - confirmed.length,
+      hashtagIds: [
+        ...new Set(
+          confirmed.flatMap(
+            ({ revision: { hashtagIds } }) => hashtagIds,
+          ),
+        ),
+      ],
+    };
   };
 
   const publicNote = ({
@@ -365,7 +315,23 @@ export function execute<K extends Operation>(
     version,
     createdAt,
     updatedAt,
+    ...noteCounts(noteId),
   });
+
+  const newRevision = (
+    content: QuizContent,
+    { sourceContent }: StoredQuiz["revision"],
+  ) => ({
+    ...content,
+    revisionId: id(),
+    sourceContent,
+  });
+
+  const confirm = (quiz: StoredQuiz) => {
+    quiz.status = QuizStatus.CONFIRMED;
+    quiz.confirmedAt = timestamp;
+    touch(quiz);
+  };
 
   switch (operation) {
     case "notes": {
@@ -384,7 +350,7 @@ export function execute<K extends Operation>(
       );
 
       // Newest first; insertion order breaks ties between notes created in the same millisecond.
-      const visible = (s.notes ?? [])
+      const visible = s.notes
         .filter(({ deletedAt }) => !deletedAt)
         .reverse()
         .sort((a, b) =>
@@ -413,6 +379,7 @@ export function execute<K extends Operation>(
                 .join(""),
               createdAt,
               updatedAt,
+              ...noteCounts(noteId),
             }),
           ),
         page,
@@ -438,7 +405,7 @@ export function execute<K extends Operation>(
         deletedAt: null,
       };
 
-      s.notes = [...(s.notes ?? []), note];
+      s.notes.push(note);
 
       return publicNote(note);
     }
@@ -476,374 +443,90 @@ export function execute<K extends Operation>(
         note.deletedAt = timestamp;
         note.version++;
         note.updatedAt = timestamp;
-      }
 
-      return { deleted: true };
-    }
-
-    case "authoringConversation":
-      return conversation;
-
-    case "sendAuthoringMessage": {
-      conversationVersion();
-      source(r.content);
-
-      let reply: string;
-
-      try {
-        const result = ctx.reply?.(
-          conversation.messages,
-          r.content,
-        );
-
-        source(result);
-        reply = result;
-      } catch {
-        throw new ServiceError(
-          "GENERATION_FAILED",
-          "답변을 받지 못했습니다. 다시 보내주세요.",
-          502,
-        );
-      }
-
-      s.authoringConversation = {
-        ...conversation,
-        version: conversation.version + 1,
-        draft: "",
-        messages: [
-          ...conversation.messages,
-          {
-            messageId: id(),
-            role: ConversationRole.USER,
-            content: r.content,
-          },
-          {
-            messageId: id(),
-            role: ConversationRole.ASSISTANT,
-            content: reply,
-          },
-        ],
-      };
-
-      return s.authoringConversation;
-    }
-
-    case "generateFromConversation": {
-      conversationVersion();
-
-      requireValue(
-        typeof r.draft === "string" &&
-          [...r.draft].length <= 10000,
-        "입력은 최대 10,000자입니다.",
-      );
-
-      requireValue(
-        conversation.messages.length > 0,
-        "먼저 대화를 보내주세요.",
-      );
-
-      const sourceContent = conversation.messages
-        .map(
-          ({ role, content }) =>
-            `${role === ConversationRole.USER ? "사용자" : "답변"}:\n${content}`,
-        )
-        .join("\n\n");
-
-      source(sourceContent);
-
-      const contents = generate({ sourceContent });
-
-      const batch: GenerationBatch = {
-        batchId: id(),
-        sourceContent,
-        candidates: contents.map((content) => ({
-          candidateId: id(),
-          content,
-          savedQuizId: null,
-        })),
-      };
-
-      s.batches.push(batch);
-
-      s.authoringConversation = {
-        ...conversation,
-        version: conversation.version + 1,
-        draft: r.draft,
-        latestBatchId: batch.batchId,
-      };
-
-      return {
-        conversation: s.authoringConversation,
-        batch,
-      };
-    }
-
-    case "generate": {
-      source(r.sourceContent);
-
-      const contents = generate({
-        sourceContent: r.sourceContent,
-      });
-
-      const batch: GenerationBatch = {
-        batchId: id(),
-        sourceContent: r.sourceContent,
-        candidates: contents.map((content) => ({
-          candidateId: id(),
-          content,
-          savedQuizId: null,
-        })),
-      };
-
-      s.batches.push(batch);
-
-      return batch;
-    }
-
-    case "generationBatch":
-      return getBatch();
-
-    case "editCandidate":
-
-    case "refineCandidate": {
-      const batch = getBatch();
-
-      text(r.candidateId, "candidateId");
-
-      if (operation === "refineCandidate")
-        text(r.prompt, "prompt");
-
-      const candidate = batch.candidates.find(
-        ({ candidateId }) => candidateId === r.candidateId,
-      );
-
-      if (!candidate)
-        throw new ServiceError(
-          "VERSION_CONFLICT",
-          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
-          409,
-        );
-
-      requireValue(
-        candidate.savedQuizId === null,
-        "저장한 퀴즈는 검토 화면에서 수정하세요.",
-      );
-
-      if (operation === "editCandidate") {
-        validateContent(r.content, tagIds);
-        candidate.content = r.content;
-        candidate.candidateId = id();
-
-        return batch;
-      }
-
-      text(r.prompt, "prompt");
-
-      const [content] = generate(
-        {
-          sourceContent: batch.sourceContent,
-          current: candidate.content,
-          prompt: r.prompt,
-        },
-        true,
-      );
-
-      candidate.content = content;
-
-      candidate.history = [
-        ...(candidate.history ?? []),
-        { prompt: r.prompt, content },
-      ];
-
-      candidate.candidateId = id();
-
-      return batch;
-    }
-
-    case "deleteCandidate": {
-      const batch = getBatch();
-
-      text(r.candidateId, "candidateId");
-
-      const index = batch.candidates.findIndex(
-        ({ candidateId }) => candidateId === r.candidateId,
-      );
-
-      if (index < 0)
-        throw new ServiceError(
-          "VERSION_CONFLICT",
-          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
-          409,
-        );
-
-      const [candidate] = batch.candidates.slice(
-        index,
-        index + 1,
-      );
-
-      if (!candidate)
-        throw new ServiceError(
-          "VERSION_CONFLICT",
-          "후보가 변경되었습니다. 최신 결과를 다시 불러오세요.",
-          409,
-        );
-
-      if (candidate.savedQuizId) {
-        const quiz = s.quizzes.find(
-          ({ quizId }) => quizId === candidate.savedQuizId,
-        );
-
-        if (quiz && !quiz.deletedAt) {
+        // Linked quizzes of every status go with the memo. Completed Attempts stay.
+        for (const quiz of liveQuizzes(note.noteId)) {
           quiz.deletedAt = timestamp;
           touch(quiz);
         }
       }
 
-      batch.candidates.splice(index, 1);
-
-      return batch;
+      return { deleted: true };
     }
 
-    case "saveBatch": {
-      const batch = getBatch();
+    case "generate": {
+      const { content: sourceContent } = findNote();
 
-      requireValue(
-        r.mode === "SINGLE" || r.mode === "ALL",
-        "저장 모드를 선택하세요.",
-      );
+      const contents = generate({ sourceContent });
 
-      if (r.mode === "SINGLE") text(r.candidateId);
-      else
-        requireValue(
-          r.candidateId === undefined,
-          "일괄 저장에는 candidateId를 사용하지 않습니다.",
-        );
-
-      const selected = batch.candidates.filter(
-        (c) =>
-          r.mode === "ALL" ||
-          c.candidateId === r.candidateId,
-      );
-
-      requireValue(
-        selected.length > 0,
-        "후보를 찾을 수 없습니다.",
-      );
-
-      return selected.map((c) => {
-        if (c.savedQuizId) {
-          const existing = s.quizzes.find(
-            (q) => q.quizId === c.savedQuizId,
-          )!;
-
-          if (existing.deletedAt)
-            throw new ServiceError(
-              "QUIZ_UNAVAILABLE",
-              "이미 저장 후 삭제한 후보입니다.",
-              409,
-            );
-
-          return quizReview(existing);
-        }
-
-        const q: StoredQuiz = {
-          createdAt: timestamp,
+      // Existing PENDING quizzes stay; every request adds a new set.
+      const created = contents.map(
+        (content): StoredQuiz => ({
           quizId: id(),
           ownerUserId: s.userId,
+          noteId: r.noteId as string,
           status: QuizStatus.PENDING,
           version: 1,
-          active: null,
-          pending: {
-            ...c.content,
+          revision: {
+            ...content,
             revisionId: id(),
-            sourceContent: batch.sourceContent,
-            reviewed: false,
+            sourceContent,
           },
+          history: [],
+          confirmedAt: null,
+          createdAt: timestamp,
           updatedAt: timestamp,
           deletedAt: null,
-        };
-
-        s.quizzes.push(q);
-        c.savedQuizId = q.quizId;
-
-        return quizReview(q);
-      });
-    }
-
-    case "quizzes": {
-      requireValue(
-        r.scope === QuizScope.OWN,
-        "목록 범위를 지정하세요.",
+        }),
       );
 
-      return allQuizzes
-        .filter(
-          (q) => !q.deletedAt && q.ownerUserId === s.userId,
-        )
-        .map((q) => {
-          const revision = q.pending ?? q.active!;
+      s.quizzes.push(...created);
 
-          return {
-            quizId: q.quizId,
-            ownerUserId: q.ownerUserId,
-            status: q.status,
-            title: revision.title,
-            hashtagIds: revision.hashtagIds,
-            updatedAt: q.updatedAt,
-            hasPendingRevision:
-              r.scope === QuizScope.OWN && !!q.pending,
-          };
-        });
+      return created.map(quizReview);
+    }
+
+    case "noteQuizzes": {
+      findNote();
+
+      requireValue(
+        Object.values(QuizStatus).includes(
+          r.status as QuizStatus,
+        ),
+        "퀴즈 상태를 확인하세요.",
+        "status",
+      );
+
+      return liveQuizzes(r.noteId as string)
+        .filter(({ status }) => status === r.status)
+        .map(quizReview);
     }
 
     case "reviewQuiz":
       return quizReview(ownQuiz());
 
-    case "updatePending": {
+    case "updateQuiz": {
       const q = ownQuiz();
 
       version(q);
+      validateContent(r.content, tagIds);
 
-      requireValue(
-        r.action === "EDIT" || r.action === "MARK_REVIEWED",
-        "수정 또는 검토 완료를 선택하세요.",
-      );
-
-      if (r.action === "EDIT") {
-        source(r.sourceContent);
-        validateContent(r.content, tagIds);
-
-        q.pending = {
-          ...r.content,
-          revisionId: id(),
-          sourceContent: r.sourceContent,
-          reviewed: false,
-        };
-      } else {
-        requireValue(
-          r.content === undefined &&
-            r.sourceContent === undefined,
-          "검토 완료와 내용 저장은 별도 요청입니다.",
-        );
-
-        requireValue(
-          q.pending,
-          "검토할 수정본이 없습니다.",
-        );
-
-        q.pending.reviewed = true;
-      }
-
+      // A CONFIRMED edit applies at once; Attempts keep the revision they started with.
+      q.revision = newRevision(r.content, q.revision);
       touch(q);
 
       return quizReview(q);
     }
 
-    case "regenerate": {
+    case "refineQuiz": {
       const q = ownQuiz();
 
       version(q);
       text(r.prompt, "prompt");
+
+      requireValue(
+        q.status === QuizStatus.PENDING,
+        "확인하지 않은 퀴즈만 LLM으로 수정할 수 있습니다.",
+      );
 
       const {
         sourceContent,
@@ -852,7 +535,7 @@ export function execute<K extends Operation>(
         answer,
         explanation,
         hashtagIds,
-      } = q.pending ?? q.active!;
+      } = q.revision;
 
       const [content] = generate(
         {
@@ -869,42 +552,38 @@ export function execute<K extends Operation>(
         true,
       );
 
-      q.pending = {
-        ...content,
-        revisionId: id(),
-        sourceContent,
-        reviewed: false,
-        followUpPrompt: r.prompt,
-      };
-
+      q.revision = newRevision(content, q.revision);
+      q.history.push({ prompt: r.prompt, content });
       touch(q);
 
       return quizReview(q);
     }
 
-    case "approve": {
+    case "confirmQuiz": {
       const q = ownQuiz();
 
       version(q);
 
-      if (!q.pending?.reviewed)
-        throw new ServiceError(
-          "NOT_REVIEWED",
-          "저장된 수정본을 검토 완료하세요.",
-          409,
-        );
+      requireValue(
+        q.status === QuizStatus.PENDING,
+        "이미 저장한 퀴즈입니다.",
+      );
 
-      q.active = q.pending;
-      q.pending = null;
-
-      q.status =
-        q.status === QuizStatus.PENDING
-          ? QuizStatus.PRIVATE
-          : q.status;
-
-      touch(q);
+      confirm(q);
 
       return quizReview(q);
+    }
+
+    case "confirmNoteQuizzes": {
+      findNote();
+
+      const pending = liveQuizzes(r.noteId as string).filter(
+        ({ status }) => status === QuizStatus.PENDING,
+      );
+
+      pending.forEach(confirm);
+
+      return pending.map(quizReview);
     }
 
     case "deleteQuiz": {
@@ -920,7 +599,7 @@ export function execute<K extends Operation>(
       };
     }
 
-    case "discoverHashtags":
+    case "hashtags":
       return [...hashtags];
 
     case "learningTimezone":
@@ -975,7 +654,7 @@ export function execute<K extends Operation>(
         attemptId: id(),
         quizId: q!.quizId,
         ownerUserId: q!.ownerUserId,
-        revision: JSON.parse(JSON.stringify(q!.active)),
+        revision: JSON.parse(JSON.stringify(q!.revision)),
         submittedAnswer: null,
         correct: null,
         completedAt: null,

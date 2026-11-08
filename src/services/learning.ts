@@ -14,10 +14,10 @@ export function questionKey(question: Question): string {
 export function publicView({
   quizId,
   ownerUserId,
-  active,
+  revision,
 }: StoredQuiz): LearningQuizView {
   const { revisionId, title, question, hashtagIds } =
-    active!;
+    revision;
 
   return {
     quizId,

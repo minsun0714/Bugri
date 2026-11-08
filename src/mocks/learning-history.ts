@@ -1,5 +1,5 @@
 import type { Answer } from "@/api/contracts";
-import { historyDemoQuizzes } from "@/mocks/quizzes";
+import { seeds } from "@/mocks/seed";
 import type {
   StoredAttempt,
   StoredDay,
@@ -96,7 +96,7 @@ const learnerAttempts: readonly StoredAttempt[] =
     ) => {
       const quizId = `seed-quiz-${quizNumber}`;
 
-      const quiz = historyDemoQuizzes.find(
+      const quiz = seeds.learner.quizzes.find(
         (item) => item.quizId === quizId,
       )!;
 
@@ -104,7 +104,7 @@ const learnerAttempts: readonly StoredAttempt[] =
         attemptId: `seed-attempt-${String(index + 1).padStart(2, "0")}`,
         quizId,
         ownerUserId: quiz.ownerUserId,
-        revision: JSON.parse(JSON.stringify(quiz.active)),
+        revision: JSON.parse(JSON.stringify(quiz.revision)),
         submittedAnswer,
         correct,
         completedAt,

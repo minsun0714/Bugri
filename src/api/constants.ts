@@ -1,28 +1,11 @@
 /** Wire values are stable: changing them requires an API/storage migration. */
 export const QuizStatus = {
   PENDING: "PENDING",
-  PRIVATE: "PRIVATE",
-  PUBLIC: "PUBLIC",
+  CONFIRMED: "CONFIRMED",
 } as const;
 
 export type QuizStatus =
   (typeof QuizStatus)[keyof typeof QuizStatus];
-
-/** List scope is distinct from a quiz's publication status. */
-export const QuizScope = {
-  OWN: "OWN",
-} as const;
-
-export type QuizScope =
-  (typeof QuizScope)[keyof typeof QuizScope];
-
-export const ConversationRole = {
-  USER: "USER",
-  ASSISTANT: "ASSISTANT",
-} as const;
-
-export type ConversationRole =
-  (typeof ConversationRole)[keyof typeof ConversationRole];
 
 export const AttemptHistoryFilter = {
   ALL: "ALL",

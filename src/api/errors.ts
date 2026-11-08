@@ -10,7 +10,6 @@ const messages: Record<ErrorCode, string> = {
   VERSION_CONFLICT:
     "내용이 변경되었습니다. 최신 내용을 확인해 주세요.",
   QUIZ_UNAVAILABLE: "이 퀴즈는 더 이상 이용할 수 없습니다.",
-  NOT_REVIEWED: "퀴즈 내용을 검토한 뒤 다시 시도해 주세요.",
   ALREADY_ANSWERED:
     "이미 제출한 풀이입니다. 저장된 결과를 확인해 주세요.",
   TIMEZONE_REQUIRED:

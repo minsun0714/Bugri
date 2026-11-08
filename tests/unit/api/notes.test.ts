@@ -1,7 +1,10 @@
 import { createApiClient } from "@/api/client";
 import { createHttpTransport } from "@/api/http";
 import { createMockTransport } from "@/mocks/adapter";
-import { storageKey } from "@/mocks/storage";
+import {
+  initialState,
+  storageKey,
+} from "@/mocks/storage";
 
 let tick = 0;
 
@@ -21,9 +24,20 @@ const make = (
     }),
   );
 
+/** Starts every user from an empty memo list instead of the seed. */
 beforeEach(() => {
   localStorage.clear();
   tick = 0;
+
+  for (const userId of ["learner", "author", "friend"])
+    localStorage.setItem(
+      storageKey(userId),
+      JSON.stringify({
+        ...initialState(userId),
+        notes: [],
+        quizzes: [],
+      }),
+    );
 });
 
 const code = "```ts\nfunction a() {\n  return 1;\n}\n```";
@@ -319,51 +333,32 @@ test("a failed write keeps the previous stored state", async () => {
   expect((await api.request("notes", {})).total).toBe(1);
 });
 
-test("snapshots without a notes field still load as an empty list", async () => {
-  const api = make();
+test("a snapshot without a notes field is reported as corrupt and preserved", async () => {
+  const { notes: _notes, ...stored } = initialState("learner");
 
-  await api.request("learningDay", {});
+  const raw = JSON.stringify(stored);
 
-  const stored = JSON.parse(
-    localStorage.getItem(storageKey("learner"))!,
+  localStorage.setItem(storageKey("learner"), raw);
+
+  await expect(
+    make().request("notes", {}),
+  ).rejects.toMatchObject({
+    detail: { code: "STORAGE_CORRUPT" },
+  });
+
+  expect(localStorage.getItem(storageKey("learner"))).toBe(
+    raw,
   );
-
-  expect(stored.notes).toBeUndefined();
-  expect(stored.schemaVersion).toBe(1);
-
-  expect(await api.request("notes", {})).toMatchObject({
-    items: [],
-    total: 0,
-  });
-
-  // Reading never writes a notes field.
-  expect(
-    JSON.parse(localStorage.getItem(storageKey("learner"))!)
-      .notes,
-  ).toBeUndefined();
-
-  const created = await api.request("createNote", {
-    content: "호환",
-  });
-
-  expect(
-    JSON.parse(localStorage.getItem(storageKey("learner"))!)
-      .schemaVersion,
-  ).toBe(1);
-
-  expect(created.noteId).toBeTruthy();
 });
 
 test("a corrupt notes field is reported without overwriting", async () => {
   const api = make();
 
-  await api.request("learningDay", {});
+  const stored = initialState("learner");
 
-  const stored = JSON.parse(
-    localStorage.getItem(storageKey("learner"))!,
-  );
-
-  stored.notes = [{ noteId: 1 }];
+  (stored as unknown as { notes: unknown }).notes = [
+    { noteId: 1 },
+  ];
 
   const raw = JSON.stringify(stored);
 

@@ -1,15 +1,12 @@
 import type {
   ApiTransport,
-  AuthoringMessage,
   Operation,
   Request,
   Response,
   TransportResponse,
 } from "@/api/contracts";
-import { mockAuthoringReply } from "@/mocks/authoring-chat";
 import { generatedContents } from "@/mocks/quizzes";
 import {
-  applyHistoryDemo,
   clone,
   readState,
   type StoragePort,
@@ -36,13 +33,9 @@ export interface MockOptions {
   detectTimeZone?: () => string | undefined;
   /** No product default has been decided. Only use an explicitly chosen fallback. */
   fallbackTimeZone?: string;
-  /** Merge the history search demo fixtures into the actor's state. Off by default so isolated tests start from an empty learner. */
+  /** Seed the learner's completed Attempts for the solving-history demo. */
   demoHistory?: boolean;
   generate?: MockGenerator;
-  reply?: (
-    messages: AuthoringMessage[],
-    content: string,
-  ) => unknown;
 }
 
 /** Instantiate in a browser event/effect. No localStorage access at module import or on a server. */
@@ -80,7 +73,7 @@ export function createMockTransport(
 
       try {
         // Public directories do not depend on a user's browser snapshot.
-        if (operation === "discoverHashtags") {
+        if (operation === "hashtags") {
           object(request);
           keys(request, []);
 
@@ -122,27 +115,17 @@ export function createMockTransport(
         }
 
         // Fresh reads on every request observe other dummy users and tabs. Only actor-owned state is written.
-        const state = readState(storage, userId);
+        const state = readState(storage, userId, {
+          demoHistory: options.demoHistory,
+        });
 
-        const allStates = users.map(
-          ({ userId: otherId }) =>
-            otherId === userId
-              ? state
-              : readState(storage, otherId),
-        );
+        const allStates = [state];
 
         const readOnlyHistory =
           operation === "attemptHistory" ||
           operation === "attempt";
 
-        // Read-only history views show the demo records in memory without writing; the next write persists them.
-        if (options.demoHistory && readOnlyHistory)
-          applyHistoryDemo(state);
-
         const before = JSON.stringify(state);
-
-        if (options.demoHistory && !readOnlyHistory)
-          applyHistoryDemo(state);
 
         // Every write-allowed request re-detects the device zone; a valid, different zone replaces the saved one.
         // Stored attempts and learning days keep their own zone. Failed detection keeps the saved value.
@@ -175,7 +158,6 @@ export function createMockTransport(
           now: options.now?.() ?? new Date(),
           id: () => globalThis.crypto.randomUUID(),
           generate: options.generate ?? defaultGenerate,
-          reply: options.reply ?? mockAuthoringReply,
         };
 
         const data = execute(

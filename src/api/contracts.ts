@@ -1,12 +1,10 @@
 import type {
   AttemptHistoryFilter,
   AttemptHistoryMatch,
-  ConversationRole,
-  QuizScope,
   QuizStatus,
 } from "@/api/constants";
 
-export { QuizScope, QuizStatus } from "@/api/constants";
+export { QuizStatus } from "@/api/constants";
 
 export interface Hashtag {
   id: string;
@@ -48,31 +46,30 @@ export interface QuizContent {
 
 export interface Revision extends QuizContent {
   revisionId: string;
+  /** Snapshot of the memo body the quiz was generated from. */
   sourceContent: string;
-  reviewed: boolean;
-  followUpPrompt?: string;
 }
 
+/** One LLM refinement turn kept with a PENDING quiz. */
+export interface RefinementTurn {
+  prompt: string;
+  content: QuizContent;
+}
+
+/** Owner-only quiz detail. It may include answers and explanations. */
 export interface ReviewQuiz {
-  createdAt?: string;
-  publishedAt?: string;
   quizId: string;
   ownerUserId: string;
+  noteId: string;
   status: QuizStatus;
   version: number;
-  active: Revision | null;
-  pending: Revision | null;
+  revision: Revision;
+  /** LLM refinement turns; only a PENDING quiz can add to it. */
+  history: RefinementTurn[];
+  /** Set when the quiz becomes CONFIRMED; the review schedule starts from it. */
+  confirmedAt: string | null;
+  createdAt: string;
   updatedAt: string;
-}
-
-export interface QuizSummary {
-  quizId: string;
-  ownerUserId: string;
-  title: string;
-  status: QuizStatus;
-  hashtagIds: string[];
-  updatedAt: string;
-  hasPendingRevision: boolean;
 }
 
 export interface LearningQuizView {
@@ -82,30 +79,6 @@ export interface LearningQuizView {
   title: string;
   question: Question;
   hashtagIds: string[];
-}
-
-export interface AuthoringMessage {
-  messageId: string;
-  role: ConversationRole;
-  content: string;
-}
-
-export interface AuthoringConversation {
-  version: number;
-  messages: AuthoringMessage[];
-  draft: string;
-  latestBatchId: string | null;
-}
-
-export interface GenerationBatch {
-  batchId: string;
-  sourceContent: string;
-  candidates: {
-    candidateId: string;
-    content: QuizContent;
-    savedQuizId: string | null;
-    history?: { prompt: string; content: QuizContent }[];
-  }[];
 }
 
 export interface AttemptResult {
@@ -141,18 +114,16 @@ export interface VersionRequest {
   expectedVersion: number;
 }
 
-export type PendingRequest = VersionRequest &
-  (
-    | {
-        action: "EDIT";
-        sourceContent: string;
-        content: QuizContent;
-      }
-    | { action: "MARK_REVIEWED" }
-  );
+/** Aggregates over the memo's live linked quizzes. */
+export interface NoteQuizCounts {
+  confirmedCount: number;
+  pendingCount: number;
+  /** Union of the CONFIRMED quizzes' tags. */
+  hashtagIds: string[];
+}
 
-/** Owner-only memo. Tags and linked quizzes arrive with the note-to-quiz task. */
-export interface Note {
+/** Owner-only memo. */
+export interface Note extends NoteQuizCounts {
   noteId: string;
   content: string;
   version: number;
@@ -160,7 +131,7 @@ export interface Note {
   updatedAt: string;
 }
 
-export interface NoteSummary {
+export interface NoteSummary extends NoteQuizCounts {
   noteId: string;
   /** First part of the body, for list rows. */
   excerpt: string;
@@ -169,57 +140,9 @@ export interface NoteSummary {
 }
 
 export interface ApiOperations {
-  authoringConversation: {
-    request: Record<string, never>;
-    response: AuthoringConversation;
-  };
-  sendAuthoringMessage: {
-    request: { content: string; expectedVersion: number };
-    response: AuthoringConversation;
-  };
-  generateFromConversation: {
-    request: { draft: string; expectedVersion: number };
-    response: {
-      conversation: AuthoringConversation;
-      batch: GenerationBatch;
-    };
-  };
   generate: {
-    request: { sourceContent: string };
-    response: GenerationBatch;
-  };
-  generationBatch: {
-    request: { batchId: string };
-    response: GenerationBatch;
-  };
-  editCandidate: {
-    request: {
-      batchId: string;
-      candidateId: string;
-      content: QuizContent;
-    };
-    response: GenerationBatch;
-  };
-  refineCandidate: {
-    request: {
-      batchId: string;
-      candidateId: string;
-      prompt: string;
-    };
-    response: GenerationBatch;
-  };
-  deleteCandidate: {
-    request: {
-      batchId: string;
-      candidateId: string;
-    };
-    response: GenerationBatch;
-  };
-  saveBatch: {
-    request: { batchId: string } & (
-      | { mode: "SINGLE"; candidateId: string }
-      | { mode: "ALL" }
-    );
+    request: { noteId: string };
+    /** The memo's new PENDING quizzes. */
     response: ReviewQuiz[];
   };
   notes: {
@@ -251,31 +174,35 @@ export interface ApiOperations {
     request: { noteId: string };
     response: { deleted: true };
   };
-  quizzes: {
-    request: { scope: QuizScope };
-    response: QuizSummary[];
+  noteQuizzes: {
+    request: { noteId: string; status: QuizStatus };
+    response: ReviewQuiz[];
   };
   reviewQuiz: {
     request: { quizId: string };
     response: ReviewQuiz;
   };
-  updatePending: {
-    request: PendingRequest;
+  updateQuiz: {
+    request: VersionRequest & { content: QuizContent };
     response: ReviewQuiz;
   };
-  regenerate: {
+  refineQuiz: {
     request: VersionRequest & { prompt: string };
     response: ReviewQuiz;
   };
-  approve: {
-    request: VersionRequest & {};
+  confirmQuiz: {
+    request: VersionRequest;
     response: ReviewQuiz;
+  };
+  confirmNoteQuizzes: {
+    request: { noteId: string };
+    response: ReviewQuiz[];
   };
   deleteQuiz: {
     request: { quizId: string };
     response: { deleted: true };
   };
-  discoverHashtags: {
+  hashtags: {
     request: Record<string, never>;
     response: Hashtag[];
   };
@@ -339,7 +266,6 @@ export type ErrorCode =
   | "FORBIDDEN"
   | "VERSION_CONFLICT"
   | "QUIZ_UNAVAILABLE"
-  | "NOT_REVIEWED"
   | "ALREADY_ANSWERED"
   | "TIMEZONE_REQUIRED"
   | "STORAGE_UNAVAILABLE"

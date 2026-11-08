@@ -160,8 +160,8 @@ test("current edits do not replace saved results; hidden quizzes keep records bu
       quizId === completed.quizId,
   );
 
-  quiz.active.title = "Changed title";
-  quiz.active.explanation = "Changed explanation";
+  quiz.revision.title = "Changed title";
+  quiz.revision.explanation = "Changed explanation";
 
   localStorage.setItem(
     storageKey("author"),
@@ -181,9 +181,8 @@ test("current edits do not replace saved results; hidden quizzes keep records bu
       .title,
   ).toBe(completed.quiz!.title);
 
-  for (const status of ["PRIVATE", "PUBLIC"]) {
-    // Status is irrelevant to the owner; only deletion hides a record's content.
-    quiz.status = status;
+  {
+    // Only deletion hides a record's content.
     quiz.deletedAt = "2026-11-08T14:00:00Z";
 
     localStorage.setItem(
