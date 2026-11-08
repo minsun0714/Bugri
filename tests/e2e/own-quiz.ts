@@ -23,14 +23,21 @@ export async function seedOwnQuiz(
             quizId === quiz.quizId,
         )
       ) {
-        state.quizzes.push(quiz);
+        state.quizzes.push({
+          ...quiz,
+          noteId: state.notes[0].noteId,
+        });
         localStorage.setItem(key, JSON.stringify(state));
       }
     },
     {
       key: `bugri:mock:v1:${userId}`,
       initial: initialState(userId),
-      quiz: { ...seed, quizId: ownQuizId, ownerUserId: userId },
+      quiz: {
+        ...seed,
+        quizId: ownQuizId,
+        ownerUserId: userId,
+      },
     },
   );
 }

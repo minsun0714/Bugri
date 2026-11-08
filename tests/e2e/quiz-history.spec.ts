@@ -12,9 +12,10 @@ async function seedHistory(page: Page, hidden = false) {
     ),
     quizId: "owned-quiz-1",
     ownerUserId: "learner",
+    noteId: state.notes[0].noteId,
   };
   state.quizzes.push(quiz);
-  const revision = structuredClone(quiz.active!);
+  const revision = structuredClone(quiz.revision);
   revision.title = "HistoryTypeScript".repeat(12);
   state.attempts = Array.from(
     { length: 43 },
@@ -276,11 +277,11 @@ test("guest selection, empty/filter empty, unavailable, unsubmitted and cross-us
   ).toHaveCount(0);
 });
 
-test("profile entry on authoring, out of range, unfinished result and storage retry", async ({
+test("profile entry on notes, out of range, unfinished result and storage retry", async ({
   page,
 }) => {
   await seedHistory(page);
-  await page.goto("/quizzes/authoring?user=learner");
+  await page.goto("/notes?user=learner");
   await page
     .getByRole("button", { name: "내 메뉴", exact: true })
     .click();
@@ -343,16 +344,21 @@ async function seedSearchHistory(page: Page) {
   const state = initialState("learner");
 
   // Quizzes are author-only, so the learner's records point at learner-owned copies.
-  const records = [...author.quizzes, ...friend.quizzes].map(
-    (quiz) => ({ ...quiz, ownerUserId: "learner" }),
-  );
+  const records = [
+    ...author.quizzes,
+    ...friend.quizzes,
+  ].map((quiz) => ({
+    ...quiz,
+    ownerUserId: "learner",
+    noteId: state.notes[0].noteId,
+  }));
 
   state.quizzes.push(...structuredClone(records));
 
   state.attempts = records.map((quiz, index) => ({
     attemptId: `search-${index}`,
     quizId: quiz.quizId,
-    revision: structuredClone(quiz.active!),
+    revision: structuredClone(quiz.revision),
     ownerUserId: quiz.ownerUserId,
     submittedAnswer: null,
     correct: index % 2 === 0,

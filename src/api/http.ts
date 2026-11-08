@@ -14,46 +14,10 @@ interface Endpoint {
 }
 
 export const endpoints: Record<Operation, Endpoint> = {
-  authoringConversation: {
-    method: "GET",
-    path: "/authoring/conversation",
-  },
-  sendAuthoringMessage: {
-    method: "POST",
-    path: "/authoring/conversation/messages",
-  },
-  generateFromConversation: {
-    method: "POST",
-    path: "/authoring/conversation/generate",
-  },
   generate: {
     method: "POST",
-    path: "/quizzes/generate",
-  },
-  generationBatch: {
-    method: "GET",
-    path: "/generation-batches/{id}",
-    pathKey: "batchId",
-  },
-  editCandidate: {
-    method: "POST",
-    path: "/generation-batches/{id}/edit",
-    pathKey: "batchId",
-  },
-  refineCandidate: {
-    method: "POST",
-    path: "/generation-batches/{id}/refine",
-    pathKey: "batchId",
-  },
-  deleteCandidate: {
-    method: "DELETE",
-    path: "/generation-batches/{id}/candidates",
-    pathKey: "batchId",
-  },
-  saveBatch: {
-    method: "POST",
-    path: "/generation-batches/{id}/save",
-    pathKey: "batchId",
+    path: "/notes/{id}/quizzes/generate",
+    pathKey: "noteId",
   },
   notes: { method: "GET", path: "/notes" },
   note: {
@@ -72,38 +36,44 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/notes/{id}",
     pathKey: "noteId",
   },
-  quizzes: {
+  noteQuizzes: {
     method: "GET",
-    path: "/quizzes",
+    path: "/notes/{id}/quizzes",
+    pathKey: "noteId",
   },
   reviewQuiz: {
     method: "GET",
     path: "/quizzes/{id}/review",
     pathKey: "quizId",
   },
-  updatePending: {
+  updateQuiz: {
     method: "PUT",
-    path: "/quizzes/{id}/pending",
+    path: "/quizzes/{id}",
     pathKey: "quizId",
   },
-  regenerate: {
+  refineQuiz: {
     method: "POST",
-    path: "/quizzes/{id}/regenerate",
+    path: "/quizzes/{id}/refine",
     pathKey: "quizId",
   },
-  approve: {
+  confirmQuiz: {
     method: "POST",
-    path: "/quizzes/{id}/approve",
+    path: "/quizzes/{id}/confirm",
     pathKey: "quizId",
+  },
+  confirmNoteQuizzes: {
+    method: "POST",
+    path: "/notes/{id}/quizzes/confirm",
+    pathKey: "noteId",
   },
   deleteQuiz: {
     method: "DELETE",
     path: "/quizzes/{id}",
     pathKey: "quizId",
   },
-  discoverHashtags: {
+  hashtags: {
     method: "GET",
-    path: "/discover/hashtags",
+    path: "/hashtags",
   },
   learningDay: {
     method: "GET",

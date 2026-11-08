@@ -6,8 +6,8 @@ import {
 import { Dropdown } from "@/components/ui/dropdown";
 
 const options = [
-  { value: "PRIVATE", label: "나만 풀기" },
-  { value: "PUBLIC", label: "공개" },
+  { value: "FIRST", label: "나만 풀기" },
+  { value: "SECOND", label: "공개" },
 ];
 
 test("opens a custom option panel and selects the wire value", () => {
@@ -16,7 +16,7 @@ test("opens a custom option panel and selects the wire value", () => {
     <Dropdown
       label="공개 범위"
       options={options}
-      value="PRIVATE"
+      value="FIRST"
       onValueChange={onValueChange}
     />,
   );
@@ -33,7 +33,7 @@ test("opens a custom option panel and selects the wire value", () => {
   fireEvent.click(
     screen.getByRole("option", { name: "공개" }),
   );
-  expect(onValueChange).toHaveBeenCalledWith("PUBLIC");
+  expect(onValueChange).toHaveBeenCalledWith("SECOND");
   expect(
     screen.queryByRole("listbox"),
   ).not.toBeInTheDocument();
@@ -45,7 +45,7 @@ test("supports arrows, End, Enter, Escape and outside dismissal", () => {
     <Dropdown
       label="공개 범위"
       options={options}
-      value="PRIVATE"
+      value="FIRST"
       onValueChange={onValueChange}
     />,
   );
@@ -54,7 +54,7 @@ test("supports arrows, End, Enter, Escape and outside dismissal", () => {
   fireEvent.keyDown(trigger, { key: "ArrowDown" });
   fireEvent.keyDown(trigger, { key: "End" });
   fireEvent.keyDown(trigger, { key: "Enter" });
-  expect(onValueChange).toHaveBeenCalledWith("PUBLIC");
+  expect(onValueChange).toHaveBeenCalledWith("SECOND");
   expect(trigger).toHaveFocus();
   fireEvent.click(trigger);
   fireEvent.keyDown(trigger, { key: "Escape" });
@@ -73,7 +73,7 @@ test("disabled dropdown cannot open", () => {
     <Dropdown
       label="공개 범위"
       options={options}
-      value="PRIVATE"
+      value="FIRST"
       onValueChange={jest.fn()}
       disabled
     />,

@@ -1,4 +1,4 @@
-import { QuizScope, QuizStatus } from "@/api/constants";
+import { QuizStatus } from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import { createMockTransport } from "@/mocks/adapter";
 
@@ -13,49 +13,46 @@ const make = (userId = "learner") =>
 
 beforeEach(() => localStorage.clear());
 
-test("generation is owner-only; individual then bulk save does not duplicate candidates", async () => {
+test("generation is owner-only; individual then bulk save does not duplicate quizzes", async () => {
   const api = make();
 
-  const batch = await api.request("generate", {
-    sourceContent: "배운 내용\n```ts\nconst x = 1;\n```",
+  const { noteId } = await api.request("createNote", {
+    content: "배운 내용\n```ts\nconst x = 1;\n```",
   });
 
-  expect(batch.candidates.length).toBeGreaterThanOrEqual(1);
-  expect(batch.candidates.length).toBeLessThanOrEqual(5);
+  const created = await api.request("generate", { noteId });
+
+  expect(created.length).toBeGreaterThanOrEqual(1);
+  expect(created.length).toBeLessThanOrEqual(5);
 
   expect(
-    await api.request("quizzes", {
-      scope: QuizScope.OWN,
+    await api.request("noteQuizzes", {
+      noteId,
+      status: QuizStatus.CONFIRMED,
     }),
   ).toHaveLength(0);
 
-  const [first] = await api.request("saveBatch", {
-    batchId: batch.batchId,
-    mode: "SINGLE",
-    candidateId: batch.candidates[0].candidateId,
+  const [first] = created;
+
+  await api.request("confirmQuiz", {
+    quizId: first.quizId,
+    expectedVersion: first.version,
   });
 
-  expect(first.status).toBe(QuizStatus.PENDING);
-
-  await api.request("saveBatch", {
-    batchId: batch.batchId,
-    mode: "ALL",
-  });
-
-  await api.request("saveBatch", {
-    batchId: batch.batchId,
-    mode: "ALL",
-  });
+  await api.request("confirmNoteQuizzes", { noteId });
+  await api.request("confirmNoteQuizzes", { noteId });
 
   expect(
-    await make().request("quizzes", {
-      scope: QuizScope.OWN,
+    await make().request("noteQuizzes", {
+      noteId,
+      status: QuizStatus.CONFIRMED,
     }),
-  ).toHaveLength(batch.candidates.length);
+  ).toHaveLength(created.length);
 
   await expect(
-    make("author").request("generationBatch", {
-      batchId: batch.batchId,
+    make("author").request("noteQuizzes", {
+      noteId,
+      status: QuizStatus.CONFIRMED,
     }),
   ).rejects.toMatchObject({
     status: 404,

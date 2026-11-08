@@ -21,6 +21,8 @@ import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
 import { useLeaveGuard } from "@/components/notes/use-leave-guard";
 import { ConfirmDialog } from "@/components/notes/confirm-dialog";
 import { NoteEditorField } from "@/components/notes/note-editor-field";
+import { NoteQuizzes } from "@/components/notes/note-quizzes";
+import { NoteTags } from "@/components/notes/note-tags";
 import { NotesGate } from "@/components/notes/notes-gate";
 import {
   useDeleteNote,
@@ -217,9 +219,34 @@ function NoteBody({
           <MarkdownContent>{note.content}</MarkdownContent>
         </article>
       )}
+      <NoteTags
+        userId={userId}
+        hashtagIds={note.hashtagIds}
+      />
+      {!editing && (
+        <NoteQuizzes userId={userId} note={note} />
+      )}
       <ConfirmDialog
         open={confirm === "delete"}
         title={t("이 메모를 삭제할까요?")}
+        description={
+          note.confirmedCount + note.pendingCount === 0
+            ? undefined
+            : note.pendingCount > 0
+              ? t(
+                  "연결된 퀴즈 {0}개(확인 안 한 퀴즈 {1}개 포함)도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.",
+                  {
+                    0:
+                      note.confirmedCount +
+                      note.pendingCount,
+                    1: note.pendingCount,
+                  },
+                )
+              : t(
+                  "연결된 퀴즈 {0}개도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.",
+                  { 0: note.confirmedCount },
+                )
+        }
         confirmLabel={t("삭제")}
         cancelLabel={t("취소")}
         loading={remove.isPending}

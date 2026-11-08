@@ -1,6 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
 import { initialState } from "@/mocks/storage";
-import { QuizStatus } from "@/api/constants";
 
 async function submit(page: Page, labels: string[]) {
   if (labels.length) {
@@ -72,7 +71,9 @@ test("four formats are graded and restored after reload", async ({
 
   for (const [quizId, labels] of cases) {
     // seed-quiz-1/2 belong to the author, 3/4 to the friend; only authors can solve.
-    const user = ["seed-quiz-1", "seed-quiz-2"].includes(quizId)
+    const user = ["seed-quiz-1", "seed-quiz-2"].includes(
+      quizId,
+    )
       ? "author"
       : "friend";
 
@@ -122,8 +123,8 @@ test("deleted quiz blocks pending submission and hides completed content", async
     .click();
   await page.getByLabel("number", { exact: true }).check();
   const state = JSON.parse(
-    await page.evaluate(
-      () => localStorage.getItem("bugri:mock:v1:author")!,
+    await page.evaluate(() =>
+      localStorage.getItem("bugri:mock:v1:author")!,
     ),
   );
   state.quizzes[0].deletedAt = "2026-11-08T14:00:00.000Z";
@@ -194,12 +195,11 @@ test("failed save preserves input and permits retry", async ({
   ).toBeVisible();
 });
 
-test("direct owner access keeps private quizzes out of home and renders code on mobile", async ({
+test("owner access to a CONFIRMED quiz renders code on mobile", async ({
   page,
 }) => {
   const state = initialState("author");
-  state.quizzes[0].status = QuizStatus.PRIVATE;
-  state.quizzes[0].active!.question.prompt =
+  state.quizzes[0].revision.question.prompt =
     "코드를 읽으세요.\n\n```ts\nconst value = 1;\n```";
   await page.addInitScript(
     (value) =>

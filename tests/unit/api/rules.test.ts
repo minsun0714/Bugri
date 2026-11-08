@@ -1,10 +1,5 @@
-import { QuizScope } from "@/api/constants";
 import { createApiClient } from "@/api/client";
-import type {
-  Answer,
-  QuizContent,
-  ReviewQuiz,
-} from "@/api/contracts";
+import type { Answer, QuizContent } from "@/api/contracts";
 import {
   createMockTransport,
   type MockOptions,
@@ -26,58 +21,17 @@ const api = (
     }),
   );
 
-const plain = ({
-  pending,
-  active,
-}: ReviewQuiz): QuizContent => {
-  const {
-    title,
-    question,
-    answer,
-    explanation,
-    hashtagIds,
-  } = pending ?? active!;
-
-  return {
-    title,
-    question,
-    answer,
-    explanation,
-    hashtagIds,
-  };
-};
-
-async function approve({
-  quizId,
-  ownerUserId,
-  version,
-}: ReviewQuiz) {
-  const owner = api(ownerUserId);
-
-  const { version: reviewedVersion } = await owner.request(
-    "updatePending",
-    {
-      quizId,
-      expectedVersion: version,
-      action: "MARK_REVIEWED",
-    },
-  );
-
-  return owner.request("approve", {
-    quizId,
-    expectedVersion: reviewedVersion,
-  });
+async function createNote(content = "학습 메모") {
+  return api().request("createNote", { content });
 }
 
 beforeEach(() => localStorage.clear());
 
 test.each(["", "   ", "😀".repeat(10_001)])(
-  "rejects invalid source length/blank",
-  async (sourceContent) => {
+  "rejects blank and over-limit memo content",
+  async (content) => {
     await expect(
-      api().request("generate", {
-        sourceContent,
-      }),
+      api().request("createNote", { content }),
     ).rejects.toMatchObject({
       detail: {
         code: "VALIDATION_ERROR",
@@ -86,31 +40,23 @@ test.each(["", "   ", "😀".repeat(10_001)])(
   },
 );
 
-test("10,000 unicode code points and code formatting are preserved", async () => {
-  const sourceContent = "😀".repeat(10_000);
+test("10,000 unicode code points and code formatting are preserved in the source snapshot", async () => {
+  const long = "😀".repeat(10_000);
 
-  expect(
-    (
-      await api().request("generate", {
-        sourceContent,
-      })
-    ).sourceContent,
-  ).toBe(sourceContent);
+  const [first] = await api().request("generate", {
+    noteId: (await createNote(long)).noteId,
+  });
+
+  expect(first.revision.sourceContent).toBe(long);
 
   const code =
     '설명\n```ts\n  const x = "<script>";\n```\n```java\n  int y = 1;\n```';
 
-  const b = await api().request("generate", {
-    sourceContent: code,
+  const [second] = await api().request("generate", {
+    noteId: (await createNote(code)).noteId,
   });
 
-  const [q] = await api().request("saveBatch", {
-    batchId: b.batchId,
-    mode: "SINGLE",
-    candidateId: b.candidates[0].candidateId,
-  });
-
-  expect(q.pending!.sourceContent).toBe(code);
+  expect(second.revision.sourceContent).toBe(code);
 });
 
 test.each(
@@ -143,12 +89,16 @@ test.each(
 )(
   "rejects malformed generator output atomically",
   async ({ output }) => {
+    const { noteId } = await createNote();
+
+    const before = localStorage.getItem(
+      storageKey("learner"),
+    );
+
     await expect(
       api("learner", {
         generate: () => output,
-      }).request("generate", {
-        sourceContent: "test",
-      }),
+      }).request("generate", { noteId }),
     ).rejects.toMatchObject({
       detail: {
         code: "GENERATION_FAILED",
@@ -157,7 +107,7 @@ test.each(
 
     expect(
       localStorage.getItem(storageKey("learner")),
-    ).toBeNull();
+    ).toBe(before);
   },
 );
 
@@ -172,13 +122,8 @@ test.each(
       generate: () => [content],
     });
 
-    const batch = await client.request("generate", {
-      sourceContent: "학습",
-    });
-
-    const [pending] = await client.request("saveBatch", {
-      batchId: batch.batchId,
-      mode: "ALL",
+    const [pending] = await client.request("generate", {
+      noteId: (await createNote()).noteId,
     });
 
     await expect(
@@ -192,18 +137,10 @@ test.each(
       },
     });
 
-    await expect(
-      client.request("approve", {
-        quizId: pending.quizId,
-        expectedVersion: pending.version,
-      }),
-    ).rejects.toMatchObject({
-      detail: {
-        code: "NOT_REVIEWED",
-      },
+    const q = await client.request("confirmQuiz", {
+      quizId: pending.quizId,
+      expectedVersion: pending.version,
     });
-
-    const q = await approve(pending);
 
     const attempt = await client.request("startAttempt", {
       quizId: q.quizId,
@@ -255,11 +192,10 @@ test.each(
   },
 );
 
-test("review state resets, stale versions fail, active revision remains and old attempts grade original answer", async () => {
-  const owner = api("author"),
-    learner = api("author");
+test("stale versions fail and old attempts grade the original answer after an edit", async () => {
+  const owner = api("author");
 
-  const attempt = await learner.request("startAttempt", {
+  const attempt = await owner.request("startAttempt", {
     quizId: "seed-quiz-1",
     context: "DIRECT",
   });
@@ -268,27 +204,33 @@ test("review state resets, stale versions fail, active revision remains and old 
     quizId: "seed-quiz-1",
   });
 
-  const edited = await owner.request("updatePending", {
+  const { revision } = old;
+
+  const content: QuizContent = {
+    title: revision.title,
+    question: revision.question,
+    explanation: revision.explanation,
+    hashtagIds: revision.hashtagIds,
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "b",
+    },
+  };
+
+  const edited = await owner.request("updateQuiz", {
     quizId: old.quizId,
     expectedVersion: old.version,
-    action: "EDIT",
-    sourceContent: "changed",
-    content: {
-      ...plain(old),
-      answer: {
-        type: "SINGLE_CHOICE",
-        choiceId: "b",
-      },
-    },
+    content,
   });
 
-  expect(edited.active).toEqual(old.active);
-  expect(edited.pending!.reviewed).toBe(false);
+  expect(edited.revision.answer).toEqual(content.answer);
+  expect(edited.status).toBe("CONFIRMED");
 
   await expect(
-    owner.request("approve", {
+    owner.request("updateQuiz", {
       quizId: old.quizId,
       expectedVersion: old.version,
+      content,
     }),
   ).rejects.toMatchObject({
     detail: {
@@ -296,14 +238,7 @@ test("review state resets, stale versions fail, active revision remains and old 
     },
   });
 
-  const approved = await approve(edited);
-
-  expect(approved.active!.answer).toEqual({
-    type: "SINGLE_CHOICE",
-    choiceId: "b",
-  });
-
-  const result = await learner.request("answer", {
+  const result = await owner.request("answer", {
     attemptId: attempt.attemptId,
     answer: {
       type: "SINGLE_CHOICE",
@@ -314,7 +249,7 @@ test("review state resets, stale versions fail, active revision remains and old 
   expect(result.correct).toBe(true);
 
   await expect(
-    learner.request("answer", {
+    owner.request("answer", {
       attemptId: attempt.attemptId,
       answer: {
         type: "SINGLE_CHOICE",
@@ -332,27 +267,33 @@ test("review state resets, stale versions fail, active revision remains and old 
       quizId: old.quizId,
     }),
   ).rejects.toMatchObject({
-    status: 403,
+    status: 404,
   });
 });
 
-test("regeneration failure leaves old pending content and successful prompt intact", async () => {
-  const owner = api("author");
+test("refinement failure leaves the PENDING content and earlier turns intact", async () => {
+  const owner = api();
 
-  const first = await owner.request("regenerate", {
-    quizId: "seed-quiz-1",
-    expectedVersion: 1,
+  const [pending] = await owner.request("generate", {
+    noteId: (await createNote()).noteId,
+  });
+
+  const first = await owner.request("refineQuiz", {
+    quizId: pending.quizId,
+    expectedVersion: pending.version,
     prompt: "코드를 추가",
   });
 
-  const before = localStorage.getItem(storageKey("author"));
+  const before = localStorage.getItem(
+    storageKey("learner"),
+  );
 
   await expect(
-    api("author", {
+    api("learner", {
       generate: () => {
         throw new Error("timeout");
       },
-    }).request("regenerate", {
+    }).request("refineQuiz", {
       quizId: first.quizId,
       expectedVersion: first.version,
       prompt: "새 요청",
@@ -363,7 +304,7 @@ test("regeneration failure leaves old pending content and successful prompt inta
     },
   });
 
-  expect(localStorage.getItem(storageKey("author"))).toBe(
+  expect(localStorage.getItem(storageKey("learner"))).toBe(
     before,
   );
 
@@ -372,8 +313,8 @@ test("regeneration failure leaves old pending content and successful prompt inta
       await owner.request("reviewQuiz", {
         quizId: first.quizId,
       })
-    ).pending!.followUpPrompt,
-  ).toBe("코드를 추가");
+    ).history.map(({ prompt }) => prompt),
+  ).toEqual(["코드를 추가"]);
 });
 
 test("deleting a quiz blocks pending submissions, preserves completion and hides content", async () => {
@@ -442,8 +383,8 @@ test("deleting a quiz blocks pending submissions, preserves completion and hides
   });
 });
 
-test("only the author can solve a quiz, regardless of its status", async () => {
-  // seed-quiz-1 is the author's PUBLIC quiz.
+test("only the owner can solve a CONFIRMED quiz", async () => {
+  // seed-quiz-1 is the author's CONFIRMED quiz.
   for (const userId of ["learner", "friend"])
     await expect(
       api(userId).request("startAttempt", {
@@ -455,43 +396,15 @@ test("only the author can solve a quiz, regardless of its status", async () => {
       detail: { code: "QUIZ_UNAVAILABLE" },
     });
 
-  const owner = api("author");
-
-  const publicAttempt = await owner.request("startAttempt", {
-    quizId: "seed-quiz-1",
-    context: "DIRECT",
-  });
-
-  expect(publicAttempt.completedAt).toBeNull();
-
-  // Same quiz turned PRIVATE is still solvable by its author.
-  const stored = JSON.parse(
-    localStorage.getItem(storageKey("author"))!,
+  const attempt = await api("author").request(
+    "startAttempt",
+    {
+      quizId: "seed-quiz-1",
+      context: "DIRECT",
+    },
   );
 
-  stored.quizzes.find(
-    ({ quizId }: { quizId: string }) =>
-      quizId === "seed-quiz-1",
-  ).status = "PRIVATE";
-
-  localStorage.setItem(
-    storageKey("author"),
-    JSON.stringify(stored),
-  );
-
-  const privateAttempt = await owner.request("startAttempt", {
-    quizId: "seed-quiz-1",
-    context: "DIRECT",
-  });
-
-  expect(
-    (
-      await owner.request("answer", {
-        attemptId: privateAttempt.attemptId,
-        answer: { type: "SINGLE_CHOICE", choiceId: "a" },
-      })
-    ).completedAt,
-  ).not.toBeNull();
+  expect(attempt.completedAt).toBeNull();
 });
 
 test("an attempt in progress cannot be submitted once the quiz belongs to someone else", async () => {
@@ -509,7 +422,11 @@ test("an attempt in progress cannot be submitted once the quiz belongs to someon
 
   localStorage.setItem(
     storageKey("learner"),
-    JSON.stringify({ ...stored, userId: "learner", quizzes: [] }),
+    JSON.stringify({
+      ...stored,
+      userId: "learner",
+      quizzes: [],
+    }),
   );
 
   await expect(
@@ -557,11 +474,11 @@ test("owner can solve; deleting twice is safe and blocks owner submission", asyn
 
   expect(
     (
-      await owner.request("quizzes", {
-        scope: QuizScope.OWN,
+      await owner.request("note", {
+        noteId: "seed-note-author",
       })
-    ).map((q) => q.quizId),
-  ).not.toContain("seed-quiz-1");
+    ).confirmedCount,
+  ).toBe(1);
 });
 
 test("unknown fields and wrong answer shapes are rejected", async () => {
@@ -602,9 +519,7 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
 
   await client.request("learningDay", {});
 
-  const before = localStorage.getItem(
-    storageKey("author"),
-  );
+  const before = localStorage.getItem(storageKey("author"));
 
   const broken = api("author", {
     storage: {
@@ -808,7 +723,9 @@ test("moving from Seoul to New York changes later learning days but keeps past c
     await client.request("learningDay", {});
 
   expect(
-    dailyCounts.map(({ learningDate }) => learningDate).sort(),
+    dailyCounts
+      .map(({ learningDate }) => learningDate)
+      .sort(),
   ).toEqual(["2026-03-07", "2026-03-08"]);
 
   expect(completedDates).toEqual(

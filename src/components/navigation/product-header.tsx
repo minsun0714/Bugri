@@ -163,16 +163,6 @@ export function HeaderNavigation({
                   <>
                     <Link
                       href={withDemoUser(
-                        "/quizzes/authoring/manage",
-                        userId,
-                      )}
-                      onClick={() => setProfileOpen(false)}
-                      className={itemStyle}
-                    >
-                      {t("내 퀴즈")}
-                    </Link>
-                    <Link
-                      href={withDemoUser(
                         "/my/learning",
                         userId,
                       )}

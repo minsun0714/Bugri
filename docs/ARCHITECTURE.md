@@ -28,18 +28,14 @@ UI 컴포넌트가 더미 배열을 직접 import하거나 더미 사용자 ID�
 
 ### 퀴즈 작성 화면 (현재 구현)
 
-새 PRD는 메모 상세에서 퀴즈를 만들도록 바꾸었다(REQ-02). 아래는 그 전환 전 현재 코드의 구조이며, 생성 모달·후보 편집 컴포넌트는 메모 상세에서 재사용할 예정이다.
+퀴즈는 메모 상세(`/notes/{noteId}`)에서만 만든다(REQ-02). 별도 작성·관리 경로(`/quizzes/authoring*`)는 없다.
 
-`/quizzes/authoring`은 바깥 학습 입력과 생성 버튼을 제공한다. 퀴즈 선택은 공통 Tabs의 키보드 탐색을 사용한다. 후보 카드에는 퀴즈와 직접 수정·LLM으로 수정 버튼을 표시한다. 직접 수정은 후보 카드 아래에 펼치고, LLM 수정은 Modal 본문 전체를 별도의 대화 화면으로 전환한다. 대화 화면에서 퀴즈로 돌아가도 후보별 로컬 초안과 미전송 요청을 보존하고 반영·취소는 해당 후보에만 적용한다. 미반영 초안이 있는 후보의 저장은 막고 페이지 이탈 경고를 유지한다. 생성 후 공통 Modal에는 후보를 먼저 표시한다. 생성 결과는 Modal과 작업 공간의 overflow를 잠그고 공통 Tabs의 panel에만 세로 스크롤을 둬 헤더와 퀴즈 선택 탭을 고정한다. 후보의 저장 동작은 `임시저장`(PENDING)뿐이다. batch 쿼리 파라미터로 반영된 작업을 새로고침 후 복원한다. `/quizzes/authoring/results?batch={id}` 직접 접근은 유지하되 생성 후 자동 이동하지 않는다.
-
-`/quizzes/authoring/manage`는 저장한 퀴즈의 검토·승인·관리를 담당한다. 검토 상세는 저장된 미리보기를 기본으로 표시하고 직접 수정할 때만 편집 폼으로 전환한다. 추가 프롬프트 재생성은 직접 수정과 나란한 버튼에서 공통 Modal을 열고, 실패하면 입력과 모달을 유지하며 성공하면 닫고 새 PENDING 미리보기로 돌아간다. 화면의 승인 한 번이 `MARK_REVIEWED`와 `approve`를 최신 버전으로 순서대로 요청하며 공개 범위는 고르지 않는다. 승인된 기존 버전은 PENDING 수정본이 있을 때 접힌 비교 영역으로만 제공한다.
-
-- Modal 자체는 `overflow-hidden`을 유지한다. LLM 대화 화면의 메시지 컨테이너와 일반 후보 화면의 후보 컨테이너가 각각 내부 스크롤을 담당한다. 대화 본문은 mode 진입과 candidateId 변경 시 최신 메시지로 스크롤한다.
-- 직접 수정 mode에서는 `ContentPreview`를 렌더링하지 않고 후보별 `ContentFields`만 렌더링한다.
-- `useGeneration`은 후보별 직접 수정 초안과 LLM 요청 초안을 별도 map으로 유지한다. 마지막으로 성공한 반영 결과가 현재 후보다.
-- 관리 상세는 목록 복귀·제목·상태를 하나의 sticky 헤더로 묶는다. 편집 중 변경 상태·취소·저장은 viewport 하단 고정 바가 담당하고, 삭제는 비편집 상태의 독립 위험 영역으로 분리한다.
-- 생성 모달의 `Creation`은 후보가 모두 저장되거나 삭제되어 남지 않고 미반영 초안이 없으면 모달을 숨기고 `onComplete`를 알린다. `Workspace`는 user 쿼리를 보존한 내 퀴즈 목록으로 이동한다. 생성 모달은 미처리 후보가 남은 경우에만 닫기를 확인한다. 공통 Modal은 cancel 이벤트의 기본 닫기를 막고 주입된 `onClose`로만 닫힘을 제어한다.
-- 후보 삭제는 타입 API로 묶음을 갱신하며, 이미 저장된 후보의 연결 퀴즈는 `deletedAt` soft delete 규칙을 적용한다. 모든 후보를 삭제한 `GenerationBatch`는 빈 배열을 정상 상태로 저장·복원한다.
+- **메모 상세의 퀴즈 영역**(`NoteQuizzes`): "퀴즈로 만들기", PENDING이 있을 때만 "확인 안 한 퀴즈 N개 · 이어서 확인", "이 메모의 퀴즈"(CONFIRMED 목록: 제목은 `/solve` 링크, 형식 배지, 수정·삭제). "퀴즈로 만들기"는 생성 중 버튼을 잠가 중복 요청을 막고, 실패하면 오류를 보여 주고 같은 버튼으로 다시 시도한다. 성공하면 그 메모의 PENDING 전부를 작업 모달에 열고 이번에 생성한 첫 퀴즈를 선택한다. 기존 PENDING은 그대로 남는다.
+- **작업 모달**(`NoteQuizDialog` → `QuizWork`, 상태는 `useQuizWork`): 공통 Modal의 conversation 레이아웃. 공통 Tabs로 퀴즈를 고르고, 선택한 퀴즈에서 직접 수정·LLM으로 수정(Modal 본문 전체를 대화 화면으로 전환)·저장·삭제를 한다. 하단의 "남은 퀴즈 모두 저장 (N)"은 그 메모의 PENDING 전부를 저장한다. 저장한 탭은 "저장됨"으로 남는다. 퀴즈별 미반영 수정·미전송 요청은 로컬 초안이며, 초안이 있는 퀴즈의 저장과 일괄 저장은 막고 이유를 표시한다. 모달을 닫을 때 초안이 있을 때만 공통 `ConfirmDialog`(Modal 기반)로 묻는다. `window.confirm`은 쓰지 않는다. 닫아도 PENDING은 서버(Mock 저장소)에 남는다.
+- **CONFIRMED 수정**(`EditQuizDialog`): 목록의 "수정"이 같은 `ContentFields`로 직접 수정만 연다. 저장하면 바로 반영되고(새 revision) 이미 끝난 Attempt는 바뀌지 않는다.
+- **메모 삭제**: 확인 모달이 연결된 퀴즈 개수(PENDING 포함)를 알리고 삭제하면 함께 soft delete한다.
+- 내 노트 목록 행은 확인한 퀴즈 개수 또는 "퀴즈 없음", 확인 안 한 퀴즈 개수, CONFIRMED 퀴즈의 태그를 보여 준다. 홈 빠른 메모 저장 토스트의 "퀴즈로 만들기"는 해당 메모 상세로 이동한다.
+- 데이터는 `src/components/notes/queries.ts`의 Query 훅(`['notes', userId, ...]`)으로 읽고, 모든 변경 후 `['notes', userId]`를 무효화해 목록·상세의 개수를 함께 갱신한다. 모달 안의 변경은 `useQuizWork`가 로컬 상태를 갱신하고 `onChanged`로 무효화한다.
 
 ### UI 스타일링
 
@@ -49,11 +45,11 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 
 ## 2. 1단계 Mock API와 상태
 
-- Mock API는 독립 퀴즈 1~5개 생성 응답, 후보 편집·추가 요청, PENDING 저장·검토·승인, 직접 풀이·채점, 학습일·스트릭, 풀이 내역을 지원한다. AI 제공자 호출 대신 고정·가변 더미 응답으로 성공·실패를 재현한다.
+- Mock API는 메모에서 독립 퀴즈 1~5개를 PENDING으로 생성, 직접 수정·LLM 수정·개별/일괄 저장(CONFIRMED)·삭제, 직접 풀이·채점, 학습일·스트릭, 풀이 내역을 지원한다. AI 제공자 호출 대신 고정·가변 더미 응답으로 성공·실패를 재현한다.
 - 더미 사용자 전환은 화면 검증용이다. 누구나 요청을 조작할 수 있으므로 Mock 인증·권한 검사는 실제 보안 기능이 아니다. 실제 개인 정보·비밀값은 더미 데이터에 넣지 않는다.
-- 초기 데이터는 `src/mocks/users.ts`, `quizzes.ts`, `learning-history.ts` 등의 프로젝트 파일에서 읽는다. 최초 사용자는 초기 데이터로 시작하고 저장된 사용자 변경 상태가 있으면 복원한다. 퀴즈 생성·수정·soft delete, 풀이 기록, 감지된 시간대는 더미 userId로 구분한 localStorage에 저장한다.
+- 초기 데이터는 `src/mocks/users.ts`, `quizzes.ts`, `seed.ts`, `learning-history.ts` 등의 프로젝트 파일에서 읽는다. 최초 사용자는 초기 데이터로 시작하고 저장된 사용자 변경 상태가 있으면 복원한다. 퀴즈 생성·수정·soft delete, 풀이 기록, 감지된 시간대는 더미 userId로 구분한 localStorage에 저장한다.
 - UI는 Mock 파일·localStorage를 직접 접근하지 않고 타입이 정의된 API 클라이언트와 Mock 어댑터를 이용한다. 서버 메모리는 영속 저장소로 쓰지 않는다.
-- 로컬 개발에서는 초기 Mock 파일을 수정할 수 있다. 배포 환경에서는 읽기 전용 초기 데이터로 취급하며 Vercel 서버 파일 시스템에 사용자 데이터를 쓰지 않는다. 현재 사용자 저장 데이터 손상은 오류로 유지하며 자동 초기화하지 않는다. localStorage는 사용자별 영구 저장소가 아니므로 브라우저 데이터 삭제·기기 변경 시 유실될 수 있다.
+- 로컬 개발에서는 초기 Mock 파일을 수정할 수 있다. 배포 환경에서는 읽기 전용 초기 데이터로 취급하며 Vercel 서버 파일 시스템에 사용자 데이터를 쓰지 않는다. 저장 형식 번호(schemaVersion)가 2가 아닌 이전 데이터는 데모 프로토타입 결정에 따라 옮기지 않고 새 시드로 초기화한다. 번호가 2인 데이터가 손상됐으면 오류로 유지하며 자동 초기화하지 않는다. localStorage는 사용자별 영구 저장소가 아니므로 브라우저 데이터 삭제·기기 변경 시 유실될 수 있다.
 - Vercel 배포에는 DB 접속 정보·Google OAuth 자격 증명·JWT 비밀키·AI 키가 필요하지 않다.
 - Jest는 도메인 규칙·API 계약과 React Testing Library UI 동작에 사용하고 Playwright는 사용자 여정 E2E에 사용한다. 풀이용 Mock API 응답에도 미제출 정답·해설을 넣지 않고, 사용자 코드를 실행하지 않는다. 정답 비노출·권한 제어는 UX 검증이며 실제 보안 보장이 아니다.
 
@@ -64,10 +60,10 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 | 개념 | 공통 계약 및 2단계 규칙 |
 | --- | --- |
 | User | 내부 `userId`, Google `sub`(유일), displayName, learningTimeZone(IANA). 이메일은 소유권 키가 아니다. 1단계에는 더미 사용자만 둔다 |
-| Note | 1단계 계약(NOTES): `noteId`, 본문(Markdown·코드 블록, 유니코드 코드 포인트 최대 10,000자), `version`, `createdAt`·`updatedAt`. 저장소에서는 사용자별 `UserState.notes`(선택 필드)에 `deletedAt`(soft delete)과 함께 보관하며 소유자는 저장소 키로 결정한다. 2단계는 ownerUserId를 가진다. 태그·연결 퀴즈는 note-to-quiz TASK에서 추가하며 태그는 연결된 퀴즈 태그에서 계산한다. 자세한 계약은 [API 메모 절](API.md#메모--notes) |
-| Quiz | 독립 quizId, ownerUserId, 상태, 활성·검토 중 revision, deletedAt(soft delete). 예정: noteId 연결, 상태를 PENDING(생성·미확인, 목록·복습 제외)과 CONFIRMED(확인, 목록·복습 대상) 두 가지로 정리하고 PRIVATE/PUBLIC·검토·승인 제거 |
-| QuizRevision | 한 문제·정답·해설·원본 학습 내용·코드 블록·reviewed·최대 3개 해시태그. 풀이에 쓰인 버전은 불변 |
-| GenerationBatch | 요청당 생성 퀴즈 1~5개. 예정: 생성 결과를 PENDING Quiz로 저장하고, 같은 메모에서 다시 생성하면 기존 PENDING을 유지한 채 새로 추가 |
+| Note | 1단계 계약(NOTES): `noteId`, 본문(Markdown·코드 블록, 유니코드 코드 포인트 최대 10,000자), `version`, `createdAt`·`updatedAt`. 저장소에서는 사용자별 `UserState.notes`에 `deletedAt`(soft delete)과 함께 보관하며 소유자는 저장소 키로 결정한다. 2단계는 ownerUserId를 가진다. 응답에는 연결된 퀴즈의 확인/미확인 개수와 CONFIRMED 퀴즈 태그의 합집합이 포함되며 메모에 태그를 따로 저장하지 않는다. 자세한 계약은 [API 메모 절](API.md#메모--notes) |
+| Quiz | 독립 quizId, ownerUserId, noteId(연결 메모), 상태 PENDING(생성·아직 저장 안 함, 풀이·복습 제외)/CONFIRMED(저장함, 풀이·복습 대상), 현재 revision, LLM 수정 기록, confirmedAt, version, deletedAt(soft delete). 검토·승인·공개 단계는 없다 |
+| QuizRevision | 한 문제·정답·해설·원본 학습 내용(생성 당시 메모 본문 스냅샷)·코드 블록·최대 3개 해시태그. 수정할 때마다 새 revision이며 풀이에 쓰인 버전은 불변 |
+| 생성 요청 | 요청당 퀴즈 1~5개를 곧바로 PENDING Quiz로 저장한다. 별도 "후보"·묶음 개체는 두지 않으며, 같은 메모에서 다시 생성하면 기존 PENDING을 유지한 채 새로 추가한다 |
 | ReviewSchedule (예정) | userId·quizId·다음 복습일·현재 간격 단계. 정답이면 1→3→7→14→30일, 오답이면 다음 날·처음으로. 오늘 복습 풀이 결과로만 갱신 |
 | LearningDay | userId·사용자 시간대 기준 학습일, 판정에 사용한 시간대. 완료된 날짜는 소급 변경하지 않고 같은 날짜 중복 집계 방지 |
 | Attempt | solverUserId·quizId·revisionId·제출 결과·completedAt(2단계 서버 UTC 시각). 시작한 버전으로 채점하며 미제출 정답은 비공개 |
@@ -88,15 +84,16 @@ REST 교체 시 기본 경로는 `/api/v1`이며 요청·응답 타입을 1단�
 
 | 경로 | 1단계 Mock API 응답 | 2단계 REST API |
 | --- | --- | --- |
-| POST /quizzes/generate, GET /generation-batches/{id}, POST /generation-batches/{id}/edit·refine·save, DELETE /generation-batches/{id}/candidates | 더미 퀴즈 후보 1~5개·편집·추가 요청·저장 | Spring AI 생성 결과·영속 후보 조회·중복 저장 방지 |
-| GET /quizzes, GET /quizzes/{id}/review, PUT /quizzes/{id}/pending, POST /quizzes/{id}/regenerate·approve, DELETE /quizzes/{id} | 더미 사용자별 목록·검토·승인·삭제 | JWT·내부 User ID 소유권 검사·버전 검사·영속화 |
-| GET /discover/hashtags | 등록 태그 목록(태그 입력용) | 태그 조회 |
+| POST /notes/{id}/quizzes/generate, GET /notes/{id}/quizzes?status=, POST /notes/{id}/quizzes/confirm | 메모에서 PENDING 퀴즈 1~5개 생성·상태별 조회·남은 PENDING 일괄 저장 | Spring AI 생성 결과 영속화·메모 소유권 검사 |
+| GET /quizzes/{id}/review, PUT /quizzes/{id}, POST /quizzes/{id}/refine·confirm, DELETE /quizzes/{id} | 작성자 조회·직접 수정·LLM 수정(PENDING)·개별 저장·삭제 | JWT·내부 User ID 소유권 검사·버전 검사·영속화 |
+| GET /hashtags | 등록 태그 목록(태그 입력용) | 태그 조회 |
 | POST /quizzes/{id}/attempts, GET /attempts/{id}, POST /attempts/{id}/answer | 풀이·채점 UX, 미제출 정답 비노출 | JWT·버전별 채점·풀이 영속화 |
 | GET /learning/day, GET /me/learning-timezone, GET /me/attempts | 학습일·스트릭·감지된 시간대·풀이 내역 | 서버 UTC 완료 기록과 사용자 시간대 기준 조회 |
-| (예정) 메모 CRUD·검색, 오늘 복습 조회 | 새 PRD 구현 TASK에서 정의 | 같은 계약으로 영속화 |
+| GET·POST /notes, GET·PUT·DELETE /notes/{id} | 메모 CRUD(삭제 시 연결 퀴즈 soft delete) | 같은 계약으로 영속화 |
+| (예정) 메모 검색, 오늘 복습 조회 | 새 PRD 구현 TASK에서 정의 | 같은 계약으로 영속화 |
 | GET /auth/google/start, GET /auth/google/callback, GET /auth/me, POST /auth/logout | 실제 인증 경로 없음; 더미 사용자 상태만 제공 | Google OAuth2·JWT 발급/검증·로그아웃 |
 
-`ReviewQuiz`와 생성 후보는 정답·해설을 포함하는 작성자용 DTO다. `AttemptView`와 목록에는 미제출 정답·해설·원본 학습 내용을 넣지 않는다. 제출 후 결과에만 정답·해설을 제공한다.
+`ReviewQuiz`는 정답·해설을 포함하는 작성자용 DTO다. `AttemptView`와 목록에는 미제출 정답·해설·원본 학습 내용을 넣지 않는다. 제출 후 결과에만 정답·해설을 제공한다.
 
 ### 삭제와 답안 제출
 
@@ -110,7 +107,7 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 
 ## 6. 검증·배포·미결정 사항
 
-- 1단계 Jest·React Testing Library: 입력 글자 수·코드 블록·퀴즈 1~5개·저장·검토·풀이·학습일·풀이 내역. Playwright: 더미 사용자로 생성→저장→승인→풀이→재도전·풀이 내역 E2E. Vercel 배포에서 Mock API와 화면을 확인한다.
+- 1단계 Jest·React Testing Library: 입력 글자 수·코드 블록·퀴즈 1~5개·저장(PENDING→CONFIRMED)·풀이·학습일·풀이 내역. Playwright: 더미 사용자로 메모→퀴즈 생성→저장→풀이→풀이 내역·메모 삭제 E2E. Vercel 배포에서 Mock API와 화면을 확인한다.
 - 2단계: Spring Boot 서비스·REST 계약·MySQL 통합 테스트로 Google OAuth2·JWT·내부 User ID 소유권, 저장 복원, 학습일·복습 일정 중복 집계 방지를 확인한다. 1단계 테스트 통과를 실제 보안·영속성 검증으로 간주하지 않는다.
 - 미결정 사항은 [PRD §7](PRD.md#7-확정-정책과-미결정-사항)을 따른다. Kubernetes는 별도 실습 환경이다.
 
@@ -129,7 +126,7 @@ Spring Boot(Java 21) Controller는 위 REST 계약을 구현하고 Service가 �
 
 ### 퀴즈 카드
 
-QuizCard는 제목 Link/button의 after 영역을 카드 전체로 확장해 기본 접근 영역으로 사용하고, 비상호작용 본문은 pointer-events-none으로 클릭을 전달한다. 설정 버튼은 독립된 상위 클릭 영역이며 중첩 링크/버튼은 만들지 않는다. 키보드 포커스는 카드 외곽에 표시한다. 내 퀴즈의 승인된 본문은 solve URL, PENDING 본문은 검토 동작이다. 우상단 설정은 관리/수정본 검토를 연다.
+QuizCard는 제목 Link/button의 after 영역을 카드 전체로 확장해 기본 접근 영역으로 사용하고, 비상호작용 본문은 pointer-events-none으로 클릭을 전달한다. 설정 버튼은 독립된 상위 클릭 영역이며 중첩 링크/버튼은 만들지 않는다. 키보드 포커스는 카드 외곽에 표시한다. 현재 화면에서는 QuizCard를 쓰지 않으며(내 퀴즈 목록 삭제) 컴포넌트와 규칙만 남아 있다.
 
 ### 화면 언어 — I18N-01
 

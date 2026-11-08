@@ -36,13 +36,13 @@ test("REST encodes path, removes path fields from body and uses explicit envelop
     }),
   );
 
-  await client.request("approve", {
+  await client.request("confirmQuiz", {
     quizId: "q",
     expectedVersion: 2,
   });
 
   expect(fetcher).toHaveBeenLastCalledWith(
-    "/api/v1/quizzes/q/approve",
+    "/api/v1/quizzes/q/confirm",
     expect.objectContaining({
       method: "POST",
       body: JSON.stringify({
@@ -138,7 +138,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(27);
+  expect(Object.keys(endpoints)).toHaveLength(20);
 
   expect(endpoints.learningDay).toEqual({
     method: "GET",
@@ -155,65 +155,57 @@ const invalidAnswer: Request<"answer"> = {
 
 void invalidAnswer;
 
-test("candidate refinement uses its batch path and explicit prompt body", async () => {
-  const fetcher = jest.fn().mockResolvedValue(
-    response({
-      data: {
-        batchId: "batch/1",
-        sourceContent: "내용",
-        candidates: [],
-      },
-    }),
-  );
+test("memo quiz operations use note and quiz paths", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(response({ data: [] }));
 
   const client = createApiClient(
     createHttpTransport({ fetch: fetcher }),
   );
 
-  await client.request("refineCandidate", {
-    batchId: "batch/1",
-    candidateId: "candidate-1",
+  await client.request("generate", { noteId: "note/1" });
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/notes/note%2F1/quizzes/generate",
+    expect.objectContaining({
+      method: "POST",
+      body: "{}",
+    }),
+  );
+
+  await client.request("noteQuizzes", {
+    noteId: "note/1",
+    status: "PENDING",
+  });
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/notes/note%2F1/quizzes?status=PENDING",
+    expect.objectContaining({ method: "GET" }),
+  );
+
+  await client.request("confirmNoteQuizzes", {
+    noteId: "note/1",
+  });
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/notes/note%2F1/quizzes/confirm",
+    expect.objectContaining({ method: "POST" }),
+  );
+
+  await client.request("refineQuiz", {
+    quizId: "q/1",
+    expectedVersion: 3,
     prompt: "예시 추가",
   });
 
-  expect(fetcher).toHaveBeenCalledWith(
-    "/api/v1/generation-batches/batch%2F1/refine",
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/quizzes/q%2F1/refine",
     expect.objectContaining({
       method: "POST",
       body: JSON.stringify({
-        candidateId: "candidate-1",
+        expectedVersion: 3,
         prompt: "예시 추가",
-      }),
-    }),
-  );
-});
-
-test("candidate deletion uses its batch path and candidate body", async () => {
-  const fetcher = jest.fn().mockResolvedValue(
-    response({
-      data: {
-        batchId: "batch/1",
-        sourceContent: "내용",
-        candidates: [],
-      },
-    }),
-  );
-
-  const client = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
-  );
-
-  await client.request("deleteCandidate", {
-    batchId: "batch/1",
-    candidateId: "candidate-1",
-  });
-
-  expect(fetcher).toHaveBeenCalledWith(
-    "/api/v1/generation-batches/batch%2F1/candidates",
-    expect.objectContaining({
-      method: "DELETE",
-      body: JSON.stringify({
-        candidateId: "candidate-1",
       }),
     }),
   );

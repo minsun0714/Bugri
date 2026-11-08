@@ -7,6 +7,7 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 export function ConfirmDialog({
   open,
   title,
+  description,
   confirmLabel,
   cancelLabel,
   loading = false,
@@ -16,6 +17,7 @@ export function ConfirmDialog({
 }: {
   open: boolean;
   title: string;
+  description?: string;
   confirmLabel: string;
   cancelLabel: string;
   loading?: boolean;
@@ -28,6 +30,11 @@ export function ConfirmDialog({
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <div className="space-y-4">
+        {description && (
+          <p className="text-sm text-foreground">
+            {description}
+          </p>
+        )}
         {error && (
           <p
             role="alert"

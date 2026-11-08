@@ -125,11 +125,11 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
   ).toBe(true);
 });
 
-test("header logo returns to home from solving, history and authoring pages", async ({
+test("header logo returns to home from solving, history and memo pages", async ({
   page,
 }) => {
   for (const path of [
-    "/quizzes/authoring",
+    "/notes?user=learner",
     "/solve?quiz=seed-quiz-1",
     "/my/learning",
   ]) {
@@ -141,16 +141,4 @@ test("header logo returns to home from solving, history and authoring pages", as
       (url) => url.pathname === "/",
     );
   }
-});
-
-test("header logo returns from authoring to home", async ({
-  page,
-}) => {
-  await page.goto("/quizzes/authoring");
-  await page
-    .getByRole("link", { name: "Bugri 홈", exact: true })
-    .click();
-  await expect(page).toHaveURL(
-    (url) => url.pathname === "/",
-  );
 });

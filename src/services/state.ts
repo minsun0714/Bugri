@@ -1,17 +1,20 @@
 import type {
   Answer,
-  AuthoringConversation,
-  GenerationBatch,
   Note,
+  NoteQuizCounts,
   ReviewQuiz,
   Revision,
 } from "@/api/contracts";
 
+/** Soft delete keeps completed Attempts readable. */
 export interface StoredQuiz extends ReviewQuiz {
   deletedAt: string | null;
 }
 
-export interface StoredNote extends Note {
+export interface StoredNote extends Omit<
+  Note,
+  keyof NoteQuizCounts
+> {
   deletedAt: string | null;
 }
 
@@ -40,15 +43,10 @@ export interface StoredDay {
 }
 
 export interface UserState {
-  schemaVersion: 1;
-  /** Set once the optional history search demo fixtures were merged. */
-  historyDemoVersion?: 1;
-  authoringConversation?: AuthoringConversation;
-  /** Absent in snapshots written before notes existed; treated as an empty list. */
-  notes?: StoredNote[];
+  schemaVersion: 2;
+  notes: StoredNote[];
   userId: string;
   quizzes: StoredQuiz[];
-  batches: GenerationBatch[];
   attempts: StoredAttempt[];
   days: StoredDay[];
   timeZone: string | null;

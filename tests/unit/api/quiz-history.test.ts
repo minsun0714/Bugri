@@ -133,9 +133,7 @@ test("history and result reads never migrate or write legacy activity", async ()
     JSON.stringify(state),
   );
 
-  const before = localStorage.getItem(
-    storageKey("author"),
-  );
+  const before = localStorage.getItem(storageKey("author"));
 
   await api().request("attemptHistory", {});
 
@@ -160,8 +158,8 @@ test("current edits do not replace saved results; hidden quizzes keep records bu
       quizId === completed.quizId,
   );
 
-  quiz.active.title = "Changed title";
-  quiz.active.explanation = "Changed explanation";
+  quiz.revision.title = "Changed title";
+  quiz.revision.explanation = "Changed explanation";
 
   localStorage.setItem(
     storageKey("author"),
@@ -181,9 +179,8 @@ test("current edits do not replace saved results; hidden quizzes keep records bu
       .title,
   ).toBe(completed.quiz!.title);
 
-  for (const status of ["PRIVATE", "PUBLIC"]) {
-    // Status is irrelevant to the owner; only deletion hides a record's content.
-    quiz.status = status;
+  {
+    // Only deletion hides a record's content.
     quiz.deletedAt = "2026-11-08T14:00:00Z";
 
     localStorage.setItem(
@@ -321,9 +318,7 @@ test("a legacy completed attempt without an answer cannot be submitted again", a
     JSON.stringify(state),
   );
 
-  const before = localStorage.getItem(
-    storageKey("author"),
-  );
+  const before = localStorage.getItem(storageKey("author"));
 
   await expect(
     api().request("answer", {
@@ -358,7 +353,10 @@ test("records of another user's quiz keep their completion but hide content and 
 
   const learner = api("learner");
 
-  const history = await learner.request("attemptHistory", {});
+  const history = await learner.request(
+    "attemptHistory",
+    {},
+  );
 
   expect(history.total).toBe(1);
 

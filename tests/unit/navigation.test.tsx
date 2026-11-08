@@ -52,6 +52,9 @@ test("navigation preserves the demo identity and excludes personal destinations 
     ),
   ).toBe(false);
   expect(
+    member.some(({ label }) => label === "내 퀴즈"),
+  ).toBe(false);
+  expect(
     member.some(({ href }) => href.includes("attempt=")),
   ).toBe(false);
 });
@@ -91,9 +94,6 @@ test("member and visitor headers expose only applicable links", async () => {
     screen.getByRole("button", { name: "내 메뉴" }),
   );
   expect(
-    screen.queryByRole("link", { name: "내 퀴즈" }),
-  ).not.toBeInTheDocument();
-  expect(
     screen.queryByRole("link", { name: "풀이 내역" }),
   ).not.toBeInTheDocument();
   expect(
@@ -102,20 +102,14 @@ test("member and visitor headers expose only applicable links", async () => {
     }),
   ).toBeInTheDocument();
   rerender(
-    <HeaderNavigation
-      pathname="/quizzes/authoring/results"
-      userId="author"
-    />,
+    <HeaderNavigation pathname="/notes" userId="author" />,
   );
   expect(
     screen.getByRole("link", { name: "내 노트" }),
   ).toHaveAttribute("href", "/notes?user=author");
   expect(
-    screen.getByRole("link", { name: "내 퀴즈" }),
-  ).toHaveAttribute(
-    "href",
-    "/quizzes/authoring/manage?user=author",
-  );
+    screen.queryByRole("link", { name: "내 퀴즈" }),
+  ).not.toBeInTheDocument();
   expect(
     screen.getByRole("link", { name: "풀이 내역" }),
   ).toHaveAttribute("href", "/my/learning?user=author");

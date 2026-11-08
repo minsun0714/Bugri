@@ -22,6 +22,7 @@ import Link from "next/link";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/api/query-client";
 import { createBrowserApi } from "@/api/browser";
+import { initialState, storageKey } from "@/mocks/storage";
 import { QuickNote } from "@/components/notes/quick-note";
 import { NoteDetailScreen } from "@/components/notes/note-detail-screen";
 import { NotesListScreen } from "@/components/notes/notes-list-screen";
@@ -49,8 +50,20 @@ beforeAll(() => {
   };
 });
 
+/** Every user starts from an empty memo list instead of the seed. */
 beforeEach(() => {
   localStorage.clear();
+
+  for (const userId of ["learner", "author", "friend"])
+    localStorage.setItem(
+      storageKey(userId),
+      JSON.stringify({
+        ...initialState(userId),
+        notes: [],
+        quizzes: [],
+      }),
+    );
+
   push.mockClear();
   signInSpy.mockClear();
   search = "user=learner";
@@ -98,7 +111,7 @@ test("quick note saves in place, clears the input and offers a link to the note"
   expect(status).toHaveTextContent("저장했어요");
 
   const link = within(status).getByRole("link", {
-    name: "메모 보기",
+    name: "퀴즈로 만들기",
   });
 
   expect(link.getAttribute("href")).toMatch(

@@ -37,10 +37,10 @@ test("browser language, explicit choice, persistence, and untouched quiz content
   await context.close();
 });
 
-test("language switching preserves author input, path and editor tab", async ({
+test("language switching preserves memo input and path", async ({
   page,
 }) => {
-  await page.goto("/quizzes/authoring?user=author");
+  await page.goto("/?user=author");
   const input = page.getByRole("textbox").first();
   const content =
     "中文学习内容 — 한국어 English\n```js\nconst x = 1;\n```";
@@ -56,7 +56,7 @@ test("language switching preserves author input, path and editor tab", async ({
   expect(page.url()).toBe(before);
   await expect(
     page.getByRole("button", {
-      name: "Create quiz",
+      name: "Save note",
       exact: true,
     }),
   ).toBeVisible();
@@ -111,7 +111,7 @@ test("blocked storage still allows switching language", async ({
       throw new DOMException("Blocked", "SecurityError");
     };
   });
-  await page.goto("/quizzes/authoring?user=learner");
+  await page.goto("/notes?user=learner");
   await page
     .getByRole("combobox", { name: "Language / 언어" })
     .click();

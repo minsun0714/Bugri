@@ -212,8 +212,7 @@ export default function DesignShowcase() {
                   }
                 >
                   <Badge tone="warning">PENDING</Badge>
-                  <Badge>PRIVATE</Badge>
-                  <Badge tone="success">PUBLIC</Badge>
+                  <Badge tone="success">CONFIRMED</Badge>
                   <Badge tone="danger">이용 불가</Badge>
                 </div>
               </Sample>
@@ -271,7 +270,7 @@ export default function DesignShowcase() {
             <div className={styles["grid-three"]}>
               <Card>
                 <div className={styles["card-top"]}>
-                  <Badge tone="success">PUBLIC</Badge>
+                  <Badge tone="success">CONFIRMED</Badge>
                   <span className={styles["tiny"]}>
                     QUIZ · 01
                   </span>
@@ -396,7 +395,7 @@ export default function DesignShowcase() {
                       </span>
                       <Badge>
                         {tab === "내 퀴즈"
-                          ? "PRIVATE"
+                          ? "CONFIRMED"
                           : "풀이 완료"}
                       </Badge>
                     </div>
