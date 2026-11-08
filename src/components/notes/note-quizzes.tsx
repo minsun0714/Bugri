@@ -109,73 +109,79 @@ export function NoteQuizzes({
           {t(getErrorMessage(generate.error))}
         </p>
       )}
-      <section
-        aria-labelledby="note-quizzes-heading"
-        className="pt-4"
-      >
-        <h2
-          id="note-quizzes-heading"
-          className="mb-2 text-lg font-semibold"
+      {/* Only unconfirmed quizzes exist: the button above is the whole story. */}
+      {(!!confirmed.data?.length || pendingCount === 0) && (
+        <section
+          aria-labelledby="note-quizzes-heading"
+          className="pt-4"
         >
-          {t("이 메모의 퀴즈")}
-        </h2>
-        {confirmed.data?.length ? (
-          <ul className="divide-y divide-line/70 rounded-surface border border-line bg-surface">
-            {confirmed.data.map((quiz) => {
-              const { quizId, revision } = quiz;
+          <h2
+            id="note-quizzes-heading"
+            className="mb-2 text-lg font-semibold"
+          >
+            {t("이 메모의 퀴즈")}
+          </h2>
+          {confirmed.data?.length ? (
+            <ul className="divide-y divide-line/70 rounded-surface border border-line bg-surface">
+              {confirmed.data.map((quiz) => {
+                const { quizId, revision } = quiz;
 
-              return (
-                <li
-                  key={quizId}
-                  className="grid gap-2 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-3"
-                >
-                  <Link
-                    href={`/solve?${new URLSearchParams({ user: userId, quiz: quizId })}`}
-                    className="min-w-0 rounded text-sm font-semibold text-primary [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-primary sm:flex-1"
+                return (
+                  <li
+                    key={quizId}
+                    className="grid gap-2 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-3"
                   >
-                    {revision.title}
-                  </Link>
-                  <div className="flex flex-wrap items-center gap-2 sm:contents">
-                    <Badge>
-                      {format[revision.question.type]}
-                    </Badge>
-                    <div className="ml-auto flex gap-1 sm:ml-0">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        aria-label={t("{0} 수정", {
-                          0: revision.title,
-                        })}
-                        onClick={() => setEditing(quiz)}
-                      >
-                        {t("수정")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-danger-ink"
-                        aria-label={t("{0} 삭제", {
-                          0: revision.title,
-                        })}
-                        onClick={() => setDeleting(quiz)}
-                      >
-                        {t("삭제")}
-                      </Button>
+                    <Link
+                      href={`/solve?${new URLSearchParams({ user: userId, quiz: quizId })}`}
+                      className="min-w-0 rounded text-sm font-semibold text-primary [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-primary sm:flex-1"
+                    >
+                      {revision.title}
+                    </Link>
+                    <div className="flex items-center gap-2 sm:contents">
+                      <span className="min-w-0 truncate">
+                        <Badge>
+                          {format[revision.question.type]}
+                        </Badge>
+                      </span>
+                      <div className="ml-auto flex shrink-0 gap-1 sm:ml-0">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="min-h-11"
+                          aria-label={t("{0} 수정", {
+                            0: revision.title,
+                          })}
+                          onClick={() => setEditing(quiz)}
+                        >
+                          {t("수정")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="min-h-11 text-danger-ink"
+                          aria-label={t("{0} 삭제", {
+                            0: revision.title,
+                          })}
+                          onClick={() => setDeleting(quiz)}
+                        >
+                          {t("삭제")}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          !confirmed.isPending &&
-          pendingCount === 0 && (
-            <p className="text-sm text-muted">
-              {t("퀴즈 없음")}
-            </p>
-          )
-        )}
-      </section>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            !confirmed.isPending &&
+            pendingCount === 0 && (
+              <p className="text-sm text-muted">
+                {t("퀴즈 없음")}
+              </p>
+            )
+          )}
+        </section>
+      )}
       {work && (
         <NoteQuizDialog
           userId={userId}

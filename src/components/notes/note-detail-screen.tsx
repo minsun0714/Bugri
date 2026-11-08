@@ -230,16 +230,22 @@ function NoteBody({
         open={confirm === "delete"}
         title={t("이 메모를 삭제할까요?")}
         description={
-          note.confirmedCount + note.pendingCount > 0
-            ? t(
-                "연결된 퀴즈 {0}개(확인 안 한 퀴즈 {1}개 포함)도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.",
-                {
-                  0:
-                    note.confirmedCount + note.pendingCount,
-                  1: note.pendingCount,
-                },
-              )
-            : undefined
+          note.confirmedCount + note.pendingCount === 0
+            ? undefined
+            : note.pendingCount > 0
+              ? t(
+                  "연결된 퀴즈 {0}개(확인 안 한 퀴즈 {1}개 포함)도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.",
+                  {
+                    0:
+                      note.confirmedCount +
+                      note.pendingCount,
+                    1: note.pendingCount,
+                  },
+                )
+              : t(
+                  "연결된 퀴즈 {0}개도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.",
+                  { 0: note.confirmedCount },
+                )
         }
         confirmLabel={t("삭제")}
         cancelLabel={t("취소")}

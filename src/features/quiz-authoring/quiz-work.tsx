@@ -87,14 +87,14 @@ export function QuizWork(props: QuizWorkProps) {
 
   // Saving or deleting removes the focused button; keep keyboard focus inside the work area.
   useEffect(() => {
-    if (!notice) return;
+    if (!notice || busy) return;
 
     rootRef.current
       ?.querySelector<HTMLElement>(
         '[role="tab"][aria-selected="true"]',
       )
       ?.focus();
-  }, [notice]);
+  }, [notice, busy]);
 
   const tabLabels = quizzes.map((item, index) =>
     t(
@@ -311,7 +311,7 @@ export function QuizWork(props: QuizWorkProps) {
                   {quiz.revision.title}
                 </h2>
               </div>
-              <div className="ml-auto flex flex-wrap justify-end gap-1">
+              <div className="flex flex-wrap justify-start gap-1 sm:ml-auto sm:justify-end">
                 {!saved &&
                   [WorkMode.EDIT, WorkMode.CHAT].map(
                     (label) => (

@@ -251,3 +251,44 @@ test("the list shows confirmed counts, unconfirmed counts, no-quiz memos and tag
     (await screen.findAllByText("#TypeScript")).length,
   ).toBeGreaterThan(0);
 });
+
+test("a memo with only unconfirmed quizzes shows no empty quiz section", async () => {
+  wrap(
+    <NoteDetailScreen noteId="seed-note-learner-pending" />,
+  );
+
+  expect(
+    await screen.findByRole("button", {
+      name: "확인 안 한 퀴즈 2개 · 이어서 확인",
+    }),
+  ).toBeInTheDocument();
+
+  expect(screen.queryByText("이 메모의 퀴즈")).toBeNull();
+  expect(screen.queryByText("퀴즈 없음")).toBeNull();
+});
+
+test("the delete warning omits the unconfirmed count when there is none", async () => {
+  wrap(
+    <NoteDetailScreen noteId="seed-note-learner-confirmed" />,
+  );
+
+  fireEvent.click(
+    await screen.findByRole("button", { name: "삭제" }),
+  );
+
+  expect(
+    await screen.findByText(
+      "연결된 퀴즈 8개도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.",
+    ),
+  ).toBeInTheDocument();
+});
+
+test("the list hides 'no quizzes' for a memo that only has unconfirmed quizzes", async () => {
+  wrap(<NotesListScreen />);
+
+  const row = (
+    await screen.findByText("확인 안 한 퀴즈 2개")
+  ).closest("a")!;
+
+  expect(within(row).queryByText("퀴즈 없음")).toBeNull();
+});

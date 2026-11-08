@@ -139,13 +139,16 @@ function NotesList({ userId }: { userId: string }) {
                   }).format(new Date(createdAt))}
                 </time>
                 <span className="col-span-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted sm:col-span-full">
-                  <span>
-                    {confirmedCount > 0
-                      ? t("퀴즈 {0}개", {
-                          0: confirmedCount,
-                        })
-                      : t("퀴즈 없음")}
-                  </span>
+                  {(confirmedCount > 0 ||
+                    pendingCount === 0) && (
+                    <span>
+                      {confirmedCount > 0
+                        ? t("퀴즈 {0}개", {
+                            0: confirmedCount,
+                          })
+                        : t("퀴즈 없음")}
+                    </span>
+                  )}
                   {pendingCount > 0 && (
                     <span className="font-semibold text-primary">
                       {t("확인 안 한 퀴즈 {0}개", {
