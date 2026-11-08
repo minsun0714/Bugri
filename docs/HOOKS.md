@@ -2,6 +2,10 @@
 
 `.codex/hooks.json`의 Stop Hook은 기능 작업을 명시적으로 활성화한 워크트리에서만 `npm run verify`를 실행한다. 문서 작업과 일반 대화에는 활성화하지 않는다. Python 3 표준 라이브러리만 사용하며 패키지 설치는 필요 없다.
 
+## 검증 범위 선택
+
+상점·3D E2E는 [검증 기준](../.agents/skills/implement-feature/references/verification.md)에 따라 영향이 없으면 제외하고, 필요하면 worker 1개로 실행한다. 이 예외는 PR 최종화·통합에도 적용한다. 현재 Stop Hook은 고정된 `npm run verify`를 실행하며 spec 선택·worker 인자를 전달하지 않는다. 따라서 상점·3D 제외 또는 순차 실행이 필요한 작업은 Hook을 arm하지 않고 검증 지침의 수동 명령을 사용한다. 이미 실행 중인 Hook을 중단하거나 실패를 성공으로 바꾸지는 않는다. 스크립트 동작을 변경한 것은 아니다.
+
 ## 사용
 
 1. 해당 워크트리에서 Codex를 시작하고 `/hooks`에서 Hook 정의를 검토·신뢰한다. 프로젝트도 신뢰된 상태여야 한다. Orca가 사용하는 Codex 실행 환경에서도 이 설정이 로드되는지 확인한다. 파일 생성만으로 현재 세션의 자동 실행이 보장되지는 않는다.

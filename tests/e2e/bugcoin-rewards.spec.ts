@@ -42,3 +42,42 @@ for (const width of [1280, 390]) {
     ).toBeVisible();
   });
 }
+
+test("merged English UI preserves rewards and translates history reasons", async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({
+    baseURL,
+    locale: "en-US",
+  });
+  const page = await context.newPage();
+  await page.goto("/?user=learner");
+  await page.getByLabel("number", { exact: true }).check();
+  await page
+    .getByRole("button", {
+      name: "Submit answer",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText("+2.00 BugCoin", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("link", {
+      name: "View history",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText("First correct answer reward", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Daily first correct answer bonus", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await context.close();
+});

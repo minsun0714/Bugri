@@ -1,4 +1,10 @@
 "use client";
+import {
+  type UiMessage,
+  message,
+} from "@/lib/i18n/messages";
+
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useId, useRef, useState } from "react";
 import type { SubscriptionTarget } from "@/api/contracts";
@@ -22,9 +28,11 @@ export function SubscriptionControl({
   subscribed: boolean;
   signedIn: boolean;
   onLogin: (trigger: HTMLElement) => void;
-  onSuccess: (message: string) => void;
+  onSuccess: (message: UiMessage) => void;
   disabled?: boolean;
 }) {
+  const t = useTranslation();
+
   const mutation = useSubscribe(userId);
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -98,7 +106,16 @@ export function SubscriptionControl({
       await mutation.mutateAsync({ target, subscribed });
       close();
       onSuccess(
-        `${name}${target.type === "PERSON" ? "님" : ""}${subscribed ? " 구독을 취소했습니다." : "을 구독했습니다."}`,
+        message(
+          target.type === "PERSON"
+            ? subscribed
+              ? "{0}님 구독을 취소했습니다."
+              : "{0}님을 구독했습니다."
+            : subscribed
+              ? "{0} 태그 구독을 취소했습니다."
+              : "{0} 태그를 구독했습니다.",
+          { 0: name },
+        ),
       );
     } catch {
       // Keep the action and its error together so retry preserves context.
@@ -124,7 +141,7 @@ export function SubscriptionControl({
         variant="secondary"
         className={`${discoveryStyles.subscriptionButton} ${subscribed ? discoveryStyles.subscribed : discoveryStyles.unsubscribed}`}
         aria-disabled={isPending}
-        aria-label={`${name} ${subscribed ? "구독 중 · 관리" : "구독하기"}`}
+        aria-label={`${name} ${subscribed ? t("구독 중 · 관리") : t("구독하기")}`}
         aria-expanded={subscribed ? open : undefined}
         aria-controls={subscribed ? panelId : undefined}
         popoverTarget={
@@ -148,10 +165,10 @@ export function SubscriptionControl({
         }}
       >
         {isPending ? (
-          "저장 중…"
+          t("저장 중…")
         ) : subscribed ? (
           <>
-            <span aria-hidden="true">✓</span> 구독 중{" "}
+            <span aria-hidden="true">✓</span> {t("구독 중")}{" "}
             <svg
               aria-hidden="true"
               viewBox="0 0 16 16"
@@ -175,7 +192,7 @@ export function SubscriptionControl({
             >
               +
             </span>{" "}
-            구독하기
+            {t("구독하기")}
           </>
         )}
       </Button>
@@ -194,10 +211,10 @@ export function SubscriptionControl({
             variant="ghost"
             className="!min-h-11 !rounded-full !shadow-none"
             aria-disabled={isPending}
-            aria-label={`${name} 구독 해제`}
+            aria-label={t("{0} 구독 해제", { 0: name })}
             onClick={() => void toggle()}
           >
-            구독 해제
+            {t("구독 해제")}
           </Button>
         </div>
       )}
@@ -206,8 +223,9 @@ export function SubscriptionControl({
           role="alert"
           className="mt-2 max-w-64 text-sm text-foreground"
         >
-          구독을 저장하지 못했습니다. 기존 상태는
-          유지됩니다. 다시 눌러 주세요.
+          {t(
+            "구독을 저장하지 못했습니다. 기존 상태는 유지됩니다. 다시 눌러 주세요.",
+          )}
         </p>
       )}
     </div>

@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import type {
   DeskTransforms,
   DeskOrder,
@@ -25,6 +28,8 @@ export function ProductTrial(props: {
     request: Request<"transformEquipment">,
   ) => Promise<unknown>;
 }) {
+  const t = useTranslation();
+
   const { product, owned, buy } = props;
   const {
     editor,
@@ -55,7 +60,7 @@ export function ProductTrial(props: {
         selectedName={selectedName}
         current={editor.current}
         onKeyDown={keyDown}
-        label="장착 미리보기"
+        label={t("장착 미리보기")}
         equipment={
           preview
             ? space.equipment
@@ -87,7 +92,7 @@ export function ProductTrial(props: {
           disabled={editor.blocked}
           onClick={reset}
         >
-          초기화
+          {t("초기화")}
         </Button>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Coin amount={product.price} />
@@ -99,24 +104,24 @@ export function ProductTrial(props: {
               onClick={() => void apply()}
             >
               {error
-                ? "배치 다시 적용"
+                ? t("배치 다시 적용")
                 : unchanged
-                  ? "장착 중"
+                  ? t("장착 중")
                   : replacesExisting
-                    ? "기존 상품과 교체"
-                    : "내 데스크에 장착"}
+                    ? t("기존 상품과 교체")
+                    : t("내 데스크에 장착")}
             </Button>
           ) : (
             <Button
               disabled={editor.blocked}
               onClick={() => void buy()}
             >
-              구매하기
+              {t("구매하기")}
             </Button>
           )}
         </div>
-        {message && <p role="status">{message}</p>}
-        {error && <p role="alert">{error}</p>}
+        {message && <p role="status">{t(message)}</p>}
+        {error && <p role="alert">{t(error)}</p>}
       </div>
     </>
   );

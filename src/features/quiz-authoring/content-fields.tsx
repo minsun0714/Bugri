@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { Tooltip } from "@/components/ui/tooltip";
 import type { Hashtag, QuizContent } from "@/api/contracts";
 import {
@@ -27,6 +30,8 @@ export function ContentFields({
   onChange: (content: QuizContent) => void;
   onSource: (source: string) => void;
 }) {
+  const t = useTranslation();
+
   const { question, answer } = content;
 
   function fieldError(key: string) {
@@ -35,7 +40,7 @@ export function ContentFields({
         className="text-sm text-coral"
         id={`review-${key}-error`}
       >
-        {errors[key]}
+        {t(errors[key])}
       </p>
     ) : null;
   }
@@ -48,11 +53,13 @@ export function ContentFields({
     <div className="grid gap-5">
       <section
         className={sectionClass}
-        aria-label="기본 정보"
+        aria-label={t("기본 정보")}
       >
-        <h3 className="text-lg font-semibold">기본 정보</h3>
+        <h3 className="text-lg font-semibold">
+          {t("기본 정보")}
+        </h3>
         <TextField
-          label="제목"
+          label={t("제목")}
           value={content.title}
           error={errors.title}
           onChange={(event) =>
@@ -65,11 +72,11 @@ export function ContentFields({
         {showSource && (
           <details className="rounded-xl border border-line bg-canvas p-4">
             <summary className="cursor-pointer text-sm font-semibold text-primary">
-              원본 학습 내용
+              {t("원본 학습 내용")}
             </summary>
             <div className="mt-4 border-t border-line pt-4">
               <MarkdownEditor
-                label="원래 학습 내용"
+                label={t("원래 학습 내용")}
                 value={source}
                 preserveOverflow
                 className={compactEditor}
@@ -83,11 +90,13 @@ export function ContentFields({
 
       <section
         className={sectionClass}
-        aria-label="문제 구성"
+        aria-label={t("문제 구성")}
       >
-        <h3 className="text-lg font-semibold">문제 구성</h3>
+        <h3 className="text-lg font-semibold">
+          {t("문제 구성")}
+        </h3>
         <MarkdownEditor
-          label="문제"
+          label={t("문제")}
           value={question.prompt}
           limit={Infinity}
           className={compactEditor}
@@ -109,7 +118,7 @@ export function ContentFields({
             className="grid gap-3"
           >
             <legend className="mb-3 font-bold">
-              선택지와 정답
+              {t("선택지와 정답")}
             </legend>
             {question.choices.map((choice, index) => (
               <div
@@ -117,7 +126,7 @@ export function ContentFields({
                 className="grid gap-3 rounded-xl border border-line bg-canvas p-3 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.6fr)_auto] sm:items-end"
               >
                 <TextField
-                  label={`선택지 ${index + 1}`}
+                  label={t("선택지 {0}", { 0: index + 1 })}
                   value={choice.text}
                   error={errors.choices}
                   onChange={(event) =>
@@ -140,7 +149,9 @@ export function ContentFields({
                 />
                 {answer.type === "SINGLE_CHOICE" && (
                   <Choice
-                    label={`정답 선택지 ${index + 1}`}
+                    label={t("정답 선택지 {0}", {
+                      0: index + 1,
+                    })}
                     name="correct-choice"
                     value={choice.id}
                     checked={answer.choiceId === choice.id}
@@ -157,7 +168,9 @@ export function ContentFields({
                 )}
                 {answer.type === "MULTIPLE_CHOICE" && (
                   <Checkbox
-                    label={`정답 선택지 ${index + 1}`}
+                    label={t("정답 선택지 {0}", {
+                      0: index + 1,
+                    })}
                     checked={answer.choiceIds.includes(
                       choice.id,
                     )}
@@ -183,8 +196,12 @@ export function ContentFields({
                   size="sm"
                   className="size-10 min-h-10! justify-self-end p-0! text-coral!"
                   variant="ghost"
-                  aria-label={`선택지 ${index + 1} 삭제`}
-                  title={`선택지 ${index + 1} 삭제`}
+                  aria-label={t("선택지 {0} 삭제", {
+                    0: index + 1,
+                  })}
+                  title={t("선택지 {0} 삭제", {
+                    0: index + 1,
+                  })}
                   disabled={question.choices.length <= 2}
                   onClick={() =>
                     onChange({
@@ -223,7 +240,7 @@ export function ContentFields({
                 })
               }
             >
-              선택지 추가
+              {t("선택지 추가")}
             </Button>
             {fieldError("choices")}
           </fieldset>
@@ -231,7 +248,7 @@ export function ContentFields({
         {answer.type === "TRUE_FALSE" && (
           <fieldset>
             <legend className="mb-3 font-bold">
-              OX 정답
+              {t("OX 정답")}
             </legend>
             <div className="flex flex-wrap items-center gap-3">
               {[true, false].map((value) => (
@@ -255,7 +272,7 @@ export function ContentFields({
         {answer.type === "SHORT_ANSWER" && (
           <div className="grid grid-cols-[1fr_auto] items-start gap-2">
             <TextField
-              label="단답 정답"
+              label={t("단답 정답")}
               value={answer.text}
               error={errors.answer}
               onChange={(event) =>
@@ -268,18 +285,25 @@ export function ContentFields({
                 })
               }
             />
-            <Tooltip label="단답 정답 도움말">
-              양끝 공백은 제외하고 대소문자를 구분합니다.
+            <Tooltip label={t("단답 정답 도움말")}>
+              {t(
+                "양끝 공백은 제외하고 대소문자를 구분합니다.",
+              )}
             </Tooltip>
           </div>
         )}
         {fieldError("answer")}
       </section>
 
-      <section className={sectionClass} aria-label="해설">
-        <h3 className="text-lg font-semibold">해설</h3>
+      <section
+        className={sectionClass}
+        aria-label={t("해설")}
+      >
+        <h3 className="text-lg font-semibold">
+          {t("해설")}
+        </h3>
         <MarkdownEditor
-          label="해설"
+          label={t("해설")}
           value={content.explanation}
           limit={Infinity}
           className={compactEditor}
@@ -290,8 +314,13 @@ export function ContentFields({
         {fieldError("explanation")}
       </section>
 
-      <section className={sectionClass} aria-label="분류">
-        <h3 className="text-lg font-semibold">분류</h3>
+      <section
+        className={sectionClass}
+        aria-label={t("분류")}
+      >
+        <h3 className="text-lg font-semibold">
+          {t("분류")}
+        </h3>
         <TagInput
           value={content.hashtagIds.map(
             (id) =>
@@ -314,13 +343,13 @@ export function ContentFields({
         />
         <div>
           <p className="mb-2 text-xs font-semibold text-muted">
-            추천 태그
+            {t("추천 태그")}
           </p>
           <div className="flex flex-wrap gap-2">
             {tags.map(({ id, name }) => (
               <Tag
                 key={id}
-                aria-label={`#${name} 추가`}
+                aria-label={t("#{0} 추가", { 0: name })}
                 disabled={
                   content.hashtagIds.includes(id) ||
                   content.hashtagIds.length >= 3

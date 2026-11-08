@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -20,8 +21,13 @@ export function DeveloperSubscriptionPanel({
   authorUserId: string;
   subscribed: boolean;
 }) {
+  const t = useTranslation();
+
   return (
-    <ResponsivePopover title="구독 설정" label="구독 설정">
+    <ResponsivePopover
+      title={t("구독 설정")}
+      label={t("구독 설정")}
+    >
       <SubscriptionContents
         userId={userId}
         publicId={publicId}
@@ -43,6 +49,8 @@ function SubscriptionContents({
   authorUserId: string;
   subscribed: boolean;
 }) {
+  const t = useTranslation();
+
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const { signedIn, signIn } = useDemoSession();
@@ -65,7 +73,7 @@ function SubscriptionContents({
       <button
         type="button"
         role="switch"
-        aria-label={`${name} 구독`}
+        aria-label={t("{0} 구독", { 0: name })}
         aria-checked={signedIn && current}
         aria-disabled={mutation.isPending}
         className="min-h-11 shrink-0 rounded-xl px-3 text-sm font-semibold text-muted aria-checked:bg-primary/10 aria-checked:text-primary focus-visible:outline-2 focus-visible:outline-primary"
@@ -81,7 +89,7 @@ function SubscriptionContents({
             .catch(() => undefined);
         }}
       >
-        {signedIn && current ? "✓ 구독 중" : "+ 구독"}
+        {signedIn && current ? t("✓ 구독 중") : t("+ 구독")}
       </button>
     );
   }
@@ -89,18 +97,18 @@ function SubscriptionContents({
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line pb-3">
         <span className="text-sm font-semibold">
-          이 개발자의 모든 퀴즈
+          {t("이 개발자의 모든 퀴즈")}
         </span>
         {control(
-          "개발자 전체",
+          t("개발자 전체"),
           { type: "PERSON", authorUserId },
           subscribed,
         )}
       </div>
       <div className="shrink-0">
         <TextField
-          label="태그별 구독"
-          placeholder="구독할 태그 검색"
+          label={t("태그별 구독")}
+          placeholder={t("구독할 태그 검색")}
           type="search"
           value={query}
           maxLength={100}
@@ -119,13 +127,13 @@ function SubscriptionContents({
             role="status"
             className="p-3 text-sm text-muted"
           >
-            불러오는 중…
+            {t("불러오는 중…")}
           </p>
         ) : tags.error ? (
           <div role="alert">
-            <p>태그를 불러오지 못했습니다.</p>
+            <p>{t("태그를 불러오지 못했습니다.")}</p>
             <Button onClick={() => void tags.refetch()}>
-              다시 불러오기
+              {t("다시 불러오기")}
             </Button>
           </div>
         ) : (
@@ -153,7 +161,7 @@ function SubscriptionContents({
             )}
             {!tags.data.items.length && (
               <li className="py-6 text-sm text-muted">
-                검색된 태그가 없습니다.
+                {t("검색된 태그가 없습니다.")}
               </li>
             )}
           </ul>
@@ -161,11 +169,13 @@ function SubscriptionContents({
       </div>
       {mutation.error && (
         <p role="alert" className="text-sm">
-          구독을 저장하지 못했습니다. 다시 눌러 주세요.
+          {t(
+            "구독을 저장하지 못했습니다. 다시 눌러 주세요.",
+          )}
         </p>
       )}
       <nav
-        aria-label="구독 태그 페이지"
+        aria-label={t("구독 태그 페이지")}
         className="flex shrink-0 items-center justify-end gap-2 border-t border-line pt-2"
       >
         <Button
@@ -173,7 +183,7 @@ function SubscriptionContents({
           disabled={page <= 1 || tags.isFetching}
           onClick={() => setPage(page - 1)}
         >
-          이전
+          {t("이전")}
         </Button>
         <span className="text-sm text-muted">
           {page} /{" "}
@@ -191,7 +201,7 @@ function SubscriptionContents({
           }
           onClick={() => setPage(page + 1)}
         >
-          다음
+          {t("다음")}
         </Button>
       </nav>
     </div>

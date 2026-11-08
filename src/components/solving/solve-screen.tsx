@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { createQueryClient } from "@/api/query-client";
 
@@ -35,6 +36,8 @@ function Session({
 }: {
   location: SolvingLocation;
 }) {
+  const t = useTranslation();
+
   const router = useRouter();
   const { userId, attemptId, hashtagId, mode, direct } =
     location;
@@ -47,7 +50,9 @@ function Session({
     if (
       answerDirty &&
       !window.confirm(
-        "작성 중인 답안이 사라집니다. 학습 태그를 바꿀까요?",
+        t(
+          "작성 중인 답안이 사라집니다. 학습 태그를 바꿀까요?",
+        ),
       )
     ) {
       return;
@@ -75,16 +80,16 @@ function Session({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className={solvingStyles.title}>
-          {direct ? "퀴즈 풀이" : "오늘의 퀴즈"}
+          {direct ? t("퀴즈 풀이") : t("오늘의 퀴즈")}
         </h1>
         {!direct && (
           <div className={solvingStyles.tagFilter}>
             <Dropdown
-              label="학습 태그"
+              label={t("학습 태그")}
               value={hashtagId ?? ""}
               disabled={busy || submit.isPending}
               options={[
-                { value: "", label: "전체" },
+                { value: "", label: t("전체") },
                 ...(hashtagId &&
                 !tags.data?.some(
                   ({ id }) => id === hashtagId,
@@ -106,7 +111,7 @@ function Session({
           <ErrorNotice error={tags.error} />
           <div className="flex justify-end">
             <Button onClick={() => void tags.refetch()}>
-              태그 다시 불러오기
+              {t("태그 다시 불러오기")}
             </Button>
           </div>
         </>
@@ -115,7 +120,9 @@ function Session({
         <>
           <ErrorNotice error={flow.error} />
           <div className="flex justify-end">
-            <Button onClick={flow.retry}>다시 시도</Button>
+            <Button onClick={flow.retry}>
+              {t("다시 시도")}
+            </Button>
           </div>
         </>
       )}
@@ -126,20 +133,22 @@ function Session({
         <EmptyState
           title={
             empty === LearningState.EXHAUSTED
-              ? "이 태그의 문제를 모두 풀었어요"
+              ? t("이 태그의 문제를 모두 풀었어요")
               : empty === LearningState.NO_REPLAY
-                ? "아직 다시 풀 문제가 없습니다"
-                : "학습할 퀴즈가 없습니다"
+                ? t("아직 다시 풀 문제가 없습니다")
+                : t("학습할 퀴즈가 없습니다")
           }
           description={
             empty === LearningState.EMPTY
-              ? "다른 태그를 선택하거나 개발자·태그를 탐색하고 구독해 보세요."
-              : "다른 태그를 선택해 학습을 이어가세요."
+              ? t(
+                  "다른 태그를 선택하거나 개발자·태그를 탐색하고 구독해 보세요.",
+                )
+              : t("다른 태그를 선택해 학습을 이어가세요.")
           }
           action={
             <div className="flex flex-wrap justify-end gap-3">
               <Button onClick={exploreTags}>
-                태그 탐색
+                {t("태그 탐색")}
               </Button>
             </div>
           }
@@ -154,7 +163,7 @@ function Session({
                 <Button
                   onClick={() => void attempt.refetch()}
                 >
-                  다시 불러오기
+                  {t("다시 불러오기")}
                 </Button>
               </div>
             </>
@@ -186,13 +195,13 @@ function Session({
                       variant="secondary"
                       onClick={flow.restart}
                     >
-                      다시 풀기
+                      {t("다시 풀기")}
                     </Button>
                   )}
                   {!direct &&
                     (data.completedAt || !data.quiz) && (
                       <Button onClick={flow.next}>
-                        다음 문제
+                        {t("다음 문제")}
                       </Button>
                     )}
                 </div>
@@ -203,7 +212,7 @@ function Session({
       )}
       {mode === LearningMode.REPLAY && !direct && (
         <p className="text-sm text-muted">
-          완료한 문제를 다시 풀고 있어요.
+          {t("완료한 문제를 다시 풀고 있어요.")}
         </p>
       )}
     </div>
@@ -217,6 +226,8 @@ export function SolveScreen({
   direct?: boolean;
   showStreak?: boolean;
 }) {
+  const t = useTranslation();
+
   const params = useSearchParams();
   const selectedUser = params.get("user");
   const userId = selectedUser ?? "learner";
@@ -245,7 +256,7 @@ export function SolveScreen({
         ) : (
           <>
             <h1 className={solvingStyles.title}>
-              오늘의 퀴즈
+              {t("오늘의 퀴즈")}
             </h1>
             <GuestQuiz />
           </>
@@ -253,12 +264,16 @@ export function SolveScreen({
         <div className="grid items-start gap-3 text-[13px] text-muted sm:grid-cols-[1fr_auto]">
           <details>
             <summary className="w-fit cursor-pointer rounded py-2 focus-visible:outline-2 focus-visible:outline-primary">
-              프로토타입 안내
+              {t("프로토타입 안내")}
             </summary>
             <p className="mt-3">
               {selectedUser
-                ? "데모 학습 기록은 이 브라우저에 저장됩니다. 브라우저 데이터를 삭제하면 기록이 사라질 수 있어요."
-                : "방문자 체험은 일시적이며 학습 기록과 보상이 저장되지 않습니다."}
+                ? t(
+                    "데모 학습 기록은 이 브라우저에 저장됩니다. 브라우저 데이터를 삭제하면 기록이 사라질 수 있어요.",
+                  )
+                : t(
+                    "방문자 체험은 일시적이며 학습 기록과 보상이 저장되지 않습니다.",
+                  )}
             </p>
           </details>
           <a
@@ -270,8 +285,8 @@ export function SolveScreen({
             className={solvingStyles.supportLink}
           >
             {direct
-              ? "홈에서 학습하기 →"
-              : "BugCoin 상점 둘러보기 →"}
+              ? t("홈에서 학습하기 →")
+              : t("BugCoin 상점 둘러보기 →")}
           </a>
         </div>
       </div>

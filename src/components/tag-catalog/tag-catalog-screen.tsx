@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { QuizCard } from "@/components/ui/quiz-card";
 import { createQueryClient } from "@/api/query-client";
@@ -33,6 +34,8 @@ function Catalog({
   userId: string;
   hashtagId: string;
 }) {
+  const t = useTranslation();
+
   const params = useSearchParams();
   const router = useRouter();
   const { signedIn, signIn } = useDemoSession();
@@ -72,7 +75,7 @@ function Catalog({
       href={backHref}
       className="inline-flex min-h-11 items-center rounded-lg text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-primary"
     >
-      ← 태그 탐색으로 돌아가기
+      {t("← 태그 탐색으로 돌아가기")}
     </Link>
   );
 
@@ -127,7 +130,7 @@ function Catalog({
         {backLink}
         <div
           role="status"
-          aria-label="공개 퀴즈 불러오는 중"
+          aria-label={t("공개 퀴즈 불러오는 중")}
         >
           <Skeleton />
         </div>
@@ -143,12 +146,12 @@ function Catalog({
         <section className={tagDiscoveryStyles.empty}>
           <h1 className="text-xl text-foreground">
             {notFound
-              ? "태그를 찾을 수 없습니다"
-              : "공개 퀴즈를 불러오지 못했습니다"}
+              ? t("태그를 찾을 수 없습니다")
+              : t("공개 퀴즈를 불러오지 못했습니다")}
           </h1>
           {!notFound && (
             <Button onClick={() => void catalog.refetch()}>
-              다시 불러오기
+              {t("다시 불러오기")}
             </Button>
           )}
         </section>
@@ -179,7 +182,9 @@ function Catalog({
               </h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="text-sm text-muted">
-                  공개 퀴즈 {data.total}개
+                  {t("공개 퀴즈")}
+                  {data.total}
+                  {t("개")}
                 </p>
                 {subscribed && (
                   <span
@@ -187,7 +192,7 @@ function Catalog({
                       tagDiscoveryStyles.subscribed
                     }
                   >
-                    ✓ 구독 중
+                    {t("✓ 구독 중")}
                   </span>
                 )}
               </div>
@@ -209,7 +214,7 @@ function Catalog({
                     )
                   }
                 >
-                  학습하기 →
+                  {t("학습하기 →")}
                 </Button>
                 <SubscriptionMenu
                   outlined
@@ -229,23 +234,25 @@ function Catalog({
                 disabled={navigating}
                 onClick={() => void toggleSubscription()}
               >
-                + 구독하기
+                {t("+ 구독하기")}
               </Button>
             )}
           </div>
         </div>
         {subscribe.error && (
           <p role="alert" className="text-sm text-danger">
-            구독을 저장하지 못했습니다. 다시 시도해 주세요.
+            {t(
+              "구독을 저장하지 못했습니다. 다시 시도해 주세요.",
+            )}
           </p>
         )}
       </section>
       <section
-        aria-label="태그의 공개 퀴즈"
+        aria-label={t("태그의 공개 퀴즈")}
         className="space-y-4"
         aria-busy={navigating}
       >
-        <h2 className="text-lg">공개 퀴즈</h2>
+        <h2 className="text-lg">{t("공개 퀴즈")}</h2>
         {data.items.length ? (
           <ul className="space-y-4">
             {data.items.map(({ quizId, title, author }) => (
@@ -292,15 +299,15 @@ function Catalog({
           <div className={tagDiscoveryStyles.empty}>
             <p>
               {page > pages
-                ? "이 페이지에는 퀴즈가 없습니다."
-                : "공개된 퀴즈가 없습니다."}
+                ? t("이 페이지에는 퀴즈가 없습니다.")
+                : t("공개된 퀴즈가 없습니다.")}
             </p>
             {page > 1 ? (
               <Button
                 variant="secondary"
                 onClick={() => goToPage(1)}
               >
-                첫 페이지로
+                {t("첫 페이지로")}
               </Button>
             ) : (
               backLink
@@ -309,7 +316,7 @@ function Catalog({
         )}
         {pages > 1 && (
           <nav
-            aria-label="퀴즈 페이지"
+            aria-label={t("퀴즈 페이지")}
             className="flex flex-wrap items-center justify-end gap-3"
           >
             <Button
@@ -319,7 +326,7 @@ function Catalog({
                 goToPage(Math.min(page - 1, pages))
               }
             >
-              이전
+              {t("이전")}
             </Button>
             <span className="text-sm text-muted">
               {page} / {pages}
@@ -329,7 +336,7 @@ function Catalog({
               disabled={busy || page >= pages}
               onClick={() => goToPage(page + 1)}
             >
-              다음
+              {t("다음")}
             </Button>
           </nav>
         )}

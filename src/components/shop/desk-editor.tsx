@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { moveDeskIndependently } from "@/lib/desk-independent";
 import { useDeskOrder } from "@/components/shop/use-desk-order";
 import { SceneObject } from "@/components/shop/zdog/scene-state";
@@ -41,6 +44,8 @@ export function DeskEditor({
   ) => Promise<unknown>;
   disabled: boolean;
 }) {
+  const t = useTranslation();
+
   const layers = useDeskOrder({
     order,
     equipment,
@@ -79,12 +84,12 @@ export function DeskEditor({
       <EditableDeskScene
         selectedName={
           editor.selected === DeskObject.BUGRI
-            ? "버그리"
+            ? t("버그리")
             : (artworkNames[
                 equipment[editor.selected!] ?? ""
               ] ??
               (editor.selected === Category.DESK
-                ? "기본 데스크"
+                ? t("기본 데스크")
                 : ""))
         }
         current={editor.current}
@@ -121,27 +126,30 @@ export function DeskEditor({
       />
 
       <div role="status" className="sr-only">
-        {editor.saving ? "배치 저장 중…" : editor.message}
+        {editor.saving
+          ? t("배치 저장 중…")
+          : t(editor.message)}
       </div>
       {layers.error && (
         <div
           role="alert"
           className="break-keep p-2 text-sm text-foreground"
         >
-          겹침 순서를 저장하지 못했어요. 변경한 순서는
-          유지됩니다.
+          {t(
+            "겹침 순서를 저장하지 못했어요. 변경한 순서는 유지됩니다.",
+          )}
           <Button
             size="sm"
             onClick={() => void layers.retry()}
           >
-            순서 다시 저장
+            {t("순서 다시 저장")}
           </Button>
           <Button
             size="sm"
             variant="ghost"
             onClick={layers.cancel}
           >
-            순서 변경 취소
+            {t("순서 변경 취소")}
           </Button>
         </div>
       )}
@@ -150,8 +158,9 @@ export function DeskEditor({
           role="alert"
           className="break-keep p-2 text-sm text-foreground"
         >
-          3D 배치를 저장하지 못했어요. 변경한 위치와 회전은
-          유지됩니다.
+          {t(
+            "3D 배치를 저장하지 못했어요. 변경한 위치와 회전은 유지됩니다.",
+          )}
         </p>
       )}
       {editor.error && (
@@ -161,7 +170,7 @@ export function DeskEditor({
             disabled={editor.blocked}
             onClick={() => void editor.commit()}
           >
-            배치 다시 저장
+            {t("배치 다시 저장")}
           </Button>
           <Button
             variant="ghost"
@@ -169,7 +178,7 @@ export function DeskEditor({
             disabled={editor.blocked}
             onClick={editor.cancel}
           >
-            변경 취소
+            {t("변경 취소")}
           </Button>
         </div>
       )}

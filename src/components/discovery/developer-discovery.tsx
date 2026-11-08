@@ -1,4 +1,7 @@
 "use client";
+import { type UiMessage } from "@/lib/i18n/messages";
+
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { createQueryClient } from "@/api/query-client";
 
@@ -50,6 +53,8 @@ function Failure({
   error: Error;
   retry: () => void;
 }) {
+  const t = useTranslation();
+
   const code =
     error instanceof ApiClientError
       ? error.detail.code
@@ -62,14 +67,18 @@ function Failure({
     >
       <p>
         {corrupt
-          ? "이 사용자의 저장 데이터를 읽을 수 없습니다. 데이터는 변경하지 않았습니다."
+          ? t(
+              "이 사용자의 저장 데이터를 읽을 수 없습니다. 데이터는 변경하지 않았습니다.",
+            )
           : code === "STORAGE_UNAVAILABLE"
-            ? "브라우저 저장소를 사용할 수 없습니다. 저장소 접근을 허용한 뒤 다시 시도해 주세요."
-            : "검색 결과를 불러오지 못했습니다."}
+            ? t(
+                "브라우저 저장소를 사용할 수 없습니다. 저장소 접근을 허용한 뒤 다시 시도해 주세요.",
+              )
+            : t("검색 결과를 불러오지 못했습니다.")}
       </p>
       <div className="flex flex-wrap justify-end gap-2">
         <Button variant="secondary" onClick={retry}>
-          다시 불러오기
+          {t("다시 불러오기")}
         </Button>
       </div>
     </div>
@@ -104,6 +113,8 @@ function DeveloperContent({
   loginTarget: string | null;
   setLoginTarget: (target: string | null) => void;
 }) {
+  const t = useTranslation();
+
   const params = useSearchParams();
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
@@ -129,7 +140,9 @@ function DeveloperContent({
   const [inputError, setInputError] = useState<
     string | null
   >(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<UiMessage | null>(
+    null,
+  );
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const subscriptionSummary = useRef<HTMLElement>(null);
   const focusResults = useRef(false);
@@ -215,10 +228,10 @@ function DeveloperContent({
     return {
       name:
         sub.type === "PERSON"
-          ? (person?.displayName ?? "개발자")
+          ? (person?.displayName ?? t("개발자"))
           : sub.type === "HASHTAG"
-            ? `#${tag?.name ?? "태그"}`
-            : `${person?.displayName ?? "개발자"} · #${tag?.name ?? "태그"}`,
+            ? `#${tag?.name ?? t("태그")}`
+            : `${person?.displayName ?? t("개발자")} · #${tag?.name ?? t("태그")}`,
       person,
       tag,
     };
@@ -230,7 +243,7 @@ function DeveloperContent({
         <div className="flex min-w-0 items-center gap-3">
           <DiscoveryMascot />
           <h1 className="text-2xl leading-8 tracking-tight">
-            개발자 탐색
+            {t("개발자 탐색")}
           </h1>
         </div>
       </div>
@@ -265,9 +278,9 @@ function DeveloperContent({
           </svg>
           <TextField
             type="search"
-            label="개발자 검색"
+            label={t("개발자 검색")}
             hideLabel
-            placeholder="이름 또는 아이디로 검색"
+            placeholder={t("이름 또는 아이디로 검색")}
             value={draft.value}
             onChange={(event) => {
               setDraft({
@@ -289,7 +302,7 @@ function DeveloperContent({
           className={discoveryStyles.searchButton}
           aria-disabled={navigating}
         >
-          검색
+          {t("검색")}
         </Button>
       </form>
       {directory.isPending && <Skeleton />}
@@ -301,11 +314,11 @@ function DeveloperContent({
       )}
       {directory.data && !validUser && (
         <div role="alert" className="space-y-3">
-          <p>알 수 없는 데모 사용자입니다.</p>
+          <p>{t("알 수 없는 데모 사용자입니다.")}</p>
           <Button
             onClick={() => search(query, 1, "learner")}
           >
-            학습자로 탐색하기
+            {t("학습자로 탐색하기")}
           </Button>
         </div>
       )}
@@ -328,10 +341,11 @@ function DeveloperContent({
                 strokeLinejoin="round"
               />
             </svg>
-            내 구독
+            {t("내 구독")}
             {subscriptions.data && (
               <span className="rounded-full bg-primary/8 px-2 py-0.5 text-xs text-primary">
-                {subscriptions.data.length}개
+                {subscriptions.data.length}
+                {t("개")}
               </span>
             )}
             <svg
@@ -358,7 +372,7 @@ function DeveloperContent({
           )}
           {subscriptions.data?.length === 0 && (
             <p className="py-4 text-sm text-muted">
-              아직 구독한 개발자나 태그가 없습니다.
+              {t("아직 구독한 개발자나 태그가 없습니다.")}
             </p>
           )}
           {subscriptions.data && (
@@ -400,7 +414,7 @@ function DeveloperContent({
           )}
           {data && !discovery.isError && (
             <section
-              aria-label="개발자 검색 결과"
+              aria-label={t("개발자 검색 결과")}
               aria-busy={discovery.isFetching || navigating}
               className="space-y-4"
             >
@@ -421,37 +435,39 @@ function DeveloperContent({
                   tabIndex={-1}
                   className="rounded-xl text-sm font-medium text-muted focus-visible:outline-2 focus-visible:outline-primary"
                 >
-                  검색 결과 {data.total.toLocaleString()}개
-                  ·{" "}
+                  {t("검색 결과 {0}개", {
+                    0: data.total.toLocaleString(),
+                  })}
+                  {" · "}
                   {outOfRange
-                    ? `총 ${totalPages}페이지`
-                    : `${data.page}페이지`}
+                    ? t("총 {0}페이지", { 0: totalPages })
+                    : t("{0}페이지", { 0: data.page })}
                 </h2>
                 {signedIn && (
                   <Link
                     className={`${linkStyle} ml-auto gap-1 text-xs`}
                     href={`/?user=${encodeURIComponent(userId)}`}
                   >
-                    홈에서 학습하기{" "}
+                    {t("홈에서 학습하기")}{" "}
                     <span aria-hidden="true">→</span>
                   </Link>
                 )}
               </div>
               <p role="status" className="sr-only">
                 {discovery.isFetching
-                  ? "검색 중"
-                  : `검색 결과 ${data.total}개`}
+                  ? t("검색 중")
+                  : t("검색 결과 {0}개", { 0: data.total })}
               </p>
               {outOfRange ? (
                 <div className="space-y-3">
-                  <p>요청한 페이지가 없습니다.</p>
+                  <p>{t("요청한 페이지가 없습니다.")}</p>
                   <Button
                     onClick={() => {
                       focusResults.current = true;
                       search(query, 1);
                     }}
                   >
-                    첫 페이지로
+                    {t("첫 페이지로")}
                   </Button>
                 </div>
               ) : data.items.length ? (
@@ -510,7 +526,10 @@ function DeveloperContent({
                           {summary &&
                             !!summary.hashtags.length && (
                               <ul
-                                aria-label={`${displayName} 공개 퀴즈 태그`}
+                                aria-label={t(
+                                  "{0} 공개 퀴즈 태그",
+                                  { 0: displayName },
+                                )}
                                 className="flex flex-wrap gap-1.5"
                               >
                                 {summary.hashtags.map(
@@ -527,8 +546,9 @@ function DeveloperContent({
                             )}
                           {!summary && (
                             <p className="text-sm text-muted">
-                              공개 퀴즈 정보를 불러올 수
-                              없습니다.
+                              {t(
+                                "공개 퀴즈 정보를 불러올 수 없습니다.",
+                              )}
                             </p>
                           )}
                         </div>
@@ -539,7 +559,13 @@ function DeveloperContent({
                                 discoveryStyles.quizLink
                               }
                               href={`/developers/${encodeURIComponent(publicId)}/quizzes${viewerQuery}`}
-                              aria-label={`${displayName} 공개 퀴즈 ${summary.publicQuizCount}개`}
+                              aria-label={t(
+                                "{0} 공개 퀴즈 {1}개",
+                                {
+                                  0: displayName,
+                                  1: summary.publicQuizCount,
+                                },
+                              )}
                             >
                               <svg
                                 aria-hidden="true"
@@ -561,7 +587,7 @@ function DeveloperContent({
                                   strokeLinecap="round"
                                 />
                               </svg>
-                              공개 퀴즈{" "}
+                              {t("공개 퀴즈")}{" "}
                               <span className="font-bold text-foreground">
                                 {summary.publicQuizCount}
                               </span>
@@ -592,13 +618,14 @@ function DeveloperContent({
                 </ul>
               ) : (
                 <div className="rounded-3xl border border-dashed border-line bg-surface px-5 py-10 text-center text-sm text-muted break-keep">
-                  검색 결과가 없습니다. 검색어를 바꿔
-                  보세요.
+                  {t(
+                    "검색 결과가 없습니다. 검색어를 바꿔 보세요.",
+                  )}
                 </div>
               )}
               {!outOfRange && totalPages > 1 && (
                 <nav
-                  aria-label="검색 결과 페이지"
+                  aria-label={t("검색 결과 페이지")}
                   className="flex flex-wrap items-center justify-end gap-3"
                 >
                   <Button
@@ -610,7 +637,7 @@ function DeveloperContent({
                       search(query, page - 1);
                     }}
                   >
-                    이전 페이지
+                    {t("이전 페이지")}
                   </Button>
                   <span>
                     {page} / {totalPages}
@@ -626,7 +653,7 @@ function DeveloperContent({
                       search(query, page + 1);
                     }}
                   >
-                    다음 페이지
+                    {t("다음 페이지")}
                   </Button>
                 </nav>
               )}

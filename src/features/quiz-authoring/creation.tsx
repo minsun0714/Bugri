@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { InputValidationError } from "@/api/errors";
 
@@ -28,6 +29,8 @@ export function Creation({
   onGenerated: (batch: GenerationBatch) => void;
   onDirty: (dirty: boolean) => void;
 }) {
+  const t = useTranslation();
+
   const api = useAuthoringActions(client, userId);
   const [source, setSource] = useState(
     initialBatch?.sourceContent ?? "",
@@ -46,7 +49,7 @@ export function Creation({
 
     if (
       hasUnhandledCandidates &&
-      !window.confirm(closeWarning)
+      !window.confirm(t(closeWarning))
     )
       return;
 
@@ -86,22 +89,22 @@ export function Creation({
   return (
     <section
       className="grid gap-5"
-      aria-label="퀴즈 만들기"
+      aria-label={t("퀴즈 만들기")}
     >
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-semibold tracking-tight">
-          퀴즈 만들기
+          {t("퀴즈 만들기")}
         </h1>
-        <Tooltip label="퀴즈 만들기 도움말">
-          현재는 실제 AI 대신 Mock 퀴즈를 제공합니다. 생성한
-          퀴즈는 대화로 바꾸거나 직접 수정할 수 있습니다.
-          비밀키·개인정보는 입력하지 마세요.
+        <Tooltip label={t("퀴즈 만들기 도움말")}>
+          {t(
+            "현재는 실제 AI 대신 Mock 퀴즈를 제공합니다. 생성한 퀴즈는 대화로 바꾸거나 직접 수정할 수 있습니다. 비밀키·개인정보는 입력하지 마세요.",
+          )}
         </Tooltip>
       </div>
       <fieldset disabled={busy} className="min-w-0">
         <MarkdownEditor
           layout="split"
-          label="학습 내용과 요청"
+          label={t("학습 내용과 요청")}
           value={source}
           preserveOverflow
           onChange={(value) => {
@@ -118,32 +121,32 @@ export function Creation({
           onClick={() => void generate()}
           loading={busy}
         >
-          퀴즈 만들기
+          {t("퀴즈 만들기")}
         </Button>
       </div>
       {!open && <RequestError error={error} />}
       <Modal
         open={open}
         onClose={closeModal}
-        title="버그리와 퀴즈 다듬기"
+        title={t("버그리와 퀴즈 다듬기")}
         layout="conversation"
       >
         <div
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
           role="region"
-          aria-label="퀴즈 작업 본문"
+          aria-label={t("퀴즈 작업 본문")}
         >
           <div className="mb-3 flex items-center gap-2">
             <span className="text-xs text-muted">Mock</span>
-            <Tooltip label="작업 공간 도움말">
-              추가 요청은 선택한 퀴즈에 반영됩니다. 실제 LLM
-              연결과 실시간 스트리밍은 아직 적용되지
-              않았습니다.
+            <Tooltip label={t("작업 공간 도움말")}>
+              {t(
+                "추가 요청은 선택한 퀴즈에 반영됩니다. 실제 LLM 연결과 실시간 스트리밍은 아직 적용되지 않았습니다.",
+              )}
             </Tooltip>
           </div>
           {busy && (
             <p role="status" className="py-10 text-primary">
-              퀴즈를 만들고 있어요…
+              {t("퀴즈를 만들고 있어요…")}
             </p>
           )}
           <RequestError error={error} />
@@ -153,7 +156,7 @@ export function Creation({
                 disabled={busy}
                 onClick={() => void generate()}
               >
-                다시 생성
+                {t("다시 생성")}
               </Button>
             </div>
           )}

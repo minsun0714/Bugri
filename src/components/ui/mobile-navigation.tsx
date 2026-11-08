@@ -1,4 +1,7 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
+import { LanguagePicker } from "@/components/ui/language-picker";
 
 import Link from "next/link";
 import { useId } from "react";
@@ -13,6 +16,8 @@ export function MobileNavigation({
   activePath?: string;
   product?: boolean;
 }) {
+  const t = useTranslation();
+
   const {
     open,
     setOpen,
@@ -41,7 +46,7 @@ export function MobileNavigation({
       <button
         ref={trigger}
         type="button"
-        aria-label={open ? "메뉴 닫기" : "메뉴 열기"}
+        aria-label={open ? t("메뉴 닫기") : t("메뉴 열기")}
         aria-expanded={open}
         aria-controls={navigationId}
         onClick={() => setOpen(!open)}
@@ -71,8 +76,8 @@ export function MobileNavigation({
           id={navigationId}
           aria-label={
             product
-              ? "모바일 주 메뉴"
-              : "모바일 컴포넌트 섹션"
+              ? t("모바일 주 메뉴")
+              : t("모바일 컴포넌트 섹션")
           }
           className="absolute inset-x-3 top-[calc(100%+8px)] max-h-[calc(100dvh-100px)] overflow-y-auto rounded-3xl border border-line bg-surface p-3 shadow-[0_16px_45px_-12px_#34204b40]"
         >
@@ -81,7 +86,7 @@ export function MobileNavigation({
               EXPLORE BUGRI
             </span>
             <span className="rounded-full bg-success-soft px-2 py-1 text-[9px] font-semibold text-success-ink">
-              {product ? "메뉴" : "UI COLLECTION"}
+              {product ? t("메뉴") : "UI COLLECTION"}
             </span>
           </div>
           <div className="grid gap-1">
@@ -104,7 +109,7 @@ export function MobileNavigation({
                 >
                   0{i + 1}
                 </span>
-                <span>{label}</span>
+                <span>{t(label)}</span>
                 <span
                   className="ml-auto text-base text-primary/60"
                   aria-hidden="true"
@@ -114,8 +119,14 @@ export function MobileNavigation({
               </Link>
             ))}
           </div>
+          <div className="mx-3 mt-3 flex items-center justify-between border-t border-line pt-3">
+            <span className="text-xs text-muted">
+              Language / 언어
+            </span>
+            <LanguagePicker />
+          </div>
           <div className="mx-3 mt-3 border-t border-line pb-1 pt-3 text-[11px] text-muted">
-            작은 배움이 쌓이는 곳{" "}
+            {t("작은 배움이 쌓이는 곳")}{" "}
             <span className="float-right font-bold text-primary">
               bugri.
             </span>
