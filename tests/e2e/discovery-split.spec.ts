@@ -25,7 +25,7 @@ test("legacy searches preserve identity, query and page on separate routes", asy
 test("desktop and mobile expose separate discovery destinations", async ({
   page,
 }, testInfo) => {
-  for (const width of [1280, 640, 390]) {
+  for (const width of [1280, 1024, 1023, 640, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/discover/developers?user=friend");
     await expect(
@@ -33,12 +33,12 @@ test("desktop and mobile expose separate discovery destinations", async ({
         name: "개발자 검색 결과",
       }),
     ).toBeVisible();
-    if (width < 640)
+    if (width < 1024)
       await page
         .getByRole("button", { name: "메뉴 열기" })
         .click();
     const nav = page.getByRole("navigation", {
-      name: width < 640 ? "모바일 주 메뉴" : "주 메뉴",
+      name: width < 1024 ? "모바일 주 메뉴" : "주 메뉴",
       exact: true,
     });
     await expect(

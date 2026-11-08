@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export function useMobileNavigation() {
+export function useMobileNavigation(product = false) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
   const root = useRef<HTMLDivElement>(null);
@@ -28,7 +28,11 @@ export function useMobileNavigation() {
         trigger.current?.focus();
       }
     };
-    const desktop = window.matchMedia("(min-width: 640px)");
+    const desktop = window.matchMedia(
+      product
+        ? "(min-width: 1024px)"
+        : "(min-width: 640px)",
+    );
     const resize = (event: MediaQueryListEvent) => {
       if (event.matches) setOpen(false);
     };
@@ -42,7 +46,7 @@ export function useMobileNavigation() {
       document.removeEventListener("keydown", escape);
       desktop.removeEventListener("change", resize);
     };
-  }, [open]);
+  }, [open, product]);
 
   function selectSection(id: string) {
     setActive(id);

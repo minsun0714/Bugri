@@ -412,7 +412,7 @@ export function QuizList({
                 onClick={() =>
                   onViewChange({ page: number })
                 }
-                className="grid size-9 place-items-center rounded-lg text-xs font-semibold text-muted aria-[current=page]:bg-primary aria-[current=page]:text-white"
+                className="grid size-9 place-items-center rounded-lg text-xs font-semibold text-muted aria-[current=page]:bg-primary-solid aria-[current=page]:text-on-primary"
               >
                 {number}
               </button>

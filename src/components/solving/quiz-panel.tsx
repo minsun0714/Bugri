@@ -104,7 +104,7 @@ export function QuizPanel({
             <ResultBugri correct={verdict} />
             <div className="min-w-0">
               <h2
-                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-base ${verdict ? "bg-lime/30" : "bg-coral/10"}`}
+                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-base ${verdict ? "bg-success-soft" : "bg-coral/10"}`}
               >
                 <span aria-hidden="true">
                   {verdict === true

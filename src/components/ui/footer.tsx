@@ -22,7 +22,7 @@ export function Footer({
             className="inline-flex items-center gap-2 text-2xl font-extrabold tracking-tight text-primary"
           >
             <span
-              className="grid size-7 -rotate-6 place-items-center rounded-lg bg-primary font-serif text-xl text-lime"
+              className="grid size-7 -rotate-6 place-items-center rounded-lg bg-primary-solid font-serif text-xl text-lime"
               aria-hidden="true"
             >
               b.
