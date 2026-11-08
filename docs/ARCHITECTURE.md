@@ -207,4 +207,7 @@ REQ-15의 표시 설정은 `src/lib/theme`의 타입·브라우저 저장 어댑
 
 ### 개별 문제 평가
 
-제출 결과의 QuizReactionControl → reaction-queries → typed API → Mock 서비스로 연결한다. 완료·현재 접근 가능 여부를 서비스에서 확인하고 quizId당 사용자 선택 하나를 선택적 v1 quizReactions에 저장한다. 사유·집계·추천은 추가하지 않는다. 재풀이에서도 quizId 기준 선택을 복원하며 방문자 체험에는 저장하지 않는다.
+공개 퀴즈 목록·풀이 전후의 QuizReactionControl → reaction-queries → typed API → Mock 서비스로 연결한다. 현재 접근 가능 여부를 서비스에서 확인하고 quizId당 사용자 선택 하나를 선택적 v1 quizReactions에 저장한다. 사유·추천은 추가하지 않는다. quizReactionSummary는 같은 브라우저의 전체 더미 사용자 반응을 합산해 두 개수를 반환한다. 재풀이에서도 quizId 기준 선택을 복원한다. 방문자 버튼은 기존 데모 선택 모달로 연결하며 공개 집계만 읽고 평가를 저장하지 않는다.
+
+
+평가 컨트롤의 기본 정렬은 목록 카드용 오른쪽이다. 풀이/방문자 체험만 `align="left"`를 명시하고 AnswerForm의 제출 행 또는 결과 행동 행에 둔다. 작성 관리의 QuizList는 PUBLIC 카드 footer에 주입된 평가 UI를 렌더하며, AuthoringWorkspace가 현재 사용자와 typed API 컨트롤을 연결한다. 관리 진입 버튼과 평가 버튼은 형제여서 평가 클릭이 상세 이동을 발생시키지 않는다.

@@ -34,6 +34,7 @@ import { DeveloperSubscriptionPanel } from "@/components/developer/subscription-
 import { FilterChips } from "@/components/ui/filter-chips";
 
 import { withDemoUser } from "@/components/navigation/routes";
+import { QuizReactionControl } from "@/components/solving/quiz-reaction";
 import { QuizCard } from "@/components/ui/quiz-card";
 import { useDeveloper } from "@/components/developer/queries";
 
@@ -454,6 +455,17 @@ function Catalog({
                       action={{
                         href: `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`,
                       }}
+                      footer={
+                        <div className="mt-3">
+                          <QuizReactionControl
+                            key={`${signedIn}:${userId}:${quizId}`}
+                            userId={
+                              signedIn ? userId : null
+                            }
+                            quizId={quizId}
+                          />
+                        </div>
+                      }
                       metadata={hashtagIds
                         .map((id) => `#${id}`)
                         .join(" ")}

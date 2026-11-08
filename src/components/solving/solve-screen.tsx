@@ -37,6 +37,7 @@ function Session({
   location: SolvingLocation;
 }) {
   const router = useRouter();
+  const selectedUser = useSearchParams().get("user");
   const { userId, attemptId, hashtagId, mode, direct } =
     location;
   const flow = useQuizSolving(location);
@@ -162,6 +163,16 @@ function Session({
           )}
           {data && (
             <QuizPanel
+              reaction={
+                data.quiz && (
+                  <QuizReactionControl
+                    align="left"
+                    key={`${selectedUser}:${data.quizId}`}
+                    userId={selectedUser}
+                    quizId={data.quizId}
+                  />
+                )
+              }
               quiz={data.quiz}
               result={data.result}
               completedAt={data.completedAt}
@@ -176,13 +187,6 @@ function Session({
                 })
               }
             >
-              {data.quiz && data.result && (
-                <QuizReactionControl
-                  key={`${userId}:${data.quizId}`}
-                  userId={userId}
-                  quizId={data.quizId}
-                />
-              )}
               {(data.quiz && data.result) ||
               (!direct &&
                 (data.completedAt || !data.quiz)) ? (

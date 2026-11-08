@@ -1,3 +1,4 @@
+import { quizReactionSummary } from "@/services/quiz-reactions";
 import { QuizReaction } from "@/api/constants";
 import { publicLearningTimeZones } from "@/mocks/learning-history";
 import { moveDeskIndependently } from "@/lib/desk-independent";
@@ -1292,19 +1293,6 @@ export function execute<K extends Operation>(
           409,
         );
 
-      if (
-        !s.attempts.some(
-          (attempt) =>
-            attempt.quizId === quizId &&
-            attempt.completedAt,
-        )
-      )
-        throw new ServiceError(
-          "FORBIDDEN",
-          "문제를 푼 뒤 평가할 수 있습니다.",
-          403,
-        );
-
       if (operation === "updateQuizReaction") {
         requireValue(
           reaction === null ||
@@ -1321,12 +1309,11 @@ export function execute<K extends Operation>(
           s.quizReactions.push({ quizId, reaction });
       }
 
-      return {
-        reaction:
-          s.quizReactions?.find(
-            (entry) => entry.quizId === quizId,
-          )?.reaction ?? null,
-      };
+      return quizReactionSummary(
+        s.userId,
+        quizId,
+        allStates,
+      );
     }
 
     case "startAttempt": {

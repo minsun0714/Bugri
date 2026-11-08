@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   QuizStatus,
   type QuizSummary,
@@ -133,6 +134,7 @@ export function QuizList({
   onViewChange,
   onOpen,
   onRefresh,
+  renderReaction,
 }: {
   quizzes: QuizSummary[];
   view: QuizListView;
@@ -142,6 +144,7 @@ export function QuizList({
   onViewChange: (change: Partial<QuizListView>) => void;
   onOpen: (quizId: string) => void;
   onRefresh: () => void;
+  renderReaction?: (quizId: string) => ReactNode;
 }) {
   const { query, filter, sort, page } = view;
   const normalizedQuery = query
@@ -367,6 +370,14 @@ export function QuizList({
                   label: `${quiz.title} ${review ? "검토하기" : "관리하기"}`,
                 }}
                 badges={<StatusBadges quiz={quiz} />}
+                footer={
+                  quiz.status === QuizStatus.PUBLIC &&
+                  renderReaction ? (
+                    <div className="mt-3">
+                      {renderReaction(quiz.quizId)}
+                    </div>
+                  ) : undefined
+                }
                 metadata={
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <time

@@ -9,13 +9,16 @@ import { createBrowserApi } from "@/api/browser";
 import type { QuizReaction } from "@/api/constants";
 
 export function useQuizReaction(
-  userId: string,
+  userId: string | null,
   quizId: string,
 ) {
   const cache = useQueryClient();
   const queryKey = ["quizReaction", userId, quizId];
   const api = () =>
-    createBrowserApi({ mode: "mock", userId });
+    createBrowserApi({
+      mode: "mock",
+      userId: userId ?? "guest",
+    });
   const query = useQuery({
     queryKey,
     queryFn: async () =>

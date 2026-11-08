@@ -28,15 +28,19 @@ async function complete(userId = "learner") {
 
 beforeEach(() => localStorage.clear());
 
-test("reaction requires completion and supports replacement, cancellation, reload and user isolation", async () => {
+test("reaction works before solving and supports replacement, cancellation, reload and user isolation", async () => {
   await expect(
     api().request("updateQuizReaction", {
       quizId,
       reaction: QuizReaction.LIKE,
     }),
-  ).rejects.toMatchObject({ status: 403 });
+  ).resolves.toEqual({
+    reaction: QuizReaction.LIKE,
+    likeCount: 1,
+    dislikeCount: 0,
+  });
 
-  const client = await complete();
+  const client = api();
 
   for (const reaction of [
     QuizReaction.LIKE,
@@ -50,18 +54,32 @@ test("reaction requires completion and supports replacement, cancellation, reloa
         quizId,
         reaction,
       }),
-    ).resolves.toEqual({ reaction });
+    ).resolves.toEqual({
+      reaction,
+      likeCount: reaction === QuizReaction.LIKE ? 1 : 0,
+      dislikeCount:
+        reaction === QuizReaction.DISLIKE ? 1 : 0,
+    });
 
     await expect(
       api().request("quizReaction", { quizId }),
-    ).resolves.toEqual({ reaction });
+    ).resolves.toEqual({
+      reaction,
+      likeCount: reaction === QuizReaction.LIKE ? 1 : 0,
+      dislikeCount:
+        reaction === QuizReaction.DISLIKE ? 1 : 0,
+    });
   }
 
-  const friend = await complete("friend");
+  const friend = api("friend");
 
   await expect(
     friend.request("quizReaction", { quizId }),
-  ).resolves.toEqual({ reaction: null });
+  ).resolves.toEqual({
+    reaction: null,
+    likeCount: 1,
+    dislikeCount: 0,
+  });
 });
 
 test("invalid values and failed writes preserve saved reaction", async () => {
@@ -168,4 +186,62 @@ test("corrupt reaction storage is rejected without overwriting it", async () => 
   });
 
   expect(localStorage.getItem(key)).toBe(corrupt);
+});
+
+test("public counts combine users and guests read without writing", async () => {
+  await api().request("updateQuizReaction", {
+    quizId,
+    reaction: QuizReaction.LIKE,
+  });
+
+  await api("friend").request("updateQuizReaction", {
+    quizId,
+    reaction: QuizReaction.LIKE,
+  });
+
+  const guest = createApiClient(
+    createMockTransport({
+      userId: "guest",
+      storage: {
+        getItem: (key) => localStorage.getItem(key),
+        setItem: () => {
+          throw new Error("guest must not write");
+        },
+      },
+    }),
+  );
+
+  await expect(
+    guest.request("quizReaction", { quizId }),
+  ).resolves.toEqual({
+    reaction: null,
+    likeCount: 2,
+    dislikeCount: 0,
+  });
+
+  await api("friend").request("updateQuizReaction", {
+    quizId,
+    reaction: QuizReaction.DISLIKE,
+  });
+
+  await expect(
+    api().request("quizReaction", { quizId }),
+  ).resolves.toEqual({
+    reaction: QuizReaction.LIKE,
+    likeCount: 1,
+    dislikeCount: 1,
+  });
+
+  await api().request("updateQuizReaction", {
+    quizId,
+    reaction: null,
+  });
+
+  await expect(
+    guest.request("quizReaction", { quizId }),
+  ).resolves.toEqual({
+    reaction: null,
+    likeCount: 0,
+    dislikeCount: 1,
+  });
 });

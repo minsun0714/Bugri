@@ -25,6 +25,12 @@ export type Visibility = Exclude<
   typeof QuizStatus.PENDING
 >;
 
+export interface QuizReactionSummary {
+  reaction: QuizReaction | null;
+  likeCount: number;
+  dislikeCount: number;
+}
+
 export interface Hashtag {
   id: string;
   name: string;
@@ -523,14 +529,14 @@ export interface ApiOperations {
   };
   quizReaction: {
     request: { quizId: string };
-    response: { reaction: QuizReaction | null };
+    response: QuizReactionSummary;
   };
   updateQuizReaction: {
     request: {
       quizId: string;
       reaction: QuizReaction | null;
     };
-    response: { reaction: QuizReaction | null };
+    response: QuizReactionSummary;
   };
   startAttempt: {
     request: {

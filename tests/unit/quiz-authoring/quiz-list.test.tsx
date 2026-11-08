@@ -225,3 +225,41 @@ test.each([{ items: quizzes }, { items: [] }])(
     );
   },
 );
+
+test("public management cards expose independent reaction controls", () => {
+  const onOpen = jest.fn();
+  render(
+    <QuizList
+      quizzes={quizzes}
+      view={{
+        query: "",
+        filter: QuizListFilter.ALL,
+        sort: QuizListSort.NEWEST,
+        page: 1,
+      }}
+      createHref="/quizzes/authoring?user=learner"
+      isFetching={false}
+      busy={false}
+      onViewChange={jest.fn()}
+      onOpen={onOpen}
+      onRefresh={jest.fn()}
+      renderReaction={(quizId) => (
+        <button aria-label={`${quizId} 좋아요`}>0</button>
+      )}
+    />,
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "public 좋아요" }),
+  );
+  expect(onOpen).not.toHaveBeenCalled();
+  expect(
+    screen.queryByRole("button", {
+      name: "pending 좋아요",
+    }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", {
+      name: "private 좋아요",
+    }),
+  ).not.toBeInTheDocument();
+});
