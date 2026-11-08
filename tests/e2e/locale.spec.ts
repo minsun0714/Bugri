@@ -10,7 +10,7 @@ test("browser language, explicit choice, persistence, and untouched quiz content
     viewport: { width: 1280, height: 900 },
   });
   const page = await context.newPage();
-  await page.goto("/solve?user=learner&quiz=seed-quiz-1");
+  await page.goto("/solve?user=author&quiz=seed-quiz-1");
   await expect(page.locator("html")).toHaveAttribute(
     "lang",
     "en",

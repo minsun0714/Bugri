@@ -11,7 +11,7 @@
 - `.claude/skills/`에 기존 5개 스킬의 상대 심볼릭 링크를 추가한다.
 - [공동 작업 안내](../AGENT_SETUP.md)를 작성하고 README에서 연결한다.
 - Claude 개인 설정과 개인 지침 파일을 Git 제외한다.
-- 앱 코드·의존성·제품 정책·Hook 실행 설정은 변경하지 않는다.
+- 앱 코드·의존성·제품 정책·Hook 실행 설정은 변경하지 않는다. (Claude Hook 등록은 [CLAUDE-HOOK](CLAUDE-HOOK.md)에서 후속 처리)
 
 ## 검증
 

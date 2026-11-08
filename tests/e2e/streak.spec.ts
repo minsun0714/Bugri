@@ -4,6 +4,7 @@ import {
   type Locator,
   type Page,
 } from "@playwright/test";
+import { ownQuizId, seedOwnQuiz } from "./own-quiz";
 
 async function openCalendar(summary: Locator) {
   const toggle = summary.getByRole("button", {
@@ -40,7 +41,9 @@ async function showCurrentMonth(summary: Locator) {
 
 // Solves one quiz directly, then returns to the home streak summary.
 async function solveQuiz(page: Page) {
-  await page.goto("/solve?user=learner&quiz=seed-quiz-1");
+  await page.goto("/?user=learner");
+  await seedOwnQuiz(page, "learner");
+  await page.goto(`/solve?user=learner&quiz=${ownQuizId}`);
   await page.getByLabel("number", { exact: true }).check();
   await page
     .getByRole("button", { name: "답 제출", exact: true })

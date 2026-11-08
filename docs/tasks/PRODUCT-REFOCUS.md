@@ -45,12 +45,12 @@
   - `docs/ARCHITECTURE.md`: 구독·상점·3D·공개 프로필·반응·BugCoin 절 삭제, 예정 모델(Note, ReviewSchedule)과 2단계 Spring AI 생성 포트 추가.
   - `verification.md`: 상점·3D E2E 절을 일반 E2E 선택 기준으로 교체. `implement-feature`·`prepare-pr` 스킬, `HOOKS.md`, `CODING_CONVENTIONS.md`, `AGENTS.md`의 상점·구독·보상 예시를 정리.
 
-## 코드와 PRD의 남은 차이 (후속 작업)
+## 코드와 PRD의 차이 (해결됨)
 
-삭제 PR은 지정 범위만 삭제했고 아래 두 결정은 코드에 아직 반영되지 않았다. 문서(PRD)는 결정대로이며 코드 수정은 별도 브랜치에서 진행한다.
+삭제 PR 직후 코드에 반영되지 않았던 두 결정은 [OWNER-ONLY-TIMEZONE](OWNER-ONLY-TIMEZONE.md)에서 해결했다.
 
-1. 다른 사용자의 퀴즈: PRD는 모든 퀴즈를 작성자 전용으로 정했다. 현재 `startAttempt`의 `available()`은 다른 사용자의 PUBLIC 퀴즈를 허용한다(UI 진입 경로는 없음). 본인 퀴즈만 허용하도록 바꾸고, learner의 기본 seed 풀이 기록 중 다른 사용자 퀴즈 기록이 "이용할 수 없는 퀴즈"로 보이는지 확인한다.
-2. 시간대: PRD AC-04d는 사용자가 지금 있는 곳의 시간대를 따른다(예: 한국 → 뉴욕 이동 시 뉴욕). 현재 Mock 어댑터는 상태에 시간대가 없을 때만 감지해 저장하고 이후 고정한다. 접속 시 재감지해 갱신하고, 이미 기록된 학습일은 기록 당시 시간대를 유지하는지 검증한다.
+1. 다른 사용자의 퀴즈: 작성자 본인의 퀴즈만 풀 수 있다. 다른 사용자의 퀴즈는 상태와 무관하게 `startAttempt`·`answer` 모두 409 QUIZ_UNAVAILABLE이다.
+2. 시간대: 쓰기 요청마다 브라우저 시간대를 재감지해 달라졌으면 갱신한다. 기록된 학습일은 기록 당시 시간대를 유지한다.
 
 원인: 삭제 작업 지시에 "브라우저 시간대 자동 감지는 유지"만 적고 위 두 결정을 포함하지 않았다.
 
@@ -64,3 +64,11 @@
 - 1차 커밋(`28b7603`): `git diff --cached --check` 통과, 상대 링크 깨짐 0건.
 - dev 머지 후: `git diff --cached --check` 통과. `AGENTS.md`·`README.md`·`docs/*.md`·`docs/archive/*.md`·이 TASK·`.agents/skills/**/*.md`의 상대 링크와 앵커 검사(스크립트) 문제 0건. 삭제된 연산·경로 이름(`publishCandidate`, `guestQuiz`, `learningQuiz`, `subscriptions`, `/shop`, `/discover/*` 검색·태그·개발자, `coin-history`, `wallet`) 잔존 0건.
 - 미확인: 코드 주석·테스트 이름에 남은 이전 용어, `docs/tasks`·`docs/ux-reviews` 과거 기록의 이전 경로 언급(과거 기록이므로 수정하지 않음).
+
+## 후속 결정: 퀴즈 상태 (2026-11-08, 브랜치 `docs/quiz-status`)
+
+- 사용자 결정: 퀴즈 상태는 PENDING(생성·미확인, 목록·복습 제외)과 CONFIRMED(확인, 목록·복습 대상) 두 가지다. PRIVATE/PUBLIC은 없앤다. 결과를 보지 않고 나가도 PENDING으로 남아 이어서 확인할 수 있다.
+- PENDING이 남아 있을 때 "퀴즈로 만들기"를 다시 누르면 새로 만들고 기존 PENDING도 남긴다.
+- 반영: PRD AC-01e·01f·02a·02e·02g, 신규 AC-02h~j, §7 / PAGE_STRUCTURE 내 노트·메모 상세 / ARCHITECTURE Quiz·GenerationBatch 행 / TASKS §2-4.
+- 기존 저장 데이터 이전 방식은 note-to-quiz 작업 시작 전에 확정한다(TASKS §2-4의 제안).
+- 검증: 문서 전용. `git diff --cached --check`, 상대 링크·앵커 검사.

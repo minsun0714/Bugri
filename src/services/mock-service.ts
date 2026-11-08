@@ -198,9 +198,7 @@ export function execute<K extends Operation>(
     !!q &&
     !q.deletedAt &&
     !!q.active &&
-    (q.status === QuizStatus.PUBLIC ||
-      (q.status === QuizStatus.PRIVATE &&
-        q.ownerUserId === s.userId));
+    q.ownerUserId === s.userId;
 
   const attemptView = ({
     attemptId,

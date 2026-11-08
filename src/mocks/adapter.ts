@@ -144,7 +144,9 @@ export function createMockTransport(
         if (options.demoHistory && !readOnlyHistory)
           applyHistoryDemo(state);
 
-        if (!readOnlyHistory && !state.timeZone) {
+        // Every write-allowed request re-detects the device zone; a valid, different zone replaces the saved one.
+        // Stored attempts and learning days keep their own zone. Failed detection keeps the saved value.
+        if (!readOnlyHistory) {
           let detected: string | undefined;
 
           try {
@@ -156,9 +158,12 @@ export function createMockTransport(
             /* explicit setting remains available */
           }
 
-          state.timeZone = timeZoneValid(detected)
-            ? detected
-            : (fallbackTimeZone ?? null);
+          if (timeZoneValid(detected)) {
+            if (state.timeZone !== detected)
+              state.timeZone = detected;
+          } else if (!state.timeZone) {
+            state.timeZone = fallbackTimeZone ?? null;
+          }
         }
 
         const context: ServiceContext = {

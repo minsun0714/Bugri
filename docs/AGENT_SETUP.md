@@ -29,7 +29,7 @@ claude
 
 ## 검증과 Hook
 
-[공통 검증 지침](../.agents/skills/implement-feature/references/verification.md)은 두 에이전트 모두 적용한다. [기존 Hook](HOOKS.md)은 Codex 전용 설정이며 이번 구성은 Claude Stop Hook을 등록하지 않는다. Claude는 변경 위험도에 맞는 검증 명령을 직접 실행한다. 문서 작업은 문서·링크·diff 확인만 하고 앱 pipeline을 실행하지 않는다.
+[공통 검증 지침](../.agents/skills/implement-feature/references/verification.md)은 두 에이전트 모두 적용한다. [검증 Stop Hook](HOOKS.md)은 `.codex/hooks.json`(Codex)과 `.claude/settings.json`(Claude Code)에 같은 스크립트로 등록되어 있다. 등록만으로는 아무것도 차단하지 않으며, 최종 검증 시점에 arm한 워크트리에서만 동작한다. 같은 워크트리에서 두 에이전트가 동시에 arm하지 않는다. arm하지 않은 작업은 변경 위험도에 맞는 검증 명령을 직접 실행한다. Claude 세션에서는 `/hooks`로 등록과 신뢰 상태를 확인한다. 문서 작업은 문서·링크·diff 확인만 하고 앱 pipeline을 실행하지 않는다.
 
 ## 설정 확인 범위
 

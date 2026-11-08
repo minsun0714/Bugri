@@ -178,7 +178,7 @@ test("another tab observes quiz deletion and edits of the deleted quiz without o
     async () =>
       (
         await window
-          .mockApi("learner")
+          .mockApi("author")
           .request("startAttempt", {
             quizId: "seed-quiz-1",
             context: "DIRECT",
@@ -201,7 +201,7 @@ test("another tab observes quiz deletion and edits of the deleted quiz without o
       const errors: string[] = [];
 
       try {
-        await window.mockApi("learner").request("answer", {
+        await window.mockApi("author").request("answer", {
           attemptId,
           answer: {
             type: "SINGLE_CHOICE",

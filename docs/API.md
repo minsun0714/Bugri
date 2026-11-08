@@ -126,16 +126,16 @@ API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한�
 
 ## 풀이
 
-`startAttempt({ quizId, context: 'DIRECT' })`는 삭제되지 않은 승인 퀴즈 중 작성자 본인의 PRIVATE 퀴즈 또는 PUBLIC 퀴즈에 새 Attempt를 만든다. PUBLIC 접근은 기존 seed·저장 데이터 호환 때문에 남아 있으며 새 UI에서 다른 사용자의 퀴즈로 가는 경로는 없다(PRD상 모든 퀴즈는 작성자 전용, 후속 TASK에서 정리). 각 시작은 새 Attempt다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다.
+`startAttempt({ quizId, context: 'DIRECT' })`는 삭제되지 않은 활성 퀴즈 중 작성자 본인의 퀴즈에만 새 Attempt를 만든다. 상태 값(PRIVATE·PUBLIC)은 접근에 영향을 주지 않으며, 다른 사용자의 퀴즈는 직접 URL로 요청해도 409 QUIZ_UNAVAILABLE이다(PRD §7 모든 퀴즈는 작성자 전용). 각 시작은 새 Attempt다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다.
 
-제출 답은 형식별 Answer이며 시작 당시 revision으로 채점한다. 동일 답 재전송은 최초 결과를 반환하며 답 변경은 409 ALREADY_ANSWERED다. 미제출 Attempt 응답은 원본·정답·해설을 포함하지 않는다. 삭제된 퀴즈는 작성자도 제출할 수 없다(409 QUIZ_UNAVAILABLE). 완료 기록·정오는 유지하고 이용 불가 문제의 본문·해설은 숨긴다.
+제출 답은 형식별 Answer이며 시작 당시 revision으로 채점한다. 동일 답 재전송은 최초 결과를 반환하며 답 변경은 409 ALREADY_ANSWERED다. 미제출 Attempt 응답은 원본·정답·해설을 포함하지 않는다. 삭제된 퀴즈는 작성자도, 다른 사용자의 퀴즈는 누구도 제출할 수 없다(409 QUIZ_UNAVAILABLE). 완료 기록·정오는 유지하고 이용 불가 문제의 본문·해설은 숨기며 풀이 내역은 `title: null`로 표시하고 재도전을 숨긴다.
 
 Attempt 키는 `['solving', userId, 'attempt', attemptId]`다. 제출 성공 시 Attempt 캐시를 응답으로 교체하고 `learningDay`, `history`를 무효화한다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
 
 ## 시간대와 학습일
 
-- 현재 구현: 사용자 상태에 시간대가 없을 때 브라우저 IANA 시간대를 감지해 저장하고, 이후에는 저장값을 사용한다. 직접 변경 API·화면은 없다. 감지 실패 시 조립 설정의 `fallbackTimeZone`이 있으면 사용하고, 없으면 null을 저장하며 제출·학습일 조회는 409 TIMEZONE_REQUIRED로 거부한다. 국가 코드 추론·Vercel IP 호출은 하지 않는다.
-- PRD AC-04d는 "사용자가 지금 있는 곳의 시간대"를 따르도록 정했다. 저장한 첫 시간대를 고정하는 현재 동작과 다르며, 후속 TASK에서 맞춘다.
+- 쓰기가 허용되는 요청마다 브라우저 IANA 시간대를 다시 감지한다(PRD AC-04d). 유효하고 저장값과 다르면 저장값을 갱신하며, 같으면 저장 쓰기를 하지 않는다. 예: 서울에서 쓰다가 뉴욕으로 이동하면 이후 학습일·"오늘"은 뉴욕 기준이다. 직접 변경 API·화면은 없다.
+- 감지에 실패하거나 값이 유효하지 않으면 기존 저장값을 유지한다. 저장값도 없으면 조립 설정의 `fallbackTimeZone`이 있을 때 사용하고, 없으면 null을 저장하며 제출·학습일 조회는 409 TIMEZONE_REQUIRED로 거부한다. 국가 코드 추론·Vercel IP 호출은 하지 않는다.
 - `learningTimezone({})`는 저장된 시간대를 반환한다.
 - 정오·재도전 여부와 무관하게 첫 완료가 해당 사용자 현지 날짜를 인정한다. 완료 당시 UTC 시각·시간대·날짜를 저장하고 시간대가 바뀌어도 과거를 재계산하지 않는다. 현재 스트릭은 오늘 또는 어제부터 이어진 완료 날짜의 수이며 그보다 오래 쉬면 0이다.
 - `learningDay`의 `dailyCounts`는 `{ learningDate, count }[]`를 날짜 오름차순으로 반환한다. 본인의 완료 Attempt에서 저장된 학습일·quizId를 중복 제거한 개수다. 같은 날 재풀이는 추가하지 않고 다른 날은 별도 집계한다. 미제출은 제외한다.
@@ -147,7 +147,7 @@ Attempt 키는 `['solving', userId, 'attempt', attemptId]`다. 제출 성공 시
 - 검색은 저장된 revision의 `title`과 문제 본문(`question.prompt`, 선택지 `text`)에서 대소문자 무시 부분 일치(공백 구분 단어가 모두 포함되면 일치, 순서 무관)를 찾는다. 정답·제출 답안·해설·`sourceContent`는 검색 대상이 아니다. 현재 접근 불가·삭제된 퀴즈의 기록은 검색어가 있으면 제외한다. `matchedIn`이 BODY일 때만 `excerpt`(일치 단어 주변 최대 80자)를 반환한다.
 - 제목은 저장된 revision에서만 읽는다. 접근 불가·삭제된 문제 또는 제목 없는 과거 기록은 title=null. 목록에는 답안·정답·해설·원문을 포함하지 않는다.
 - 상세는 기존 `attempt`와 `QuizPanel`을 재사용한다. 본인 저장소에 없는 Attempt는 404. `/my/learning/[attemptId]`는 완료 기록만 보여 주며 목록의 filter/page/user를 복귀 링크에 유지한다. 결과의 누락 필드는 ‘기록 없음’으로 표시하며 현재 버전으로 보충하지 않는다.
-- `attemptHistory`와 `attempt` 조회는 시간대 초기화·데모 마이그레이션을 수행하지 않으며 저장소·스트릭을 변경하지 않는다.
+- `attemptHistory`와 `attempt` 조회는 시간대 감지·갱신·데모 마이그레이션을 수행하지 않으며 저장소·스트릭을 변경하지 않는다.
 - 재도전은 `startAttempt(context: DIRECT)` 후 `/solve?user=…&attempt=…`로 이동한다. 기존 기록은 보존한다. PRD에 따라 재도전 결과는 복습 일정에 영향을 주지 않는다(복습 주기 구현 시 적용). Query 키는 `['history', userId, filter, query, page]`다.
 
 ## 저장소
