@@ -26,6 +26,8 @@ import { ErrorNotice } from "@/components/solving/error-notice";
 import { QuizPanel } from "@/components/solving/quiz-panel";
 import { useSolvingQueries } from "@/components/solving/queries";
 import { useAttemptHistory } from "@/components/learning-history/queries";
+import { Bugri } from "@/components/ui/bugri";
+import { historyStyles } from "@/components/learning-history/styles";
 import { viewAllAction } from "@/components/ui/styles";
 
 const koreanLabels = {
@@ -124,8 +126,9 @@ function HistoryList({
   const { data, error, isPending, isFetching, refetch } =
     useAttemptHistory(userId, filter, page);
   return (
-    <div className="min-w-0 rounded-3xl border border-line bg-surface p-5 sm:p-8">
+    <div className="min-w-0">
       <Tabs
+        className={historyStyles.filters}
         label={t("풀이 내역 필터")}
         items={Object.values(labels)}
         value={labels[filter]}
@@ -137,7 +140,7 @@ function HistoryList({
             1,
           )
         }
-        panelClassName="text-foreground!"
+        panelClassName="pt-5! text-foreground!"
       >
         {isPending && <Skeleton />}
         {error && (
@@ -159,7 +162,7 @@ function HistoryList({
             {data.items.length ? (
               <ul
                 aria-label={t("풀이 내역")}
-                className="divide-y divide-line/60"
+                className="divide-y divide-line/70"
               >
                 {data.items.map(
                   ({
@@ -171,9 +174,9 @@ function HistoryList({
                     <li key={attemptId}>
                       <Link
                         href={`/my/learning/${encodeURIComponent(attemptId)}?${detailQuery}`}
-                        className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 rounded-lg py-4 hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        className={historyStyles.row}
                       >
-                        <span className="min-w-0 text-sm font-semibold [overflow-wrap:anywhere]">
+                        <span className="col-span-2 min-w-0 text-sm font-semibold [overflow-wrap:anywhere] sm:col-span-1">
                           {title ??
                             t("이용할 수 없는 퀴즈")}
                         </span>
@@ -196,7 +199,7 @@ function HistoryList({
                         </Badge>
                         <time
                           dateTime={completedAt}
-                          className="col-span-2 text-xs text-muted"
+                          className="text-right text-xs tabular-nums text-muted"
                         >
                           {new Intl.DateTimeFormat(locale, {
                             dateStyle: "medium",
@@ -376,10 +379,22 @@ export function HistoryScreen({
   const { signIn } = useDemoSession();
   const [client] = useState(createQueryClient);
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {t(attemptId ? "풀이 결과" : "풀이 내역")}
-      </h1>
+    <div className="w-full min-w-0 space-y-6">
+      <div className="flex items-center gap-3">
+        {!attemptId && (
+          <div
+            aria-hidden="true"
+            className="relative size-10 shrink-0"
+          >
+            <div className="absolute left-0 top-0 origin-top-left scale-[0.416667]">
+              <Bugri small mood="neutral" />
+            </div>
+          </div>
+        )}
+        <h1 className="text-2xl leading-8 tracking-tight">
+          {t(attemptId ? "풀이 결과" : "풀이 내역")}
+        </h1>
+      </div>
       {userId ? (
         <QueryClientProvider client={client}>
           <HistorySession

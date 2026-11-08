@@ -91,6 +91,27 @@ for (const locale of ["ko", "en"]) {
         exact: true,
       });
       await expect(list.getByRole("link")).toHaveCount(1);
+      const historyBounds = await list.boundingBox();
+      const headerBounds = await page
+        .locator("header > div")
+        .first()
+        .evaluate((element) => {
+          const bounds = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return {
+            left:
+              bounds.left + parseFloat(style.paddingLeft),
+            right:
+              bounds.right - parseFloat(style.paddingRight),
+          };
+        });
+      expect(historyBounds!.x).toBeCloseTo(
+        headerBounds.left,
+        0,
+      );
+      expect(
+        historyBounds!.x + historyBounds!.width,
+      ).toBeCloseTo(headerBounds.right, 0);
       const before = await snapshot(page);
       await page.screenshot({
         path: testInfo.outputPath("history.png"),

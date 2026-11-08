@@ -1,0 +1,5 @@
+export const historyStyles = {
+  filters:
+    "[&_[role=tablist]]:w-fit [&_[role=tablist]]:max-w-full [&_[role=tablist]]:gap-1 [&_[role=tablist]]:overflow-visible [&_[role=tablist]]:rounded-full [&_[role=tablist]]:border-0 [&_[role=tablist]]:bg-primary/5 [&_[role=tablist]]:p-1 [&_[role=tab]]:min-h-11 [&_[role=tab]]:rounded-full [&_[role=tab]]:border-0 [&_[role=tab]]:px-5 [&_[role=tab]]:py-2 [&_[role=tab]]:text-sm [&_[role=tab][aria-selected=true]]:bg-lime [&_[role=tab][aria-selected=true]]:text-bugri-ink [&_[role=tab]:focus-visible]:outline-2 [&_[role=tab]:focus-visible]:outline-offset-2 [&_[role=tab]:focus-visible]:outline-primary",
+  row: "grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-xl px-3 py-4 transition-colors hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-x-5 sm:px-4 [&_.ui-badge]:rounded-full [&_.ui-badge]:px-3 [&_.ui-badge]:text-xs",
+};
