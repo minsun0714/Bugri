@@ -1,16 +1,16 @@
 # Codex 검증 Hook
 
-`.codex/hooks.json`의 Stop Hook은 기능 작업을 명시적으로 활성화한 워크트리에서만 `npm run verify`를 실행한다. 문서 작업과 일반 대화에는 활성화하지 않는다. Python 3 표준 라이브러리만 사용하며 패키지 설치는 필요 없다.
+`.codex/hooks.json`의 Stop Hook은 기능 작업을 명시적으로 활성화한 워크트리에서만 `npm run verify:fast`(lint·typecheck·Jest·도구 테스트)를 실행한다. production build와 E2E는 Hook이 실행하지 않으며 PR 최종 단계에서 `npm run verify`로 수동 실행한다. `.claude/settings.json`의 Claude Code Hook도 같은 스크립트를 사용한다. 문서 작업과 일반 대화에는 활성화하지 않는다. Python 3 표준 라이브러리만 사용하며 패키지 설치는 필요 없다.
 
 ## 검증 범위 선택
 
-E2E 선택은 [검증 기준](../.agents/skills/implement-feature/references/verification.md)을 따른다. 현재 Stop Hook은 고정된 `npm run verify`를 실행하며 spec 선택·worker 인자를 전달하지 않는다. 따라서 일부 spec만 실행하는 작업은 Hook을 arm하지 않고 검증 지침의 수동 명령을 사용한다. 이미 실행 중인 Hook을 중단하거나 실패를 성공으로 바꾸지는 않는다. 스크립트 동작을 변경한 것은 아니다.
+E2E 선택은 [검증 기준](../.agents/skills/implement-feature/references/verification.md)을 따른다. Stop Hook은 E2E를 실행하지 않으므로 spec 선택이 필요 없다. E2E 회귀와 production build 오류는 Hook이 잡지 못한다. 관련 spec은 `npm run test:e2e -- <spec>`으로, 최종 단계에서는 `npm run verify`로 직접 확인하고 Hook 통과를 전체 검증 통과로 표현하지 않는다. 이미 실행 중인 Hook을 중단하거나 실패를 성공으로 바꾸지는 않는다.
 
 ## 사용
 
 1. 해당 워크트리에서 Codex를 시작하고 `/hooks`에서 Hook 정의를 검토·신뢰한다. 프로젝트도 신뢰된 상태여야 한다. Orca가 사용하는 Codex 실행 환경에서도 이 설정이 로드되는지 확인한다. 파일 생성만으로 현재 세션의 자동 실행이 보장되지는 않는다.
-2. [검증 기준](../.agents/skills/implement-feature/references/verification.md)에 따라 전체 검증이 필요한 최종 시점에만 `python3 -B scripts/hooks/verify_stop.py arm P01`처럼 작업 ID로 활성화한다. 워크트리당 구현 에이전트 하나만 사용한다.
-3. 테스트 우선 개발 후 완료를 시도하면 Hook이 전체 검증을 실행한다. 실패 로그를 에이전트에 전달해 수정을 요청하며, 최초 검증 후 최대 3회 재검증한다. TDD의 최초 의도한 실패는 이 횟수에 포함하지 않는다.
+2. [검증 기준](../.agents/skills/implement-feature/references/verification.md)에 따라 빠른 검증이 필요한 마무리 시점에만 `python3 -B scripts/hooks/verify_stop.py arm P01`처럼 작업 ID로 활성화한다. 워크트리당 구현 에이전트 하나만 사용한다.
+3. 테스트 우선 개발 후 완료를 시도하면 Hook이 빠른 검증(`verify:fast`)을 실행한다. 실패 로그를 에이전트에 전달해 수정을 요청하며, 최초 검증 후 최대 3회 재검증한다. TDD의 최초 의도한 실패는 이 횟수에 포함하지 않는다.
 4. 성공하면 비활성화한다. 최종 실패 시에는 수정 대신 차단 보고를 한 번 요청하고 비활성화하여 무한 반복을 막는다. 재시도 한도를 피하려고 같은 작업을 다시 활성화하지 않는다.
 5. 환경 문제·사용자의 중단 요청은 `python3 -B scripts/hooks/verify_stop.py blocked "사유"`로 기록한다. 이는 검증 성공이 아니며 DONE이나 병합 가능 상태로 보고하지 않는다.
 
@@ -24,7 +24,7 @@ E2E 선택은 [검증 기준](../.agents/skills/implement-feature/references/ver
 - 검증 시간 제한은 600초이며 초과 시 프로세스 그룹을 종료하고 실패로 기록한다. 로그에 민감한 값이 포함될 수 있으므로 커밋하지 않는다.
 - 기본 E2E 시작 포트는 3107이다. `npm run test:e2e`와 `npm run verify`(Stop Hook 포함)는 `scripts/run-playwright.mjs`에서 포트를 검사하고 점유 시 +1씩 증가시켜 빈 포트를 선택한다. `PLAYWRIGHT_PORT=3108 npm run verify`는 탐색 시작값을 지정하며 Stop Hook 실행 환경에도 이 변수를 전달해야 한다. 빌드 중 선택 포트가 점유되면 테스트 시작 전의 명확한 포트 충돌만 다음 포트로 재시도한다. 실제 테스트 실패·빌드 실패는 그대로 실패 처리한다. 다른 워크트리의 서버를 종료하거나 재사용하지 않는다. 직접 `npx playwright test` 실행은 이 래퍼를 거치지 않으므로 자동 선택이 필요할 때는 `npm run test:e2e -- <테스트 경로>`를 사용한다. 여러 워크트리를 동시에 검증할 때는 서로 다른 시작 포트를 지정할 수 있다.
 - 기존 `E2E_PORT`도 대체 변수로 지원하며 `PLAYWRIGHT_PORT`가 우선한다. E2E 서버는 `BUGRI_UI_PREVIEW=1`로 빌드해 공통 컴포넌트 전시를 검증한다. 전시는 `/ui-preview`에서 확인하고, 홈 `/`에서는 현재 홈 화면(연속 학습일 요약)을 검증한다. 일반 빌드에서는 `/ui-preview`를 공개하지 않는다.
-- 애플리케이션 테스트가 없는 상태의 `npm run verify` 실패를 건너뛰지 않는다. Hook 테스트는 애플리케이션 검증을 대체하지 않는다.
+- 애플리케이션 테스트가 없는 상태의 `npm run verify:fast` 실패를 건너뛰지 않는다. Hook 테스트는 애플리케이션 검증을 대체하지 않는다.
 
 Hook 테스트: `python3 -B -m unittest discover -s scripts/hooks -p 'test_*.py'`.
 
