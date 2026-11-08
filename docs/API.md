@@ -256,6 +256,13 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - 계약에 맞는 오류 envelope는 기존 status/code/requestId를 보존한다. 프록시 HTML 등 비계약 오류 응답도 실제 HTTP status를 보존하며 404는 NOT_FOUND, 403은 FORBIDDEN, 5xx는 SERVER_ERROR, 그 외는 HTTP_ERROR로 변환한다. 정상 HTTP 응답의 잘못된 envelope는 INVALID_RESPONSE(합성502)다. 원본 HTML·파싱 예외는 사용자 메시지에 포함하지 않는다.
 - 전송 계층은 요청을 자동 재전송하지 않는다. 특히 응답이 유실된 변경 요청은 처리 여부가 불명확할 수 있으므로 기존 답안·구매의 재조회/중복 방지 계약을 유지한다.
 
+### 개별 문제 평가 — AC-05j
+
+- `quizReaction({ quizId })`: GET `/quizzes/{id}/reaction`, `{ reaction: "LIKE" | "DISLIKE" | null, likeCount: number, dislikeCount: number }`. 현재 퀴즈 접근 가능 여부를 확인하며 완료 풀이를 요구하지 않는다.
+- `updateQuizReaction({ quizId, reaction })`: PUT 같은 경로. 동일 DTO를 반환하며 null은 취소다. 토글이 아니라 목표 값을 저장하므로 같은 요청 재전송은 멱등이다. 이용 불가는 QUIZ_UNAVAILABLE, 잘못된 값은 VALIDATION_ERROR다.
+- 선택 필드 `UserState.quizReactions`는 사용자별 quizId/반응 배열이다. 기존 v1에서 필드가 없으면 빈 선택이며 손상/중복 값은 저장소 오류로 보존한다. 브라우저 저장 실패는 기존 반응을 유지한다. 방문자의 평가 조회는 공개 퀴즈에 한해 합계와 reaction:null을 반환하며 읽기만 수행한다. 방문자는 반응을 저장할 수 없다.
+- Query 키는 `["quizReaction", userId, quizId]`, 성공 시 해당 캐시를 응답으로 교체한다. 목록과 풀이 컨트롤이 동일한 사용자·문제 키를 공유하므로 해당 캐시 갱신으로 동기화한다. 화면 재진입 시 stale query를 재조회한다. 방문자는 userId:null 캐시로 공개 집계를 조회하며 평가 클릭 시 데모 선택만 연다. Mock 합계는 같은 브라우저에 있는 전체 더미 사용자별 반응을 합산하며 서버 전체 사용자 통계가 아니다. 자동 mutation 재시도는 없으며 사용자·문제 전환으로 UI를 초기화한다.
+
 
 ### 공개 프로필 섹션 순서
 

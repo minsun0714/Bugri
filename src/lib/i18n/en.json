@@ -680,5 +680,17 @@
   "테마": "Theme",
   "시스템 설정 따르기": "Follow system settings",
   "라이트 모드로 전환": "Switch to light mode",
-  "다크 모드로 전환": "Switch to dark mode"
+  "다크 모드로 전환": "Switch to dark mode",
+  "문제 평가": "Quiz rating",
+  "좋아요": "Like",
+  "싫어요": "Dislike",
+  "명": " people",
+  "평가 저장 중": "Saving rating",
+  "평가 불러오는 중": "Loading rating",
+  "좋아요 선택됨": "Like selected",
+  "싫어요 선택됨": "Dislike selected",
+  "선택한 평가 없음": "No rating selected",
+  "평가를 불러오지 못했어요.": "Could not load ratings.",
+  "평가를 저장하지 못했어요. 버튼을 눌러 다시 시도해 주세요.": "Could not save your rating. Press the button to try again.",
+  "{0} 퀴즈 열기": "Open quiz: {0}"
 }

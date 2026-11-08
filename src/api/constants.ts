@@ -108,6 +108,14 @@ export const ProfileLinkKind = {
 export type ProfileLinkKind =
   (typeof ProfileLinkKind)[keyof typeof ProfileLinkKind];
 
+export const QuizReaction = {
+  LIKE: "LIKE",
+  DISLIKE: "DISLIKE",
+} as const;
+
+export type QuizReaction =
+  (typeof QuizReaction)[keyof typeof QuizReaction];
+
 export const ProfileSection = {
   DESK: "DESK",
   QUIZZES: "QUIZZES",

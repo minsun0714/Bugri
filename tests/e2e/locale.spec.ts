@@ -21,6 +21,18 @@ test("browser language, explicit choice, persistence, and untouched quiz content
   await expect(
     page.getByRole("button", { name: "Submit answer" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("group", { name: "Quiz rating" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Like", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Dislike",
+      exact: true,
+    }),
+  ).toBeVisible();
   const question = await page.locator("main").innerText();
   expect(question).toMatch(/[가-힣]/);
   await page

@@ -1,6 +1,7 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
+import { QuizReactionControl } from "@/components/solving/quiz-reaction";
 import { Creation } from "@/features/quiz-authoring/creation";
 import { useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -327,6 +328,16 @@ function Workspace({
       )}
       {!quizId && (
         <QuizList
+          quizHref={(quizId) =>
+            `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`
+          }
+          renderReaction={(quizId) => (
+            <QuizReactionControl
+              key={`${userId}:${quizId}`}
+              userId={params.get("user")}
+              quizId={quizId}
+            />
+          )}
           quizzes={list.data ?? []}
           view={listView}
           createHref={createHref}
