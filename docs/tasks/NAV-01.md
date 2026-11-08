@@ -13,3 +13,15 @@
 - 동작 없는 여백 수정으로 변경 파일 lint/포맷, 기존 내비게이션 단위 테스트, PC·모바일 표시를 확인한다. 상점 구매·3D 동작에는 영향이 없어 해당 E2E는 제외한다.
 - Node v22.23.3: 변경 컴포넌트 ESLint·Prettier 통과, `npm test -- --runInBand tests/unit/navigation.test.tsx` 10개 통과. Playwright Chromium으로 개발 서버의 `/discover/developers`를 1280px·390px에서 캡처·확인했고 구분자와 글자의 상단 위치 및 4px 패딩이 일치했다. 긴 문구를 임시 주입한 모바일 두 줄 상태에서도 첫 줄 정렬을 확인했다.
 - 독립 코드 리뷰 지적 없음(줄바꿈·접근성 확인, 리뷰어의 직접 화면 검증은 아님). 단순 여백 변경으로 별도 UX/UI 설계 루프와 전체 빌드/E2E는 실행하지 않았다. 최종 코드 확인 후 문서만 갱신했다.
+
+### 브레드크럼 정렬 PR 최종 검증
+
+- 검증 커밋: `cf0e7aa`, Node v22.23.3. 이후 변경은 이 검증 기록뿐이다.
+- `npm run lint`, `npm run typecheck`, `npm test -- --runInBand`(69 suites / 361 tests), `npm run test:tools`(3 tests), `npm run build` 모두 통과.
+- 아래 명령으로 E2E 26개 spec / 140 tests 통과. 상점·데스크·3D 전용 spec은 구분자 내부 세로 여백이 구매·캔버스 크기·조작에 영향을 주지 않아 제외했다. 프로필·테마 등 혼합 spec은 유지하고 worker 1개로 실행했다.
+
+```sh
+npm run test:e2e -- tests/e2e/bugcoin-rewards.spec.ts tests/e2e/coin-history.spec.ts tests/e2e/design-system.spec.ts tests/e2e/developer-discovery-repair.spec.ts tests/e2e/developer.spec.ts tests/e2e/discovery-split.spec.ts tests/e2e/error-handling.spec.ts tests/e2e/home-quiz-review.spec.ts tests/e2e/locale.spec.ts tests/e2e/markdown-editor.spec.ts tests/e2e/mock-api.spec.ts tests/e2e/navigation.spec.ts tests/e2e/profile-about.spec.ts tests/e2e/profile-layout.spec.ts tests/e2e/profile-order.spec.ts tests/e2e/profile-polish.spec.ts tests/e2e/profile-split.spec.ts tests/e2e/profile-streak.spec.ts tests/e2e/quiz-authoring.spec.ts tests/e2e/quiz-card-actions.spec.ts tests/e2e/quiz-reactions.spec.ts tests/e2e/solving.spec.ts tests/e2e/streak.spec.ts tests/e2e/tag-catalog.spec.ts tests/e2e/tag-discovery.spec.ts tests/e2e/theme.spec.ts --workers=1
+```
+
+- 실패한 필수 검사 없음. 기존 독립 코드 리뷰 및 PC·모바일 시각 확인 결과를 재사용한다. 전체 `npm run verify` 실행 결과로 주장하지 않는다.
