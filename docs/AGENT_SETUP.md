@@ -31,6 +31,10 @@ claude
 
 [공통 검증 지침](../.agents/skills/implement-feature/references/verification.md)은 두 에이전트 모두 적용한다. [검증 Stop Hook](HOOKS.md)은 `.codex/hooks.json`(Codex)과 `.claude/settings.json`(Claude Code)에 같은 스크립트로 등록되어 있다. 등록만으로는 아무것도 차단하지 않으며, 최종 검증 시점에 arm한 워크트리에서만 동작한다. 같은 워크트리에서 두 에이전트가 동시에 arm하지 않는다. arm하지 않은 작업은 변경 위험도에 맞는 검증 명령을 직접 실행한다. Claude 세션에서는 `/hooks`로 등록과 신뢰 상태를 확인한다. 문서 작업은 문서·링크·diff 확인만 하고 앱 pipeline을 실행하지 않는다.
 
+## Playwright MCP
+
+화면 확인·디버깅용 브라우저 도구다. Claude Code는 루트 `.mcp.json`, Codex는 `.codex/config.toml`에 같은 서버(`@playwright/mcp@0.0.84`)가 등록되어 있다. 처음 사용할 때 Claude는 `/mcp`에서 프로젝트 서버를 승인하고, Codex는 프로젝트를 신뢰해야 한다. 사용 시점과 한계는 [검증 지침](../.agents/skills/implement-feature/references/verification.md)의 'Playwright MCP 사용'을 따른다. MCP 확인은 E2E 통과 근거가 아니다. 산출물 `.playwright-mcp/`는 커밋하지 않는다.
+
 ## 설정 확인 범위
 
 Claude Code 설치 여부와 버전, import 대상, 스킬 링크와 frontmatter, 문서 참조는 로컬에서 확인할 수 있다. 실제 세션의 지침 로딩·계정 인증·모델 응답·브라우저/MCP 연결 여부는 별도 확인 대상이다. 저장소 설정만으로 도구와 계정 권한이 복제되지는 않는다.
