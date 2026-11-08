@@ -64,3 +64,11 @@
 - 1차 커밋(`28b7603`): `git diff --cached --check` 통과, 상대 링크 깨짐 0건.
 - dev 머지 후: `git diff --cached --check` 통과. `AGENTS.md`·`README.md`·`docs/*.md`·`docs/archive/*.md`·이 TASK·`.agents/skills/**/*.md`의 상대 링크와 앵커 검사(스크립트) 문제 0건. 삭제된 연산·경로 이름(`publishCandidate`, `guestQuiz`, `learningQuiz`, `subscriptions`, `/shop`, `/discover/*` 검색·태그·개발자, `coin-history`, `wallet`) 잔존 0건.
 - 미확인: 코드 주석·테스트 이름에 남은 이전 용어, `docs/tasks`·`docs/ux-reviews` 과거 기록의 이전 경로 언급(과거 기록이므로 수정하지 않음).
+
+## 후속 결정: 퀴즈 상태 (2026-11-08, 브랜치 `docs/quiz-status`)
+
+- 사용자 결정: 퀴즈 상태는 PENDING(생성·미확인, 목록·복습 제외)과 CONFIRMED(확인, 목록·복습 대상) 두 가지다. PRIVATE/PUBLIC은 없앤다. 결과를 보지 않고 나가도 PENDING으로 남아 이어서 확인할 수 있다.
+- PENDING이 남아 있을 때 "퀴즈로 만들기"를 다시 누르면 새로 만들고 기존 PENDING도 남긴다.
+- 반영: PRD AC-01e·01f·02a·02e·02g, 신규 AC-02h~j, §7 / PAGE_STRUCTURE 내 노트·메모 상세 / ARCHITECTURE Quiz·GenerationBatch 행 / TASKS §2-4.
+- 기존 저장 데이터 이전 방식은 note-to-quiz 작업 시작 전에 확정한다(TASKS §2-4의 제안).
+- 검증: 문서 전용. `git diff --cached --check`, 상대 링크·앵커 검사.
