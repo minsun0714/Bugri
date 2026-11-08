@@ -1767,3 +1767,16 @@
 - Node v22.23.3에서 `PLAYWRIGHT_PORT=3447 npm run test:e2e -- tests/e2e/profile-split.spec.ts tests/e2e/developer-discovery-repair.spec.ts --grep 'private management|subscription modal' --workers=1 --trace=on` 실행: 두 테스트 통과(각6.6초/7.3초). 변경 테스트 ESLint·Prettier 통과. 새 전체 verify 통과를 의미하지 않는다.
 - 구독 모달 애플리케이션 코드는 변경하지 않았다. 이전 실패 스냅샷은 author 검색 완료·관리 버튼에 초점·해제 메뉴 닫힘 상태였다. 단독 실행에서는 검색→필터→해제→초점 복귀→재진입→이동 모두 통과했다. 이전 병렬 실행의 시간 초과 원인은 미확정이며 서버 요청이30초 걸렸다고 해석하지 않는다. mobile390 scene-centering 실패는 이번 재검증 범위 밖으로 남는다.
 - 이전 검증 한도 중단 뒤 사용자의 명시적인 테스트 수정·실패 확인 요청에 따라 이 두 검사를 재실행했다. 로그 `.bugri-hooks/i18n/followup-e2e.log`, trace는 `test-results/`에 보존한다. 사용자 요청으로 다국어 기능은 `3777037`에 커밋했으며, 접근성 이름 테스트와 이 후속 기록은 별도 커밋한다. 미통과 상태로 남은 것은 mobile390 scene-centering 검사이며 전체 verify 성공으로 표시하지 않는다.
+
+
+### I18N-01 후속 — 모바일 3D 시간 초과 조사
+
+- 사용자 요청으로 `4143352`의 코드에서 Node v22.23.3·production 서버(port 3447)로 조사했다. `scene-centering.spec.ts`는 데스크·상점 미리보기·공개 데스크 세 화면에서 총15회 드래그와 캔버스 픽셀 검사를 수행한다. 원래 실패는 mouse.move 도중 전체 테스트 제한30초를 소진한 것이며, 중심 위치 assertion 실패는 아니다. 렌더링 엔진과 해당 테스트는 다국어 구현 전후 동일하다.
+- `npm run test:e2e -- tests/e2e/scene-centering.spec.ts --grep '390px' --repeat-each=3 --workers=1 --trace=on --reporter=line,json`은3회 통과(7.0~11.8초). scene-centering·room-zoom·room-theme-bugri·shop-additive-preview를 workers=4로 함께 실행한10개도 통과했다. 같은 모바일 테스트를 repeat-each=4·workers=4로 실행한4회는23.3~23.8초로 모두 통과했다. 각 명령에는 `PLAYWRIGHT_PORT=3447`과 별도 JSON 출력 경로를 지정했다.
+- 병렬 부하에 따른 지연은 확인했지만 최초 실행의 정확한 지연 원인은 미확정이다. 당시 trace가 없어 단정하지 않는다. 앱·테스트·timeout 변경은 없으며, 앞선3개 실패는 후속 개별 실행에서 모두 통과했다. 최초 전체 verify exit1은 유지하고 새 전체 일괄 통과로 표시하지 않는다. 로그: `.bugri-hooks/i18n/scene-serial.log`, `scene-parallel.log`, `scene-concurrent.log`.
+
+## VERIFY-SHOP-SCOPE — 상점·3D 검증 범위 지침
+
+- 사용자 승인으로 검증 지침·AGENTS·구현/PR 스킬·Hook 안내를 정합화했다. 상점 동작/렌더링과 무관하면 전용 E2E를 제외하고, 공통 UI 변경은 영향을 받는 흐름을 확인한다. 영향이 불명확하면 포함한다. 필요한 상점·3D 검사는 worker1개로 순차 실행한다. PR 최종화·통합에도 같은 기준을 적용하고 선택·제외 근거를 기록한다.
+- 문서만 변경했다. 실행 스크립트의 자동 제외 기능은 추가하지 않았으며 기존 실패를 삭제하거나 테스트를 약화하지 않았다. 이 문서 변경을 위한 앱 pipeline·Hook은 실행하지 않는다.
+- 문서 링크·정합성·diff 검사 통과. 스킬 quick_validate는 환경에 PyYAML이 없어 실행 차단되었으며 frontmatter·참조·적용 조건은 직접 확인했다. 구현자 외 최종 리뷰와 병합 판단은 사용자에게 남긴다.
