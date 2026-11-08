@@ -12,6 +12,7 @@ import { createQueryClient } from "@/api/query-client";
 
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   useTransition,
@@ -118,37 +119,79 @@ function TagSearch({
   const t = useTranslation();
 
   const [query, setQuery] = useState(value);
+  const [opened, setOpened] = useState(false);
+  const expanded = opened || !!query || !!value;
+  const searchId = useId();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (opened)
+      formRef.current?.querySelector("input")?.focus();
+  }, [opened]);
+
+  function toggleSearch() {
+    if (expanded) {
+      setOpened(false);
+      return;
+    }
+    setOpened(true);
+  }
 
   return (
-    <form
-      className={developerStyles.search}
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSearch(query.trim());
-      }}
-    >
-      <div className={developerStyles.searchField}>
-        <TextField
-          type="search"
-          label={t("이 개발자의 태그 검색")}
-          hideLabel
-          placeholder={t("태그 검색")}
-          value={query}
-          maxLength={100}
-          disabled={busy}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </div>
+    <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
       <Button
-        type="submit"
         size="sm"
-        variant="secondary"
-        className={developerStyles.searchButton}
-        disabled={busy}
+        variant="ghost"
+        className="!min-h-11 aria-disabled:cursor-default aria-disabled:opacity-60"
+        aria-disabled={!!query || !!value}
+        aria-expanded={expanded}
+        aria-controls={searchId}
+        onClick={toggleSearch}
       >
-        {t("검색")}
+        {t("태그 검색")}
+        {!query && !value && (
+          <span aria-hidden="true">
+            {expanded ? "−" : "+"}
+          </span>
+        )}
       </Button>
-    </form>
+      <form
+        ref={formRef}
+        id={searchId}
+        hidden={!expanded}
+        className={
+          expanded ? developerStyles.search : "hidden"
+        }
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSearch(query.trim());
+        }}
+      >
+        <div className={developerStyles.searchField}>
+          <TextField
+            type="search"
+            label={t("이 개발자의 태그 검색")}
+            hideLabel
+            placeholder={t("태그 검색")}
+            value={query}
+            maxLength={100}
+            disabled={busy}
+            onChange={(event) =>
+              setQuery(event.target.value)
+            }
+          />
+        </div>
+        <Button
+          type="submit"
+          size="sm"
+          variant="secondary"
+          className={developerStyles.searchButton}
+          disabled={busy}
+        >
+          {t("검색")}
+        </Button>
+      </form>
+    </div>
   );
 }
 
@@ -221,20 +264,25 @@ function Catalog({
       @{data.user.publicId}
     </h1>
   ) : (
-    <div className="min-w-0 flex-1">
+    <div className="min-w-40 max-w-full flex-1">
       <h1 className="break-words text-lg sm:text-2xl">
         {data.user.displayName}
         {t("의 퀴즈")}
       </h1>
-      <Link
-        className="mt-1 inline-flex min-h-8 max-w-full items-center break-all text-sm text-muted hover:text-primary hover:underline"
-        href={withDemoUser(
-          `/users/${encodeURIComponent(publicId)}`,
-          signedIn ? userId : null,
-        )}
-      >
-        @{data.user.publicId}
-      </Link>
+      <div className="flex flex-wrap items-center gap-x-3">
+        <Link
+          className="inline-flex min-h-11 max-w-full items-center rounded-lg break-all text-sm text-muted underline underline-offset-4 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+          href={withDemoUser(
+            `/users/${encodeURIComponent(publicId)}`,
+            signedIn ? userId : null,
+          )}
+        >
+          @{data.user.publicId}
+        </Link>
+        <span className="text-sm text-muted">
+          {t("공개 퀴즈 {0}개", { 0: data.total })}
+        </span>
+      </div>
     </div>
   );
   const subscription =
@@ -304,14 +352,24 @@ function Catalog({
         profile ? developerStyles.profileQuizzes : "min-w-0"
       }
     >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg">
-          {profile ? t("최신 공개 퀴즈") : t("공개 퀴즈")}{" "}
-          <span className="text-muted">
-            {profile ? data.items.length : data.total}
-            {t("개")}
-          </span>
-        </h2>
+      <div
+        className={
+          profile
+            ? "mb-4 flex flex-wrap items-center justify-between gap-2"
+            : hashtagIds.length > 0
+              ? "mb-3 flex flex-wrap items-center justify-between gap-2"
+              : "hidden"
+        }
+      >
+        {profile && (
+          <h2 className="text-lg">
+            {profile ? t("최신 공개 퀴즈") : t("공개 퀴즈")}{" "}
+            <span className="text-muted">
+              {profile ? data.items.length : data.total}
+              {t("개")}
+            </span>
+          </h2>
+        )}
         {profile && (
           <Link
             href={`/developers/${encodeURIComponent(publicId)}/quizzes?user=${encodeURIComponent(userId)}`}
@@ -341,20 +399,6 @@ function Catalog({
                 #{id} ×
               </button>
             ))}
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={busy}
-              onClick={() =>
-                onChange({
-                  ...filters,
-                  hashtagIds: [],
-                  page: 1,
-                })
-              }
-            >
-              {t("전체 퀴즈")}
-            </Button>
           </div>
         )}
       </div>
@@ -480,7 +524,7 @@ function Catalog({
     );
 
   return (
-    <div className={profile ? "space-y-4" : "space-y-5"}>
+    <div className={profile ? "space-y-4" : "space-y-3"}>
       <header className={developerStyles.header}>
         <span
           aria-hidden="true"
@@ -503,7 +547,7 @@ function Catalog({
           )}
         </p>
       )}
-      <div className={profile ? "space-y-8" : "space-y-5"}>
+      <div className={profile ? "space-y-8" : "space-y-3"}>
         {!profile && (
           <section
             ref={tagRegion}
@@ -511,9 +555,22 @@ function Catalog({
             className={developerStyles.filters}
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold">
-                {t("태그")}
-              </h2>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="!min-h-11 aria-pressed:!bg-primary/10"
+                aria-pressed={hashtagIds.length === 0}
+                disabled={busy}
+                onClick={() =>
+                  onChange({
+                    ...filters,
+                    hashtagIds: [],
+                    page: 1,
+                  })
+                }
+              >
+                {t("전체 퀴즈")}
+              </Button>
               <TagSearch
                 key={tagQuery}
                 value={tagQuery}
@@ -648,7 +705,7 @@ export function DeveloperScreen({
 
   return (
     <QueryClientProvider client={client}>
-      <div className="space-y-6">
+      <div className={profile ? "space-y-6" : "space-y-3"}>
         {!profile && (
           <Link
             className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary focus-visible:text-primary"

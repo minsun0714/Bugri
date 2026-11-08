@@ -137,6 +137,12 @@ for (const width of [1280, 390]) {
     expect(await subscriptions()).toEqual(before);
     await page.reload();
     await expect(quizzes.getByRole("link")).toHaveCount(1);
+    await tags
+      .getByRole("button", {
+        name: "태그 검색",
+        exact: true,
+      })
+      .click();
     await tags.getByRole("searchbox").fill("web");
     await tags.getByRole("searchbox").press("Enter");
     await expect(
@@ -151,7 +157,7 @@ for (const width of [1280, 390]) {
         name: "typescript 필터 해제",
       }),
     ).toBeVisible();
-    await quizzes
+    await tags
       .getByRole("button", {
         name: "전체 퀴즈",
         exact: true,

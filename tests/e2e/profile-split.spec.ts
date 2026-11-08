@@ -228,7 +228,11 @@ test("profile previews latest four and links to the full catalog", async ({
   await expect(page).toHaveURL(
     /\/developers\/bugri-author\/quizzes\?user=friend$/,
   );
-  await expect(page.getByRole("searchbox")).toBeVisible();
+  await expect(page.getByRole("searchbox")).toBeHidden();
+  await page
+    .getByRole("button", { name: "태그 검색", exact: true })
+    .click();
+  await expect(page.getByRole("searchbox")).toBeFocused();
   await expect(
     page
       .getByRole("region", { name: "개발자의 공개 퀴즈" })

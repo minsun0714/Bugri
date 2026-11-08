@@ -139,13 +139,26 @@ export function searchDiscovery(
       status === QuizStatus.PUBLIC && !deletedAt && active,
   );
 
+  const quizCounts = new Map<string, number>();
+
+  for (const { active } of available) {
+    for (const id of new Set(active!.hashtagIds)) {
+      quizCounts.set(id, (quizCounts.get(id) ?? 0) + 1);
+    }
+  }
+
   const found = hashtags
     .filter(
       ({ id, name }) =>
         matches(id, name) &&
         (!subscribedOnly || isSubscribed(id)),
     )
-    .sort((a, b) => sortIds(a.id, b.id));
+    .sort(
+      (a, b) =>
+        Number((quizCounts.get(b.id) ?? 0) > 0) -
+          Number((quizCounts.get(a.id) ?? 0) > 0) ||
+        sortIds(a.id, b.id),
+    );
 
   return {
     page,
@@ -157,9 +170,7 @@ export function searchDiscovery(
         type: DiscoveryKind.HASHTAG,
         hashtag,
         subscribed: isSubscribed(hashtag.id),
-        publicQuizCount: available.filter(({ active }) =>
-          active?.hashtagIds.includes(hashtag.id),
-        ).length,
+        publicQuizCount: quizCounts.get(hashtag.id) ?? 0,
       })),
   };
 }

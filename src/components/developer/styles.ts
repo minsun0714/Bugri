@@ -4,7 +4,7 @@ export const developerStyles = {
   header: "flex flex-wrap items-center gap-3",
   avatar:
     "shrink-0 [&_.ui-avatar]:!size-12 [&_.ui-avatar]:!rounded-2xl [&_.ui-avatar]:!border-0 [&_.ui-avatar]:!bg-success-soft [&_.ui-avatar]:!text-foreground",
-  filters: "min-w-0 space-y-3 border-b border-line py-4",
+  filters: "min-w-0 space-y-3 border-b border-line pb-3",
   search: "flex w-full items-center gap-2 sm:w-80",
   searchField:
     "min-w-0 flex-1 [&_input]:!h-11 [&_input]:!rounded-xl [&_input]:!bg-canvas [&_input]:!py-2.5",

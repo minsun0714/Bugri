@@ -239,3 +239,51 @@ test("profile subscribed control opens management before explicit unsubscribe", 
     ),
   ).toBe(false);
 });
+
+test("tag search starts collapsed, focuses on open and preserves a nonempty draft", async () => {
+  render(
+    <DemoSessionProvider>
+      <DeveloperScreen />
+    </DemoSessionProvider>,
+  );
+  const toggle = await screen.findByRole("button", {
+    name: "태그 검색",
+  });
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  expect(
+    screen.queryByRole("searchbox"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(toggle);
+  const input = screen.getByRole("searchbox", {
+    name: "이 개발자의 태그 검색",
+  });
+  expect(input).toHaveFocus();
+  fireEvent.click(toggle);
+  expect(
+    screen.queryByRole("searchbox"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(toggle);
+  fireEvent.change(screen.getByRole("searchbox"), {
+    target: { value: "web" },
+  });
+  expect(toggle).toHaveAttribute("aria-disabled", "true");
+  fireEvent.click(toggle);
+  expect(screen.getByRole("searchbox")).toHaveValue("web");
+});
+
+test("URL tag search restores expanded input", async () => {
+  mockSearch = "user=friend&tagQuery=web";
+  render(
+    <DemoSessionProvider>
+      <DeveloperScreen />
+    </DemoSessionProvider>,
+  );
+  expect(
+    await screen.findByRole("searchbox", {
+      name: "이 개발자의 태그 검색",
+    }),
+  ).toHaveValue("web");
+  expect(
+    screen.getByRole("button", { name: "태그 검색" }),
+  ).toHaveAttribute("aria-expanded", "true");
+});

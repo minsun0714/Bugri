@@ -555,9 +555,7 @@ function DeveloperContent({
                         <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line/70 pt-3">
                           {summary && (
                             <Link
-                              className={
-                                discoveryStyles.quizLink
-                              }
+                              className={`${discoveryStyles.quizLink} text-sm font-semibold text-primary underline underline-offset-4`}
                               href={`/developers/${encodeURIComponent(publicId)}/quizzes${viewerQuery}`}
                               aria-label={t(
                                 "{0} 공개 퀴즈 {1}개",
@@ -587,10 +585,11 @@ function DeveloperContent({
                                   strokeLinecap="round"
                                 />
                               </svg>
-                              {t("공개 퀴즈")}{" "}
-                              <span className="font-bold text-foreground">
-                                {summary.publicQuizCount}
-                              </span>
+                              {summary.publicQuizCount === 0
+                                ? t("현재 공개 퀴즈 없음")
+                                : t("공개 퀴즈 {0}개", {
+                                    0: summary.publicQuizCount,
+                                  })}
                             </Link>
                           )}
                           <SubscriptionControl
