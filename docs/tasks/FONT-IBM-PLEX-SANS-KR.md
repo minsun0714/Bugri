@@ -12,6 +12,11 @@
 - `src/app/globals.css`: `@theme`의 `--font-sans`를 `var(--font-ibm-plex-sans-kr), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`로 변경. `body`의 `font-sans`와 Preflight의 `font: inherit`으로 버튼·입력·body 포털 UI까지 적용된다.
 - 굵기: 사용 중인 굵기는 400/500/600/650/700/800이다. 폰트는 100~700만 지원하므로 기존 체계를 바꾸지 않고 400~700을 로드했다. `font-[650]`과 `font-extrabold`(800)는 브라우저 굵기 매칭으로 700 글꼴이 쓰인다. 기존 Arial도 400/700만 있어 같은 방식으로 700이 쓰였다.
 
+## 추가 요청: 비로그인 홈 상단 줄 제거
+
+- 사용자 요청으로 비로그인 홈 랜딩 상단의 `기억에 남는 공부` 라벨과 `바로 퀴즈 풀기` 링크 줄을 제거했다(`guest-landing.tsx`, 미사용 `en.json` 키 2개). 이 링크를 쓰던 단위 테스트와 E2E(`guest-landing.spec.ts`)는 링크 대신 `#guest-quiz` 스크롤로 퀴즈에 도달하도록 수정했다.
+- 검증: `npm run lint` 대상 파일·`npm run typecheck` 통과, Jest 72 suites/377 tests 통과, `guest-landing.spec.ts`·`locale.spec.ts` 9 passed. 폰트 검증의 전체 E2E 256개는 이 변경 이전 코드 기준이며 전체를 재실행하지 않았다.
+
 ## 검증 (Node v22.23.3)
 
 - `npx prettier --check`·`npx eslint` 변경 파일 통과, `npm run typecheck` 통과.
