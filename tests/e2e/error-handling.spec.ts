@@ -67,29 +67,25 @@ for (const width of [1280, 375]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/ui-preview/errors");
-    const desk = page.getByRole("region", {
-      name: "공개 데스크",
+    const area = page.getByRole("region", {
+      name: "미리보기 영역",
     });
-    await expect(desk.getByRole("alert")).toContainText(
+    await expect(area.getByRole("alert")).toContainText(
       "일시적인 오류",
     );
-    await expect(
-      page.getByText("다른 프로필 영역"),
-    ).toBeVisible();
+    await expect(page.getByText("다른 영역")).toBeVisible();
     await expect(
       page.getByText("private preview detail"),
     ).toHaveCount(0);
     await page.screenshot({
       path: testInfo.outputPath(`query-${width}.png`),
     });
-    await desk
+    await area
       .getByRole("button", { name: "다시 시도" })
       .click();
-    await expect(desk.getByRole("status")).toHaveText(
-      "데스크를 다시 불러왔습니다",
+    await expect(area.getByRole("status")).toHaveText(
+      "다시 불러왔습니다",
     );
-    await expect(
-      page.getByText("다른 프로필 영역"),
-    ).toBeVisible();
+    await expect(page.getByText("다른 영역")).toBeVisible();
   });
 }

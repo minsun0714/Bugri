@@ -146,10 +146,6 @@
   "정답 선택지를 하나 이상 선택하세요.": "Select at least one correct option.",
   "단답 정답을 입력하세요.": "Enter the short answer.",
   "불러오는 중…": "Loading…",
-  "데스크를 다시 불러왔습니다": "Desk reloaded",
-  "공개 데스크": "Public desk",
-  "공개 데스크를 불러오지 못했습니다": "Could not load the public desk",
-  "다른 프로필 영역": "Other profile sections",
   "페이지를 찾지 못했어요": "Page not found",
   "앗, 잠깐 문제가 생겼어요": "Something went wrong",
   "다시 시도": "Try again",
@@ -361,5 +357,9 @@
   "승인됨": "Approved",
   "“{0}” 퀴즈를 삭제할까요?{1} 완료한 풀이 기록은 유지됩니다.": "Delete “{0}”?{1} Completed attempt records are kept.",
   "내 메뉴": "My menu",
-  "업무 중 배운 개발 지식을 퀴즈로 복습하는 Bugri": "Bugri: review what you learn at work with quizzes"
+  "업무 중 배운 개발 지식을 퀴즈로 복습하는 Bugri": "Bugri: review what you learn at work with quizzes",
+  "미리보기 영역": "Preview area",
+  "미리보기 영역을 불러오지 못했습니다": "Could not load the preview area",
+  "다시 불러왔습니다": "Reloaded",
+  "다른 영역": "Other area"
 }

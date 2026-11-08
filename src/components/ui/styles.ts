@@ -48,8 +48,6 @@ export const styles = {
     "modal-header flex items-center justify-between mb-3.75 [&_h2]:text-[20px]",
   "ui-toast":
     "ui-toast fixed z-[30] bottom-6.25 left-[50%] [transform:translateX(-50%)] flex gap-3.5 items-center bg-primary-solid text-on-primary py-4 px-5 rounded-[16px] [box-shadow:0_10px_40px_#25382b25] text-[13px] [max-width:calc(100%_-_24px)] w-[max-content] [&_button]:bg-transparent [&_button]:[border:0] [&_button]:text-[inherit] [&_button]:text-[20px] [&_button]:cursor-pointer",
-  "ui-coin":
-    "ui-coin inline-flex gap-1.75 items-center text-[15px] font-bold [&_>_span]:grid [&_>_span]:place-items-center [&_>_span]:w-5.5 [&_>_span]:h-5.5 [&_>_span]:rounded-full [&_>_span]:bg-coin-body [&_>_span]:border-2 [&_>_span]:border-coin-edge [&_>_span]:text-coin-ink [&_>_span]:text-[12px] [&_small]:text-xs [&_small]:font-normal [&_small]:text-muted",
   pagination:
     "pagination flex items-center justify-center gap-1.5 [&_>_button:not(.ui-button)]:[border:0] [&_>_button:not(.ui-button)]:bg-transparent [&_>_button:not(.ui-button)]:w-8 [&_>_button:not(.ui-button)]:h-8 [&_>_button:not(.ui-button)]:rounded-[6px] [&_>_button:not(.ui-button)]:text-muted [&_>_button:not(.ui-button)]:cursor-pointer [&_>_button[aria-current='page']]:bg-primary-solid [&_>_button[aria-current='page']]:text-on-primary",
   "tag-input-shell":

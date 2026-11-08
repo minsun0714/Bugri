@@ -71,10 +71,17 @@
 - 풀이 화면: 완료 기록 문구에서 "획득한 성과" 제거, 보상 설명·반응 UI 제거.
 - 앱 메타데이터 설명(`layout.tsx`)을 새 방향 문구로 교체.
 
+## 추가 삭제 (후속 지시: 공통 UI에 남은 BugCoin·구독·데스크 잔재)
+
+- `ui/index.tsx`의 `Coin` 컴포넌트와 `ui-coin` 스타일, `--color-coin-*` 토큰.
+- `globals.css`의 사용되지 않던 `reward-coin*`, `story-*`, `puzzle-*`, `landing-*` 애니메이션·키프레임(`shimmer`만 유지).
+- 쇼케이스: 개발자 구독 카드, 데스크 소품 상품 카드, 코인 표시, "보관함" 탭, 프로필·보관함 샘플, BugCoin 경고, 구독 빈 상태 문구. 섹션명 "학습과 데스크" → "학습", `desk-card` → `today-card`, 상품·화분 스타일 삭제.
+- 에러 미리보기 픽스처의 "공개 데스크" 문구를 중립 문구("미리보기 영역", "다른 영역", "다시 불러왔습니다")로 교체. 관련 unit/e2e와 en.json 키 갱신.
+- 저장소 전체에서 `구독|BugCoin|데스크|상점|코인|장착` 검색 결과 0건.
+
 ## 남긴 공유 코드와 이유
 
-- `components/ui/*`(디자인 시스템·`BugCoin` 금액 표시, `filter-chips`), `components/showcase/*`(구독·BugCoin 예시 포함): 공통 UI·디자인 쇼케이스로 유지 요청. 기능별 제거는 후속에서 판단.
-- `components/errors/query-preview.tsx`의 "공개 데스크" 문구: 에러 화면 미리보기 픽스처이므로 유지.
+- `components/ui/*`(`filter-chips` 포함), `components/showcase/*`: 공통 UI·디자인 쇼케이스로 유지. 단 BugCoin·구독·데스크 관련 요소는 후속 지시로 함께 삭제했다(아래 "추가 삭제").
 - `components/navigation/feature-section-shell.tsx`: dev(HEAD)에서도 미사용이던 기존 파일. 이번 범위 밖.
 - `discoverHashtags` 연산, `hashtags` 시드: 퀴즈 생성의 태그 입력이 사용.
 - `StoredQuiz.status` PUBLIC/PRIVATE 값과 PENDING·승인 모델: 후속 "메모→퀴즈" 브랜치에서 정리.
