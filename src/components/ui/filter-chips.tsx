@@ -28,7 +28,10 @@ export function FilterChips({
             }
             className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl border border-line bg-surface px-3 text-sm text-muted aria-pressed:border-primary/30 aria-pressed:bg-primary/10 aria-pressed:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"
           >
-            <span aria-hidden="true">
+            <span
+              aria-hidden="true"
+              className="inline-block w-3 text-center"
+            >
               {value.includes(id) ? "✓" : "#"}
             </span>
             <span className="break-all">{label}</span>

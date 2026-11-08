@@ -1,9 +1,3 @@
-import {
-  Category,
-  DiscoveryKind,
-  QuizStatus,
-  LearningMode,
-} from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import { createHttpTransport, endpoints } from "@/api/http";
 import type { Request } from "@/api/contracts";
@@ -42,25 +36,23 @@ test("REST encodes path, removes path fields from body and uses explicit envelop
     }),
   );
 
-  await client.request("approve", {
+  await client.request("confirmQuiz", {
     quizId: "q",
     expectedVersion: 2,
-    visibility: QuizStatus.PUBLIC,
   });
 
   expect(fetcher).toHaveBeenLastCalledWith(
-    "/api/v1/quizzes/q/approve",
+    "/api/v1/quizzes/q/confirm",
     expect.objectContaining({
       method: "POST",
       body: JSON.stringify({
         expectedVersion: 2,
-        visibility: "PUBLIC",
       }),
     }),
   );
 });
 
-test("GET query has no body and omits All hashtag; no mock user or auth headers", async () => {
+test("GET query has no body; no mock user or auth headers", async () => {
   const fetcher = jest.fn().mockResolvedValue(
     response({
       data: [],
@@ -74,13 +66,12 @@ test("GET query has no body and omits All hashtag; no mock user or auth headers"
     }),
   );
 
-  await client.request("learningQuiz", {
-    hashtagId: null,
-    mode: LearningMode.UNSOLVED,
+  await client.request("attemptHistory", {
+    page: 1,
   });
 
   expect(fetcher).toHaveBeenCalledWith(
-    "https://api.example.test/api/v1/learning/quiz?mode=UNSOLVED",
+    "https://api.example.test/api/v1/me/attempts?page=1",
     {
       method: "GET",
       signal: expect.any(AbortSignal),
@@ -112,7 +103,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
   );
 
   await expect(
-    client.request("wallet", {}),
+    client.request("learningDay", {}),
   ).rejects.toMatchObject({
     status: 409,
     detail: {
@@ -124,7 +115,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
   fetcher.mockRejectedValueOnce(new Error("offline"));
 
   await expect(
-    client.request("wallet", {}),
+    client.request("learningDay", {}),
   ).rejects.toMatchObject({
     detail: {
       code: "NETWORK_ERROR",
@@ -138,7 +129,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
   );
 
   await expect(
-    client.request("wallet", {}),
+    client.request("learningDay", {}),
   ).rejects.toMatchObject({
     detail: {
       code: "INVALID_RESPONSE",
@@ -147,317 +138,80 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(56);
+  expect(Object.keys(endpoints)).toHaveLength(22);
 
-  expect(endpoints.quizReaction).toEqual({
+  expect(endpoints.learningDay).toEqual({
     method: "GET",
-    path: "/quizzes/{id}/reaction",
-    pathKey: "quizId",
+    path: "/learning/day",
   });
 
-  expect(endpoints.updateQuizReaction).toEqual({
-    method: "PUT",
-    path: "/quizzes/{id}/reaction",
-    pathKey: "quizId",
-  });
-
-  expect(endpoints.transformDesk).toEqual({
-    method: "PUT",
-    path: "/me/desk/table",
-  });
-
-  expect(endpoints.publicLearningDay).toEqual({
+  expect(endpoints.todayReview).toEqual({
     method: "GET",
-    path: "/users/{id}/learning-day",
-    pathKey: "publicId",
-  });
-
-  expect(endpoints.tagQuizzes).toEqual({
-    method: "GET",
-    path: "/tags/{id}/quizzes",
-    pathKey: "hashtagId",
-  });
-
-  expect(endpoints.profileAbout).toEqual({
-    method: "GET",
-    path: "/users/{id}/about",
-    pathKey: "publicId",
-  });
-
-  expect(endpoints.updateProfileAbout).toEqual({
-    method: "PUT",
-    path: "/me/about",
+    path: "/me/today-review",
   });
 });
 
-// Compile-time examples: payloads cannot use a quiz as a subscription or a scalar answer.
-const invalidSubscription: Request<"subscribe"> = {
-  // @ts-expect-error quiz subscriptions are not a contract
-  type: "QUIZ",
-  quizId: "q",
-};
-
+// Compile-time examples: payloads cannot use a scalar answer.
 const invalidAnswer: Request<"answer"> = {
   attemptId: "a",
   // @ts-expect-error answers are discriminated by question format
   answer: true,
 };
 
-void invalidSubscription;
 void invalidAnswer;
 
-test("desk placement sends coordinates to the typed HTTP endpoint", async () => {
+test("memo quiz operations use note and quiz paths", async () => {
   const fetcher = jest
     .fn()
-    .mockResolvedValue(
-      response({ data: { KEYBOARD: { x: 30, y: -10 } } }),
-    );
+    .mockResolvedValue(response({ data: [] }));
 
   const client = createApiClient(
     createHttpTransport({ fetch: fetcher }),
   );
 
-  const request = {
-    category: Category.KEYBOARD,
-    productId: "keyboard-1",
-    position: { x: 30, y: -10 },
-  };
+  await client.request("generate", { noteId: "note/1" });
 
-  await expect(
-    client.request("moveEquipment", request),
-  ).resolves.toEqual({ KEYBOARD: request.position });
-
-  expect(fetcher).toHaveBeenCalledWith(
-    "/api/v1/me/desk/position",
-    expect.objectContaining({
-      method: "PUT",
-      body: JSON.stringify(request),
-    }),
-  );
-});
-
-test("Bugri placement uses its own typed endpoint without a product or purchase", async () => {
-  const transform = { x: -1, y: 0, z: 2, rotationY: 90 };
-
-  const fetcher = jest
-    .fn()
-    .mockResolvedValue(
-      response({ data: { BUGRI: transform } }),
-    );
-
-  const api = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
-  );
-
-  await api.request("transformBugri", { transform });
-
-  expect(fetcher).toHaveBeenCalledWith(
-    "/api/v1/me/desk/bugri",
-    expect.objectContaining({
-      method: "PUT",
-      body: JSON.stringify({ transform }),
-    }),
-  );
-});
-
-test("discovery search sends server-side search and page parameters", async () => {
-  const fetcher = jest.fn().mockResolvedValue(
-    response({
-      data: {
-        items: [],
-        page: 2,
-        pageSize: 20,
-        total: 40,
-      },
-    }),
-  );
-
-  const client = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
-  );
-
-  await client.request("searchDiscovery", {
-    kind: DiscoveryKind.USER,
-    query: "개발자",
-    page: 2,
-    pageSize: 20,
-  });
-
-  const {
-    mock: { calls },
-  } = fetcher;
-
-  const [[url, options]] = calls;
-  const parsed = new URL(url, "https://example.test");
-
-  expect(parsed.pathname).toBe("/api/v1/discover/search");
-
-  expect(Object.fromEntries(parsed.searchParams)).toEqual({
-    kind: "USER",
-    query: "개발자",
-    page: "2",
-    pageSize: "20",
-  });
-
-  expect(options.body).toBeUndefined();
-});
-
-test("candidate refinement uses its batch path and explicit prompt body", async () => {
-  const fetcher = jest.fn().mockResolvedValue(
-    response({
-      data: {
-        batchId: "batch/1",
-        sourceContent: "내용",
-        candidates: [],
-      },
-    }),
-  );
-
-  const client = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
-  );
-
-  await client.request("refineCandidate", {
-    batchId: "batch/1",
-    candidateId: "candidate-1",
-    prompt: "예시 추가",
-  });
-
-  expect(fetcher).toHaveBeenCalledWith(
-    "/api/v1/generation-batches/batch%2F1/refine",
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/notes/note%2F1/quizzes/generate",
     expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({
-        candidateId: "candidate-1",
-        prompt: "예시 추가",
-      }),
-    }),
-  );
-});
-
-test("candidate deletion uses its batch path and candidate body", async () => {
-  const fetcher = jest.fn().mockResolvedValue(
-    response({
-      data: {
-        batchId: "batch/1",
-        sourceContent: "내용",
-        candidates: [],
-      },
+      body: "{}",
     }),
   );
 
-  const client = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
-  );
-
-  await client.request("deleteCandidate", {
-    batchId: "batch/1",
-    candidateId: "candidate-1",
-  });
-
-  expect(fetcher).toHaveBeenCalledWith(
-    "/api/v1/generation-batches/batch%2F1/candidates",
-    expect.objectContaining({
-      method: "DELETE",
-      body: JSON.stringify({
-        candidateId: "candidate-1",
-      }),
-    }),
-  );
-});
-
-test("independent desk transforms use a typed table endpoint and preserve the expected desk", async () => {
-  const fetcher = jest
-    .fn()
-    .mockResolvedValue(response({ data: {} }));
-
-  const client = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
-  );
-
-  const request = {
-    productId: null,
-    transform: { x: 1, y: 0, z: 0, rotationY: 15 },
-  };
-
-  await client.request("transformDesk", request);
-
-  expect(fetcher).toHaveBeenCalledWith(
-    "/api/v1/me/desk/table",
-    expect.objectContaining({
-      method: "PUT",
-      body: JSON.stringify(request),
-    }),
-  );
-});
-
-test("developer multi-tag query preserves each tag as a repeated parameter", async () => {
-  const fetcher = jest
-    .fn()
-    .mockResolvedValue(response({ data: {} }));
-
-  await createHttpTransport({ fetch: fetcher }).request(
-    "developerQuizzes",
-    {
-      publicId: "bugri-author",
-      page: 1,
-      pageSize: 20,
-      hashtagIds: ["javascript", "web"],
-    },
-  );
-
-  const {
-    mock: { calls },
-  } = fetcher;
-
-  const [[url]] = calls;
-  const parsed = new URL(url, "http://localhost");
-
-  expect(parsed.searchParams.getAll("hashtagIds")).toEqual([
-    "javascript",
-    "web",
-  ]);
-
-  expect(parsed.pathname).toBe(
-    "/api/v1/developers/bugri-author/quizzes",
-  );
-});
-
-test("profile section order uses public GET and actor PUT", async () => {
-  const fetcher = jest.fn().mockResolvedValue(
-    response({
-      data: { order: ["DESK", "QUIZZES", "ACTIVITY"] },
-    }),
-  );
-
-  const client = createApiClient(
-    createHttpTransport({ fetch: fetcher }),
-  );
-
-  await client.request("profileOrder", {
-    publicId: "bugri-author",
+  await client.request("noteQuizzes", {
+    noteId: "note/1",
+    status: "PENDING",
   });
 
   expect(fetcher).toHaveBeenLastCalledWith(
-    "/api/v1/users/bugri-author/section-order",
+    "/api/v1/notes/note%2F1/quizzes?status=PENDING",
     expect.objectContaining({ method: "GET" }),
   );
 
-  const request = {
-    order: [
-      "ACTIVITY",
-      "QUIZZES",
-      "DESK",
-    ] as import("@/api/constants").ProfileSection[],
-  };
-
-  await client.request("updateProfileOrder", request);
+  await client.request("confirmNoteQuizzes", {
+    noteId: "note/1",
+  });
 
   expect(fetcher).toHaveBeenLastCalledWith(
-    "/api/v1/me/section-order",
+    "/api/v1/notes/note%2F1/quizzes/confirm",
+    expect.objectContaining({ method: "POST" }),
+  );
+
+  await client.request("refineQuiz", {
+    quizId: "q/1",
+    expectedVersion: 3,
+    prompt: "예시 추가",
+  });
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/quizzes/q%2F1/refine",
     expect.objectContaining({
-      method: "PUT",
-      body: JSON.stringify(request),
+      method: "POST",
+      body: JSON.stringify({
+        expectedVersion: 3,
+        prompt: "예시 추가",
+      }),
     }),
   );
 });
@@ -491,5 +245,34 @@ test("attempt history uses a private GET endpoint and query filters", async () =
 
   expect(fetcher.mock.calls[0][1]).not.toHaveProperty(
     "body",
+  );
+});
+
+test("notes search sends the query, repeated tag ids and the untagged flag as GET parameters", async () => {
+  const fetcher = jest
+    .fn()
+    .mockResolvedValue(response({ data: {} }));
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await client.request("notes", {
+    query: "hooks",
+    tagIds: ["web", "java"],
+    untagged: true,
+    page: 2,
+  });
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/notes?query=hooks&tagIds=web&tagIds=java&untagged=true&page=2",
+    expect.objectContaining({ method: "GET" }),
+  );
+
+  await client.request("noteTags", {});
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/notes/tags",
+    expect.objectContaining({ method: "GET" }),
   );
 });

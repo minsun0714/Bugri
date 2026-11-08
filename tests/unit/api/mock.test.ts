@@ -1,8 +1,4 @@
-import {
-  QuizScope,
-  QuizStatus,
-  LearningState,
-} from "@/api/constants";
+import { QuizStatus } from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import { createMockTransport } from "@/mocks/adapter";
 
@@ -17,77 +13,63 @@ const make = (userId = "learner") =>
 
 beforeEach(() => localStorage.clear());
 
-test("generation is owner-only; individual then bulk save does not duplicate candidates", async () => {
+test("generation is owner-only; individual then bulk save does not duplicate quizzes", async () => {
   const api = make();
 
-  const batch = await api.request("generate", {
-    sourceContent: "배운 내용\n```ts\nconst x = 1;\n```",
+  const { noteId } = await api.request("createNote", {
+    content: "배운 내용\n```ts\nconst x = 1;\n```",
   });
 
-  expect(batch.candidates.length).toBeGreaterThanOrEqual(1);
-  expect(batch.candidates.length).toBeLessThanOrEqual(5);
+  const created = await api.request("generate", { noteId });
+
+  expect(created.length).toBeGreaterThanOrEqual(1);
+  expect(created.length).toBeLessThanOrEqual(5);
 
   expect(
-    await api.request("quizzes", {
-      scope: QuizScope.OWN,
+    await api.request("noteQuizzes", {
+      noteId,
+      status: QuizStatus.CONFIRMED,
     }),
   ).toHaveLength(0);
 
-  const [first] = await api.request("saveBatch", {
-    batchId: batch.batchId,
-    mode: "SINGLE",
-    candidateId: batch.candidates[0].candidateId,
+  const [first] = created;
+
+  await api.request("confirmQuiz", {
+    quizId: first.quizId,
+    expectedVersion: first.version,
   });
 
-  expect(first.status).toBe(QuizStatus.PENDING);
-
-  await api.request("saveBatch", {
-    batchId: batch.batchId,
-    mode: "ALL",
-  });
-
-  await api.request("saveBatch", {
-    batchId: batch.batchId,
-    mode: "ALL",
-  });
+  await api.request("confirmNoteQuizzes", { noteId });
+  await api.request("confirmNoteQuizzes", { noteId });
 
   expect(
-    await make().request("quizzes", {
-      scope: QuizScope.OWN,
+    await make().request("noteQuizzes", {
+      noteId,
+      status: QuizStatus.CONFIRMED,
     }),
-  ).toHaveLength(batch.candidates.length);
+  ).toHaveLength(created.length);
 
   await expect(
-    make("author").request("generationBatch", {
-      batchId: batch.batchId,
+    make("author").request("noteQuizzes", {
+      noteId,
+      status: QuizStatus.CONFIRMED,
     }),
   ).rejects.toMatchObject({
     status: 404,
   });
 });
 
-test("learning never exposes answers; wrong answers and replays count once per day", async () => {
-  const api = make();
-
-  await api.request("subscribe", {
-    type: "PERSON",
-    authorUserId: "author",
-  });
-
-  const selection = await api.request("learningQuiz", {
-    hashtagId: "typescript",
-  });
-
-  expect(selection.state).toBe(LearningState.AVAILABLE);
-
-  expect(JSON.stringify(selection)).not.toMatch(
-    /"answer"|"explanation"|"sourceContent"/,
-  );
+test("direct solving never exposes answers; wrong answers and replays count once per day", async () => {
+  const api = make("author");
 
   const attempt = await api.request("startAttempt", {
-    quizId: selection.quiz!.quizId,
-    context: "LEARNING",
+    quizId: "seed-quiz-1",
+    context: "DIRECT",
   });
+
+  expect(JSON.stringify(attempt)).not.toMatch(
+    /"answer"|"explanation"|"sourceContent"/,
+  );
 
   expect(attempt.result).toBeNull();
 
@@ -105,13 +87,9 @@ test("learning never exposes answers; wrong answers and replays count once per d
     (await api.request("learningDay", {})).completed,
   ).toBe(true);
 
-  expect(
-    (await api.request("learningNext", {})).hashtagId,
-  ).toBe("typescript");
-
   const replay = await api.request("startAttempt", {
-    quizId: selection.quiz!.quizId,
-    context: "LEARNING",
+    quizId: "seed-quiz-1",
+    context: "DIRECT",
   });
 
   await api.request("answer", {
@@ -125,83 +103,4 @@ test("learning never exposes answers; wrong answers and replays count once per d
   expect(
     (await api.request("learningDay", {})).completedDates,
   ).toHaveLength(1);
-});
-
-test("purchase retry deducts once, equipment requires ownership, state survives reload and is isolated", async () => {
-  const api = make();
-
-  const { balance: before } = await api.request(
-    "wallet",
-    {},
-  );
-
-  const [product] = await api.request("products", {});
-
-  const purchase = await api.request("purchase", {
-    productId: product.productId,
-    requestKey: "buy-1",
-  });
-
-  expect(
-    await api.request("purchase", {
-      productId: product.productId,
-      requestKey: "buy-1",
-    }),
-  ).toEqual(purchase);
-
-  expect((await make().request("wallet", {})).balance).toBe(
-    before - product.price,
-  );
-
-  await api.request("equip", {
-    category: product.category,
-    productId: product.productId,
-  });
-
-  expect(
-    (await make().request("inventory", {})).equipment[
-      product.category
-    ],
-  ).toBe(product.productId);
-
-  expect(
-    (await make("author").request("inventory", {}))
-      .products,
-  ).toHaveLength(0);
-});
-
-test("public desk exposes only the user and equipment, never wallet or inventory", async () => {
-  const owner = make();
-  const [product] = await owner.request("products", {});
-
-  await owner.request("purchase", {
-    productId: product.productId,
-    requestKey: "public-desk-purchase",
-  });
-
-  await owner.request("equip", {
-    category: product.category,
-    productId: product.productId,
-  });
-
-  const profile = await make("friend").request(
-    "publicProfile",
-    {
-      publicId: "bugri-learner",
-    },
-  );
-
-  expect(profile).toEqual({
-    user: {
-      userId: "learner",
-      publicId: "bugri-learner",
-      displayName: "학습자",
-    },
-    equipment: {
-      [product.category]: product.productId,
-    },
-    positions: {},
-    transforms: {},
-    order: [],
-  });
 });

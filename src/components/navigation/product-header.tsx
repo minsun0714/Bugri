@@ -3,22 +3,25 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { LanguagePicker } from "@/components/ui/language-picker";
 
-import Link from "next/link";
-import { ThemePicker } from "@/components/ui/theme-picker";
-import { PublicProfileLink } from "@/components/navigation/public-profile-link";
-import { Suspense } from "react";
-import { useEffect, useId, useRef, useState } from "react";
-import {
-  usePathname,
-  useSearchParams,
-} from "next/navigation";
 import { useDemoSession } from "@/components/navigation/demo-session";
-import { MobileNavigation } from "@/components/ui/mobile-navigation";
 import {
   getNavigationItems,
   isNavigationActive,
   withDemoUser,
 } from "@/components/navigation/routes";
+import { ThemePicker } from "@/components/ui/theme-picker";
+import Link from "next/link";
+import {
+  usePathname,
+  useSearchParams,
+} from "next/navigation";
+import {
+  Suspense,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 export function HeaderNavigation({
   pathname,
@@ -72,9 +75,12 @@ export function HeaderNavigation({
     };
   }, [profileOpen]);
 
+  const itemStyle =
+    "rounded-none px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary";
+
   return (
     <header className="relative z-20 border-b border-line bg-surface">
-      <div className="mx-auto grid max-w-[1220px] grid-cols-[1fr_auto_auto] items-center gap-x-2 gap-y-3 px-5 py-4 md:px-12 lg:flex lg:flex-wrap lg:justify-between lg:gap-3">
+      <div className="mx-auto flex max-w-[1220px] flex-wrap items-center justify-between gap-x-2 gap-y-2 px-5 py-3 sm:py-4 md:px-12">
         <Link
           href={withDemoUser("/", userId)}
           aria-label={t("Bugri 홈")}
@@ -82,143 +88,117 @@ export function HeaderNavigation({
         >
           <span
             aria-hidden="true"
-            className="grid h-8 w-8 -rotate-8 place-items-center rounded-xl bg-primary-solid font-serif text-2xl text-lime"
+            className="grid h-8 w-8 shrink-0 -rotate-8 place-items-center rounded-xl bg-primary-solid font-serif text-2xl text-lime"
           >
             b.
           </span>
-          bugri
+          <span className="hidden min-[480px]:inline">
+            bugri
+          </span>
           <span
             aria-hidden="true"
-            className="self-start text-coral"
+            className="hidden self-start text-coral min-[480px]:inline"
           >
             .
           </span>
         </Link>
-        <nav
-          aria-label={t("주 메뉴")}
-          className="hidden items-center gap-1 lg:flex"
-        >
-          {items.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
-              aria-current={
-                href === active ? "page" : undefined
-              }
-              className={`rounded-full px-5 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${href === active ? "bg-primary/10 text-primary" : "text-muted hover:bg-canvas hover:text-foreground"}`}
-            >
-              {t(label)}
-            </Link>
-          ))}
-        </nav>
-        <ThemePicker />
-        <div className="hidden lg:block">
-          <LanguagePicker />
-        </div>
-        <div className="col-span-3 row-start-2 flex flex-wrap items-center justify-end gap-2">
-          {userId && (
-            <div ref={profileRoot} className="relative">
-              <button
-                ref={profileTrigger}
-                type="button"
-                aria-label={t("내 프로필")}
-                aria-expanded={profileOpen}
-                aria-controls={profileId}
-                onClick={() =>
-                  setProfileOpen((open) => !open)
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+          <nav
+            aria-label={t("주 메뉴")}
+            className="flex items-center"
+          >
+            {items.map(({ label, href }) => (
+              <Link
+                key={href}
+                href={href}
+                aria-current={
+                  href === active ? "page" : undefined
                 }
-                className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className={`flex min-h-11 items-center whitespace-nowrap rounded-full px-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-5 ${href === active ? "bg-primary/10 text-primary" : "text-muted hover:bg-canvas hover:text-foreground"}`}
               >
-                <span
-                  aria-hidden="true"
-                  className="grid size-7 place-items-center rounded-full bg-primary-solid text-xs font-bold text-on-primary"
+                {t(label)}
+              </Link>
+            ))}
+          </nav>
+          <LanguagePicker className="w-[84px] sm:w-27 [&_[role=combobox]]:px-2! sm:[&_[role=combobox]]:px-3!" />
+          <ThemePicker />
+          <div ref={profileRoot} className="relative">
+            <button
+              ref={profileTrigger}
+              type="button"
+              aria-label={t("내 메뉴")}
+              aria-expanded={profileOpen}
+              aria-controls={profileId}
+              onClick={() =>
+                setProfileOpen((open) => !open)
+              }
+              className="flex min-h-11 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-full border border-line bg-surface px-1 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:gap-2 sm:px-2"
+            >
+              <span
+                aria-hidden="true"
+                className="grid size-7 place-items-center rounded-full bg-primary-solid text-xs font-bold text-on-primary"
+              >
+                B
+              </span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-4 shrink-0"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            {profileOpen && (
+              <nav
+                id={profileId}
+                aria-label={t("내 메뉴")}
+                className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 divide-y divide-line overflow-hidden rounded-control border border-control-line bg-surface-raised"
+              >
+                {userId && (
+                  <>
+                    <Link
+                      href={withDemoUser(
+                        "/my/learning",
+                        userId,
+                      )}
+                      onClick={() => setProfileOpen(false)}
+                      className={itemStyle}
+                    >
+                      {t("풀이 내역")}
+                    </Link>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    onSignIn?.();
+                  }}
+                  className={itemStyle}
                 >
-                  B
-                </span>
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="size-4 shrink-0"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              {profileOpen && (
-                <nav
-                  id={profileId}
-                  aria-label={t("내 프로필 메뉴")}
-                  className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 divide-y divide-line overflow-hidden rounded-control border border-control-line bg-surface-raised"
-                >
-                  <PublicProfileLink
-                    userId={userId}
-                    onNavigate={() => setProfileOpen(false)}
-                  />
-                  <Link
-                    href={withDemoUser(
-                      "/quizzes/authoring/manage",
-                      userId,
-                    )}
-                    onClick={() => setProfileOpen(false)}
-                    className="rounded-none px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
-                  >
-                    {t("내 퀴즈")}
-                  </Link>
-                  <Link
-                    href={withDemoUser(
-                      "/my/learning",
-                      userId,
-                    )}
-                    onClick={() => setProfileOpen(false)}
-                    className="rounded-none px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
-                  >
-                    {t("풀이 내역")}
-                  </Link>
-                  <Link
-                    href={withDemoUser(
-                      "/coin-history",
-                      userId,
-                    )}
-                    onClick={() => setProfileOpen(false)}
-                    className="rounded-none px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
-                  >
-                    {t("코인 내역")}
-                  </Link>
+                  {t("데모 사용자 선택")}
+                </button>
+                {userId && (
                   <button
                     type="button"
                     onClick={() => {
                       setProfileOpen(false);
                       onSignOut?.();
                     }}
-                    className="rounded-none px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                    className={itemStyle}
                   >
                     {t("데모 나가기")}
                   </button>
-                </nav>
-              )}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={onSignIn}
-            className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            {t("데모 사용자 선택")}
-          </button>
+                )}
+              </nav>
+            )}
+          </div>
         </div>
-        <MobileNavigation
-          key={`${pathname}-${userId}`}
-          sections={items.map(({ href, label }) => [
-            href,
-            label,
-          ])}
-          activePath={active ?? ""}
-          product
-        />
       </div>
     </header>
   );

@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("product header and breadcrumbs preserve identity and expose mounted routes", async ({
   page,
 }, testInfo) => {
-  await page.goto("/discover/developers?user=friend");
+  await page.goto("/notes?user=friend");
   await expect(page.getByRole("banner")).toHaveCount(1);
   await expect(
     page
@@ -15,31 +15,39 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
     exact: true,
   });
   await expect(
-    nav.getByRole("link", { name: "개발자 탐색" }),
+    nav.getByRole("link", { name: "내 노트" }),
   ).toHaveAttribute("aria-current", "page");
+  await expect(
+    nav.getByRole("link", { name: "퀴즈 만들기" }),
+  ).toHaveCount(0);
   await expect(
     page.getByText("Design workspace · 0.1"),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "내 프로필", exact: true })
+    .getByRole("button", { name: "내 메뉴", exact: true })
     .click();
+  await expect(
+    page
+      .getByRole("navigation", { name: "내 메뉴" })
+      .getByRole("link", { name: "내 퀴즈" }),
+  ).toHaveCount(0);
   await page
-    .getByRole("navigation", { name: "내 프로필 메뉴" })
-    .getByRole("link", { name: "내 퀴즈" })
+    .getByRole("navigation", { name: "내 메뉴" })
+    .getByRole("link", { name: "풀이 내역" })
     .click();
   await expect(page).toHaveURL(
-    /\/quizzes\/authoring\/manage\?user=friend$/,
+    /\/my\/learning\?user=friend$/,
   );
   await expect(
     page
       .getByRole("navigation", { name: "현재 위치" })
-      .getByText("내 퀴즈"),
+      .getByText("풀이 내역"),
   ).toHaveAttribute("aria-current", "page");
   await page.reload();
   await expect(
     page
       .getByRole("navigation", { name: "현재 위치" })
-      .getByText("내 퀴즈"),
+      .getByText("풀이 내역"),
   ).toHaveAttribute("aria-current", "page");
   await page.screenshot({
     path: testInfo.outputPath("navigation-desktop.png"),
@@ -56,88 +64,71 @@ test("product header and breadcrumbs preserve identity and expose mounted routes
   await expect(
     page
       .getByRole("navigation", { name: "현재 위치" })
-      .getByText("내 퀴즈"),
+      .getByText("풀이 내역"),
   ).toHaveAttribute("aria-current", "page");
 });
 
-test("mobile menu supports keyboard, dismissals, resize and navigation", async ({
+test("mobile header keeps the same items without a hamburger and the profile menu is keyboard-operable", async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/discover?user=author");
-  const trigger = page.getByRole("button", {
-    name: "메뉴 열기",
+  await page.goto("/my/learning?user=author");
+  const banner = page.getByRole("banner");
+  await expect(
+    banner.getByRole("button", { name: "메뉴 열기" }),
+  ).toHaveCount(0);
+  await expect(
+    banner.getByRole("link", { name: "내 노트" }),
+  ).toBeVisible();
+  await expect(
+    banner.getByRole("combobox", {
+      name: "Language / 언어",
+    }),
+  ).toBeVisible();
+  await expect(
+    banner.getByRole("button", {
+      name: "다크 모드로 전환",
+    }),
+  ).toBeVisible();
+  const trigger = banner.getByRole("button", {
+    name: "내 메뉴",
+    exact: true,
   });
-  const mobile = page.getByRole("navigation", {
-    name: "모바일 주 메뉴",
+  const menu = page.getByRole("navigation", {
+    name: "내 메뉴",
   });
   await trigger.focus();
   await page.keyboard.press("Enter");
-  await expect(mobile).toBeVisible();
-  await page.keyboard.press("Tab");
-  await expect(
-    mobile.getByRole("link", { name: "개발자 탐색" }),
-  ).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(mobile).toHaveCount(0);
-  await expect(trigger).toBeFocused();
-  await trigger.click();
-  await page
-    .getByRole("banner")
-    .click({ position: { x: 2, y: 2 } });
-  await expect(mobile).toHaveCount(0);
-  await trigger.click();
+  await expect(menu).toBeVisible();
   await page.screenshot({
     path: testInfo.outputPath("navigation-mobile.png"),
   });
-  await mobile.getByRole("link", { name: "상점" }).click();
-  await expect(page).toHaveURL(/shop\?user=author$/);
-  await expect(mobile).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
   await trigger.click();
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await expect(
-    page.getByRole("button", {
-      name: "메뉴 닫기",
-      includeHidden: true,
-    }),
-  ).toHaveCount(0);
-  await page.setViewportSize({ width: 320, height: 700 });
-  await expect(mobile).toHaveCount(0);
-  expect(
-    await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-});
-
-test("developer breadcrumbs never show IDs and link to discovery", async ({
-  page,
-}) => {
-  await page.goto(
-    "/developers/bugri-author/quizzes?user=friend",
-  );
-  const breadcrumb = page.getByRole("navigation", {
-    name: "현재 위치",
-  });
-  await expect(
-    breadcrumb.getByText("개발자별 공개 퀴즈"),
-  ).toHaveAttribute("aria-current", "page");
-  await expect(breadcrumb).not.toContainText(
-    "bugri-author",
-  );
-  await breadcrumb
-    .getByRole("link", { name: "개발자 탐색" })
+  await page.mouse.click(2, 600);
+  await expect(menu).toHaveCount(0);
+  await banner
+    .getByRole("link", { name: "내 노트" })
     .click();
-  await expect(page).toHaveURL(
-    /discover\/developers\?user=friend$/,
-  );
+  await expect(page).toHaveURL(/\/notes\?user=author$/);
+  for (const width of [390, 360, 320]) {
+    await page.setViewportSize({ width, height: 700 });
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          innerWidth,
+      ),
+    ).toBe(true);
+  }
 });
 
 test("social demo toggles guest and member navigation without OAuth", async ({
   page,
 }, testInfo) => {
-  await page.goto("/discover");
+  await page.goto("/");
   const nav = page.getByRole("navigation", {
     name: "주 메뉴",
     exact: true,
@@ -149,6 +140,7 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     path: testInfo.outputPath("header-guest.png"),
   });
   await page
+    .getByRole("main")
     .getByRole("button", { name: "데모 사용자 선택" })
     .click();
   await page
@@ -156,23 +148,22 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     .click();
   await expect(
     page.getByRole("button", {
-      name: "내 프로필",
+      name: "내 메뉴",
       exact: true,
     }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "내 프로필", exact: true })
+    .getByRole("button", { name: "내 메뉴", exact: true })
     .click();
   await page
-    .getByRole("navigation", { name: "내 프로필 메뉴" })
-    .getByRole("link", { name: "내 퀴즈" })
+    .getByRole("navigation", { name: "내 메뉴" })
+    .getByRole("link", { name: "풀이 내역" })
     .click();
-  await expect(page).toHaveURL(/manage\?user=learner$/);
-  await expect(
-    page.getByRole("heading", { name: /내 퀴즈/ }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(
+    /my\/learning\?user=learner$/,
+  );
   await page
-    .getByRole("button", { name: "내 프로필", exact: true })
+    .getByRole("button", { name: "내 메뉴", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "데모 나가기" }),
@@ -189,52 +180,3 @@ test("social demo toggles guest and member navigation without OAuth", async ({
     }),
   ).toBeVisible();
 });
-
-for (const width of [1280, 390]) {
-  test(`header opens own public profile directly at ${width}px`, async ({
-    page,
-  }, testInfo) => {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("/coin-history?user=author");
-    const trigger = page.getByRole("button", {
-      name: "내 프로필",
-      exact: true,
-    });
-    await trigger.focus();
-    await page.keyboard.press("Enter");
-    const link = page.getByRole("link", {
-      name: "공개 프로필 보기",
-      exact: true,
-    });
-    await expect(link).toHaveAttribute(
-      "href",
-      "/users/bugri-author?user=author",
-    );
-    await page.screenshot({
-      path: testInfo.outputPath("profile-menu.png"),
-    });
-    await page.keyboard.press("Escape");
-    await expect(trigger).toBeFocused();
-    await expect(link).toHaveCount(0);
-    await trigger.click();
-    await page
-      .getByRole("link", {
-        name: "공개 프로필 보기",
-        exact: true,
-      })
-      .click();
-    await expect(page).toHaveURL(
-      /\/users\/bugri-author\?user=author$/,
-    );
-    await expect(
-      page.getByRole("heading", {
-        name: "@bugri-author",
-      }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("navigation", {
-        name: "내 프로필 메뉴",
-      }),
-    ).toHaveCount(0);
-  });
-}

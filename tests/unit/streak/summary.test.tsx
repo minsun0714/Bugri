@@ -174,35 +174,6 @@ test("shows daily unique counts including zero alongside the learning dates", as
   ).toBeVisible();
 });
 
-test("public activity requests the profile owner and resets across profiles", async () => {
-  const client = new QueryClient();
-  const view = (publicId: string) => (
-    <QueryClientProvider client={client}>
-      <StreakSummary userId="learner" publicId={publicId} />
-    </QueryClientProvider>
-  );
-  const { rerender } = render(view("bugri-author"));
-  expect(await screen.findByText("2일 연속")).toBeVisible();
-  expect(
-    screen.getByRole("heading", { name: "학습 활동" }),
-  ).toBeVisible();
-  expect(request).toHaveBeenCalledWith(
-    "publicLearningDay",
-    { publicId: "bugri-author" },
-  );
-  expect(
-    screen.getByText("오늘 학습 기록 없음"),
-  ).toBeVisible();
-  request.mockImplementation(() => new Promise(() => {}));
-  rerender(view("bugri-friend"));
-  expect(
-    screen.queryByText("2일 연속"),
-  ).not.toBeInTheDocument();
-  expect(screen.getByRole("status")).toHaveTextContent(
-    "불러오는 중",
-  );
-});
-
 test("submission refresh preserves the chosen disclosure state and switching users closes it", async () => {
   const { client, rerender, view } = setup();
   const toggle = await screen.findByRole("button", {

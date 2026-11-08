@@ -1,8 +1,4 @@
-import { QuizStatus } from "@/api/constants";
-import type {
-  QuizContent,
-  ReviewQuiz,
-} from "@/api/contracts";
+import type { QuizContent } from "@/api/contracts";
 
 export const generatedContents: readonly QuizContent[] = [
   {
@@ -83,7 +79,7 @@ export const generatedContents: readonly QuizContent[] = [
   },
 ];
 
-/** The demo learner's own private practice quizzes. They back the history demo without touching the public catalog, tag counts or the unsolved learning pool. */
+/** The demo learner's CONFIRMED quizzes that back the solving-history demo. */
 export const historyDemoContents: readonly QuizContent[] = [
   {
     title: "제네릭 기본",
@@ -208,45 +204,3 @@ export const historyDemoContents: readonly QuizContent[] = [
     hashtagIds: ["javascript"],
   },
 ];
-
-const seedQuiz = (
-  content: QuizContent,
-  index: number,
-  ownerUserId: string,
-  status: QuizStatus = QuizStatus.PUBLIC,
-): ReviewQuiz => ({
-  quizId: `seed-quiz-${index + 1}`,
-  ownerUserId,
-  status,
-  version: 1,
-  active: {
-    ...content,
-    revisionId: `seed-revision-${index + 1}`,
-    sourceContent: "Mock 학습 자료",
-    reviewed: true,
-  },
-  pending: null,
-  publishedAt: "2026-01-01T00:00:00.000Z",
-  createdAt: "2026-01-01T00:00:00.000Z",
-  updatedAt: "2026-01-01T00:00:00.000Z",
-});
-
-export const quizzes: readonly ReviewQuiz[] =
-  generatedContents.map((content, index) =>
-    seedQuiz(
-      content,
-      index,
-      index < 2 ? "author" : "friend",
-    ),
-  );
-
-/** Optional demo fixtures (see applyHistoryDemo): the learner's own private quizzes, kept out of the default catalog. */
-export const historyDemoQuizzes: readonly ReviewQuiz[] =
-  historyDemoContents.map((content, index) =>
-    seedQuiz(
-      content,
-      generatedContents.length + index,
-      "learner",
-      QuizStatus.PRIVATE,
-    ),
-  );

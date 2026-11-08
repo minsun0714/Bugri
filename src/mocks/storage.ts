@@ -1,45 +1,26 @@
-import { QuizReaction } from "@/api/constants";
-import { validProfileOrder } from "@/lib/profile-order";
-import { validateProfileAbout } from "@/lib/profile-about";
-import { deskItems, validOrder } from "@/lib/desk-order";
 import {
-  migratePosition,
-  validTransform,
-} from "@/lib/desk-spatial";
-import {
-  isMovable,
-  validPosition,
-} from "@/lib/desk-layout";
-import {
-  RewardReason,
-  RewardNonPaymentReason,
+  AttemptContext,
   QuizStatus,
-  LearningMode,
-  DeskObject,
-  Category,
-  ConversationRole,
 } from "@/api/constants";
-import { users, hashtags } from "@/mocks/users";
 import {
-  historyDemoQuizzes,
-  quizzes,
-} from "@/mocks/quizzes";
-import { subscriptions } from "@/mocks/subscriptions";
-import {
-  attempts,
   historyDemoAttempts,
   learningDays,
 } from "@/mocks/learning-history";
-import { demoCoinHistory } from "@/mocks/coin-history";
+import { seedReviewPlans, seeds } from "@/mocks/seed";
+import { hashtags } from "@/mocks/users";
+import { localDate } from "@/services/learning";
+import {
+  addDays,
+  reviewIntervals,
+} from "@/services/review-schedule";
 import type { UserState } from "@/services/state";
 import {
   object,
   requireValue,
   ServiceError,
+  source,
   timeZoneValid,
   validateContent,
-  source,
-  categories,
 } from "@/services/validation";
 
 export interface StoragePort {
@@ -54,153 +35,72 @@ export function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
-/** Idempotently adds the demo history (private practice quizzes + completed attempts) to the actor's state. Never touches other users or removes records. */
-export function applyHistoryDemo(state: UserState) {
-  if (state.historyDemoVersion === 1) return;
-
-  const quizIds = new Set(
-    state.quizzes.map(({ quizId }) => quizId),
-  );
-
-  const attemptIds = new Set(
-    state.attempts.map(({ attemptId }) => attemptId),
-  );
-
-  state.quizzes.push(
-    ...clone(
-      historyDemoQuizzes.filter(
-        ({ ownerUserId, quizId }) =>
-          ownerUserId === state.userId &&
-          !quizIds.has(quizId),
-      ),
-    ).map((quiz) => ({ ...quiz, deletedAt: null })),
-  );
-
-  state.attempts.push(
-    ...clone(
-      (historyDemoAttempts[state.userId] ?? []).filter(
-        ({ attemptId }) => !attemptIds.has(attemptId),
-      ),
-    ),
-  );
-
-  state.historyDemoVersion = 1;
+export interface InitialStateOptions {
+  demoHistory?: boolean;
+  /**
+   * Creation time. With it the seed gets review schedules relative to today in `timeZone` (UTC when
+   * unknown). Without it the schedules are computed from each quiz's `confirmedAt`.
+   */
+  now?: Date;
+  timeZone?: string | null;
 }
 
-export function initialState(userId: string): UserState {
+/** The history demo adds completed Attempts on the learner's CONFIRMED seed quizzes. */
+export function initialState(
+  userId: string,
+  {
+    demoHistory = false,
+    now,
+    timeZone,
+  }: InitialStateOptions = {},
+): UserState {
+  const { notes = [], quizzes = [] } = seeds[userId] ?? {};
+
+  const today = now
+    ? localDate(now, timeZone ?? "UTC")
+    : null;
+
+  const reviewSchedules = today
+    ? (seedReviewPlans[userId] ?? []).map(
+        ({ quizId, stage, dueInDays, lastCorrect }) => ({
+          quizId,
+          stage,
+          nextReviewDate: addDays(today, dueInDays),
+          lastCorrect,
+        }),
+      )
+    : undefined;
+
   return clone({
-    schemaVersion: 1,
-    learningDemoVersion: 1,
-    coinHistoryDemoVersion: 1,
+    schemaVersion: 2,
     userId,
-    quizzes: quizzes
-      .filter((q) => q.ownerUserId === userId)
-      .map((q) => ({
-        ...q,
-        deletedAt: null,
-      })),
-    batches: [],
-    subscriptions: (subscriptions[userId] ?? []).map(
-      (target, index) => ({
-        ...target,
-        subscriptionId: `seed-subscription-${userId}-${index + 1}`,
-      }),
-    ),
-    attempts: [...attempts],
+    notes,
+    quizzes,
+    attempts: demoHistory
+      ? [...(historyDemoAttempts[userId] ?? [])]
+      : [],
     days: [...learningDays],
     timeZone: null,
-    selection: {
-      hashtagId: null,
-      mode: LearningMode.UNSOLVED,
-      quizId: null,
-    },
-    purchases: [],
-    equipment: {},
-    positions: {},
-    transforms: {},
-    order: [],
-    ledger: demoCoinHistory(userId),
+    ...(reviewSchedules ? { reviewSchedules } : {}),
   });
 }
 
-/** Reject incompatible/corrupt storage without silently overwriting the user's data. Not a security boundary. */
 function validateState(
   value: unknown,
   userId: string,
 ): asserts value is UserState {
   object(value);
 
-  if (value.quizReactions !== undefined) {
-    requireValue(
-      Array.isArray(value.quizReactions),
-      "저장된 평가가 올바르지 않습니다.",
-    );
-
-    const seen = new Set<string>();
-
-    for (const entry of value.quizReactions) {
-      object(entry);
-
-      requireValue(
-        typeof entry.quizId === "string" &&
-          entry.quizId.length > 0 &&
-          !seen.has(entry.quizId) &&
-          (entry.reaction === QuizReaction.LIKE ||
-            entry.reaction === QuizReaction.DISLIKE),
-        "저장된 평가가 올바르지 않습니다.",
-      );
-
-      seen.add(entry.quizId);
-    }
-  }
-
-  if (value.profileOrder !== undefined) {
-    object(value.profileOrder);
-
-    requireValue(
-      validProfileOrder(value.profileOrder.order),
-      "저장된 섹션 순서가 올바르지 않습니다.",
-    );
-  }
-
-  if (value.profileAbout !== undefined)
-    requireValue(
-      Object.keys(validateProfileAbout(value.profileAbout))
-        .length === 0,
-      "저장된 프로필이 올바르지 않습니다.",
-    );
-
   requireValue(
-    value.schemaVersion === 1 && value.userId === userId,
+    value.schemaVersion === 2 && value.userId === userId,
     "저장 버전/사용자가 다릅니다.",
   );
 
-  requireValue(
-    value.learningDemoVersion === undefined ||
-      value.learningDemoVersion === 1,
-    "학습 예시 데이터 버전이 호환되지 않습니다.",
-  );
-
-  requireValue(
-    value.historyDemoVersion === undefined ||
-      value.historyDemoVersion === 1,
-    "기록 데모 버전이 올바르지 않습니다.",
-  );
-
-  requireValue(
-    value.coinHistoryDemoVersion === undefined ||
-      value.coinHistoryDemoVersion === 1,
-    "코인 예시 데이터 버전이 호환되지 않습니다.",
-  );
-
   for (const key of [
+    "notes",
     "quizzes",
-    "batches",
-    "subscriptions",
     "attempts",
     "days",
-    "ledger",
-    "purchases",
   ])
     requireValue(
       Array.isArray(value[key]),
@@ -213,146 +113,27 @@ function validateState(
     "시간대가 손상되었습니다.",
   );
 
-  object(value.selection);
-  object(value.equipment);
+  const { notes, quizzes, attempts, days } =
+    value as unknown as UserState;
 
-  const { selection, equipment } = value;
+  for (const n of notes as unknown[]) {
+    object(n);
 
-  if (value.order === undefined) value.order = [];
-
-  requireValue(
-    validOrder(value.order, deskItems(equipment)),
-    "겹침 순서가 손상되었습니다.",
-  );
-
-  // Additive v1 migration: existing purchases/equipment are never reset.
-  if (value.positions === undefined) value.positions = {};
-
-  object(value.positions);
-
-  for (const [category, position] of Object.entries(
-    value.positions,
-  )) {
     requireValue(
-      isMovable(category) &&
-        validPosition(category, position) &&
-        typeof equipment[category] === "string",
-      "배치 정보가 손상되었습니다.",
+      typeof n.noteId === "string" &&
+        Number.isInteger(n.version) &&
+        Number(n.version) > 0 &&
+        typeof n.createdAt === "string" &&
+        typeof n.updatedAt === "string" &&
+        (n.deletedAt === null ||
+          typeof n.deletedAt === "string"),
+      "메모가 손상되었습니다.",
     );
+
+    source(n.content, "content");
   }
 
-  if (value.transforms === undefined) {
-    value.transforms = Object.fromEntries(
-      Object.entries(value.positions).map(
-        ([category, position]) => [
-          category,
-          migratePosition(
-            category as import("@/lib/desk-layout").MovableCategory,
-            position as import("@/api/contracts").DeskPosition,
-          ),
-        ],
-      ),
-    );
-  }
-
-  object(value.transforms);
-
-  for (const [category, transform] of Object.entries(
-    value.transforms,
-  )) {
-    requireValue(
-      (category === DeskObject.BUGRI &&
-        validTransform(category, transform)) ||
-        (isMovable(category) &&
-          validTransform(category, transform) &&
-          (category === Category.DESK ||
-            typeof equipment[category] === "string")),
-      "3D 배치 정보가 손상되었습니다.",
-    );
-  }
-
-  requireValue(
-    selection.mode === LearningMode.UNSOLVED ||
-      selection.mode === LearningMode.REPLAY,
-    "학습 모드가 손상되었습니다.",
-  );
-
-  requireValue(
-    selection.hashtagId === null ||
-      hashtags.some((t) => t.id === selection.hashtagId),
-    "선택 태그가 손상되었습니다.",
-  );
-
-  requireValue(
-    selection.quizId === null ||
-      typeof selection.quizId === "string",
-    "학습 선택이 손상되었습니다.",
-  );
-
-  for (const [key, id] of Object.entries(equipment))
-    requireValue(
-      categories.includes(key as never) &&
-        typeof id === "string",
-      "장착 정보가 손상되었습니다.",
-    );
-
-  const {
-    quizzes,
-    batches,
-    subscriptions,
-    attempts,
-    days,
-    ledger,
-    purchases,
-  } = value as unknown as UserState;
-
-  const { authoringConversation } = value;
-
-  if (authoringConversation !== undefined) {
-    object(authoringConversation);
-
-    const { version, messages, draft, latestBatchId } =
-      authoringConversation;
-
-    requireValue(
-      Number.isInteger(version) &&
-        Number(version) >= 0 &&
-        Array.isArray(messages) &&
-        messages.length % 2 === 0,
-      "대화 기록이 손상되었습니다.",
-    );
-
-    requireValue(
-      typeof draft === "string" &&
-        [...draft].length <= 10000,
-      "대화 입력이 손상되었습니다.",
-    );
-
-    requireValue(
-      latestBatchId === null ||
-        batches.some(
-          ({ batchId }) => batchId === latestBatchId,
-        ),
-      "생성 결과 연결이 손상되었습니다.",
-    );
-
-    for (const [index, message] of (
-      messages as unknown[]
-    ).entries()) {
-      object(message);
-
-      requireValue(
-        typeof message.messageId === "string" &&
-          message.role ===
-            (index % 2 === 0
-              ? ConversationRole.USER
-              : ConversationRole.ASSISTANT),
-        "대화 메시지가 손상되었습니다.",
-      );
-
-      source(message.content);
-    }
-  }
+  const tagIds = hashtags.map(({ id }) => id);
 
   const revision = (
     r: UserState["attempts"][number]["revision"],
@@ -360,29 +141,16 @@ function validateState(
   ) => {
     object(r);
 
-    const {
-      revisionId,
-      sourceContent,
-      reviewed,
-      followUpPrompt,
-      ...content
-    } = r;
+    const { revisionId, sourceContent, ...content } = r;
 
     requireValue(
-      typeof revisionId === "string" &&
-        typeof reviewed === "boolean" &&
-        (followUpPrompt === undefined ||
-          typeof followUpPrompt === "string"),
+      typeof revisionId === "string",
       "버전이 손상되었습니다.",
     );
 
     source(sourceContent);
 
-    validateContent(
-      content,
-      hashtags.map(({ id }) => id),
-      partialHistory,
-    );
+    validateContent(content, tagIds, partialHistory);
   };
 
   for (const q of quizzes) {
@@ -391,107 +159,44 @@ function validateState(
     requireValue(
       q.ownerUserId === userId &&
         typeof q.quizId === "string" &&
+        notes.some(({ noteId }) => noteId === q.noteId) &&
         Number.isInteger(q.version) &&
         q.version > 0 &&
         Object.values(QuizStatus).includes(q.status) &&
+        typeof q.createdAt === "string" &&
+        Number.isFinite(Date.parse(q.createdAt)) &&
         typeof q.updatedAt === "string" &&
-        (q.createdAt === undefined ||
-          (typeof q.createdAt === "string" &&
-            Number.isFinite(Date.parse(q.createdAt)))) &&
-        (q.publishedAt === undefined ||
-          (typeof q.publishedAt === "string" &&
-            Number.isFinite(Date.parse(q.publishedAt)))) &&
         (q.deletedAt === null ||
           typeof q.deletedAt === "string"),
       "퀴즈가 손상되었습니다.",
     );
 
     requireValue(
-      q.status === QuizStatus.PENDING
-        ? q.active === null && q.pending !== null
-        : q.active !== null,
-      "활성 버전이 손상되었습니다.",
+      q.status === QuizStatus.CONFIRMED
+        ? typeof q.confirmedAt === "string" &&
+            Number.isFinite(Date.parse(q.confirmedAt))
+        : q.confirmedAt === null,
+      "확인 시각이 손상되었습니다.",
     );
 
-    if (q.active) revision(q.active);
-
-    if (q.pending) revision(q.pending);
-  }
-
-  for (const b of batches) {
-    object(b);
-    source(b.sourceContent);
+    revision(q.revision);
 
     requireValue(
-      typeof b.batchId === "string" &&
-        Array.isArray(b.candidates) &&
-        b.candidates.length <= 5,
-      "생성 묶음이 손상되었습니다.",
+      Array.isArray(q.history),
+      "추가 요청 기록이 손상되었습니다.",
     );
 
-    for (const c of b.candidates) {
-      object(c);
+    for (const turn of q.history as unknown[]) {
+      object(turn);
 
       requireValue(
-        typeof c.candidateId === "string" &&
-          (c.savedQuizId === null ||
-            quizzes.some(
-              (q) => q.quizId === c.savedQuizId,
-            )),
-        "저장 후보가 손상되었습니다.",
+        typeof turn.prompt === "string" &&
+          turn.prompt.trim().length > 0,
+        "추가 요청이 손상되었습니다.",
       );
 
-      validateContent(
-        c.content,
-        hashtags.map(({ id }) => id),
-      );
-
-      if (c.history !== undefined) {
-        requireValue(
-          Array.isArray(c.history),
-          "추가 요청 기록이 손상되었습니다.",
-        );
-
-        for (const item of c.history as unknown[]) {
-          object(item);
-
-          requireValue(
-            typeof item.prompt === "string" &&
-              item.prompt.trim().length > 0,
-            "추가 요청이 손상되었습니다.",
-          );
-
-          validateContent(
-            item.content,
-            hashtags.map(({ id }) => id),
-          );
-        }
-      }
+      validateContent(turn.content, tagIds);
     }
-  }
-
-  for (const sub of subscriptions) {
-    object(sub);
-
-    requireValue(
-      typeof sub.subscriptionId === "string" &&
-        ["PERSON", "HASHTAG", "PERSON_HASHTAG"].includes(
-          sub.type,
-        ),
-      "구독이 손상되었습니다.",
-    );
-
-    if (sub.type !== "HASHTAG")
-      requireValue(
-        users.some((u) => u.userId === sub.authorUserId),
-        "구독 사용자가 손상되었습니다.",
-      );
-
-    if (sub.type !== "PERSON")
-      requireValue(
-        hashtags.some((t) => t.id === sub.hashtagId),
-        "구독 태그가 손상되었습니다.",
-      );
   }
 
   for (const a of attempts) {
@@ -507,51 +212,40 @@ function validateState(
       "풀이가 손상되었습니다.",
     );
 
-    const { rewardOutcome } = a;
-
-    if (rewardOutcome !== undefined) {
-      object(rewardOutcome);
-
-      const {
-        reasonCodes,
-        eligibleAt,
-        learningDate,
-        timeZone,
-      } = rewardOutcome;
-
-      requireValue(
-        a.completedAt !== null &&
-          Array.isArray(reasonCodes) &&
-          reasonCodes.every((code) =>
-            Object.values(RewardNonPaymentReason).some(
-              (reason) => reason === code,
-            ),
-          ) &&
-          new Set(reasonCodes).size ===
-            reasonCodes.length &&
-          typeof learningDate === "string" &&
-          /^\d{4}-\d{2}-\d{2}$/.test(learningDate) &&
-          learningDate === a.learningDate &&
-          timeZoneValid(timeZone) &&
-          timeZone === a.timeZone &&
-          (eligibleAt === undefined ||
-            (typeof eligibleAt === "string" &&
-              Number.isFinite(Date.parse(eligibleAt)))),
-        "보상 판정 기록이 손상되었습니다.",
-      );
-
-      requireValue(
-        reasonCodes.some(
-          (code) =>
-            code === RewardNonPaymentReason.OWNER_WAIT ||
-            code === RewardNonPaymentReason.REVIEW_WAIT,
-        ) ===
-          (eligibleAt !== undefined),
-        "보상 대기 시각이 손상되었습니다.",
-      );
-    }
-
     revision(a.revision, !!a.completedAt);
+  }
+
+  const { reviewSchedules } = value as unknown as UserState;
+
+  requireValue(
+    reviewSchedules === undefined ||
+      Array.isArray(reviewSchedules),
+    "복습 일정이 손상되었습니다.",
+  );
+
+  for (const entry of (reviewSchedules ??
+    []) as unknown[]) {
+    object(entry);
+
+    requireValue(
+      typeof entry.quizId === "string" &&
+        Number.isInteger(entry.stage) &&
+        Number(entry.stage) >= 0 &&
+        Number(entry.stage) < reviewIntervals.length &&
+        typeof entry.nextReviewDate === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(entry.nextReviewDate) &&
+        (entry.lastCorrect === null ||
+          typeof entry.lastCorrect === "boolean"),
+      "복습 일정이 손상되었습니다.",
+    );
+  }
+
+  for (const a of attempts) {
+    requireValue(
+      a.context === undefined ||
+        Object.values(AttemptContext).includes(a.context),
+      "풀이 경로가 손상되었습니다.",
+    );
   }
 
   for (const d of days) {
@@ -565,78 +259,12 @@ function validateState(
       "학습일이 손상되었습니다.",
     );
   }
-
-  if (value.rewards !== undefined) {
-    requireValue(
-      Array.isArray(value.rewards),
-      "보상 기록이 손상되었습니다.",
-    );
-
-    const ids = new Set<string>();
-
-    for (const entry of value.rewards) {
-      object(entry);
-
-      requireValue(
-        typeof entry.id === "string" &&
-          !ids.has(entry.id) &&
-          entry.solverUserId === userId &&
-          users.some(
-            (user) => user.userId === entry.userId,
-          ) &&
-          typeof entry.quizId === "string" &&
-          typeof entry.attemptId === "string" &&
-          Object.values(RewardReason).some(
-            (reason) => reason === entry.reason,
-          ) &&
-          typeof entry.amountBugCent === "number" &&
-          Number.isSafeInteger(entry.amountBugCent) &&
-          entry.amountBugCent > 0 &&
-          typeof entry.createdAt === "string" &&
-          Number.isFinite(Date.parse(entry.createdAt)) &&
-          typeof entry.learningDate === "string" &&
-          /^\d{4}-\d{2}-\d{2}$/.test(entry.learningDate) &&
-          timeZoneValid(entry.timeZone),
-        "보상 기록이 손상되었습니다.",
-      );
-
-      ids.add(entry.id);
-    }
-  }
-
-  for (const l of ledger) {
-    object(l);
-
-    requireValue(
-      Number.isSafeInteger(l.amount) &&
-        typeof l.id === "string" &&
-        typeof l.reference === "string" &&
-        typeof l.createdAt === "string" &&
-        ["SEED", "DAILY_COMPLETION", "PURCHASE"].includes(
-          l.reason,
-        ),
-      "원장이 손상되었습니다.",
-    );
-  }
-
-  for (const p of purchases) {
-    object(p);
-
-    requireValue(
-      typeof p.purchaseId === "string" &&
-        typeof p.productId === "string" &&
-        typeof p.requestKey === "string" &&
-        Number.isSafeInteger(p.price) &&
-        p.price > 0 &&
-        typeof p.purchasedAt === "string",
-      "구매가 손상되었습니다.",
-    );
-  }
 }
 
 export function readState(
   storage: StoragePort,
   userId: string,
+  options: InitialStateOptions = {},
 ): UserState {
   let raw: string | null;
 
@@ -650,21 +278,46 @@ export function readState(
     );
   }
 
-  if (raw === null) return initialState(userId);
+  if (raw === null) return initialState(userId, options);
+
+  let state: unknown;
 
   try {
-    const state: unknown = JSON.parse(raw);
+    state = JSON.parse(raw);
+  } catch {
+    throw corrupt();
+  }
 
+  // Demo prototype decision: data from another schemaVersion is discarded, not migrated.
+  if (
+    state !== null &&
+    typeof state === "object" &&
+    "schemaVersion" in state &&
+    typeof state.schemaVersion === "number" &&
+    state.schemaVersion !== 2
+  ) {
+    const fresh = initialState(userId, options);
+
+    writeState(storage, fresh);
+
+    return fresh;
+  }
+
+  try {
     validateState(state, userId);
 
     return state;
   } catch {
-    throw new ServiceError(
-      "STORAGE_CORRUPT",
-      "저장 데이터가 손상되었거나 호환되지 않습니다. 복구 또는 명시적 초기화가 필요합니다.",
-      409,
-    );
+    throw corrupt();
   }
+}
+
+function corrupt() {
+  return new ServiceError(
+    "STORAGE_CORRUPT",
+    "저장 데이터가 손상되었거나 호환되지 않습니다. 복구 또는 명시적 초기화가 필요합니다.",
+    409,
+  );
 }
 
 export function writeState(

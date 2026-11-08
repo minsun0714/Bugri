@@ -10,30 +10,13 @@ test("browser language, explicit choice, persistence, and untouched quiz content
     viewport: { width: 1280, height: 900 },
   });
   const page = await context.newPage();
-  await page.goto("/");
+  await page.goto("/solve?user=author&quiz=seed-quiz-1");
   await expect(page.locator("html")).toHaveAttribute(
     "lang",
     "en",
   );
   await expect(
-    page.getByRole("heading", {
-      name: "Ready to try a question?",
-    }),
-  ).toBeVisible();
-  await expect(
     page.getByRole("button", { name: "Submit answer" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("group", { name: "Quiz rating" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Like", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", {
-      name: "Dislike",
-      exact: true,
-    }),
   ).toBeVisible();
   const question = await page.locator("main").innerText();
   expect(question).toMatch(/[가-힣]/);
@@ -44,9 +27,7 @@ test("browser language, explicit choice, persistence, and untouched quiz content
     .getByRole("option", { name: "한국어", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", {
-      name: "한 문제, 직접 풀어볼까요?",
-    }),
+    page.getByRole("button", { name: "답 제출" }),
   ).toBeVisible();
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute(
@@ -56,10 +37,10 @@ test("browser language, explicit choice, persistence, and untouched quiz content
   await context.close();
 });
 
-test("language switching preserves author input, path and editor tab", async ({
+test("language switching preserves memo input and path", async ({
   page,
 }) => {
-  await page.goto("/quizzes/authoring?user=author");
+  await page.goto("/?user=author");
   const input = page.getByRole("textbox").first();
   const content =
     "中文学习内容 — 한국어 English\n```js\nconst x = 1;\n```";
@@ -75,7 +56,7 @@ test("language switching preserves author input, path and editor tab", async ({
   expect(page.url()).toBe(before);
   await expect(
     page.getByRole("button", {
-      name: "Create quiz",
+      name: "Save note",
       exact: true,
     }),
   ).toBeVisible();
@@ -88,14 +69,11 @@ test("language switching preserves author input, path and editor tab", async ({
   await expect(input).toHaveValue(content);
 });
 
-test("mobile menu offers keyboard-operable language selection without overflow", async ({
+test("header language selection is keyboard-operable on mobile without overflow", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/");
-  await page
-    .getByRole("button", { name: "메뉴 열기", exact: true })
-    .click();
   const picker = page.getByRole("combobox", {
     name: "Language / 언어",
   });
@@ -109,9 +87,9 @@ test("mobile menu offers keyboard-operable language selection without overflow",
   );
   await expect(picker).toBeFocused();
   await expect(
-    page.getByRole("navigation", {
-      name: "Mobile main navigation",
-    }),
+    page
+      .getByRole("banner")
+      .getByRole("link", { name: "My notes" }),
   ).toBeVisible();
   expect(
     await page.evaluate(
@@ -133,7 +111,7 @@ test("blocked storage still allows switching language", async ({
       throw new DOMException("Blocked", "SecurityError");
     };
   });
-  await page.goto("/");
+  await page.goto("/notes?user=learner");
   await page
     .getByRole("combobox", { name: "Language / 언어" })
     .click();
@@ -145,8 +123,8 @@ test("blocked storage still allows switching language", async ({
     "en",
   );
   await expect(
-    page.getByRole("heading", {
-      name: "Ready to try a question?",
-    }),
+    page
+      .getByRole("banner")
+      .getByRole("link", { name: "My notes" }),
   ).toBeVisible();
 });

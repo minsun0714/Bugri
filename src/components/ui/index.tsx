@@ -566,10 +566,13 @@ export function Modal({
 export function Toast({
   placement = "floating",
   message,
+  action,
   onClose,
 }: {
   message: UiMessage;
   placement?: "floating" | "inline";
+  /** Optional follow-up link or button shown after the message. */
+  action?: ReactNode;
   onClose: () => void;
 }) {
   const t = useTranslation();
@@ -585,6 +588,7 @@ export function Toast({
     >
       <span aria-hidden="true">✓</span>
       {t(message)}
+      {action}
       <button
         type="button"
         aria-label={t("알림 닫기")}
@@ -625,15 +629,6 @@ export function Choice({
       />
       <span>{label}</span>
     </label>
-  );
-}
-
-export function Coin({ amount }: { amount: number }) {
-  return (
-    <span className={styles["ui-coin"]}>
-      <span aria-hidden="true">B</span>
-      {amount.toLocaleString()} <small>BugCoin</small>
-    </span>
   );
 }
 

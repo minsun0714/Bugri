@@ -1,56 +1,8 @@
-import { QuizStatus } from "@/api/constants";
-import type {
-  LearningQuizView,
-  Question,
-  Subscription,
-} from "@/api/contracts";
-import type {
-  StoredAttempt,
-  StoredQuiz,
-} from "@/services/state";
+import type { Question } from "@/api/contracts";
+import type { StoredAttempt } from "@/services/state";
 
 export function questionKey(question: Question): string {
   return JSON.stringify(question);
-}
-
-export function publicView({
-  quizId,
-  ownerUserId,
-  active,
-}: StoredQuiz): LearningQuizView {
-  const { revisionId, title, question, hashtagIds } =
-    active!;
-
-  return {
-    quizId,
-    ownerUserId,
-    revisionId,
-    title,
-    question,
-    hashtagIds,
-  };
-}
-
-export function candidates(
-  quizzes: StoredQuiz[],
-  subscriptions: Subscription[],
-  hashtagId?: string | null,
-): StoredQuiz[] {
-  return quizzes.filter(
-    ({ deletedAt, status, active, ownerUserId }) =>
-      !deletedAt &&
-      status === QuizStatus.PUBLIC &&
-      active &&
-      (!hashtagId ||
-        active.hashtagIds.includes(hashtagId)) &&
-      subscriptions.some(
-        (s) =>
-          (s.type === "HASHTAG" ||
-            s.authorUserId === ownerUserId) &&
-          (s.type === "PERSON" ||
-            active.hashtagIds.includes(s.hashtagId)),
-      ),
-  );
 }
 
 export function localDate(

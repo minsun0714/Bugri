@@ -16,7 +16,6 @@ import {
   Card,
   Checkbox,
   Choice,
-  Coin,
   EmptyState,
   Modal,
   Pagination,
@@ -38,7 +37,7 @@ const sections = [
   ["inputs", "입력과 폼"],
   ["cards", "콘텐츠 카드"],
   ["feedback", "피드백과 상태"],
-  ["patterns", "학습과 데스크"],
+  ["patterns", "학습"],
 ];
 
 function Section({
@@ -90,7 +89,6 @@ export default function DesignShowcase() {
   const [tab, setTab] = useState("내 퀴즈");
   const [choice, setChoice] = useState("");
   const [page, setPage] = useState(1);
-  const [subscribed, setSubscribed] = useState(false);
 
   return (
     <div className="min-h-screen">
@@ -214,8 +212,7 @@ export default function DesignShowcase() {
                   }
                 >
                   <Badge tone="warning">PENDING</Badge>
-                  <Badge>PRIVATE</Badge>
-                  <Badge tone="success">PUBLIC</Badge>
+                  <Badge tone="success">CONFIRMED</Badge>
                   <Badge tone="danger">이용 불가</Badge>
                 </div>
               </Sample>
@@ -273,7 +270,7 @@ export default function DesignShowcase() {
             <div className={styles["grid-three"]}>
               <Card>
                 <div className={styles["card-top"]}>
-                  <Badge tone="success">PUBLIC</Badge>
+                  <Badge tone="success">CONFIRMED</Badge>
                   <span className={styles["tiny"]}>
                     QUIZ · 01
                   </span>
@@ -292,67 +289,6 @@ export default function DesignShowcase() {
                   </span>
                 </div>
               </Card>
-              <Card>
-                <div className={styles["card-top"]}>
-                  <Avatar name="지우" size="lg" />
-                  <span className="text-xs text-muted">
-                    @jiwoo
-                  </span>
-                </div>
-                <h3 className={styles["content-title"]}>
-                  지우
-                </h3>
-                <div className={styles["row"]}>
-                  <Tag># React</Tag>
-                  <Tag># TypeScript</Tag>
-                </div>
-                <div className={styles["card-footer"]}>
-                  <span className={styles["tiny"]}>
-                    프론트엔드
-                  </span>
-                  <Button
-                    size="sm"
-                    variant={
-                      subscribed ? "secondary" : "primary"
-                    }
-                    onClick={() =>
-                      setSubscribed(!subscribed)
-                    }
-                  >
-                    {subscribed
-                      ? "구독 중 ✓"
-                      : "+ 구독하기"}
-                  </Button>
-                </div>
-              </Card>
-              <Card>
-                <div
-                  className={styles["product-art"]}
-                  aria-label="책상 화분 예시"
-                  role="img"
-                >
-                  <div className={styles["plant"]}>
-                    <span />
-                    <span />
-                    <span />
-                    <i />
-                  </div>
-                  <Badge tone="warning">데스크 소품</Badge>
-                </div>
-                <h3 className={styles["product-title"]}>
-                  테이블 화분
-                </h3>
-                <div className={styles["card-footer"]}>
-                  <Coin amount={120} />
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setModal(true)}
-                  >
-                    구매하기
-                  </Button>
-                </div>
-              </Card>
             </div>
           </Section>
           <Section
@@ -365,10 +301,10 @@ export default function DesignShowcase() {
                 <div className={styles["stack"]}>
                   <Alert title="퀴즈 저장 완료" />
                   <Alert
-                    title="BugCoin이 부족해요"
+                    title="퀴즈를 저장하지 못했어요"
                     tone="warning"
                   >
-                    잔액을 확인한 뒤 다시 시도해주세요.
+                    잠시 후 다시 시도해주세요.
                   </Alert>
                   <Alert
                     title="퀴즈를 불러올 수 없어요"
@@ -380,22 +316,8 @@ export default function DesignShowcase() {
               </Sample>
               <Sample title="빈 상태">
                 <EmptyState
-                  title="구독한 퀴즈가 없어요"
-                  description="관심 있는 개발자나 해시태그를 구독해보세요."
-                  action={
-                    <Button
-                      variant="secondary"
-                      onClick={() =>
-                        document
-                          .getElementById("cards")
-                          ?.scrollIntoView({
-                            behavior: "smooth",
-                          })
-                      }
-                    >
-                      개발자 둘러보기 →
-                    </Button>
-                  }
+                  title="아직 퀴즈가 없어요"
+                  description="학습 내용을 입력해 첫 퀴즈를 만들어보세요."
                 />
               </Sample>
               <Sample title="불러오기 · 진행률">
@@ -429,11 +351,7 @@ export default function DesignShowcase() {
               </Sample>
             </div>
           </Section>
-          <Section
-            id="patterns"
-            number="06"
-            title="학습과 데스크"
-          >
+          <Section id="patterns" number="06" title="학습">
             <div className={styles["grid-two"]}>
               <Sample title="코드 · 선택지">
                 <CodeBlock
@@ -465,11 +383,7 @@ export default function DesignShowcase() {
               <div className={styles["stack"]}>
                 <Card>
                   <Tabs
-                    items={[
-                      "내 퀴즈",
-                      "풀이 기록",
-                      "보관함",
-                    ]}
+                    items={["내 퀴즈", "풀이 기록"]}
                     value={tab}
                     onChange={setTab}
                   >
@@ -477,16 +391,12 @@ export default function DesignShowcase() {
                       <span>
                         {tab === "내 퀴즈"
                           ? "객체 복사와 참조 비교"
-                          : tab === "풀이 기록"
-                            ? "배열 메서드 map"
-                            : "테이블 화분"}
+                          : "배열 메서드 map"}
                       </span>
                       <Badge>
                         {tab === "내 퀴즈"
-                          ? "PRIVATE"
-                          : tab === "풀이 기록"
-                            ? "풀이 완료"
-                            : "보유 중"}
+                          ? "CONFIRMED"
+                          : "풀이 완료"}
                       </Badge>
                     </div>
                   </Tabs>
@@ -498,7 +408,7 @@ export default function DesignShowcase() {
                     />
                   </div>
                 </Card>
-                <Card className={styles["desk-card"]}>
+                <Card className={styles["today-card"]}>
                   <div>
                     <h3>오늘 학습 완료</h3>
                     <div
@@ -509,20 +419,10 @@ export default function DesignShowcase() {
                       }
                     >
                       <Badge tone="success">✓ 완료</Badge>
-                      <Coin amount={340} />
                     </div>
                   </div>
                   <Bugri small />
                 </Card>
-                <Sample title="프로필 · 보관함">
-                  <div className={styles["row"]}>
-                    <Avatar name="민선" size="sm" />
-                    <Avatar name="지우" />
-                    <Avatar name="버그리" size="lg" />
-                    <Badge tone="success">장착 중</Badge>
-                    <Badge>보유 중</Badge>
-                  </div>
-                </Sample>
               </div>
             </div>
           </Section>
@@ -542,8 +442,8 @@ export default function DesignShowcase() {
         title="선택을 확인해주세요"
       >
         <p>
-          공통 확인 모달의 미리보기예요. 확인을 눌러도
-          퀴즈나 보관함 데이터는 변경되지 않아요.
+          공통 확인 모달의 미리보기예요. 확인을 눌러도 퀴즈
+          데이터는 변경되지 않아요.
         </p>
         <div
           className={

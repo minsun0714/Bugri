@@ -33,10 +33,10 @@ test("initial query failure stays local and retry resets Query and the boundary"
   const request = jest
     .fn()
     .mockRejectedValueOnce(failure)
-    .mockResolvedValue("복구된 데스크");
+    .mockResolvedValue("복구된 영역");
   function Content() {
     const query = useQuery<string>({
-      queryKey: ["desk"],
+      queryKey: ["preview"],
       queryFn: request,
       throwOnError: shouldThrowQueryError,
     });
@@ -44,17 +44,19 @@ test("initial query failure stays local and retry resets Query and the boundary"
   }
   render(
     <QueryClientProvider client={createQueryClient()}>
-      <h1>프로필</h1>
-      <QueryBoundary title="공개 데스크를 불러오지 못했습니다">
+      <h1>미리보기</h1>
+      <QueryBoundary title="미리보기 영역을 불러오지 못했습니다">
         <Content />
       </QueryBoundary>
     </QueryClientProvider>,
   );
   expect(
     await screen.findByRole("alert"),
-  ).toHaveTextContent("공개 데스크를 불러오지 못했습니다");
+  ).toHaveTextContent(
+    "미리보기 영역을 불러오지 못했습니다",
+  );
   expect(
-    screen.getByRole("heading", { name: "프로필" }),
+    screen.getByRole("heading", { name: "미리보기" }),
   ).toBeVisible();
   expect(
     screen.queryByText(/private/),
@@ -64,7 +66,7 @@ test("initial query failure stays local and retry resets Query and the boundary"
     screen.getByRole("button", { name: "다시 시도" }),
   );
   expect(
-    await screen.findByText("복구된 데스크"),
+    await screen.findByText("복구된 영역"),
   ).toBeVisible();
   expect(request).toHaveBeenCalledTimes(2);
 });
@@ -82,7 +84,7 @@ test("expected 404 and background refresh errors do not replace content with a b
   ).toBe(false);
   expect(
     shouldThrowQueryError(failure, {
-      state: { data: { desk: true } },
+      state: { data: { preview: true } },
     }),
   ).toBe(false);
   expect(getErrorMessage(missing)).toBe(

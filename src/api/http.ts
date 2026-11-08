@@ -14,143 +14,67 @@ interface Endpoint {
 }
 
 export const endpoints: Record<Operation, Endpoint> = {
-  guestQuiz: { method: "GET", path: "/guest/quiz" },
-  guestAnswer: { method: "POST", path: "/guest/answer" },
-  authoringConversation: {
-    method: "GET",
-    path: "/authoring/conversation",
-  },
-  sendAuthoringMessage: {
-    method: "POST",
-    path: "/authoring/conversation/messages",
-  },
-  generateFromConversation: {
-    method: "POST",
-    path: "/authoring/conversation/generate",
-  },
   generate: {
     method: "POST",
-    path: "/quizzes/generate",
+    path: "/notes/{id}/quizzes/generate",
+    pathKey: "noteId",
   },
-  generationBatch: {
+  notes: { method: "GET", path: "/notes" },
+  noteTags: { method: "GET", path: "/notes/tags" },
+  note: {
     method: "GET",
-    path: "/generation-batches/{id}",
-    pathKey: "batchId",
+    path: "/notes/{id}",
+    pathKey: "noteId",
   },
-  publishCandidate: {
-    method: "POST",
-    path: "/generation-batches/{id}/publish",
-    pathKey: "batchId",
+  createNote: { method: "POST", path: "/notes" },
+  updateNote: {
+    method: "PUT",
+    path: "/notes/{id}",
+    pathKey: "noteId",
   },
-  editCandidate: {
-    method: "POST",
-    path: "/generation-batches/{id}/edit",
-    pathKey: "batchId",
-  },
-  refineCandidate: {
-    method: "POST",
-    path: "/generation-batches/{id}/refine",
-    pathKey: "batchId",
-  },
-  deleteCandidate: {
+  deleteNote: {
     method: "DELETE",
-    path: "/generation-batches/{id}/candidates",
-    pathKey: "batchId",
+    path: "/notes/{id}",
+    pathKey: "noteId",
   },
-  saveBatch: {
-    method: "POST",
-    path: "/generation-batches/{id}/save",
-    pathKey: "batchId",
-  },
-  quizzes: {
+  noteQuizzes: {
     method: "GET",
-    path: "/quizzes",
+    path: "/notes/{id}/quizzes",
+    pathKey: "noteId",
   },
   reviewQuiz: {
     method: "GET",
     path: "/quizzes/{id}/review",
     pathKey: "quizId",
   },
-  updatePending: {
+  updateQuiz: {
     method: "PUT",
-    path: "/quizzes/{id}/pending",
+    path: "/quizzes/{id}",
     pathKey: "quizId",
   },
-  regenerate: {
+  refineQuiz: {
     method: "POST",
-    path: "/quizzes/{id}/regenerate",
+    path: "/quizzes/{id}/refine",
     pathKey: "quizId",
   },
-  approve: {
+  confirmQuiz: {
     method: "POST",
-    path: "/quizzes/{id}/approve",
+    path: "/quizzes/{id}/confirm",
     pathKey: "quizId",
   },
-  visibility: {
-    method: "PATCH",
-    path: "/quizzes/{id}/visibility",
-    pathKey: "quizId",
+  confirmNoteQuizzes: {
+    method: "POST",
+    path: "/notes/{id}/quizzes/confirm",
+    pathKey: "noteId",
   },
   deleteQuiz: {
     method: "DELETE",
     path: "/quizzes/{id}",
     pathKey: "quizId",
   },
-  subscriptions: {
+  hashtags: {
     method: "GET",
-    path: "/subscriptions",
-  },
-  subscribe: {
-    method: "POST",
-    path: "/subscriptions",
-  },
-  unsubscribe: {
-    method: "DELETE",
-    path: "/subscriptions",
-  },
-  tagQuizzes: {
-    method: "GET",
-    path: "/tags/{id}/quizzes",
-    pathKey: "hashtagId",
-  },
-  developerQuizzes: {
-    method: "GET",
-    path: "/developers/{id}/quizzes",
-    pathKey: "publicId",
-  },
-  developerTags: {
-    method: "GET",
-    path: "/developers/{id}/tags",
-    pathKey: "publicId",
-  },
-  searchDiscovery: {
-    method: "GET",
-    path: "/discover/search",
-  },
-  discoverUsers: {
-    method: "GET",
-    path: "/discover/users",
-  },
-  discoverHashtags: {
-    method: "GET",
-    path: "/discover/hashtags",
-  },
-  learningTags: {
-    method: "GET",
-    path: "/learning/tags",
-  },
-  learningQuiz: {
-    method: "GET",
-    path: "/learning/quiz",
-  },
-  learningNext: {
-    method: "POST",
-    path: "/learning/next",
-  },
-  publicLearningDay: {
-    method: "GET",
-    path: "/users/{id}/learning-day",
-    pathKey: "publicId",
+    path: "/hashtags",
   },
   learningDay: {
     method: "GET",
@@ -160,21 +84,8 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "GET",
     path: "/me/learning-timezone",
   },
-  updateTimezone: {
-    method: "PATCH",
-    path: "/me/learning-timezone",
-  },
-  quizReaction: {
-    method: "GET",
-    path: "/quizzes/{id}/reaction",
-    pathKey: "quizId",
-  },
-  updateQuizReaction: {
-    method: "PUT",
-    path: "/quizzes/{id}/reaction",
-    pathKey: "quizId",
-  },
   attemptHistory: { method: "GET", path: "/me/attempts" },
+  todayReview: { method: "GET", path: "/me/today-review" },
   startAttempt: {
     method: "POST",
     path: "/quizzes/{id}/attempts",
@@ -189,69 +100,6 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "POST",
     path: "/attempts/{id}/answer",
     pathKey: "attemptId",
-  },
-  products: {
-    method: "GET",
-    path: "/shop/products",
-  },
-  wallet: {
-    method: "GET",
-    path: "/me/bugcoin",
-  },
-  purchase: {
-    method: "POST",
-    path: "/shop/purchases",
-  },
-  inventory: {
-    method: "GET",
-    path: "/me/inventory",
-  },
-  equip: {
-    method: "PUT",
-    path: "/me/desk/equipment",
-  },
-  moveEquipment: {
-    method: "PUT",
-    path: "/me/desk/position",
-  },
-  reorderDesk: {
-    method: "PUT",
-    path: "/me/desk/order",
-  },
-  transformDesk: {
-    method: "PUT",
-    path: "/me/desk/table",
-  },
-  transformBugri: {
-    method: "PUT",
-    path: "/me/desk/bugri",
-  },
-  transformEquipment: {
-    method: "PUT",
-    path: "/me/desk/transform",
-  },
-  profileOrder: {
-    method: "GET",
-    path: "/users/{id}/section-order",
-    pathKey: "publicId",
-  },
-  updateProfileOrder: {
-    method: "PUT",
-    path: "/me/section-order",
-  },
-  profileAbout: {
-    method: "GET",
-    path: "/users/{id}/about",
-    pathKey: "publicId",
-  },
-  updateProfileAbout: {
-    method: "PUT",
-    path: "/me/about",
-  },
-  publicProfile: {
-    method: "GET",
-    path: "/users/{id}",
-    pathKey: "publicId",
   },
 };
 

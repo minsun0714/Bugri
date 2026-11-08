@@ -8,7 +8,10 @@ import {
 } from "next/navigation";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/api/query-client";
-import { AttemptHistoryFilter } from "@/api/constants";
+import {
+  AttemptContext,
+  AttemptHistoryFilter,
+} from "@/api/constants";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import {
   useLocale,
@@ -19,7 +22,6 @@ import {
   Button,
   EmptyState,
   Pagination,
-  SearchField,
   Skeleton,
   Tabs,
 } from "@/components/ui";
@@ -28,10 +30,11 @@ import { QuizPanel } from "@/components/solving/quiz-panel";
 import { useSolvingQueries } from "@/components/solving/queries";
 import { useAttemptHistory } from "@/components/learning-history/queries";
 import { Bugri } from "@/components/ui/bugri";
+import { Highlight } from "@/components/ui/highlight";
+import { SearchForm } from "@/components/ui/search-form";
 import { historyStyles } from "@/components/learning-history/styles";
 import {
   pageTitle,
-  searchButtonStyle,
   viewAllAction,
 } from "@/components/ui/styles";
 import { historyQueryMaxLength } from "@/services/history-search";
@@ -54,101 +57,6 @@ function historyHref(
     ...(query ? { query } : {}),
     page: String(page),
   })}`;
-}
-
-const escapeRegExp = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-/** Wraps the searched words in <mark>; plain text when there is no query. */
-function Highlight({
-  text,
-  query,
-}: {
-  text: string;
-  query: string;
-}) {
-  const words = query.trim().split(/\s+/).filter(Boolean);
-
-  if (!words.length) return <>{text}</>;
-
-  const pattern = new RegExp(
-    `(${words.map(escapeRegExp).join("|")})`,
-    "gi",
-  );
-
-  return (
-    <>
-      {text.split(pattern).map((part, index) =>
-        index % 2 ? (
-          <mark
-            key={index}
-            className="rounded-sm bg-lime/60 px-0.5 text-foreground"
-          >
-            {part}
-          </mark>
-        ) : (
-          part
-        ),
-      )}
-    </>
-  );
-}
-
-function HistorySearch({
-  query,
-  onSearch,
-}: {
-  query: string;
-  onSearch: (query: string) => void;
-}) {
-  const t = useTranslation();
-  const [draft, setDraft] = useState(query);
-  const invalid =
-    [...draft.trim()].length > historyQueryMaxLength;
-
-  return (
-    <form
-      role="search"
-      aria-label={t("풀이 내역 검색")}
-      className="flex items-start gap-2 sm:gap-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (!invalid) onSearch(draft.trim());
-      }}
-    >
-      <SearchField
-        label={t("풀이 내역 검색")}
-        placeholder={t("제목이나 문제 내용 검색")}
-        value={draft}
-        error={
-          invalid
-            ? t("검색어는 100자 이하여야 합니다.")
-            : undefined
-        }
-        onChange={(event) => setDraft(event.target.value)}
-      />
-      <Button
-        type="submit"
-        className={searchButtonStyle}
-        disabled={invalid}
-      >
-        {t("검색")}
-      </Button>
-      {query && (
-        <Button
-          type="button"
-          variant="secondary"
-          className={searchButtonStyle}
-          onClick={() => {
-            setDraft("");
-            onSearch("");
-          }}
-        >
-          {t("검색 초기화")}
-        </Button>
-      )}
-    </form>
-  );
 }
 
 const linkStyle =
@@ -259,8 +167,10 @@ function HistoryList({
     useAttemptHistory(userId, filter, page, query);
   return (
     <div className="min-w-0 space-y-5">
-      <HistorySearch
+      <SearchForm
         key={query}
+        label={t("풀이 내역 검색")}
+        placeholder={t("제목이나 문제 내용 검색")}
         query={query}
         onSearch={(next) => onChange(filter, 1, next)}
       />
@@ -501,7 +411,7 @@ function HistoryResult({
                     start.mutate(
                       {
                         quizId: data.quizId,
-                        context: "DIRECT",
+                        context: AttemptContext.DIRECT,
                       },
                       {
                         onSuccess: ({

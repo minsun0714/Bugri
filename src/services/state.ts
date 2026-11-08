@@ -1,30 +1,26 @@
-import type { QuizReaction } from "@/api/constants";
+import type { AttemptContext } from "@/api/constants";
 import type {
-  RewardGrant,
-  RewardOutcome,
-  ProfileAbout,
-  ProfileOrder,
   Answer,
-  AuthoringConversation,
-  Equipment,
-  DeskPositions,
-  DeskTransforms,
-  DeskOrder,
-  GenerationBatch,
-  LedgerEntry,
-  LearningQuery,
-  Purchase,
+  NextReview,
+  Note,
+  NoteQuizCounts,
   ReviewQuiz,
   Revision,
-  Subscription,
 } from "@/api/contracts";
 
+/** Soft delete keeps completed Attempts readable. */
 export interface StoredQuiz extends ReviewQuiz {
   deletedAt: string | null;
 }
 
+export interface StoredNote extends Omit<
+  Note,
+  keyof NoteQuizCounts
+> {
+  deletedAt: string | null;
+}
+
 export interface StoredAttempt {
-  rewardOutcome?: RewardOutcome;
   attemptId: string;
   quizId: string;
   revision: Omit<
@@ -40,6 +36,20 @@ export interface StoredAttempt {
   completedAt: string | null;
   learningDate: string | null;
   timeZone: string | null;
+  /** Absent in older data; it means DIRECT. */
+  context?: AttemptContext;
+  /** Schedule this REVIEW submission wrote, kept so a reload shows the same result. */
+  nextReview?: NextReview | null;
+}
+
+/** Per-quiz review schedule. A missing entry is computed from `confirmedAt`. */
+export interface StoredReviewSchedule {
+  quizId: string;
+  /** Index into the 1 → 3 → 7 → 14 → 30 day intervals. */
+  stage: number;
+  nextReviewDate: string;
+  /** Result of the latest review; null before the first one. */
+  lastCorrect: boolean | null;
 }
 
 export interface StoredDay {
@@ -49,34 +59,13 @@ export interface StoredDay {
 }
 
 export interface UserState {
-  schemaVersion: 1;
-  rewards?: RewardGrant[];
-  quizReactions?: {
-    quizId: string;
-    reaction: QuizReaction;
-  }[];
-  profileAbout?: ProfileAbout;
-  profileOrder?: ProfileOrder;
-  /** One-time mock fixture upgrade; absent in older v1 snapshots. */
-  learningDemoVersion?: 1;
-  coinHistoryDemoVersion?: 1;
-  /** Set once the optional history search demo fixtures were merged. */
-  historyDemoVersion?: 1;
-  authoringConversation?: AuthoringConversation;
+  schemaVersion: 2;
+  notes: StoredNote[];
   userId: string;
   quizzes: StoredQuiz[];
-  batches: GenerationBatch[];
-  subscriptions: Subscription[];
   attempts: StoredAttempt[];
   days: StoredDay[];
   timeZone: string | null;
-  selection: Required<LearningQuery> & {
-    quizId: string | null;
-  };
-  ledger: LedgerEntry[];
-  purchases: Purchase[];
-  equipment: Equipment;
-  positions: DeskPositions;
-  transforms: DeskTransforms;
-  order: DeskOrder;
+  /** Optional so schemaVersion 2 data written before review schedules still reads. */
+  reviewSchedules?: StoredReviewSchedule[];
 }

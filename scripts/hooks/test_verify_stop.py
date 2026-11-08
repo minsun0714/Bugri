@@ -30,7 +30,7 @@ class StopTests(unittest.TestCase):
 
     def test_success_deactivates(self):
         with patch.object(hook, 'verify', return_value=0):
-            self.assertEqual(hook.stop(self.root, {})['systemMessage'], 'Bugri verify 통과: P01')
+            self.assertEqual(hook.stop(self.root, {})['systemMessage'], 'Bugri verify:fast 통과(build·E2E 제외): P01')
         self.assertFalse(hook.load(self.root)['active'])
 
     def test_failure_then_success(self):
@@ -64,7 +64,7 @@ class StopTests(unittest.TestCase):
         binary.chmod(0o755)
         with patch.dict(os.environ, {'PATH': str(self.root)}):
             self.assertEqual(hook.verify(self.root, 1), 7)
-        self.assertIn('command: run verify', (self.root / '.bugri-hooks/verify-1.log').read_text())
+        self.assertIn('command: run verify:fast', (self.root / '.bugri-hooks/verify-1.log').read_text())
 
     def test_missing_npm_is_failure(self):
         with patch.dict(os.environ, {'PATH': str(self.root)}):

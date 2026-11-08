@@ -1,9 +1,8 @@
 import type {
   Answer,
-  Category,
   ErrorCode,
-  QuizContent,
   Question,
+  QuizContent,
 } from "@/api/contracts";
 
 export class ServiceError extends Error {
@@ -69,23 +68,16 @@ export function text(
 
 export function source(
   value: unknown,
+  field = "sourceContent",
 ): asserts value is string {
-  text(value, "sourceContent");
+  text(value, field);
 
   requireValue(
     [...value].length <= 10_000,
     "학습 내용은 최대 10,000자입니다.",
-    "sourceContent",
+    field,
   );
 }
-
-export const categories: Category[] = [
-  "KEYBOARD",
-  "MONITOR",
-  "DESK",
-  "ACCESSORY",
-  "BACKGROUND",
-];
 
 export function timeZoneValid(
   value: unknown,

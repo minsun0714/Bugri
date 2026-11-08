@@ -56,17 +56,11 @@ export const styles = {
     "body-copy text-[12px] text-muted leading-[1.9] mb-5",
   tiny: "tiny text-xs text-muted",
   person: "person flex items-center gap-1.75 text-xs",
-  "product-art":
-    "product-art h-33.5 bg-danger-soft rounded-[14px] relative grid place-items-center [&_>_.ui-badge]:absolute [&_>_.ui-badge]:top-2.5 [&_>_.ui-badge]:left-2.5 [&_>_.ui-badge]:text-xs",
-  "product-title":
-    "product-title text-[16px] mt-4.75 mx-0 mb-1.75",
-  plant:
-    "plant relative w-16.5 h-25 [&_i]:absolute [&_i]:bottom-0 [&_i]:left-3 [&_i]:w-10.75 [&_i]:h-10.75 [&_i]:bg-[#c98061] [&_i]:[border-radius:4px_4px_15px_15px] [&_i]:border-t-6 [&_i]:border-t-[#d5977c] [&_i]:[box-shadow:inset_-8px_0_#b76d52] [&_span]:absolute [&_span]:bottom-9.5 [&_span]:w-5.5 [&_span]:h-12 [&_span]:bg-[#7e9664] [&_span]:[border-radius:100%_0_100%_0] [&_span]:left-3.75 [&_span]:[transform:rotate(-30deg)] [&_span:nth-child(2)]:left-8 [&_span:nth-child(2)]:[transform:rotate(20deg)] [&_span:nth-child(2)]:bottom-10.5 [&_span:nth-child(2)]:bg-[#536f48] [&_span:nth-child(3)]:left-6.5 [&_span:nth-child(3)]:[transform:rotate(-5deg)] [&_span:nth-child(3)]:bottom-9.5 [&_span:nth-child(3)]:h-15 [&_span:nth-child(3)]:bg-[#6d8553]",
   options:
     "options [border:0] grid gap-2.25 mt-5 [&_legend]:text-xs [&_legend]:text-muted [&_legend]:mb-3.25",
   "tab-example":
     "tab-example flex gap-2.5 items-center justify-between text-xs max-[760px]:flex-wrap",
-  "desk-card":
-    "desk-card [&.desk-card]:bg-accent-soft flex justify-between items-center gap-5 min-h-[179px] [&_h3]:text-[19px] [&_h3]:tracking-[-0.7px] [&_h3]:mt-3.5 [&_h3]:mx-0 [&_h3]:mb-2.25 [&_p]:text-xs [&_p]:text-muted [&_.bugri-pet]:shrink-0 max-[400px]:gap-2.5 max-[400px]:[&_h3]:text-[16px]",
+  "today-card":
+    "today-card [&.today-card]:bg-accent-soft flex justify-between items-center gap-5 min-h-[179px] [&_h3]:text-[19px] [&_h3]:tracking-[-0.7px] [&_h3]:mt-3.5 [&_h3]:mx-0 [&_h3]:mb-2.25 [&_p]:text-xs [&_p]:text-muted [&_.bugri-pet]:shrink-0 max-[400px]:gap-2.5 max-[400px]:[&_h3]:text-[16px]",
   "modal-actions": "modal-actions justify-end",
 } as const;

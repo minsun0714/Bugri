@@ -24,7 +24,7 @@ def verify(root, attempt):
     with (root / f'.bugri-hooks/verify-{attempt}.log').open('w') as log:
         try:
             process = subprocess.Popen(
-                ['npm', 'run', 'verify'], cwd=root, stdout=log,
+                ['npm', 'run', 'verify:fast'], cwd=root, stdout=log,
                 stderr=subprocess.STDOUT, start_new_session=True,
             )
         except OSError as error:
@@ -59,13 +59,13 @@ def stop(root, event):
     state['active'] = code != 0 and state['attempts'] < 4
     save(root, state)
     if code == 0:
-        return {'systemMessage': f"Bugri verify 통과: {state['task']}"}
+        return {'systemMessage': f"Bugri verify:fast 통과(build·E2E 제외): {state['task']}"}
     log = f".bugri-hooks/verify-{state['attempts']}.log"
     if state['active']:
-        instruction = '원인을 분석하고 구현을 수정한 뒤 관련 테스트를 실행하세요. 다음 종료 시 전체 검증을 다시 실행합니다. 기대값을 임의 변경하거나 검사를 약화하지 마세요.'
+        instruction = '원인을 분석하고 구현을 수정한 뒤 관련 테스트를 실행하세요. 다음 종료 시 빠른 검증(lint·typecheck·Jest·도구 테스트)을 다시 실행합니다. build와 E2E는 Hook이 실행하지 않습니다. 기대값을 임의 변경하거나 검사를 약화하지 마세요.'
     else:
         instruction = '최초 검증과 수정 후 재검증 3회가 실패했습니다. 추가 수정 없이 원인·시도 내용·차단 요인을 보고하세요.'
-    return {'decision': 'block', 'reason': f'npm run verify 실패(exit {code}). {log}를 읽으세요. {instruction} DONE으로 표시하지 말고 PR은 Draft로 유지하세요. 환경 문제라면 blocked 명령으로 사유를 기록하고 종료하세요.'}
+    return {'decision': 'block', 'reason': f'npm run verify:fast 실패(exit {code}). {log}를 읽으세요. {instruction} DONE으로 표시하지 말고 PR은 Draft로 유지하세요. 환경 문제라면 blocked 명령으로 사유를 기록하고 종료하세요.'}
 
 
 def main():

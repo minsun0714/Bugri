@@ -5,10 +5,16 @@ import { Locale } from "@/lib/i18n/messages";
 import { setLocale } from "@/lib/i18n/store";
 import { useLocale } from "@/lib/i18n/use-translation";
 
-export function LanguagePicker() {
+export function LanguagePicker({
+  className = "w-27",
+}: {
+  className?: string;
+}) {
   const locale = useLocale();
   return (
-    <div className="w-27 shrink-0 [&_[role=listbox]]:left-auto [&_[role=listbox]]:right-0 [&_[role=listbox]]:min-w-36 [&_[role=listbox]]:top-[calc(100%+8px)] [&_[role=listbox]]:rounded-control [&_[role=listbox]]:border-t [&_[role=listbox]]:border-control-line">
+    <div
+      className={`${className} shrink-0 [&_[role=listbox]]:left-auto [&_[role=listbox]]:right-0 [&_[role=listbox]]:min-w-36 [&_[role=listbox]]:top-[calc(100%+8px)] [&_[role=listbox]]:rounded-control [&_[role=listbox]]:border-t [&_[role=listbox]]:border-control-line`}
+    >
       <Dropdown
         label="Language / 언어"
         hideLabel

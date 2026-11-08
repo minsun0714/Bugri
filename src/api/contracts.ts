@@ -1,46 +1,15 @@
 import type {
+  AttemptContext,
   AttemptHistoryFilter,
   AttemptHistoryMatch,
-} from "@/api/constants";
-import type {
-  RewardNonPaymentReason,
-  RewardReason,
-} from "@/api/constants";
-import type {
-  QuizReaction,
-  ProfileSection,
-  ProfileLinkKind,
-} from "@/api/constants";
-/** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
-import {
-  Category,
-  type DeskObject,
+  NoteMatch,
   QuizStatus,
-  type ConversationRole,
-  type LearningMode,
-  type LearningState,
-  type QuizScope,
-  DiscoveryKind,
 } from "@/api/constants";
 
 export {
-  Category,
+  AttemptContext,
   QuizStatus,
-  LearningMode,
-  LearningState,
-  QuizScope,
 } from "@/api/constants";
-
-export type Visibility = Exclude<
-  QuizStatus,
-  typeof QuizStatus.PENDING
->;
-
-export interface QuizReactionSummary {
-  reaction: QuizReaction | null;
-  likeCount: number;
-  dislikeCount: number;
-}
 
 export interface Hashtag {
   id: string;
@@ -82,31 +51,30 @@ export interface QuizContent {
 
 export interface Revision extends QuizContent {
   revisionId: string;
+  /** Snapshot of the memo body the quiz was generated from. */
   sourceContent: string;
-  reviewed: boolean;
-  followUpPrompt?: string;
 }
 
+/** One LLM refinement turn kept with a PENDING quiz. */
+export interface RefinementTurn {
+  prompt: string;
+  content: QuizContent;
+}
+
+/** Owner-only quiz detail. It may include answers and explanations. */
 export interface ReviewQuiz {
-  createdAt?: string;
-  publishedAt?: string;
   quizId: string;
   ownerUserId: string;
+  noteId: string;
   status: QuizStatus;
   version: number;
-  active: Revision | null;
-  pending: Revision | null;
+  revision: Revision;
+  /** LLM refinement turns; only a PENDING quiz can add to it. */
+  history: RefinementTurn[];
+  /** Set when the quiz becomes CONFIRMED; the review schedule starts from it. */
+  confirmedAt: string | null;
+  createdAt: string;
   updatedAt: string;
-}
-
-export interface QuizSummary {
-  quizId: string;
-  ownerUserId: string;
-  title: string;
-  status: QuizStatus;
-  hashtagIds: string[];
-  updatedAt: string;
-  hasPendingRevision: boolean;
 }
 
 export interface LearningQuizView {
@@ -118,56 +86,6 @@ export interface LearningQuizView {
   hashtagIds: string[];
 }
 
-export interface AuthoringMessage {
-  messageId: string;
-  role: ConversationRole;
-  content: string;
-}
-
-export interface AuthoringConversation {
-  version: number;
-  messages: AuthoringMessage[];
-  draft: string;
-  latestBatchId: string | null;
-}
-
-export interface GenerationBatch {
-  batchId: string;
-  sourceContent: string;
-  candidates: {
-    candidateId: string;
-    content: QuizContent;
-    savedQuizId: string | null;
-    history?: { prompt: string; content: QuizContent }[];
-  }[];
-}
-
-export type SubscriptionTarget =
-  | { type: "PERSON"; authorUserId: string }
-  | { type: "HASHTAG"; hashtagId: string }
-  | {
-      type: "PERSON_HASHTAG";
-      authorUserId: string;
-      hashtagId: string;
-    };
-
-export type Subscription = SubscriptionTarget & {
-  subscriptionId: string;
-};
-
-export interface LearningQuery {
-  hashtagId?: string | null;
-  mode?: LearningMode;
-}
-
-export interface LearningSelection {
-  hashtagId: string | null;
-  mode: LearningMode;
-  state: LearningState;
-  quiz: LearningQuizView | null;
-  candidateCount: number;
-}
-
 export interface AttemptResult {
   submittedAnswer: Answer | null;
   correct: boolean | null;
@@ -175,19 +93,20 @@ export interface AttemptResult {
   explanation: string | null;
 }
 
-/** Immutable submission-time explanation; absent on legacy attempts. */
-export interface RewardOutcome {
-  reasonCodes: RewardNonPaymentReason[];
-  eligibleAt?: string;
-  learningDate: string;
-  timeZone: string;
+/** Schedule written by a submitted REVIEW attempt. */
+export interface NextReview {
+  /** Next review date (YYYY-MM-DD, the learner's zone when answered). */
+  date: string;
+  /** Days from the answer's learning date to `date`. */
+  days: number;
 }
 
 export interface AttemptView {
-  rewardOutcome?: RewardOutcome;
-  rewardBugCent?: number;
   attemptId: string;
+  context: AttemptContext;
   quizId: string;
+  /** The memo the quiz came from; null once the quiz is no longer available. */
+  noteId: string | null;
   revisionId: string;
   quiz: LearningQuizView | null;
   completedAt: string | null;
@@ -195,6 +114,26 @@ export interface AttemptView {
   timeZone: string | null;
   correct: boolean | null;
   result: AttemptResult | null;
+  /** Set only when a submitted REVIEW attempt changed the schedule. */
+  nextReview: NextReview | null;
+}
+
+/** Today's review for the home screen. Never contains answers or explanations. */
+export interface TodayReview {
+  learningDate: string;
+  timeZone: string;
+  /** Quizzes whose next review date is today or earlier. */
+  dueCount: number;
+  /** The quiz to solve next (wrong ones first, then oldest), or null. */
+  next: LearningQuizView | null;
+  /** Quizzes that come back tomorrow. */
+  tomorrowCount: number;
+  /** Distinct quizzes reviewed today (REVIEW attempts completed today). */
+  reviewedToday: number;
+  /** Live CONFIRMED quizzes, i.e. everything that can be reviewed. */
+  totalCount: number;
+  /** The nearest review after today and how many quizzes fall on it. */
+  upcoming: { date: string; count: number } | null;
 }
 
 export interface LearningDay {
@@ -206,337 +145,131 @@ export interface LearningDay {
   dailyCounts: { learningDate: string; count: number }[];
 }
 
-export interface Product {
-  productId: string;
-  name: string;
-  description: string;
-  category: Category;
-  price: number;
-}
-
-export type Equipment = Partial<Record<Category, string>>;
-
-export interface DeskPosition {
-  x: number;
-  y: number;
-}
-
-export type DeskPositions = Partial<
-  Record<Category, DeskPosition>
->;
-
-export type DeskItem =
-  | Exclude<Category, typeof Category.BACKGROUND>
-  | DeskObject;
-
-export type DeskOrder = DeskItem[];
-
-export interface DeskTransform {
-  x: number;
-  y: number;
-  z: number;
-  rotationY: number;
-}
-
-export type DeskTransforms = Partial<
-  Record<Category | DeskObject, DeskTransform>
->;
-
-export interface LedgerEntry {
-  id: string;
-  amount: number;
-  reason:
-    "SEED" | "DAILY_COMPLETION" | "PURCHASE" | RewardReason;
-  reference: string;
-  createdAt: string;
-}
-
-export interface Wallet {
-  balance: number;
-  ledger: LedgerEntry[];
-}
-
-export interface Purchase {
-  purchaseId: string;
-  productId: string;
-  requestKey: string;
-  price: number;
-  purchasedAt: string;
-}
-
-export interface Inventory {
-  products: Product[];
-  equipment: Equipment;
-  positions: DeskPositions;
-  transforms: DeskTransforms;
-  order: DeskOrder;
-}
-
-export interface ProfileLink {
-  kind: ProfileLinkKind;
-  url: string;
-  label?: string;
-}
-
-export interface ProfileAbout {
-  biography: string;
-  links: ProfileLink[];
-}
-
-export interface PublicProfile {
-  user: User;
-  equipment: Equipment;
-  positions: DeskPositions;
-  transforms: DeskTransforms;
-  order: DeskOrder;
-}
-
 export interface VersionRequest {
   quizId: string;
   expectedVersion: number;
 }
 
-export type PendingRequest = VersionRequest &
-  (
-    | {
-        action: "EDIT";
-        sourceContent: string;
-        content: QuizContent;
-      }
-    | { action: "MARK_REVIEWED" }
-  );
-
-export interface DiscoveryQuery {
-  subscribedOnly?: boolean;
-  kind: DiscoveryKind;
-  query: string;
-  page: number;
-  pageSize: number;
+/** Aggregates over the memo's live linked quizzes. */
+export interface NoteQuizCounts {
+  confirmedCount: number;
+  pendingCount: number;
+  /** Union of the CONFIRMED quizzes' tags. */
+  hashtagIds: string[];
 }
 
-export type DiscoveryItem =
-  | {
-      type: typeof DiscoveryKind.USER;
-      user: User;
-      subscribed: boolean;
-      summary: {
-        publicQuizCount: number;
-        hashtags: Hashtag[];
-      } | null;
-    }
-  | {
-      type: typeof DiscoveryKind.HASHTAG;
-      hashtag: Hashtag;
-      subscribed: boolean;
-      publicQuizCount: number;
-    };
-
-export interface DiscoveryPage {
-  items: DiscoveryItem[];
-  page: number;
-  pageSize: number;
-  total: number;
+/** Owner-only memo. */
+export interface Note extends NoteQuizCounts {
+  noteId: string;
+  content: string;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface TagQuizzesPage {
-  hashtag: Hashtag;
-  subscribed: boolean;
-  items: { quizId: string; title: string; author: User }[];
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
-export interface DeveloperPageQuery {
-  publicId: string;
-  page: number;
-  pageSize: number;
-}
-
-export interface DeveloperQuizzesPage {
-  user: User;
-  subscribed: boolean;
-  items: {
-    quizId: string;
-    title: string;
-    hashtagIds: string[];
-    updatedAt: string;
-  }[];
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
-export interface DeveloperTagsPage {
-  items: (Hashtag & {
-    quizCount: number;
-    subscribed: boolean;
-  })[];
-  page: number;
-  pageSize: number;
-  total: number;
+export interface NoteSummary extends NoteQuizCounts {
+  noteId: string;
+  /** First part of the body, for list rows. */
+  excerpt: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Null without a query. BODY when the memo body alone matched, otherwise QUIZ. */
+  matchedIn: NoteMatch | null;
+  /** Title of the quiz that matched; only for QUIZ. */
+  matchedQuizTitle: string | null;
+  /** Status of that quiz (CONFIRMED or PENDING); only for QUIZ. */
+  matchedQuizStatus: QuizStatus | null;
+  /** Short snippet of the matched quiz question; only for QUIZ when the title did not match. */
+  matchedExcerpt: string | null;
 }
 
 export interface ApiOperations {
-  guestQuiz: {
-    request: Record<string, never>;
-    response: LearningQuizView | null;
-  };
-  guestAnswer: {
-    request: {
-      quizId: string;
-      revisionId: string;
-      answer: Answer;
-    };
-    response: AttemptResult;
-  };
-  authoringConversation: {
-    request: Record<string, never>;
-    response: AuthoringConversation;
-  };
-  sendAuthoringMessage: {
-    request: { content: string; expectedVersion: number };
-    response: AuthoringConversation;
-  };
-  generateFromConversation: {
-    request: { draft: string; expectedVersion: number };
-    response: {
-      conversation: AuthoringConversation;
-      batch: GenerationBatch;
-    };
-  };
   generate: {
-    request: { sourceContent: string };
-    response: GenerationBatch;
-  };
-  generationBatch: {
-    request: { batchId: string };
-    response: GenerationBatch;
-  };
-  publishCandidate: {
-    request: {
-      batchId: string;
-      candidateId: string;
-      reviewed: true;
-    };
-    response: GenerationBatch;
-  };
-  editCandidate: {
-    request: {
-      batchId: string;
-      candidateId: string;
-      content: QuizContent;
-    };
-    response: GenerationBatch;
-  };
-  refineCandidate: {
-    request: {
-      batchId: string;
-      candidateId: string;
-      prompt: string;
-    };
-    response: GenerationBatch;
-  };
-  deleteCandidate: {
-    request: {
-      batchId: string;
-      candidateId: string;
-    };
-    response: GenerationBatch;
-  };
-  saveBatch: {
-    request: { batchId: string } & (
-      | { mode: "SINGLE"; candidateId: string }
-      | { mode: "ALL" }
-    );
+    request: { noteId: string };
+    /** The memo's new PENDING quizzes. */
     response: ReviewQuiz[];
   };
-  quizzes: {
-    request: { scope: QuizScope };
-    response: QuizSummary[];
+  notes: {
+    request: {
+      page?: number;
+      pageSize?: number;
+      /** Trimmed, at most 100 characters; every space-separated word must match. */
+      query?: string;
+      /** Registered tag ids; a memo with any of them matches. */
+      tagIds?: string[];
+      /** Also include memos without tags. Combined with tagIds by OR. */
+      untagged?: boolean;
+      /** Only memos that still have unconfirmed (PENDING) quizzes. ANDed with the other conditions. */
+      hasPending?: boolean;
+    };
+    response: {
+      items: NoteSummary[];
+      page: number;
+      pageSize: number;
+      total: number;
+    };
+  };
+  /** Tag choices for the current user's live memos. */
+  noteTags: {
+    request: Record<string, never>;
+    response: {
+      tags: { hashtagId: string; count: number }[];
+      untaggedCount: number;
+      /** Memos with at least one PENDING quiz. */
+      pendingNoteCount: number;
+    };
+  };
+  note: {
+    request: { noteId: string };
+    response: Note;
+  };
+  createNote: {
+    request: { content: string };
+    response: Note;
+  };
+  updateNote: {
+    request: {
+      noteId: string;
+      content: string;
+      expectedVersion: number;
+    };
+    response: Note;
+  };
+  deleteNote: {
+    request: { noteId: string };
+    response: { deleted: true };
+  };
+  noteQuizzes: {
+    request: { noteId: string; status: QuizStatus };
+    response: ReviewQuiz[];
   };
   reviewQuiz: {
     request: { quizId: string };
     response: ReviewQuiz;
   };
-  updatePending: {
-    request: PendingRequest;
+  updateQuiz: {
+    request: VersionRequest & { content: QuizContent };
     response: ReviewQuiz;
   };
-  regenerate: {
+  refineQuiz: {
     request: VersionRequest & { prompt: string };
     response: ReviewQuiz;
   };
-  approve: {
-    request: VersionRequest & { visibility?: Visibility };
+  confirmQuiz: {
+    request: VersionRequest;
     response: ReviewQuiz;
   };
-  visibility: {
-    request: VersionRequest & { visibility: Visibility };
-    response: ReviewQuiz;
+  confirmNoteQuizzes: {
+    request: { noteId: string };
+    response: ReviewQuiz[];
   };
   deleteQuiz: {
     request: { quizId: string };
     response: { deleted: true };
   };
-  subscriptions: {
-    request: Record<string, never>;
-    response: Subscription[];
-  };
-  subscribe: {
-    request: SubscriptionTarget;
-    response: Subscription;
-  };
-  unsubscribe: {
-    request: { subscriptionId: string };
-    response: { deleted: true };
-  };
-  tagQuizzes: {
-    request: {
-      hashtagId: string;
-      page: number;
-      pageSize: number;
-    };
-    response: TagQuizzesPage;
-  };
-  developerQuizzes: {
-    request: DeveloperPageQuery & {
-      hashtagIds?: string[];
-      hashtagId?: string | null;
-    };
-    response: DeveloperQuizzesPage;
-  };
-  developerTags: {
-    request: DeveloperPageQuery & { query: string };
-    response: DeveloperTagsPage;
-  };
-  searchDiscovery: {
-    request: DiscoveryQuery;
-    response: DiscoveryPage;
-  };
-  discoverUsers: {
-    request: Record<string, never>;
-    response: User[];
-  };
-  discoverHashtags: {
+  hashtags: {
     request: Record<string, never>;
     response: Hashtag[];
-  };
-  learningTags: {
-    request: { authorUserId?: string };
-    response: Hashtag[];
-  };
-  learningQuiz: {
-    request: LearningQuery;
-    response: LearningSelection;
-  };
-  learningNext: {
-    request: LearningQuery;
-    response: LearningSelection;
-  };
-  publicLearningDay: {
-    request: { publicId: string };
-    response: LearningDay;
   };
   learningDay: {
     request: Record<string, never>;
@@ -545,21 +278,6 @@ export interface ApiOperations {
   learningTimezone: {
     request: Record<string, never>;
     response: { timeZone: string | null };
-  };
-  updateTimezone: {
-    request: { timeZone: string };
-    response: { timeZone: string };
-  };
-  quizReaction: {
-    request: { quizId: string };
-    response: QuizReactionSummary;
-  };
-  updateQuizReaction: {
-    request: {
-      quizId: string;
-      reaction: QuizReaction | null;
-    };
-    response: QuizReactionSummary;
   };
   attemptHistory: {
     request: {
@@ -582,10 +300,14 @@ export interface ApiOperations {
       total: number;
     };
   };
+  todayReview: {
+    request: Record<string, never>;
+    response: TodayReview;
+  };
   startAttempt: {
     request: {
       quizId: string;
-      context: "DIRECT" | "LEARNING";
+      context: AttemptContext;
     };
     response: AttemptView;
   };
@@ -596,80 +318,6 @@ export interface ApiOperations {
   answer: {
     request: { attemptId: string; answer: Answer };
     response: AttemptView;
-  };
-  products: {
-    request: { category?: Category };
-    response: Product[];
-  };
-  wallet: {
-    request: Record<string, never>;
-    response: Wallet;
-  };
-  purchase: {
-    request: { productId: string; requestKey: string };
-    response: Purchase;
-  };
-  inventory: {
-    request: Record<string, never>;
-    response: Inventory;
-  };
-  equip: {
-    request: {
-      category: Category;
-      productId: string | null;
-    };
-    response: Equipment;
-  };
-  moveEquipment: {
-    request: {
-      category: Category;
-      productId: string;
-      position: DeskPosition;
-    };
-    response: DeskPositions;
-  };
-  reorderDesk: {
-    request: { order: DeskOrder };
-    response: DeskOrder;
-  };
-  transformDesk: {
-    request: {
-      productId: string | null;
-      transform: DeskTransform;
-    };
-    response: DeskTransforms;
-  };
-  transformBugri: {
-    request: { transform: DeskTransform };
-    response: DeskTransforms;
-  };
-  transformEquipment: {
-    request: {
-      category: Category;
-      productId: string;
-      transform: DeskTransform;
-    };
-    response: DeskTransforms;
-  };
-  profileOrder: {
-    request: { publicId: string };
-    response: ProfileOrder;
-  };
-  updateProfileOrder: {
-    request: ProfileOrder;
-    response: ProfileOrder;
-  };
-  profileAbout: {
-    request: { publicId: string };
-    response: ProfileAbout;
-  };
-  updateProfileAbout: {
-    request: ProfileAbout;
-    response: ProfileAbout;
-  };
-  publicProfile: {
-    request: { publicId: string };
-    response: PublicProfile;
   };
 }
 
@@ -687,11 +335,7 @@ export type ErrorCode =
   | "FORBIDDEN"
   | "VERSION_CONFLICT"
   | "QUIZ_UNAVAILABLE"
-  | "NOT_REVIEWED"
   | "ALREADY_ANSWERED"
-  | "INSUFFICIENT_BALANCE"
-  | "ALREADY_OWNED"
-  | "IDEMPOTENCY_CONFLICT"
   | "TIMEZONE_REQUIRED"
   | "STORAGE_UNAVAILABLE"
   | "STORAGE_CORRUPT"
@@ -723,22 +367,4 @@ export interface ApiTransport {
     operation: K,
     request: Request<K>,
   ): Promise<TransportResponse<Response<K>>>;
-}
-
-export interface ProfileOrder {
-  order: ProfileSection[];
-}
-
-/** Committed in the solver snapshot, including grants addressed to the creator. */
-export interface RewardGrant {
-  id: string;
-  userId: string;
-  solverUserId: string;
-  quizId: string;
-  attemptId: string;
-  reason: RewardReason;
-  amountBugCent: number;
-  createdAt: string;
-  learningDate: string;
-  timeZone: string;
 }

@@ -1,39 +1,30 @@
-import { quizReactionSummary } from "@/services/quiz-reactions";
-import { guestLearning } from "@/services/guest-learning";
-import { demoCoinHistory } from "@/mocks/coin-history";
-import { initialBugCoin } from "@/mocks/shop-items";
 import type {
   ApiTransport,
-  AuthoringMessage,
   Operation,
   Request,
   Response,
   TransportResponse,
 } from "@/api/contracts";
+import { generatedContents } from "@/mocks/quizzes";
+import {
+  clone,
+  readState,
+  type StoragePort,
+  writeState,
+} from "@/mocks/storage";
+import { hashtags, users } from "@/mocks/users";
 import {
   execute,
   type MockGenerator,
   type ServiceContext,
 } from "@/services/mock-service";
 import {
-  object,
-  text,
   keys,
+  object,
   requireValue,
   ServiceError,
   timeZoneValid,
 } from "@/services/validation";
-import {
-  applyHistoryDemo,
-  clone,
-  readState,
-  type StoragePort,
-  writeState,
-} from "@/mocks/storage";
-import { generatedContents } from "@/mocks/quizzes";
-import { mockAuthoringReply } from "@/mocks/authoring-chat";
-import { users, hashtags } from "@/mocks/users";
-import { subscriptions } from "@/mocks/subscriptions";
 
 export interface MockOptions {
   userId: string;
@@ -42,15 +33,9 @@ export interface MockOptions {
   detectTimeZone?: () => string | undefined;
   /** No product default has been decided. Only use an explicitly chosen fallback. */
   fallbackTimeZone?: string;
-  /** Fixture configuration, not an approved economy policy. Explicit override for legacy tests; omitted uses the approved BugCoin policy. */
-  dailyReward?: number;
-  /** Merge the history search demo fixtures into the actor's state. Off by default so isolated tests start from an empty learner. */
+  /** Seed the learner's completed Attempts for the solving-history demo. */
   demoHistory?: boolean;
   generate?: MockGenerator;
-  reply?: (
-    messages: AuthoringMessage[],
-    content: string,
-  ) => unknown;
 }
 
 /** Instantiate in a browser event/effect. No localStorage access at module import or on a server. */
@@ -80,7 +65,6 @@ export function createMockTransport(
     ): Promise<TransportResponse<Response<K>>> {
       const {
         userId,
-        dailyReward,
         fallbackTimeZone,
         storage: suppliedStorage,
       } = options;
@@ -88,78 +72,15 @@ export function createMockTransport(
       const requestId = globalThis.crypto.randomUUID();
 
       try {
-        if (
-          operation === "quizReaction" &&
-          userId === "guest"
-        ) {
-          object(request);
-          keys(request, ["quizId"]);
-
-          const { quizId } =
-            request as Request<"quizReaction">;
-
-          text(quizId, "quizId");
-
-          const storage =
-            suppliedStorage ?? window.localStorage;
-
-          const states = users.map(({ userId }) =>
-            readState(storage, userId),
-          );
-
-          return {
-            status: 200,
-            body: {
-              data: quizReactionSummary(
-                null,
-                quizId,
-                states,
-              ) as Response<K>,
-            },
-          };
-        }
-
-        if (
-          operation === "guestQuiz" ||
-          operation === "guestAnswer"
-        ) {
-          const storage =
-            suppliedStorage ?? window.localStorage;
-
-          const quizzes = users.flatMap(
-            ({ userId }) =>
-              readState(storage, userId).quizzes,
-          );
-
-          const data = guestLearning(
-            operation,
-            request as
-              Request<"guestQuiz"> | Request<"guestAnswer">,
-            quizzes,
-          );
-
-          return {
-            status: 200,
-            body: { data: clone(data) as Response<K> },
-          };
-        }
-
         // Public directories do not depend on a user's browser snapshot.
-        if (
-          operation === "discoverUsers" ||
-          operation === "discoverHashtags"
-        ) {
+        if (operation === "hashtags") {
           object(request);
           keys(request, []);
 
           return {
             status: 200,
             body: {
-              data: clone(
-                operation === "discoverUsers"
-                  ? users
-                  : hashtags,
-              ) as Response<K>,
+              data: clone(hashtags) as Response<K>,
             },
           };
         }
@@ -167,13 +88,6 @@ export function createMockTransport(
         requireValue(
           users.some((u) => u.userId === userId),
           "알 수 없는 더미 사용자입니다.",
-        );
-
-        requireValue(
-          dailyReward === undefined ||
-            (Number.isSafeInteger(dailyReward) &&
-              dailyReward >= 0),
-          "Mock 보상 설정은 0 이상의 정수여야 합니다.",
         );
 
         requireValue(
@@ -200,62 +114,17 @@ export function createMockTransport(
           );
         }
 
-        // Fresh reads on every request observe other dummy users and tabs. Only actor-owned state is written.
-        const state = readState(storage, userId);
-        const unavailableUserIds: string[] = [];
+        const now = options.now?.() ?? new Date();
 
-        const actorOnly = [
-          "subscriptions",
-          "subscribe",
-          "unsubscribe",
-        ].includes(operation);
-
-        const allStates = actorOnly ? [state] : [];
-
-        if (!actorOnly) {
-          for (const { userId: otherId } of users) {
-            if (otherId === userId) {
-              allStates.push(state);
-              continue;
-            }
-
-            try {
-              allStates.push(readState(storage, otherId));
-            } catch (error) {
-              if (
-                operation !== "searchDiscovery" ||
-                !(error instanceof ServiceError) ||
-                error.code !== "STORAGE_CORRUPT"
-              )
-                throw error;
-
-              // Do not substitute seeds or overwrite the corrupt owner's data.
-              unavailableUserIds.push(otherId);
-            }
-          }
-        }
-
+        // Every write-allowed request re-detects the device zone; a valid, different zone replaces the saved one.
+        // Stored attempts and learning days keep their own zone. Failed detection keeps the saved value.
         const readOnlyHistory =
           operation === "attemptHistory" ||
           operation === "attempt";
 
-        // Read-only history views show the demo records in memory without writing; the next write persists them.
-        if (options.demoHistory && readOnlyHistory)
-          applyHistoryDemo(state);
+        let detected: string | undefined;
 
-        const before = JSON.stringify(state);
-
-        if (options.demoHistory && !readOnlyHistory)
-          applyHistoryDemo(state);
-
-        if (
-          !readOnlyHistory &&
-          operation !== "publicLearningDay" &&
-          operation !== "profileOrder" &&
-          !state.timeZone
-        ) {
-          let detected: string | undefined;
-
+        if (!readOnlyHistory) {
           try {
             detected = options.detectTimeZone
               ? options.detectTimeZone()
@@ -264,60 +133,41 @@ export function createMockTransport(
           } catch {
             /* explicit setting remains available */
           }
+        }
 
-          state.timeZone = timeZoneValid(detected)
+        // Fresh reads on every request observe other dummy users and tabs. Only actor-owned state is written.
+        // A brand-new seed gets review dates relative to "today" in the zone this request detected.
+        const state = readState(storage, userId, {
+          demoHistory: options.demoHistory,
+          now,
+          timeZone: timeZoneValid(detected)
             ? detected
-            : (fallbackTimeZone ?? null);
+            : (fallbackTimeZone ?? null),
+        });
+
+        const allStates = [state];
+
+        const before = JSON.stringify(state);
+
+        if (!readOnlyHistory) {
+          if (timeZoneValid(detected)) {
+            if (state.timeZone !== detected)
+              state.timeZone = detected;
+          } else if (!state.timeZone) {
+            state.timeZone = fallbackTimeZone ?? null;
+          }
         }
 
         const context: ServiceContext = {
           state,
           allStates,
-          unavailableUserIds,
           allQuizzes: allStates.flatMap(
             ({ quizzes }) => quizzes,
           ),
-          now: options.now?.() ?? new Date(),
+          now,
           id: () => globalThis.crypto.randomUUID(),
           generate: options.generate ?? defaultGenerate,
-          reply: options.reply ?? mockAuthoringReply,
-          dailyReward,
         };
-
-        // Upgrade only the actor's legacy snapshot. Service-level subscribe deduplicates targets.
-        // Commit the marker with the requested operation so a failed write never partially migrates.
-        if (
-          !readOnlyHistory &&
-          operation !== "publicLearningDay" &&
-          operation !== "profileOrder" &&
-          state.learningDemoVersion === undefined
-        ) {
-          for (const target of subscriptions[userId] ??
-            []) {
-            execute("subscribe", clone(target), context);
-          }
-
-          state.learningDemoVersion = 1;
-        }
-
-        if (
-          !readOnlyHistory &&
-          operation !== "publicLearningDay" &&
-          operation !== "profileOrder" &&
-          state.coinHistoryDemoVersion === undefined
-        ) {
-          state.ledger = state.ledger.flatMap((entry) =>
-            entry.id === `seed-balance-${userId}` &&
-            entry.reason === "SEED" &&
-            entry.reference === userId &&
-            entry.amount === initialBugCoin &&
-            entry.createdAt === "2026-01-01T00:00:00.000Z"
-              ? demoCoinHistory(userId)
-              : [entry],
-          );
-
-          state.coinHistoryDemoVersion = 1;
-        }
 
         const data = execute(
           operation,
