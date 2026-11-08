@@ -33,7 +33,7 @@ claude
 
 ## Playwright MCP
 
-화면 확인·디버깅용 브라우저 도구다. Claude Code는 루트 `.mcp.json`, Codex는 `.codex/config.toml`에 같은 서버(`@playwright/mcp@0.0.84`)가 등록되어 있다. 처음 사용할 때 Claude는 `/mcp`에서 프로젝트 서버를 승인하고, Codex는 프로젝트를 신뢰해야 한다. 사용 시점과 한계는 [검증 지침](../.agents/skills/implement-feature/references/verification.md)의 'Playwright MCP 사용'을 따른다. MCP 확인은 E2E 통과 근거가 아니다. 산출물 `.playwright-mcp/`는 커밋하지 않는다.
+화면 확인·디버깅용 브라우저 도구다. 서버 등록은 저장소에 두지 않고 각자 로컬에 한다. Claude Code는 `claude mcp add playwright -- npx @playwright/mcp@latest`, Codex는 `codex mcp add playwright -- npx @playwright/mcp@latest`로 등록한다. `.claude/settings.json`은 `mcp__playwright` 사용 허용만 담당한다. 사용 시점과 한계는 [검증 지침](../.agents/skills/implement-feature/references/verification.md)의 'Playwright MCP 사용'을 따른다. MCP 확인은 E2E 통과 근거가 아니다. 산출물 `.playwright-mcp/`는 커밋하지 않는다.
 
 ## 설정 확인 범위
 
