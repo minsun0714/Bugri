@@ -12,6 +12,7 @@ export const quizCardStyles = {
     "flex size-10 items-center justify-center rounded-2xl bg-success-soft text-primary",
   settings:
     "absolute right-3 top-3 z-10 [&.ui-button.sm]:size-11 [&.ui-button.sm]:min-h-11 [&.ui-button.sm]:p-0 [&.ui-button.ghost]:text-muted [&.ui-button.ghost:hover]:bg-primary/10 [&.ui-button.ghost:hover]:text-primary [&.ui-button:hover:not(:disabled)]:transform-none [&.ui-button:active:not(:disabled)]:transform-none",
+  cta: "mt-3 flex items-center justify-end gap-1 text-sm font-bold text-primary",
   footer:
     "pointer-events-none relative z-10 [&_a]:pointer-events-auto [&_button]:pointer-events-auto",
 } as const;

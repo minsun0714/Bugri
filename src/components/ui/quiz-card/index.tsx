@@ -26,6 +26,7 @@ export function QuizCard({
   metadata,
   footer,
   settings,
+  cta,
   density = "default",
 }: {
   density?: "default" | "compact";
@@ -35,6 +36,8 @@ export function QuizCard({
   badges?: ReactNode;
   metadata?: ReactNode;
   footer?: ReactNode;
+  /** Visible hint for the primary action (the whole card already acts as that link). */
+  cta?: string;
   settings?: {
     label: string;
     onClick: MouseEventHandler<HTMLButtonElement>;
@@ -136,6 +139,15 @@ export function QuizCard({
         {metadata && (
           <div className="mt-2 break-words text-sm text-muted [overflow-wrap:anywhere]">
             {metadata}
+          </div>
+        )}
+        {cta && !action.disabled && (
+          <div
+            aria-hidden="true"
+            className={quizCardStyles.cta}
+          >
+            {cta}
+            <span>→</span>
           </div>
         )}
       </div>
