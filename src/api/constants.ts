@@ -147,3 +147,12 @@ export const RewardNonPaymentReason = {
 
 export type RewardNonPaymentReason =
   (typeof RewardNonPaymentReason)[keyof typeof RewardNonPaymentReason];
+
+export const AttemptHistoryFilter = {
+  ALL: "ALL",
+  CORRECT: "CORRECT",
+  INCORRECT: "INCORRECT",
+} as const;
+
+export type AttemptHistoryFilter =
+  (typeof AttemptHistoryFilter)[keyof typeof AttemptHistoryFilter];

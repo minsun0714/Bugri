@@ -1,3 +1,4 @@
+import { AttemptHistoryFilter } from "@/api/constants";
 import { evaluateRewards } from "@/services/bugcoin";
 import { quizReactionSummary } from "@/services/quiz-reactions";
 import { QuizReaction } from "@/api/constants";
@@ -163,6 +164,7 @@ const allowed: Record<Operation, string[]> = {
   updateTimezone: ["timeZone"],
   quizReaction: ["quizId"],
   updateQuizReaction: ["quizId", "reaction"],
+  attemptHistory: ["filter", "page", "pageSize"],
   startAttempt: ["quizId", "context"],
   attempt: ["attemptId"],
   answer: ["attemptId", "answer"],
@@ -309,10 +311,14 @@ export function execute<K extends Operation>(
       quizId,
       revisionId,
       quiz: visible
-        ? publicView({
-            ...q!,
-            active: revision,
-          })
+        ? {
+            quizId,
+            ownerUserId: q!.ownerUserId,
+            revisionId,
+            title: revision.title ?? "",
+            question: revision.question,
+            hashtagIds: revision.hashtagIds,
+          }
         : null,
       completedAt,
       learningDate,
@@ -330,12 +336,12 @@ export function execute<K extends Operation>(
           0,
         ),
       result:
-        visible && submittedAnswer
+        visible && completedAt
           ? {
-              submittedAnswer,
-              correct: correct!,
-              answer,
-              explanation,
+              submittedAnswer: submittedAnswer ?? null,
+              correct,
+              answer: answer ?? null,
+              explanation: explanation ?? null,
             }
           : null,
     };
@@ -1404,6 +1410,83 @@ export function execute<K extends Operation>(
       return attemptView(a);
     }
 
+    case "attemptHistory": {
+      const {
+        filter = AttemptHistoryFilter.ALL,
+        page = 1,
+        pageSize = 20,
+      } = r;
+
+      requireValue(
+        Object.values(AttemptHistoryFilter).includes(
+          filter as AttemptHistoryFilter,
+        ),
+        "필터를 확인하세요.",
+      );
+
+      requireValue(
+        Number.isSafeInteger(page) && Number(page) >= 1,
+        "페이지를 확인하세요.",
+      );
+
+      requireValue(
+        Number.isSafeInteger(pageSize) &&
+          Number(pageSize) >= 1 &&
+          Number(pageSize) <= 50,
+        "페이지 크기를 확인하세요.",
+      );
+
+      const records = s.attempts
+        .filter(
+          ({ completedAt, correct }) =>
+            completedAt &&
+            (filter === AttemptHistoryFilter.ALL ||
+              correct ===
+                (filter === AttemptHistoryFilter.CORRECT)),
+        )
+        .sort(
+          (left, right) =>
+            Date.parse(right.completedAt!) -
+              Date.parse(left.completedAt!) ||
+            (left.attemptId < right.attemptId
+              ? -1
+              : left.attemptId > right.attemptId
+                ? 1
+                : 0),
+        );
+
+      return {
+        items: records
+          .slice(
+            (Number(page) - 1) * Number(pageSize),
+            Number(page) * Number(pageSize),
+          )
+          .map(
+            ({
+              attemptId,
+              quizId,
+              revision,
+              correct,
+              completedAt,
+            }) => ({
+              attemptId,
+              title: available(
+                allQuizzes.find(
+                  (quiz) => quiz.quizId === quizId,
+                ),
+              )
+                ? revision.title || null
+                : null,
+              correct,
+              completedAt: completedAt!,
+            }),
+          ),
+        page,
+        pageSize,
+        total: records.length,
+      };
+    }
+
     case "attempt":
       return attemptView(getAttempt());
 
@@ -1412,8 +1495,11 @@ export function execute<K extends Operation>(
 
       validateAnswer(r.answer, a.revision.question);
 
-      if (a.submittedAnswer) {
-        if (!isCorrect(r.answer, a.submittedAnswer))
+      if (a.completedAt || a.submittedAnswer) {
+        if (
+          !a.submittedAnswer ||
+          !isCorrect(r.answer, a.submittedAnswer)
+        )
           throw new ServiceError(
             "ALREADY_ANSWERED",
             "이미 제출한 답은 변경할 수 없습니다.",
@@ -1440,6 +1526,11 @@ export function execute<K extends Operation>(
           "학습 시간대를 설정하세요.",
           409,
         );
+
+      requireValue(
+        a.revision.answer,
+        "정답 기록이 없습니다.",
+      );
 
       const date = localDate(now, s.timeZone);
 

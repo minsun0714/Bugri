@@ -79,10 +79,7 @@ export function getBreadcrumbs(
       { label: "내 퀴즈" },
       { label: "퀴즈 만들기" },
     ],
-    "/my/learning": [
-      { label: "마이페이지" },
-      { label: "학습 기록" },
-    ],
+    "/my/learning": [{ label: "풀이 내역" }],
     "/my/inventory": [
       { label: "마이페이지" },
       { label: "보관함" },

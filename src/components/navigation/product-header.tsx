@@ -159,6 +159,16 @@ export function HeaderNavigation({
                   </Link>
                   <Link
                     href={withDemoUser(
+                      "/my/learning",
+                      userId,
+                    )}
+                    onClick={() => setProfileOpen(false)}
+                    className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    {t("풀이 내역")}
+                  </Link>
+                  <Link
+                    href={withDemoUser(
                       "/coin-history",
                       userId,
                     )}

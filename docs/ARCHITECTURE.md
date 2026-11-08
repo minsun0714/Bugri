@@ -237,3 +237,7 @@ QuizCard는 제목 Link/button의 after 영역을 카드 전체로 확장해 기
 `src/lib/shop/catalog.ts`에 상품 ID·카테고리·가격과 `translations.ko/en`의 이름·설명을 함께 정의한다. `Record<Locale, ProductCopy>`로 지원 언어 누락을 타입 검사한다. 새 상품은 이 카탈로그에 항목을 추가하고 기존 상품 시각 자산 연결 방식에 따라 ID별 모델/색상을 연결한다. 이름을 `en.json`이나 별도 artwork 이름 목록에 중복 등록하지 않는다.
 
 읽기 전용 Mock seed는 카탈로그의 한국어 값으로 기존 Product DTO를 생성한다. UI는 계속 typed API로 상품·가격·보유 상태를 조회하며, `localizeProduct`는 API 응답의 이름·설명만 선택 언어로 표시한다. 카탈로그에 없는 API 상품은 응답 문구를 보존한다. 상품 ID·가격·카테고리·구매 기록은 번역하지 않고 캐시/저장값도 수정하지 않는다. 검색·이름순 정렬은 현재 표시 언어를 사용한다. 장착 장면의 접근성 이름도 같은 카탈로그를 참조한다. 이는 1단계 정적 상품 번역 방식이며 향후 관리자 등록/서버 번역 저장 계약을 새로 정하지 않는다.
+
+### 개인 풀이 내역
+
+`/my/learning`과 `/my/learning/[attemptId]`는 사용자별 Query → typed API → Mock 서비스 경계를 사용한다. 목록은 완료 Attempt를 필터·정렬·페이지 처리하며 상세는 기존 attempt API와 QuizPanel, 재도전은 startAttempt를 재사용한다. 저장 스키마 버전은 유지하며 완료 revision에서 누락된 결과 필드는 현재 퀴즈로 보충하지 않는다. 개인 목록·결과 조회는 기존 Mock 초기화/마이그레이션을 실행하지 않는 읽기 전용 경로다. 공개 프로필과 기록의 공개 범위는 변경하지 않는다.

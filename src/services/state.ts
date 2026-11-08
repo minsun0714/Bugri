@@ -27,7 +27,13 @@ export interface StoredAttempt {
   rewardOutcome?: RewardOutcome;
   attemptId: string;
   quizId: string;
-  revision: Revision;
+  revision: Omit<
+    Revision,
+    "title" | "answer" | "explanation"
+  > & {
+    [Field in "title" | "answer" | "explanation"]?:
+      Revision[Field] | null;
+  };
   ownerUserId: string;
   submittedAnswer: Answer | null;
   correct: boolean | null;

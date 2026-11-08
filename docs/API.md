@@ -289,3 +289,15 @@ SHOP-I18N은 기존 `Product` 요청·응답 및 저장 형식을 유지한다. 
 새 정상 제출은 `AttemptView.rewardOutcome`과 저장 Attempt에 `{ reasonCodes, eligibleAt?, learningDate, timeZone }`를 함께 남긴다. 사유 코드는 INCORRECT, REVIEW_WAIT, OWNER_WAIT, CREATION_UNKNOWN, LEGACY_CORRECT, DAILY_ALREADY_PAID이며 복수 사유를 허용한다. 양수 지급은 빈 사유 배열이다. 대기 사유에만 정확한 UTC `eligibleAt`을 포함한다. 재조회·동일 답안 재제출은 원래 판정을 그대로 반환하며 현재 날짜·시간대·후속 지급으로 재계산하지 않는다. 사유가 없는 v1 이전 기록은 그대로 호환하고 일반 안내만 표시한다. 저장 시 사유 코드·학습일/시간대 일치·대기 시각을 검증한다.
 
 결과 UI는 제출 완료의 정확한0 지급에만 기존 ⓘ Tooltip을 보여준다. 문구는 한국어/영어로 표시하고 시각은 판정 당시 학습 시간대 기준으로 형식화한다. 대기 안내에는 제출 당시 기준과 새 정답 제출 조건을 명시해 자동 지급으로 오해하지 않도록 한다. 양수·미제출·방문자에는 미지급 사유 버튼을 추가하지 않는다. 금액과 ⓘ는 묶되 Tooltip 문장은 줄바꿈한다.
+
+## 개인 풀이 내역 — QUIZ-HISTORY
+
+- `attemptHistory({ filter?, page?, pageSize? })`: `GET /me/attempts`. filter는 `ALL`(기본)/`CORRECT`/`INCORRECT`, page 기본 1·양의 안전 정수, pageSize 기본 20·1~50 정수. 알 수 없는 필터·요청 필드는 거부한다.
+- 응답은 `{ items: { attemptId, title: string|null, correct: boolean|null, completedAt }[], page, pageSize, total }`. 현재 더미 사용자의 완료 Attempt만 대상으로 필터 적용 → 완료 시각 내림차순 → 동일 시각 attemptId 오름차순 → 페이지 분할한다. 같은 quizId의 여러 제출을 합치지 않는다. total은 필터 적용 후 전체 개수이며 범위 밖 페이지는 빈 items를 반환한다.
+- 제목은 저장된 revision에서만 읽는다. 현재 접근 불가·삭제된 문제 또는 제목 없는 과거 기록은 title=null. 목록에는 답안·정답·해설·원문을 포함하지 않는다.
+- 상세는 기존 `attempt`(`GET /attempts/{id}`)와 `QuizPanel`을 재사용한다. 본인 저장소에 없는 Attempt는 404. `/my/learning/[attemptId]`는 완료 기록만 보여주며 목록의 filter/page/user를 복귀 링크에 유지한다.
+- 완료 결과는 저장된 revision의 답·해설만 사용한다. 과거 완료 기록의 title/answer/explanation 누락을 허용하고, 결과의 submittedAnswer/answer/explanation/correct가 없으면 null로 전달한다. 화면은 ‘기록 없음’을 표시하며 현재 버전으로 보충하지 않는다. 미완료 Attempt와 작성 퀴즈의 검증은 기존 필수값 규칙을 유지한다. question·revision 식별자 등 기존 저장 구조는 유지한다.
+- 현재 비공개(타인)·삭제·비활성 퀴즈는 기존 규칙대로 quiz/result=null이다. 완료 시각·정오답과 성과는 유지하고 내용·재도전은 제공하지 않는다. 작성자의 활성 PRIVATE 퀴즈는 기존 접근 규칙을 따른다.
+- `attemptHistory`와 `attempt` 조회는 시간대 초기화·데모 마이그레이션을 수행하지 않으며 저장소·보상·스트릭·풀이 수를 변경하지 않는다. 목록 데이터나 활동 예시를 생성하지 않는다.
+- 재도전은 기존 `startAttempt(context: DIRECT)` mutation 후 `/solve?user=…&attempt=…`로 이동한다. 기존 기록은 보존하고 채점·보상은 기존 제출 규칙을 사용한다. 사용자별 Query 키는 `['history', userId, filter, page]`, 상세는 기존 solving 키이며 제출 성공 시 history 무효화 규칙을 재사용한다.
+- 개인 기록에 방문자 대체 사용자를 지정하지 않는다. 공통 데모 선택을 거쳐 접근하며 공개 프로필에 노출하지 않는다. 이는 1단계 Mock 권한·브라우저 저장이며 실제 인증 보장은 아니다.
