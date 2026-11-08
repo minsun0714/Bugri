@@ -5,7 +5,20 @@ import {
   type Page,
 } from "@playwright/test";
 
+async function openCalendar(summary: Locator) {
+  const toggle = summary.getByRole("button", {
+    name: "달력",
+    exact: true,
+  });
+  await expect(toggle).toBeVisible();
+  if (
+    (await toggle.getAttribute("aria-expanded")) === "false"
+  )
+    await toggle.click();
+}
+
 async function showYear(summary: Locator) {
+  await openCalendar(summary);
   const heading = summary.getByRole("button", {
     name: /월별 학습량 보기$/,
   });
@@ -18,6 +31,7 @@ async function showYear(summary: Locator) {
 }
 
 async function showCurrentMonth(summary: Locator) {
+  await openCalendar(summary);
   const current = summary.getByRole("button", {
     name: "현재 기간",
   });
@@ -65,8 +79,9 @@ test("home streak updates after submission, survives reload and isolates users",
     .click();
 
   await expect(
-    summary.getByText("오늘부터 시작"),
+    summary.getByText("첫 학습을 시작해요"),
   ).toBeVisible();
+  await openCalendar(summary);
   await expect(summary.getByRole("table")).toBeVisible();
   await expect(summary.getByRole("tab")).toHaveCount(0);
   await page.screenshot({
@@ -90,12 +105,15 @@ test("home streak updates after submission, survives reload and isolates users",
   await page
     .getByRole("button", { name: "답 제출", exact: true })
     .click();
-  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1일 연속 학습"),
+  ).toBeVisible();
+  await openCalendar(summary);
   await expect(
     summary.getByText("1개", { exact: true }),
   ).toHaveCount(1);
   await expect(
-    summary.getByText("✓ 오늘 학습 완료"),
+    summary.getByText("오늘 완료 ✓"),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "다시 풀기", exact: true })
@@ -104,7 +122,10 @@ test("home streak updates after submission, survives reload and isolates users",
   await page
     .getByRole("button", { name: "답 제출", exact: true })
     .click();
-  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1일 연속 학습"),
+  ).toBeVisible();
+  await openCalendar(summary);
   await expect(
     summary.getByText("1개", { exact: true }),
   ).toHaveCount(1);
@@ -126,7 +147,10 @@ test("home streak updates after submission, survives reload and isolates users",
   await expect(page).toHaveURL(/user=learner/);
   await expect(summary).toBeVisible();
 
-  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1일 연속 학습"),
+  ).toBeVisible();
+  await openCalendar(summary);
   await expect(
     summary.getByText("1개", { exact: true }),
   ).toHaveCount(1);
@@ -149,10 +173,10 @@ test("home streak updates after submission, survives reload and isolates users",
     .getByRole("button", { name: "선택한 사용자로 시작" })
     .click();
   await expect(
-    summary.getByText("오늘부터 시작"),
+    summary.getByText("첫 학습을 시작해요"),
   ).toBeVisible();
   await expect(
-    summary.getByText("한 문제 풀고 첫 기록"),
+    summary.getByText("첫 학습을 시작해요"),
   ).toBeVisible();
 });
 
@@ -192,8 +216,9 @@ test("a returning learner restarts without losing earlier completed days", async
     exact: true,
   });
   await expect(
-    summary.getByText("오늘부터 다시", { exact: true }),
+    summary.getByText("다시 시작해요", { exact: true }),
   ).toBeVisible();
+  await openCalendar(summary);
   await expect(summary.getByLabel(/학습 완료/)).toHaveCount(
     1,
   );
@@ -205,10 +230,14 @@ test("a returning learner restarts without losing earlier completed days", async
   await page
     .getByRole("button", { name: "답 제출", exact: true })
     .click();
-  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1일 연속 학습"),
+  ).toBeVisible();
+  await openCalendar(summary);
   await expect(
     summary.getByText("1개", { exact: true }),
   ).toHaveCount(1);
+  await openCalendar(summary);
   await expect(summary.getByLabel(/학습 완료/)).toHaveCount(
     2,
   );
@@ -228,8 +257,11 @@ test("date heading navigates monthly and yearly learning while preserving today'
   await page
     .getByRole("button", { name: "답 제출", exact: true })
     .click();
-  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1일 연속 학습"),
+  ).toBeVisible();
   await showCurrentMonth(summary);
+  await openCalendar(summary);
   await expect(summary.getByRole("table")).toBeVisible();
   await expect(
     summary.getByText("총 1개", { exact: true }),
@@ -240,7 +272,9 @@ test("date heading navigates monthly and yearly learning while preserving today'
   await expect(
     summary.getByText("총 0개", { exact: true }),
   ).toBeVisible();
-  await expect(summary.getByText("1일 연속")).toBeVisible();
+  await expect(
+    summary.getByText("1일 연속 학습"),
+  ).toBeVisible();
   await summary
     .getByRole("button", { name: "현재 기간" })
     .click();
@@ -265,6 +299,7 @@ test("date heading navigates monthly and yearly learning while preserving today'
       name: /월별 학습량 보기$/,
     }),
   ).toBeFocused();
+  await openCalendar(summary);
   await expect(summary.getByRole("table")).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(
@@ -325,6 +360,10 @@ test("date heading navigates monthly and yearly learning while preserving today'
     .getByRole("button", { name: "선택한 사용자로 시작" })
     .click();
   await expect(
+    summary.getByText("첫 학습을 시작해요"),
+  ).toBeVisible();
+  await openCalendar(summary);
+  await expect(
     summary.getByRole("button", {
       name: /월별 학습량 보기$/,
     }),
@@ -348,6 +387,7 @@ test("learning cards keep their height across empty data and four, five and six 
     name: "연속 학습",
     exact: true,
   });
+  await openCalendar(summary);
   await expect(
     summary.getByText("총 0개", { exact: true }),
   ).toBeVisible();
@@ -527,6 +567,10 @@ test("history navigation stops at the first learning month and resets for an emp
     .getByRole("button", { name: "선택한 사용자로 시작" })
     .click();
   await expect(
+    summary.getByText("첫 학습을 시작해요"),
+  ).toBeVisible();
+  await openCalendar(summary);
+  await expect(
     summary.getByRole("table", {
       name: "2026년 6월 학습 달력",
     }),
@@ -594,4 +638,63 @@ test("single-year menu stays compact while the two-column month list remains vis
       summary.getByRole("combobox"),
     ).toBeFocused();
   }
+});
+
+test("compact home exposes the question and only opens the calendar on request", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/?user=learner");
+  const summary = page.getByRole("region", {
+    name: "연속 학습",
+    exact: true,
+  });
+  const toggle = summary.getByRole("button", {
+    name: "달력",
+    exact: true,
+  });
+  await expect(toggle).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  for (const width of [1280, 390, 320]) {
+    await page.setViewportSize({
+      width,
+      height: width === 320 ? 568 : 844,
+    });
+    await expect(
+      page.getByText("TypeScript에서 숫자 타입은?", {
+        exact: true,
+      }),
+    ).toBeInViewport();
+    await page.screenshot({
+      path: testInfo.outputPath(`compact-${width}.png`),
+    });
+  }
+  await page.getByLabel("number", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "답 제출", exact: true })
+    .click();
+  await expect(
+    summary.getByText("오늘 완료 ✓"),
+  ).toBeVisible();
+  await expect(toggle).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  await toggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(summary.getByRole("table")).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: testInfo.outputPath("compact-expanded.png"),
+    fullPage: true,
+  });
+  await page.keyboard.press("Space");
+  await expect(toggle).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  await page.screenshot({
+    path: testInfo.outputPath("compact-completed.png"),
+  });
 });

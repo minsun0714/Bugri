@@ -691,5 +691,11 @@
   "이전 문제의 생성 시각이 없어 보상 대상 여부를 확인할 수 없어요.": "The creation time of this older quiz is unavailable, so reward eligibility cannot be determined.",
   "이전 정답 이력에 최초 정답 지급 기록이 없어 신규·복습 보상은 소급 지급되지 않아요.": "This earlier correct answer has no initial reward record. Initial and review rewards are not awarded retroactively.",
   "{date} 학습일의 일일 보너스는 이미 받았어요.": "The daily bonus for learning date {date} was already awarded.",
-  "이 풀이에는 지급된 BugCoin이 없어요.": "No BugCoin was awarded for this attempt."
+  "이 풀이에는 지급된 BugCoin이 없어요.": "No BugCoin was awarded for this attempt.",
+  "{0}일 연속 학습": "{0}-day streak",
+  "다시 시작해요": "Let’s start again",
+  "첫 학습을 시작해요": "Start your first quiz",
+  "오늘 완료 ✓": "Done today ✓",
+  "오늘 미완료": "Not done today",
+  "달력": "Calendar"
 }

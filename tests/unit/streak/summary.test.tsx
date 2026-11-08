@@ -47,10 +47,16 @@ function setup(userId = "learner") {
 
 test("keeps yesterday's streak and navigates monthly completion states across a year boundary", async () => {
   setup();
-  expect(await screen.findByText("2일 연속")).toBeVisible();
   expect(
-    screen.getByText("오늘 한 문제로 이어가요"),
+    await screen.findByText("2일 연속 학습"),
   ).toBeVisible();
+  expect(screen.getByText("오늘 미완료")).toBeVisible();
+  expect(
+    screen.queryByRole("table"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "달력" }),
+  );
   expect(screen.getByRole("table")).toBeVisible();
   fireEvent.click(
     screen.getByRole("button", { name: "이전 기간" }),
@@ -76,11 +82,11 @@ test("keeps yesterday's streak and navigates monthly completion states across a 
 
 test("does not show the previous user's data while the next user loads", async () => {
   const { rerender, view } = setup();
-  await screen.findByText("2일 연속");
+  await screen.findByText("2일 연속 학습");
   request.mockImplementation(() => new Promise(() => {}));
   rerender(view("friend"));
   expect(
-    screen.queryByText("2일 연속"),
+    screen.queryByText("2일 연속 학습"),
   ).not.toBeInTheDocument();
   expect(screen.getByRole("status")).toHaveTextContent(
     "연속 학습 불러오는 중",
@@ -99,7 +105,9 @@ test("shows a retryable error without inventing a zero streak", async () => {
   fireEvent.click(
     screen.getByRole("button", { name: "다시 시도" }),
   );
-  expect(await screen.findByText("2일 연속")).toBeVisible();
+  expect(
+    await screen.findByText("2일 연속 학습"),
+  ).toBeVisible();
 });
 
 test("distinguishes missing timezone from an empty learning history", async () => {
@@ -127,11 +135,14 @@ test("returning learners keep their history and are invited to restart, not crea
   });
   setup();
   expect(
-    await screen.findByText("오늘부터 다시"),
+    await screen.findByText("다시 시작해요"),
   ).toBeVisible();
   expect(
     screen.queryByText("한 문제 풀고 첫 기록"),
   ).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "달력" }),
+  );
   fireEvent.click(
     screen.getByRole("button", { name: "이전 기간" }),
   );
@@ -142,6 +153,9 @@ test("returning learners keep their history and are invited to restart, not crea
 
 test("shows daily unique counts including zero alongside the learning dates", async () => {
   setup();
+  fireEvent.click(
+    await screen.findByRole("button", { name: "달력" }),
+  );
   expect(
     await screen.findByLabelText(
       "2026-01-01 학습 완료, 1개",
@@ -185,4 +199,54 @@ test("public activity requests the profile owner and resets across profiles", as
   expect(screen.getByRole("status")).toHaveTextContent(
     "불러오는 중",
   );
+});
+
+test("submission refresh preserves the chosen disclosure state and switching users closes it", async () => {
+  const { client, rerender, view } = setup();
+  const toggle = await screen.findByRole("button", {
+    name: "달력",
+  });
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  request.mockResolvedValue({
+    ...day,
+    streak: 3,
+    completed: true,
+  });
+  await client.invalidateQueries({
+    queryKey: ["learningDay", "learner"],
+  });
+  expect(
+    await screen.findByText("오늘 완료 ✓"),
+  ).toBeVisible();
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  fireEvent.click(toggle);
+  await client.invalidateQueries({
+    queryKey: ["learningDay", "learner"],
+  });
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+  fireEvent.click(toggle);
+  expect(
+    screen.queryByRole("table"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(toggle);
+  rerender(view("friend"));
+  expect(
+    await screen.findByRole("button", { name: "달력" }),
+  ).toHaveAttribute("aria-expanded", "false");
+});
+
+test("first learning has one invitation without an extra incomplete label", async () => {
+  request.mockResolvedValue({
+    ...day,
+    streak: 0,
+    completedDates: [],
+    dailyCounts: [],
+  });
+  setup();
+  expect(
+    await screen.findByText("첫 학습을 시작해요"),
+  ).toBeVisible();
+  expect(
+    screen.queryByText("오늘 미완료"),
+  ).not.toBeInTheDocument();
 });
