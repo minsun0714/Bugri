@@ -60,6 +60,8 @@ export interface UserState {
   /** One-time mock fixture upgrade; absent in older v1 snapshots. */
   learningDemoVersion?: 1;
   coinHistoryDemoVersion?: 1;
+  /** Set once the optional history search demo fixtures were merged. */
+  historyDemoVersion?: 1;
   authoringConversation?: AuthoringConversation;
   userId: string;
   quizzes: StoredQuiz[];

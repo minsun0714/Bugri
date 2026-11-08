@@ -24,6 +24,7 @@ import {
   timeZoneValid,
 } from "@/services/validation";
 import {
+  applyHistoryDemo,
   clone,
   readState,
   type StoragePort,
@@ -43,6 +44,8 @@ export interface MockOptions {
   fallbackTimeZone?: string;
   /** Fixture configuration, not an approved economy policy. Explicit override for legacy tests; omitted uses the approved BugCoin policy. */
   dailyReward?: number;
+  /** Merge the history search demo fixtures into the actor's state. Off by default so isolated tests start from an empty learner. */
+  demoHistory?: boolean;
   generate?: MockGenerator;
   reply?: (
     messages: AuthoringMessage[],
@@ -232,11 +235,18 @@ export function createMockTransport(
           }
         }
 
-        const before = JSON.stringify(state);
-
         const readOnlyHistory =
           operation === "attemptHistory" ||
           operation === "attempt";
+
+        // Read-only history views show the demo records in memory without writing; the next write persists them.
+        if (options.demoHistory && readOnlyHistory)
+          applyHistoryDemo(state);
+
+        const before = JSON.stringify(state);
+
+        if (options.demoHistory && !readOnlyHistory)
+          applyHistoryDemo(state);
 
         if (
           !readOnlyHistory &&

@@ -156,3 +156,12 @@ export const AttemptHistoryFilter = {
 
 export type AttemptHistoryFilter =
   (typeof AttemptHistoryFilter)[keyof typeof AttemptHistoryFilter];
+
+/** Where a history search query matched; null when no query was given. */
+export const AttemptHistoryMatch = {
+  TITLE: "TITLE",
+  BODY: "BODY",
+} as const;
+
+export type AttemptHistoryMatch =
+  (typeof AttemptHistoryMatch)[keyof typeof AttemptHistoryMatch];

@@ -1,4 +1,9 @@
 import { AttemptHistoryFilter } from "@/api/constants";
+import {
+  historyQueryMaxLength,
+  historyQueryWords,
+  matchHistoryRecord,
+} from "@/services/history-search";
 import { evaluateRewards } from "@/services/bugcoin";
 import { quizReactionSummary } from "@/services/quiz-reactions";
 import { QuizReaction } from "@/api/constants";
@@ -164,7 +169,7 @@ const allowed: Record<Operation, string[]> = {
   updateTimezone: ["timeZone"],
   quizReaction: ["quizId"],
   updateQuizReaction: ["quizId", "reaction"],
-  attemptHistory: ["filter", "page", "pageSize"],
+  attemptHistory: ["filter", "query", "page", "pageSize"],
   startAttempt: ["quizId", "context"],
   attempt: ["attemptId"],
   answer: ["attemptId", "answer"],
@@ -1413,6 +1418,7 @@ export function execute<K extends Operation>(
     case "attemptHistory": {
       const {
         filter = AttemptHistoryFilter.ALL,
+        query = "",
         page = 1,
         pageSize = 20,
       } = r;
@@ -1422,6 +1428,12 @@ export function execute<K extends Operation>(
           filter as AttemptHistoryFilter,
         ),
         "필터를 확인하세요.",
+      );
+
+      requireValue(
+        typeof query === "string" &&
+          [...query.trim()].length <= historyQueryMaxLength,
+        "검색어는 100자 이하여야 합니다.",
       );
 
       requireValue(
@@ -1436,6 +1448,19 @@ export function execute<K extends Operation>(
         "페이지 크기를 확인하세요.",
       );
 
+      type HistoryRecord = {
+        attempt: StoredAttempt;
+        match: ReturnType<typeof matchHistoryRecord>;
+      };
+
+      const words = historyQueryWords(query as string);
+
+      const availableQuiz = ({ quizId }: StoredAttempt) =>
+        available(
+          allQuizzes.find((quiz) => quiz.quizId === quizId),
+        );
+
+      // Search reads only the stored revision, and only for quizzes the viewer may still open.
       const records = s.attempts
         .filter(
           ({ completedAt, correct }) =>
@@ -1444,8 +1469,22 @@ export function execute<K extends Operation>(
               correct ===
                 (filter === AttemptHistoryFilter.CORRECT)),
         )
+        .flatMap((attempt): HistoryRecord[] => {
+          if (!words.length)
+            return [{ attempt, match: null }];
+
+          if (!availableQuiz(attempt)) return [];
+
+          const match = matchHistoryRecord(
+            attempt.revision.title ?? "",
+            attempt.revision.question,
+            words,
+          );
+
+          return match ? [{ attempt, match }] : [];
+        })
         .sort(
-          (left, right) =>
+          ({ attempt: left }, { attempt: right }) =>
             Date.parse(right.completedAt!) -
               Date.parse(left.completedAt!) ||
             (left.attemptId < right.attemptId
@@ -1461,26 +1500,25 @@ export function execute<K extends Operation>(
             (Number(page) - 1) * Number(pageSize),
             Number(page) * Number(pageSize),
           )
-          .map(
-            ({
+          .map(({ attempt, match }) => {
+            const {
               attemptId,
-              quizId,
               revision,
               correct,
               completedAt,
-            }) => ({
+            } = attempt;
+
+            return {
               attemptId,
-              title: available(
-                allQuizzes.find(
-                  (quiz) => quiz.quizId === quizId,
-                ),
-              )
+              title: availableQuiz(attempt)
                 ? revision.title || null
                 : null,
               correct,
               completedAt: completedAt!,
-            }),
-          ),
+              matchedIn: match?.matchedIn ?? null,
+              excerpt: match?.excerpt ?? null,
+            };
+          }),
         page,
         pageSize,
         total: records.length,
