@@ -15,7 +15,8 @@
 
 - 처리 순서: 태그·"태그 없음" 필터 → 검색 → 최신순 → 페이지. `total`은 조건 적용 후 개수.
 - 검색 정규화·매칭은 `history-search.ts`(`historyQueryWords`, 100자 제한, `excerptAround`)를 재사용한다. 새 매칭은 `src/services/note-search.ts`.
-- 검색 대상: 본문 + 삭제되지 않은 **CONFIRMED** 퀴즈의 제목·문제·선택지. 정답·해설·`sourceContent`·PENDING 퀴즈는 제외(PRD 확정). 모든 단어가 "본문 + 퀴즈들" 전체 안에 있으면 일치한다(한 퀴즈 안에 다 있을 필요는 없음).
+- 검색 대상: 본문 + 삭제되지 않은 퀴즈(**CONFIRMED·PENDING 모두**)의 제목·문제·선택지. 정답·해설·`sourceContent`는 제외. 모든 단어가 "본문 + 퀴즈들" 전체 안에 있으면 일치한다(한 퀴즈 안에 다 있을 필요는 없음).
+- **변경(사용자 결정)**: 처음에는 PRD 확정대로 CONFIRMED만 검색했으나, 사용자가 "PENDING도 검색되고 상태를 뱃지로 구분하며 PENDING만 보는 필터도 필요"하다고 결정해 PRD AC-01h·i·j, 페이지 구조, API.md를 함께 고쳤다. 추가: `hasPending` 요청 필드(URL `pending=1`, 칩 "확인 안 한 퀴즈 있음"), 응답 `matchedQuizStatus`, `noteTags.pendingNoteCount`, 행의 "확인 안 함" 뱃지. 태그는 그대로 CONFIRMED 퀴즈에서만 모은다. 이 변경도 실패 테스트 7건을 먼저 확인한 뒤 구현했다.
 - 태그 필터: `tagIds` OR `untagged`. 메모 태그 = CONFIRMED 퀴즈 태그의 합집합. 검색과는 AND.
 - **판단 1 — "태그 없음"의 범위**: PRD는 "퀴즈가 없는 메모"로 적었다. 합집합이 비는 메모 전체(퀴즈 없음, PENDING만 있음, 태그 없는 CONFIRMED 퀴즈)를 "태그 없음"으로 본다. 그렇지 않으면 PENDING만 있는 메모가 어떤 태그 필터로도 모이지 않는다. PRD 문구와 다르게 읽힐 수 있어 확인이 필요하면 알려 달라.
 - **판단 2 — 일치 위치 응답**: `matchedIn`(BODY|QUIZ|null), `matchedQuizTitle`, `matchedExcerpt`를 둔다. 본문만으로 모든 단어가 맞으면 BODY(화면은 기존 본문 미리보기 사용). 그렇지 않으면 QUIZ이고 본문에 없는 단어를 가진 첫 CONFIRMED 퀴즈의 제목을 준다. 그 단어가 제목에 없을 때만 문제·선택지 발췌(최대 80자)를 준다. 풀이 내역의 TITLE/BODY 방식과 같은 취지다.
@@ -34,7 +35,7 @@
 
 ## 검증 범위(테스트)
 
-- 단위: 본문·퀴즈 제목·문제·선택지 일치, 정답·해설·PENDING·삭제 퀴즈·삭제 메모 불일치, 100자 초과 거부(100자 허용), 태그 OR, 태그 없음, 태그+없음 OR, 검색+태그 AND, 페이지·total, 사용자 격리, 기존 요청 호환, `noteTags`, URL 파싱·생성.
+- 단위: 본문·퀴즈 제목·문제·선택지 일치, PENDING 퀴즈 일치와 상태 보고, 정답·해설·삭제 퀴즈·삭제 메모 불일치, `hasPending`(AND), 100자 초과 거부(100자 허용), 태그 OR, 태그 없음, 태그+없음 OR, 검색+태그 AND, 페이지·total, 사용자 격리, 기존 요청 호환, `noteTags`, URL 파싱·생성.
 - E2E(`tests/e2e/notes-search.spec.ts`): 검색→결과→상세→뒤로 가기·새로고침 복원, 칩 여러 개·태그 없음·검색 조합, 결과 없음·초기화, 잘못된 URL, 다른 사용자 격리, 모바일 360, 영어.
 
 ## 검증 명령·결과
@@ -45,12 +46,12 @@
 | --- | --- |
 | `npm run lint` | 통과 |
 | `npm run typecheck` | 통과 |
-| `npm test -- --runInBand` | 34 suites·224 tests 통과 |
+| `npm test -- --runInBand` | 34 suites·230 tests 통과 |
 | `npm run test:tools` | 3 pass, 0 fail |
 | `npm run build` | 통과 |
-| `npm run test:e2e` (전체) | 66 passed |
+| `npm run test:e2e` (전체) | 67 passed |
 
-마지막 코드 변경(UX·UI 리뷰 C2) 이후 위 명령을 모두 다시 실행한 결과다. 검증 Stop Hook은 arm하지 않았고 명령을 직접 실행했다. 리뷰 중 dev 서버(포트 3217)는 종료했다.
+마지막 코드 변경(PENDING 검색·필터 추가) 이후 위 명령을 모두 다시 실행한 결과다. 검증 Stop Hook은 arm하지 않았고 명령을 직접 실행했다. 리뷰 중 dev 서버(포트 3217)는 종료했다.
 
 ## 보류·후속
 

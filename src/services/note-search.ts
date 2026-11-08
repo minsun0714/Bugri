@@ -1,4 +1,4 @@
-import { NoteMatch } from "@/api/constants";
+import { NoteMatch, type QuizStatus } from "@/api/constants";
 import type { Question } from "@/api/contracts";
 import {
   excerptAround,
@@ -6,6 +6,7 @@ import {
 } from "@/services/history-search";
 
 interface SearchableQuiz {
+  status: QuizStatus;
   title: string;
   question: Question;
 }
@@ -13,11 +14,12 @@ interface SearchableQuiz {
 export interface NoteMatchResult {
   matchedIn: NoteMatch;
   matchedQuizTitle: string | null;
+  matchedQuizStatus: QuizStatus | null;
   matchedExcerpt: string | null;
 }
 
 /**
- * Every word must appear somewhere in the memo body or its quizzes' title/question text.
+ * Every word must appear somewhere in the memo body or its quizzes' (CONFIRMED and PENDING) title/question text.
  * BODY when the body alone contains every word; otherwise QUIZ, reporting the first quiz
  * that contains a word the body lacks. Answers and explanations are never passed in.
  */
@@ -32,10 +34,12 @@ export function matchNote(
     return {
       matchedIn: NoteMatch.BODY,
       matchedQuizTitle: null,
+      matchedQuizStatus: null,
       matchedExcerpt: null,
     };
 
-  const searchable = quizzes.map(({ title, question }) => ({
+  const searchable = quizzes.map(({ status, title, question }) => ({
+    status,
     title,
     questionBody: questionBody(question),
   }));
@@ -53,7 +57,7 @@ export function matchNote(
 
   const missing = words.filter((word) => !body.includes(word));
 
-  for (const { title, questionBody: text } of searchable) {
+  for (const { status, title, questionBody: text } of searchable) {
     const lowerTitle = title.toLowerCase();
     const lowerText = text.toLowerCase();
 
@@ -73,6 +77,7 @@ export function matchNote(
     return {
       matchedIn: NoteMatch.QUIZ,
       matchedQuizTitle: title,
+      matchedQuizStatus: status,
       matchedExcerpt: inTitle
         ? null
         : excerptAround(

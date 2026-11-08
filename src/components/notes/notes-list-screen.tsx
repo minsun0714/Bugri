@@ -11,7 +11,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ApiClientError } from "@/api/client";
-import { NoteMatch } from "@/api/constants";
+import { NoteMatch, QuizStatus } from "@/api/constants";
 import { getErrorMessage } from "@/api/errors";
 import {
   Button,
@@ -46,6 +46,8 @@ import {
   useTranslation,
 } from "@/lib/i18n/use-translation";
 
+const pendingChipId = "pending";
+
 const linkStyle =
   "inline-flex min-h-11 items-center rounded text-sm font-semibold text-primary focus-visible:outline-2 focus-visible:outline-primary";
 
@@ -61,7 +63,7 @@ function TagFilter({
   const t = useTranslation();
   const { data } = useNoteTags(userId);
   const { data: directory } = useHashtags(userId);
-  const { query, tagIds, untagged } = condition;
+  const { query, tagIds, untagged, hasPending } = condition;
   const searching = query !== "";
 
   if (!data) return null;
@@ -82,10 +84,15 @@ function TagFilter({
       : []),
   ];
 
-  if (!options.length) return null;
+  const showPending = data.pendingNoteCount > 0 || hasPending;
+
+  if (!options.length && !showPending) return null;
 
   return (
-    <section aria-label={t("태그 필터")}>
+    <section
+      aria-label={t("태그 필터")}
+      className="space-y-2"
+    >
       <FilterChips
         options={options.map(({ id, count }) => ({
           id,
@@ -108,6 +115,21 @@ function TagFilter({
           })
         }
       />
+      {showPending && (
+        <FilterChips
+          options={[
+            {
+              id: pendingChipId,
+              label: t("확인 안 한 퀴즈 있음"),
+              count: searching ? undefined : data.pendingNoteCount,
+            },
+          ]}
+          value={hasPending ? [pendingChipId] : []}
+          onChange={(next) =>
+            onChange({ hasPending: next.includes(pendingChipId) })
+          }
+        />
+      )}
     </section>
   );
 }
@@ -118,9 +140,21 @@ function NotesList({ userId }: { userId: string }) {
   const router = useRouter();
   const params = useSearchParams();
   const parsed = parseNotesParams(params);
-  const { query, tagIds, untagged, page, queryTooLong } =
-    parsed;
-  const condition = { query, tagIds, untagged, page };
+  const {
+    query,
+    tagIds,
+    untagged,
+    hasPending,
+    page,
+    queryTooLong,
+  } = parsed;
+  const condition = {
+    query,
+    tagIds,
+    untagged,
+    hasPending,
+    page,
+  };
   const filtering = hasCondition(condition);
   const countRef = useRef<HTMLParagraphElement>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
@@ -168,6 +202,7 @@ function NotesList({ userId }: { userId: string }) {
         query: "",
         tagIds: [],
         untagged: false,
+        hasPending: false,
       },
       { announce: true },
     );
@@ -260,7 +295,7 @@ function NotesList({ userId }: { userId: string }) {
           total={total}
           filtering={filtering}
           query={query}
-          tagged={tagIds.length > 0 || untagged}
+          tagged={tagIds.length > 0 || untagged || hasPending}
           onReset={reset}
           onFirstPage={() => change({ page: 1 })}
         />
@@ -280,6 +315,7 @@ function NotesList({ userId }: { userId: string }) {
                 hashtagIds,
                 matchedIn,
                 matchedQuizTitle,
+                matchedQuizStatus,
                 matchedExcerpt,
               }) => (
                 <li key={noteId}>
@@ -307,6 +343,12 @@ function NotesList({ userId }: { userId: string }) {
                             text={matchedQuizTitle ?? ""}
                             query={query}
                           />
+                          {matchedQuizStatus ===
+                            QuizStatus.PENDING && (
+                            <span className="ml-2 rounded-full border border-primary/30 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                              {t("확인 안 함")}
+                            </span>
+                          )}
                           {matchedExcerpt && (
                             <span className="block">
                               <Highlight

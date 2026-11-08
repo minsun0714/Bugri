@@ -140,8 +140,10 @@ export interface NoteSummary extends NoteQuizCounts {
   updatedAt: string;
   /** Null without a query. BODY when the memo body alone matched, otherwise QUIZ. */
   matchedIn: NoteMatch | null;
-  /** Title of the CONFIRMED quiz that matched; only for QUIZ. */
+  /** Title of the quiz that matched; only for QUIZ. */
   matchedQuizTitle: string | null;
+  /** Status of that quiz (CONFIRMED or PENDING); only for QUIZ. */
+  matchedQuizStatus: QuizStatus | null;
   /** Short snippet of the matched quiz question; only for QUIZ when the title did not match. */
   matchedExcerpt: string | null;
 }
@@ -162,6 +164,8 @@ export interface ApiOperations {
       tagIds?: string[];
       /** Also include memos without tags. Combined with tagIds by OR. */
       untagged?: boolean;
+      /** Only memos that still have unconfirmed (PENDING) quizzes. ANDed with the other conditions. */
+      hasPending?: boolean;
     };
     response: {
       items: NoteSummary[];
@@ -176,6 +180,8 @@ export interface ApiOperations {
     response: {
       tags: { hashtagId: string; count: number }[];
       untaggedCount: number;
+      /** Memos with at least one PENDING quiz. */
+      pendingNoteCount: number;
     };
   };
   note: {

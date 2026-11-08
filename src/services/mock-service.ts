@@ -68,7 +68,14 @@ const tagIds = hashtags.map(({ id }) => id);
 
 const allowed: Record<Operation, string[]> = {
   generate: ["noteId"],
-  notes: ["page", "pageSize", "query", "tagIds", "untagged"],
+  notes: [
+    "page",
+    "pageSize",
+    "query",
+    "tagIds",
+    "untagged",
+    "hasPending",
+  ],
   noteTags: [],
   note: ["noteId"],
   createNote: ["content"],
@@ -344,6 +351,7 @@ export function execute<K extends Operation>(
         query = "",
         tagIds: selectedTags = [],
         untagged = false,
+        hasPending = false,
       } = r;
 
       requireValue(
@@ -378,6 +386,11 @@ export function execute<K extends Operation>(
         "태그 없음 필터를 확인하세요.",
       );
 
+      requireValue(
+        typeof hasPending === "boolean",
+        "확인 안 한 퀴즈 필터를 확인하세요.",
+      );
+
       const words = historyQueryWords(query as string);
       const tagFilter = selectedTags as string[];
       const filtering = tagFilter.length > 0 || untagged;
@@ -404,6 +417,8 @@ export function execute<K extends Operation>(
       const matched = newestFirst.flatMap((note): Candidate[] => {
         const counts = noteCounts(note.noteId);
 
+        if (hasPending && counts.pendingCount === 0) return [];
+
         if (
           filtering &&
           !(
@@ -419,14 +434,13 @@ export function execute<K extends Operation>(
 
         const match = matchNote(
           note.content,
-          liveQuizzes(note.noteId)
-            .filter(
-              ({ status }) => status === QuizStatus.CONFIRMED,
-            )
-            .map(({ revision: { title, question } }) => ({
+          liveQuizzes(note.noteId).map(
+            ({ status, revision: { title, question } }) => ({
+              status,
               title,
               question,
-            })),
+            }),
+          ),
           words,
         );
 
@@ -453,6 +467,8 @@ export function execute<K extends Operation>(
               ...counts,
               matchedIn: match?.matchedIn ?? null,
               matchedQuizTitle: match?.matchedQuizTitle ?? null,
+              matchedQuizStatus:
+                match?.matchedQuizStatus ?? null,
               matchedExcerpt: match?.matchedExcerpt ?? null,
             }),
           ),
@@ -478,6 +494,10 @@ export function execute<K extends Operation>(
           .filter(({ count }) => count > 0),
         untaggedCount: live.filter((tags) => !tags.length)
           .length,
+        pendingNoteCount: s.notes.filter(
+          ({ deletedAt, noteId }) =>
+            !deletedAt && noteCounts(noteId).pendingCount > 0,
+        ).length,
       };
     }
 

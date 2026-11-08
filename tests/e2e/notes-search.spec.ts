@@ -47,7 +47,7 @@ test("search → result → detail → back keeps the condition, and a reload re
   await expect(rows(page)).toHaveCount(1);
 });
 
-test("the search button works and answers, explanations and pending quizzes are not searched", async ({
+test("the search button works and answers and explanations are not searched", async ({
   page,
 }) => {
   await page.goto("/notes?user=learner");
@@ -115,6 +115,31 @@ test("untagged gathers memos without a confirmed quiz", async ({
 
   await expect(rows(page)).toHaveCount(2);
   await expect(rows(page).first()).toContainText("퀴즈 없음");
+});
+
+test("unconfirmed quizzes are searchable, badged, and can be filtered on their own", async ({
+  page,
+}) => {
+  await page.goto("/notes?user=learner");
+
+  await page
+    .getByRole("button", { name: /^확인 안 한 퀴즈 있음/ })
+    .click();
+
+  await expect(page).toHaveURL(/pending=1/);
+  await expect(rows(page)).toHaveCount(1);
+  await expect(rows(page).first()).toContainText(
+    "확인 안 한 퀴즈 2개",
+  );
+
+  // "타입은" only occurs in the prompt of a PENDING quiz ("숫자 타입은?"), not in the memo body.
+  await page.goto("/notes?user=learner&query=숫자 타입은");
+  await expect(rows(page)).toHaveCount(1);
+  await expect(rows(page).first()).toContainText("퀴즈 · 타입 선언");
+  await expect(rows(page).first()).toContainText("확인 안 함");
+
+  await page.reload();
+  await expect(rows(page)).toHaveCount(1);
 });
 
 test("no result explains the query and the reset clears it", async ({

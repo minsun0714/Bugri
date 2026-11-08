@@ -17,16 +17,17 @@ export interface NotesListCondition {
   query: string;
   tagIds: string[];
   untagged: boolean;
+  hasPending: boolean;
 }
 
 const listKey = (
   userId: string,
-  { page, query, tagIds, untagged }: NotesListCondition,
+  { page, query, tagIds, untagged, hasPending }: NotesListCondition,
 ) =>
   [
     ...notesKey(userId),
     "list",
-    { query, tagIds, untagged, page },
+    { query, tagIds, untagged, hasPending, page },
   ] as const;
 
 export const noteTagsKey = (userId: string) =>
@@ -45,7 +46,7 @@ export function useNotes(
   condition: NotesListCondition,
   enabled = true,
 ) {
-  const { page, query, tagIds, untagged } = condition;
+  const { page, query, tagIds, untagged, hasPending } = condition;
 
   return useQuery({
     queryKey: listKey(userId, condition),
@@ -57,6 +58,7 @@ export function useNotes(
         ...(query ? { query } : {}),
         ...(tagIds.length ? { tagIds } : {}),
         ...(untagged ? { untagged } : {}),
+        ...(hasPending ? { hasPending } : {}),
       }),
     retry: false,
     staleTime: 0,

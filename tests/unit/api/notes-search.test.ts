@@ -233,16 +233,60 @@ describe("query", () => {
     expect(await ids({ query: "choiceId" })).toEqual([]);
   });
 
-  test("does not search PENDING quizzes", async () => {
+  test("searches PENDING quizzes too and reports their status", async () => {
     const note = await addNote(
       "본문",
       [quiz("대기 제목", "대기 문제", ["web"])],
       { confirm: false },
     );
 
-    expect(await ids({ query: "대기" })).toEqual([]);
+    const { items } = await make().request("notes", {
+      query: "대기",
+    });
 
-    expect(await ids({})).toEqual([note.noteId]);
+    expect(items.map(({ noteId }) => noteId)).toEqual([
+      note.noteId,
+    ]);
+
+    expect(items[0]).toMatchObject({
+      matchedIn: "QUIZ",
+      matchedQuizTitle: "대기 제목",
+      matchedQuizStatus: "PENDING",
+    });
+  });
+
+  test("reports CONFIRMED as the status of a confirmed quiz hit and null otherwise", async () => {
+    await addNote("본문 없음", [
+      quiz("확정 제목", "문제", ["web"]),
+    ]);
+
+    await addNote("메모 본문");
+
+    const api = make();
+
+    const byQuiz = await api.request("notes", {
+      query: "확정",
+    });
+
+    expect(byQuiz.items[0].matchedQuizStatus).toBe(
+      "CONFIRMED",
+    );
+
+    const byBody = await api.request("notes", {
+      query: "메모 본문",
+    });
+
+    expect(byBody.items[0].matchedQuizStatus).toBeNull();
+  });
+
+  test("still never searches answers or explanations of PENDING quizzes", async () => {
+    await addNote(
+      "본문",
+      [quiz("대기 제목", "대기 문제", ["web"])],
+      { confirm: false },
+    );
+
+    expect(await ids({ query: "비밀단어" })).toEqual([]);
   });
 
   test("does not search deleted quizzes or deleted notes", async () => {
@@ -419,6 +463,60 @@ describe("tag filter", () => {
   });
 });
 
+describe("pending filter", () => {
+  test("hasPending keeps notes that still have unconfirmed quizzes", async () => {
+    await addNote("확정만", [quiz("a", "문제", ["web"])]);
+
+    const pending = await addNote(
+      "대기만",
+      [quiz("b", "문제", ["java"])],
+      { confirm: false },
+    );
+
+    await addNote("퀴즈 없음");
+
+    expect(await ids({ hasPending: true })).toEqual([
+      pending.noteId,
+    ]);
+
+    expect(
+      await ids({ hasPending: false }),
+    ).toHaveLength(3);
+  });
+
+  test("combines with search and tags by AND", async () => {
+    const pending = await addNote(
+      "대기 메모",
+      [quiz("b", "문제", ["java"])],
+      { confirm: false },
+    );
+
+    await addNote("확정 메모", [quiz("a", "문제", ["web"])]);
+
+    expect(
+      await ids({ hasPending: true, query: "메모" }),
+    ).toEqual([pending.noteId]);
+
+    expect(
+      await ids({ hasPending: true, untagged: true }),
+    ).toEqual([pending.noteId]);
+
+    expect(
+      await ids({ hasPending: true, tagIds: ["web"] }),
+    ).toEqual([]);
+  });
+
+  test("rejects a non-boolean value", async () => {
+    await expect(
+      make().request("notes", {
+        hasPending: "yes" as never,
+      }),
+    ).rejects.toMatchObject({
+      detail: { code: "VALIDATION_ERROR" },
+    });
+  });
+});
+
 describe("paging and isolation", () => {
   test("total counts after filtering and the page is applied last, newest first", async () => {
     const created: string[] = [];
@@ -473,6 +571,7 @@ describe("paging and isolation", () => {
     expect(await make().request("noteTags", {})).toEqual({
       tags: [],
       untaggedCount: 1,
+      pendingNoteCount: 0,
     });
   });
 });
@@ -504,6 +603,7 @@ describe("noteTags", () => {
         { hashtagId: "web", count: 2 },
       ],
       untaggedCount: 2,
+      pendingNoteCount: 1,
     });
   });
 
@@ -513,6 +613,7 @@ describe("noteTags", () => {
     expect(await api.request("noteTags", {})).toEqual({
       tags: [],
       untaggedCount: 0,
+      pendingNoteCount: 0,
     });
 
     await expect(

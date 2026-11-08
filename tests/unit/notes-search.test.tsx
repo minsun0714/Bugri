@@ -98,7 +98,7 @@ describe("address condition", () => {
   test("parses and rebuilds the condition, leaving defaults out", () => {
     const parsed = parseNotesParams(
       new URLSearchParams(
-        "user=a&query=%20react%20&tag=web&tag=web&tag=java&untagged=1&page=3",
+        "user=a&query=%20react%20&tag=web&tag=web&tag=java&untagged=1&pending=1&page=3",
       ),
     );
 
@@ -107,6 +107,7 @@ describe("address condition", () => {
       queryTooLong: false,
       tagIds: ["web", "java"],
       untagged: true,
+      hasPending: true,
       page: 3,
     });
 
@@ -115,10 +116,11 @@ describe("address condition", () => {
         query: "react",
         tagIds: ["web", "java"],
         untagged: true,
+        hasPending: true,
         page: 3,
       }),
     ).toBe(
-      "/notes?user=a&query=react&tag=web&tag=java&untagged=1&page=3",
+      "/notes?user=a&query=react&tag=web&tag=java&untagged=1&pending=1&page=3",
     );
 
     expect(
@@ -126,6 +128,7 @@ describe("address condition", () => {
         query: "",
         tagIds: [],
         untagged: false,
+        hasPending: false,
         page: 1,
       }),
     ).toBe("/notes?user=a");
@@ -141,6 +144,7 @@ describe("address condition", () => {
     ).toMatchObject({
       page: 1,
       untagged: false,
+      hasPending: false,
       queryTooLong: true,
     });
   });
@@ -151,6 +155,7 @@ describe("address condition", () => {
         query: "q",
         tagIds: [],
         untagged: true,
+        hasPending: false,
         page: 2,
       }),
     ).toBe("/notes/n%201?user=a&query=q&untagged=1&page=2");
@@ -362,4 +367,46 @@ test("an empty account still points to the home quick note", async () => {
   expect(
     screen.queryByRole("region", { name: "태그 필터" }),
   ).not.toBeInTheDocument();
+});
+
+test("the unconfirmed-quizzes chip filters, and a PENDING quiz hit carries a badge", async () => {
+  const api = await createBrowserApi({
+    mode: "mock",
+    userId: "learner",
+    generate: ((): unknown => [
+      quiz("대기 퀴즈", ["java"]),
+    ]) as never,
+  } as never);
+
+  const note = await api.request("createNote", {
+    content: "본문 메모",
+  });
+
+  await api.request("generate", { noteId: note.noteId });
+
+  await seed();
+  search = "user=learner&pending=1&query=대기";
+
+  wrap(<NotesListScreen />);
+
+  const list = await screen.findByRole("list", {
+    name: "내 노트",
+  });
+
+  expect(within(list).getAllByRole("link")).toHaveLength(1);
+  expect(list).toHaveTextContent("퀴즈 · 대기 퀴즈");
+  expect(list).toHaveTextContent("확인 안 함");
+
+  const chip = screen.getByRole("button", {
+    name: /확인 안 한 퀴즈 있음/,
+  });
+
+  expect(chip).toHaveAttribute("aria-pressed", "true");
+
+  fireEvent.click(chip);
+
+  expect(push).toHaveBeenLastCalledWith(
+    "/notes?user=learner&query=%EB%8C%80%EA%B8%B0",
+    { scroll: false },
+  );
 });

@@ -49,19 +49,19 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 
 | 연산 | HTTP | 요청 | 응답 |
 | --- | --- | --- | --- |
-| `notes` | GET /notes | `{ page?, pageSize?, query?, tagIds?, untagged? }` | `{ items: { noteId, excerpt, createdAt, updatedAt, confirmedCount, pendingCount, hashtagIds, matchedIn, matchedQuizTitle, matchedExcerpt }[], page, pageSize, total }` |
-| `noteTags` | GET /notes/tags | `{}` | `{ tags: { hashtagId, count }[], untaggedCount }` |
+| `notes` | GET /notes | `{ page?, pageSize?, query?, tagIds?, untagged?, hasPending? }` | `{ items: { noteId, excerpt, createdAt, updatedAt, confirmedCount, pendingCount, hashtagIds, matchedIn, matchedQuizTitle, matchedQuizStatus, matchedExcerpt }[], page, pageSize, total }` |
+| `noteTags` | GET /notes/tags | `{}` | `{ tags: { hashtagId, count }[], untaggedCount, pendingNoteCount }` |
 | `note` | GET /notes/{id} | `{ noteId }` | `{ noteId, content, version, createdAt, updatedAt, confirmedCount, pendingCount, hashtagIds }` |
 | `createNote` | POST /notes | `{ content }` | 위 Note, version 1 |
 | `updateNote` | PUT /notes/{id} | `{ content, expectedVersion }` | 위 Note, version 증가 |
 | `deleteNote` | DELETE /notes/{id} | `{ noteId }` | `{ deleted: true }` |
 
 - 목록은 삭제되지 않은 본인 메모를 최신 작성순으로 반환한다. page 기본 1(양의 안전 정수), pageSize 기본 20(1~50). 범위 밖 페이지는 빈 `items`와 전체 `total`을 반환한다. `excerpt`는 본문 앞 200 코드 포인트이며 목록·검색 표시용이다. 본문 전체는 `note`로만 받는다.
-- 검색·태그 필터(NOTES-SEARCH, PRD AC-01h~j): `query`는 trim 후 비면 검색 없음, 100자(코드 포인트) 초과·문자열이 아니면 400 VALIDATION_ERROR. `tagIds`는 등록 태그 id 배열(중복은 합침, 미등록·비문자열은 400). `untagged: true`는 태그 없는 메모를 포함한다. 처리 순서는 필터·검색 → 최신순 → 페이지이며 `total`은 조건 적용 후 개수다. 필드를 모두 생략하면 기존 동작과 같다. GET에서 `tagIds`는 `tagIds=a&tagIds=b`처럼 반복한다.
+- 검색·태그 필터(NOTES-SEARCH, PRD AC-01h~j): `query`는 trim 후 비면 검색 없음, 100자(코드 포인트) 초과·문자열이 아니면 400 VALIDATION_ERROR. `tagIds`는 등록 태그 id 배열(중복은 합침, 미등록·비문자열은 400). `untagged: true`는 태그 없는 메모를 포함한다. `hasPending: true`는 삭제되지 않은 PENDING 퀴즈가 있는 메모만 남기며 다른 조건과 AND다(boolean이 아니면 400). 처리 순서는 필터·검색 → 최신순 → 페이지이며 `total`은 조건 적용 후 개수다. 필드를 모두 생략하면 기존 동작과 같다. GET에서 `tagIds`는 `tagIds=a&tagIds=b`처럼 반복한다.
   - 태그 필터: `tagIds`와 `untagged`는 OR(하나라도 해당). 메모의 태그는 CONFIRMED 퀴즈 태그의 합집합이고, 그 합집합이 비면 "태그 없음"이다(퀴즈가 없는 메모와 PENDING 퀴즈만 있는 메모 포함). 검색과는 AND.
-  - 검색: 풀이 내역과 같은 정규화·매칭(`historyQueryWords`)을 쓴다. 대소문자 무시, 공백으로 나눈 단어가 모두 포함되면 일치(순서 무관). 단어는 메모 본문과 삭제되지 않은 CONFIRMED 퀴즈의 제목·문제 문장·선택지 전체에서 찾는다. 정답·해설·`sourceContent`·PENDING 퀴즈는 대상이 아니다.
-  - 응답 `matchedIn`: 검색어가 없으면 null. 본문만으로 모든 단어가 일치하면 `BODY`, 아니면 `QUIZ`. `QUIZ`일 때 `matchedQuizTitle`은 본문에 없는 단어를 가진 첫 CONFIRMED 퀴즈의 제목, `matchedExcerpt`는 그 단어가 제목에 없을 때만 문제·선택지에서 일치 단어 주변 최대 80자(그 외 null). `BODY`이면 둘 다 null이고 화면은 기존 `excerpt`를 쓴다.
-  - `noteTags`: 현재 사용자의 삭제되지 않은 메모에 붙은 태그와 메모 수(`count`, 등록 태그 순서, 0개 태그 제외), 태그 없는 메모 수 `untaggedCount`. 다른 사용자 데이터는 섞지 않으며 요청 필드는 없다.
+  - 검색: 풀이 내역과 같은 정규화·매칭(`historyQueryWords`)을 쓴다. 대소문자 무시, 공백으로 나눈 단어가 모두 포함되면 일치(순서 무관). 단어는 메모 본문과 삭제되지 않은 퀴즈(CONFIRMED·PENDING 모두)의 제목·문제 문장·선택지 전체에서 찾는다. 정답·해설·`sourceContent`는 대상이 아니다. 태그는 여전히 CONFIRMED 퀴즈에서만 모은다.
+  - 응답 `matchedIn`: 검색어가 없으면 null. 본문만으로 모든 단어가 일치하면 `BODY`, 아니면 `QUIZ`. `QUIZ`일 때 `matchedQuizTitle`은 본문에 없는 단어를 가진 첫 퀴즈의 제목, `matchedQuizStatus`는 그 퀴즈의 상태(CONFIRMED·PENDING, BODY·무검색은 null), `matchedExcerpt`는 그 단어가 제목에 없을 때만 문제·선택지에서 일치 단어 주변 최대 80자(그 외 null). `BODY`이면 둘 다 null이고 화면은 기존 `excerpt`를 쓴다.
+  - `noteTags`: 현재 사용자의 삭제되지 않은 메모에 붙은 태그와 메모 수(`count`, 등록 태그 순서, 0개 태그 제외), 태그 없는 메모 수 `untaggedCount`, PENDING 퀴즈가 있는 메모 수 `pendingNoteCount`. 다른 사용자 데이터는 섞지 않으며 요청 필드는 없다.
 - 본문은 기존 학습 내용 검증(`source`)을 재사용한다. 공백뿐이면 거부하고, 코드 블록을 포함한 유니코드 코드 포인트 최대 10,000자를 넘으면 400 VALIDATION_ERROR(필드 `content`)다. 본문은 자르거나 정규화하지 않아 코드 블록·줄바꿈·들여쓰기를 그대로 보존하며, HTML·스크립트 문자열도 텍스트일 뿐 실행하지 않는다. 알 수 없는 요청 필드는 거부한다.
 - 수정은 `expectedVersion`이 저장된 version과 다르면 409 VERSION_CONFLICT이며 저장된 메모를 바꾸지 않는다. 성공하면 version과 updatedAt을 갱신한다.
 - 본인 메모만 조회·수정·삭제한다. 다른 사용자의 메모와 없는 메모는 모두 404 NOT_FOUND라 존재 여부를 구분하지 않는다. 삭제한 메모는 목록·상세·수정에서 404다.
@@ -69,7 +69,7 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 - `confirmedCount`·`pendingCount`는 삭제되지 않은 연결 퀴즈의 상태별 개수, `hashtagIds`는 CONFIRMED 퀴즈 태그의 합집합(중복 제거)이다.
 - 저장: `UserState.notes`는 필수 배열이다. 형식이 잘못된 `notes`는 STORAGE_CORRUPT이며 덮어쓰지 않는다. 저장 실패(STORAGE_UNAVAILABLE) 시 기존 상태가 유지된다.
 - UI 연결: Query 키는 `['notes', userId, 'list', { query, tagIds, untagged, page }]`, `['notes', userId, 'tags']`, `['notes', userId, 'detail', noteId]`다. 변경 성공 후 `['notes', userId]` 전체를 무효화하고, 삭제 시 상세 캐시를 제거한다.
-- 화면 경로: `/`(홈 빠른 메모), `/notes?user=&query=&tag=&untagged=1&page=`(내 노트, `tag`는 반복, 기본값은 생략), `/notes/{noteId}?user=`(메모 상세). 홈 저장 토스트의 "퀴즈로 만들기"는 해당 메모 상세로 이동한다.
+- 화면 경로: `/`(홈 빠른 메모), `/notes?user=&query=&tag=&untagged=1&pending=1&page=`(내 노트, `tag`는 반복, 기본값은 생략), `/notes/{noteId}?user=`(메모 상세). 홈 저장 토스트의 "퀴즈로 만들기"는 해당 메모 상세로 이동한다.
 
 ## 상태 상수
 
