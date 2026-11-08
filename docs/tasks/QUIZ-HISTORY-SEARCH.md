@@ -23,7 +23,8 @@
 - 실패 확인: 검색 API 테스트를 구현 전에 먼저 실행해 9개 모두 실패(미구현)를 확인했다.
 - `npm run lint`·`npm run typecheck` 통과. `npm run test:tools` 3개 통과.
 - 전체 Jest: 75 suite/405개 통과.
-- E2E: `npm run test:e2e -- tests/e2e/quiz-history.spec.ts --workers=1` 8개 통과(신규 ko/en 검색 흐름 포함). 나머지 E2E는 이번 변경 후 재실행하지 않았다.
+- E2E: `npm run test:e2e -- tests/e2e/quiz-history.spec.ts --workers=1` 8개 통과(신규 ko/en 검색 흐름 포함).
+- 브랜치 분리 후 최종 상태(`feat/history-search`, `UI-STYLE-REFRESH` 위에 쌓음) 재검증: lint·typecheck 통과, Jest 75 suite/405개, `test:tools` 3개 통과. E2E quiz-history·navigation·locale·solving·home-quiz-review·mock-api 37개 통과. 전체 영향 범위 E2E 187개는 기반 브랜치에서 통과했고 이 브랜치 전체를 다시 실행하지는 않았다. `npm run build`는 이 브랜치에서 별도 실행하지 않았다(E2E가 production build로 실행됨).
 - 미실행: 독립 UX/UI 리뷰(ux-review-loop), 실제 브라우저에서의 화면 확인(데모 플래그가 켜진 제품 빌드 포함), 다크 테마·모바일 육안 확인, 전체 E2E. 데모 플래그가 켜진 상태의 화면은 단위 테스트(API)로만 검증했다.
 - `docs/API.md`·`docs/PRD.md`는 변경 전부터 Prettier 검사에 실패하던 파일이라 형식은 건드리지 않았다.
 
