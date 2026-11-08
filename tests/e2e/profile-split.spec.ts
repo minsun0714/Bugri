@@ -12,7 +12,9 @@ test("private management leads to a public profile without personal data", async
   ).toBeVisible();
   await expect(
     page
-      .getByRole("region", { name: "개인 관리" })
+      .getByRole("region", {
+        name: "데스크 꾸미기 바로가기",
+      })
       .getByRole("link", {
         name: "데스크 꾸미기 바로가기",
       }),

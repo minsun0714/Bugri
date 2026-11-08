@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import Markdown from "react-markdown";
 import { CodeBlock } from "@/components/ui/code-block";
 
@@ -6,12 +9,17 @@ export function MarkdownContent({
 }: {
   children: string;
 }) {
+  const t = useTranslation();
+
   return (
     <div className="min-w-0 break-words text-sm leading-7 [&_a]:text-primary [&_a]:underline [&_pre]:overflow-x-auto [&_pre]:whitespace-pre [&_ul]:list-inside [&_ul]:list-disc">
       <Markdown
         components={{
           img: ({ alt }) => (
-            <span>[이미지: {alt ?? ""}]</span>
+            <span>
+              {t("[이미지:")}
+              {alt ?? ""}]
+            </span>
           ),
           pre: ({ children }) => (
             <div className="my-3">{children}</div>

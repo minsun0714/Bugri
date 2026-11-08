@@ -1,4 +1,7 @@
 "use client";
+import { type UiMessage } from "@/lib/i18n/messages";
+
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import type { ReactNode } from "react";
 import type { ProfileSection } from "@/api/constants";
@@ -23,8 +26,10 @@ export function ProfileSections({
   owner: boolean;
   sections: Record<ProfileSection, ReactNode>;
   renderHeader?: (action: ReactNode) => ReactNode;
-  onNotice: (message: string, duration?: number) => void;
+  onNotice: (message: UiMessage, duration?: number) => void;
 }) {
+  const t = useTranslation();
+
   const {
     profile,
     failed,
@@ -60,7 +65,7 @@ export function ProfileSections({
       onClick={start}
     >
       <OrderIcon />
-      순서 편집
+      {t("순서 편집")}
     </Button>
   ) : null;
   const header = renderHeader
@@ -74,10 +79,10 @@ export function ProfileSections({
         <Skeleton />
       ) : profile.error && !profile.data ? (
         <div role="alert" className="space-y-3">
-          <p>섹션 순서를 불러오지 못했습니다.</p>
+          <p>{t("섹션 순서를 불러오지 못했습니다.")}</p>
           <div className="flex justify-end">
             <Button onClick={() => void profile.refetch()}>
-              다시 불러오기
+              {t("다시 불러오기")}
             </Button>
           </div>
         </div>
@@ -100,21 +105,21 @@ export function ProfileSections({
           onClose={() => {
             if (!busy) finish();
           }}
-          title="순서 편집"
+          title={t("순서 편집")}
           initialFocusSelector="[data-order-handle]"
         >
           <div
             ref={root}
             className="space-y-2"
             role="list"
-            aria-label="프로필 섹션 순서"
+            aria-label={t("프로필 섹션 순서")}
           >
             <span
               role="status"
               aria-live="polite"
               className="sr-only"
             >
-              {announcement}
+              {t(announcement)}
             </span>
             {order.map((id, index) => (
               <div
@@ -132,7 +137,9 @@ export function ProfileSections({
                       data-order-handle
                       variant="ghost"
                       disabled={busy}
-                      aria-label={`${labels[id]} 드래그하여 이동`}
+                      aria-label={t("{0} 드래그하여 이동", {
+                        0: t(labels[id]),
+                      })}
                       className="!min-h-11 !min-w-11 !touch-none !cursor-grab !px-2 active:!cursor-grabbing"
                       onPointerDown={(event) =>
                         beginDrag(id, event)
@@ -179,13 +186,15 @@ export function ProfileSections({
                       </span>
                     </Button>
                     <span className="min-w-0 flex-1 text-sm font-semibold">
-                      {labels[id]}
+                      {t(labels[id])}
                     </span>
                     <div className="ml-auto flex gap-1">
                       <Button
                         variant="ghost"
                         className="!min-h-11 !min-w-11 !px-2"
-                        aria-label={`${labels[id]} 위로 이동`}
+                        aria-label={t("{0} 위로 이동", {
+                          0: t(labels[id]),
+                        })}
                         disabled={busy || index === 0}
                         onClick={() =>
                           move(id, order[index - 1])
@@ -196,7 +205,9 @@ export function ProfileSections({
                       <Button
                         variant="ghost"
                         className="!min-h-11 !min-w-11 !px-2"
-                        aria-label={`${labels[id]} 아래로 이동`}
+                        aria-label={t("{0} 아래로 이동", {
+                          0: t(labels[id]),
+                        })}
                         disabled={
                           busy || index === order.length - 1
                         }
@@ -217,8 +228,9 @@ export function ProfileSections({
               role="alert"
               className="mt-4 text-sm text-foreground"
             >
-              순서를 저장하지 못했습니다. 변경한 순서는
-              유지됩니다. 다시 시도해 주세요.
+              {t(
+                "순서를 저장하지 못했습니다. 변경한 순서는 유지됩니다. 다시 시도해 주세요.",
+              )}
             </div>
           )}
           <div className="mt-5 flex flex-wrap justify-end gap-2">
@@ -227,13 +239,13 @@ export function ProfileSections({
               disabled={busy}
               onClick={finish}
             >
-              취소
+              {t("취소")}
             </Button>
             <Button
               loading={busy}
               onClick={() => void save()}
             >
-              {failed ? "다시 저장" : "저장"}
+              {failed ? t("다시 저장") : t("저장")}
             </Button>
           </div>
         </Modal>

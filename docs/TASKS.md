@@ -1751,3 +1751,32 @@
 - Node v22.23.3, `beb2b70`에서 `npm run verify -- -- --workers=2` exit 0: ESLint·전체 TypeScript·Jest 62 suites/311 tests·도구 테스트 3개·production build·Chromium E2E 197개 통과. 로그 `/tmp/profile-dnd-pr-theme-verify.log`. 이전 결과를 대체하는 최종 통합 검증이며 실패·재시도 없음.
 - [독립 UX/UI 통합 리뷰](ux-reviews/PROFILE-DND-INTEGRATION.md): 두 테마·PC/모바일 본인/방문자 화면과 저장/취소/포커스/탐색을 직접 확인해 필수 문제 0개, 수정 0회. upstream 코드·문서 보존 정적 리뷰도 완료. 실기기·스크린리더 등 한계는 리뷰 문서에 기록했다.
 - 검증 후 변경은 작업 기록·리뷰 문서뿐이므로 성공 결과를 재사용한다. 문서 링크·diff check 확인 후 PR을 Ready로 갱신하며 병합은 하지 않는다.
+
+## I18N-01 — 한국어·영어 화면 언어
+
+- 상태: IN_PROGRESS — 구현 커밋, 최종 검증 미완료. REQ-16에 따라 서비스 UI만 번역하며 퀴즈·프로필·사용자 입력은 원문 유지. 브라우저 언어 감지, 명시 선택 저장, 공통 헤더 언어 선택, 오류·접근성 문구를 포함한다.
+- 검증 계획: 언어 선택/복원/저장 차단/콘텐츠 보존 단위 및 E2E, 독립 UX·UI 화면 리뷰, 최종 전체 verify.
+
+- I18N-01 검증: Node v22.23.3. `PLAYWRIGHT_PORT=3447 npm run verify`에서 lint·전체 타입·Jest 64 suites/316개·도구3개·production build 통과, E2E 201개 중198개 통과/3개 실패(exit1). 다국어 E2E4개는 통과했다. 변경 파일 Prettier·diff check 통과. 전체 통과나 병합 준비 완료로 간주하지 않는다.
+- 남은 실패: `profile-split.spec.ts:19`의 ‘개인 관리’ region 이름을 변경해 기존 접근성 계약 회귀(번역 가능한 region 이름 복원 필요). `developer-discovery-repair.spec.ts:317` 구독 모달과 `scene-centering.spec.ts:4` mobile390은30초 시간 초과로 원인 추가 확인 필요. 시간 초과를 환경 문제로 단정하거나 테스트를 제외하지 않았다.
+- 검증 수정·재실행 한도 도달로 추가 재시도 중단. 당시 구현 변경은 미커밋으로 보존했다. 이후 사용자 요청에 따라 아래와 같이 커밋했다. push/PR 없음. 최종 로그 `.bugri-hooks/i18n/verify-final.log`, 실패 스냅샷 `test-results/`. [독립 UX/UI·코드 리뷰 및 검증 기록](ux-reviews/I18N-01.md).
+
+### I18N-01 후속 — 접근성 이름 기대값과 구독 모달 확인
+
+- 사용자가 ‘데스크 꾸미기 바로가기’ 영역 이름을 유지하고 테스트를 맞추도록 명시했다. 앞선 ‘기존 개인 관리 이름 복원 필요’ 판단은 이 요청으로 대체한다. `profile-split.spec.ts`의 region 이름만 변경하고 링크 경로 검증은 유지했다.
+- Node v22.23.3에서 `PLAYWRIGHT_PORT=3447 npm run test:e2e -- tests/e2e/profile-split.spec.ts tests/e2e/developer-discovery-repair.spec.ts --grep 'private management|subscription modal' --workers=1 --trace=on` 실행: 두 테스트 통과(각6.6초/7.3초). 변경 테스트 ESLint·Prettier 통과. 새 전체 verify 통과를 의미하지 않는다.
+- 구독 모달 애플리케이션 코드는 변경하지 않았다. 이전 실패 스냅샷은 author 검색 완료·관리 버튼에 초점·해제 메뉴 닫힘 상태였다. 단독 실행에서는 검색→필터→해제→초점 복귀→재진입→이동 모두 통과했다. 이전 병렬 실행의 시간 초과 원인은 미확정이며 서버 요청이30초 걸렸다고 해석하지 않는다. mobile390 scene-centering 실패는 이번 재검증 범위 밖으로 남는다.
+- 이전 검증 한도 중단 뒤 사용자의 명시적인 테스트 수정·실패 확인 요청에 따라 이 두 검사를 재실행했다. 로그 `.bugri-hooks/i18n/followup-e2e.log`, trace는 `test-results/`에 보존한다. 사용자 요청으로 다국어 기능은 `3777037`에 커밋했으며, 접근성 이름 테스트와 이 후속 기록은 별도 커밋한다. 미통과 상태로 남은 것은 mobile390 scene-centering 검사이며 전체 verify 성공으로 표시하지 않는다.
+
+
+### I18N-01 후속 — 모바일 3D 시간 초과 조사
+
+- 사용자 요청으로 `4143352`의 코드에서 Node v22.23.3·production 서버(port 3447)로 조사했다. `scene-centering.spec.ts`는 데스크·상점 미리보기·공개 데스크 세 화면에서 총15회 드래그와 캔버스 픽셀 검사를 수행한다. 원래 실패는 mouse.move 도중 전체 테스트 제한30초를 소진한 것이며, 중심 위치 assertion 실패는 아니다. 렌더링 엔진과 해당 테스트는 다국어 구현 전후 동일하다.
+- `npm run test:e2e -- tests/e2e/scene-centering.spec.ts --grep '390px' --repeat-each=3 --workers=1 --trace=on --reporter=line,json`은3회 통과(7.0~11.8초). scene-centering·room-zoom·room-theme-bugri·shop-additive-preview를 workers=4로 함께 실행한10개도 통과했다. 같은 모바일 테스트를 repeat-each=4·workers=4로 실행한4회는23.3~23.8초로 모두 통과했다. 각 명령에는 `PLAYWRIGHT_PORT=3447`과 별도 JSON 출력 경로를 지정했다.
+- 병렬 부하에 따른 지연은 확인했지만 최초 실행의 정확한 지연 원인은 미확정이다. 당시 trace가 없어 단정하지 않는다. 앱·테스트·timeout 변경은 없으며, 앞선3개 실패는 후속 개별 실행에서 모두 통과했다. 최초 전체 verify exit1은 유지하고 새 전체 일괄 통과로 표시하지 않는다. 로그: `.bugri-hooks/i18n/scene-serial.log`, `scene-parallel.log`, `scene-concurrent.log`.
+
+## VERIFY-SHOP-SCOPE — 상점·3D 검증 범위 지침
+
+- 사용자 승인으로 검증 지침·AGENTS·구현/PR 스킬·Hook 안내를 정합화했다. 상점 동작/렌더링과 무관하면 전용 E2E를 제외하고, 공통 UI 변경은 영향을 받는 흐름을 확인한다. 영향이 불명확하면 포함한다. 필요한 상점·3D 검사는 worker1개로 순차 실행한다. PR 최종화·통합에도 같은 기준을 적용하고 선택·제외 근거를 기록한다.
+- 문서만 변경했다. 실행 스크립트의 자동 제외 기능은 추가하지 않았으며 기존 실패를 삭제하거나 테스트를 약화하지 않았다. 이 문서 변경을 위한 앱 pipeline·Hook은 실행하지 않는다.
+- 문서 링크·정합성·diff 검사 통과. 스킬 quick_validate는 환경에 PyYAML이 없어 실행 차단되었으며 frontmatter·참조·적용 조건은 직접 확인했다. 구현자 외 최종 리뷰와 병합 판단은 사용자에게 남긴다.

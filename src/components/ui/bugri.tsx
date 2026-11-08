@@ -1,3 +1,5 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 const expressions = {
   confused: {
     label: "길을 찾는 버그리",
@@ -41,12 +43,13 @@ export function Bugri({
   small?: boolean;
   mood?: keyof typeof expressions;
 }) {
+  const t = useTranslation();
   const { label, eyes, mouth } = expressions[mood];
 
   return (
     <div
       role="img"
-      aria-label={label}
+      aria-label={t(label)}
       className={`bugri-pet text-bugri-ink relative grid shrink-0 place-items-center pt-6 ${small ? "h-24 w-24" : "h-36 w-36"}`}
     >
       <div

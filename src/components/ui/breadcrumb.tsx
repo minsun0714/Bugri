@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import Link from "next/link";
 
 export type BreadcrumbItem = {
@@ -10,17 +13,19 @@ export function Breadcrumb({
 }: {
   items: BreadcrumbItem[];
 }) {
+  const t = useTranslation();
+
   if (!items.length) return null;
 
   return (
     <nav
-      aria-label="현재 위치"
+      aria-label={t("현재 위치")}
       className="mb-6 text-sm text-muted"
     >
       <ol className="flex flex-wrap items-center gap-x-2 gap-y-2">
         {items.map(({ label, href }, index) => (
           <li
-            key={`${index}-${label}`}
+            key={`${index}-${t(label)}`}
             className="flex min-w-0 max-w-full items-start gap-2"
           >
             {index > 0 && (
@@ -33,7 +38,7 @@ export function Breadcrumb({
                 href={href}
                 className="min-w-0 break-words rounded py-1 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
               >
-                {label}
+                {t(label)}
               </Link>
             ) : (
               <span
@@ -44,7 +49,7 @@ export function Breadcrumb({
                 }
                 className="min-w-0 break-words py-1 text-foreground"
               >
-                {label}
+                {t(label)}
               </span>
             )}
           </li>

@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { productColor } from "@/components/shop/product-colors";
 import { monitorScreen } from "@/components/shop/monitor-screen";
 import { useId, type ReactNode } from "react";
@@ -593,9 +596,12 @@ export function DeskScene({
     children: ReactNode,
   ) => ReactNode;
 }) {
+  const t = useTranslation();
+
   const id = useId();
   const names = Object.values(equipment).map(
-    (value) => artworkNames[value] ?? "알 수 없는 상품",
+    (value) =>
+      t(artworkNames[value] ?? "") || t("알 수 없는 상품"),
   );
   const item = (category: MovableCategory) => {
     const productId = equipment[category];
@@ -617,7 +623,7 @@ export function DeskScene({
   return (
     <svg
       role={renderItem ? "group" : "img"}
-      aria-label={`${label} · ${names.join(", ") || "기본 데스크"}`}
+      aria-label={`${t(label)} · ${names.join(", ") || t("기본 데스크")}`}
       viewBox="0 0 600 380"
       className={
         renderItem

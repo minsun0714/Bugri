@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import type { ReactNode } from "react";
 
 type FooterLink = { label: string; href: string };
@@ -9,16 +12,18 @@ export function Footer({
   links?: FooterLink[];
   note?: ReactNode;
 }) {
+  const t = useTranslation();
+
   return (
     <footer
       className="mt-14 border-t border-line bg-surface"
-      aria-label="사이트 정보"
+      aria-label={t("사이트 정보")}
     >
       <div className="mx-auto max-w-[1220px] px-6 pb-6 pt-8 md:px-12 md:pt-10">
         <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-7">
           <a
             href="#top"
-            aria-label="Bugri 맨 위로"
+            aria-label={t("Bugri 맨 위로")}
             className="inline-flex items-center gap-2 text-2xl font-extrabold tracking-tight text-primary"
           >
             <span
@@ -38,7 +43,7 @@ export function Footer({
           <div className="flex flex-wrap items-center gap-x-7 gap-y-4">
             {links.length > 0 && (
               <nav
-                aria-label="푸터 바로가기"
+                aria-label={t("푸터 바로가기")}
                 className="flex flex-wrap gap-x-6 gap-y-3"
               >
                 {links.map((link) => (
@@ -54,7 +59,7 @@ export function Footer({
             )}
             <a
               href="#top"
-              aria-label="페이지 맨 위로"
+              aria-label={t("페이지 맨 위로")}
               className="grid size-10 place-items-center rounded-full border border-line text-primary transition-colors hover:border-primary/30 hover:bg-primary/5"
             >
               <svg

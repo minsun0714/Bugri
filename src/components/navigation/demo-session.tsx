@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import {
   createContext,
   useContext,
@@ -32,6 +34,8 @@ export function DemoSessionProvider({
 }: {
   children: ReactNode;
 }) {
+  const t = useTranslation();
+
   const params = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -83,22 +87,22 @@ export function DemoSessionProvider({
         <Modal
           open={open}
           onClose={close}
-          title="데모 사용자 선택"
+          title={t("데모 사용자 선택")}
         >
           <div className="space-y-5">
             <Dropdown
-              label="더미 사용자"
+              label={t("더미 사용자")}
               value={selected}
               onValueChange={setSelected}
               options={[
-                { value: "learner", label: "학습자" },
-                { value: "author", label: "작성자" },
-                { value: "friend", label: "친구" },
+                { value: "learner", label: t("학습자") },
+                { value: "author", label: t("작성자") },
+                { value: "friend", label: t("친구") },
               ]}
             />
             <div className="flex justify-end">
               <Button onClick={choose}>
-                선택한 사용자로 시작
+                {t("선택한 사용자로 시작")}
               </Button>
             </div>
           </div>

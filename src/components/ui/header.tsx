@@ -1,3 +1,7 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
+import { LanguagePicker } from "@/components/ui/language-picker";
 import { ProductHeader } from "@/components/navigation/product-header";
 import Link from "next/link";
 import { ThemePicker } from "@/components/ui/theme-picker";
@@ -11,13 +15,15 @@ export function ShowcaseHeader({
   sections: string[][];
   preview?: boolean;
 }) {
+  const t = useTranslation();
+
   return (
     <header className="relative z-20 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-[1220px] items-center justify-between gap-2 px-5 py-3.5 sm:py-5 md:px-12">
         <Link
           href="/"
           className="flex items-center gap-2.25 text-2xl sm:text-[29px] font-extrabold tracking-[-1.5px] text-primary"
-          aria-label="Bugri 홈"
+          aria-label={t("Bugri 홈")}
         >
           <span className="grid h-7.75 w-7.25 -rotate-8 place-items-center rounded-[10px] bg-primary-solid font-serif text-[23px] font-bold text-lime">
             b.
@@ -29,10 +35,13 @@ export function ShowcaseHeader({
         </Link>
         <div className="flex items-center gap-2 sm:gap-4">
           <ThemePicker />
+          <div className="hidden lg:block">
+            <LanguagePicker />
+          </div>
           <span className="hidden text-xs text-muted sm:block">
             {preview
               ? "Design workspace · 0.1"
-              : "배움이 쌓이는 작은 공간"}
+              : t("배움이 쌓이는 작은 공간")}
           </span>
           <span className="hidden sm:inline-flex">
             <Badge tone="success">
@@ -43,7 +52,7 @@ export function ShowcaseHeader({
         </div>
       </div>
       <nav
-        aria-label="컴포넌트 섹션"
+        aria-label={t("컴포넌트 섹션")}
         className="mx-auto hidden max-w-[1220px] gap-2 overflow-x-auto px-4 pb-3 sm:flex md:px-10"
       >
         {sections.map(([id, label], i) => (
@@ -55,7 +64,7 @@ export function ShowcaseHeader({
             <span className="font-mono text-[10px] text-primary/60">
               0{i + 1}
             </span>
-            {label}
+            {t(label)}
           </a>
         ))}
       </nav>

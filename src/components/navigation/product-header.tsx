@@ -1,4 +1,7 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
+import { LanguagePicker } from "@/components/ui/language-picker";
 
 import Link from "next/link";
 import { ThemePicker } from "@/components/ui/theme-picker";
@@ -28,6 +31,8 @@ export function HeaderNavigation({
   onSignIn?: () => void;
   onSignOut?: () => void;
 }) {
+  const t = useTranslation();
+
   const items = getNavigationItems(userId);
   const active = items.find(({ activePaths }) =>
     isNavigationActive(pathname, activePaths),
@@ -72,7 +77,7 @@ export function HeaderNavigation({
       <div className="mx-auto grid max-w-[1220px] grid-cols-[1fr_auto_auto] items-center gap-x-2 gap-y-3 px-5 py-4 md:px-12 lg:flex lg:flex-wrap lg:justify-between lg:gap-3">
         <Link
           href={withDemoUser("/", userId)}
-          aria-label="Bugri 홈"
+          aria-label={t("Bugri 홈")}
           className="flex items-center gap-2 rounded text-2xl sm:text-[29px] font-extrabold tracking-[-1.5px] text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
         >
           <span
@@ -90,7 +95,7 @@ export function HeaderNavigation({
           </span>
         </Link>
         <nav
-          aria-label="주 메뉴"
+          aria-label={t("주 메뉴")}
           className="hidden items-center gap-1 lg:flex"
         >
           {items.map(({ label, href }) => (
@@ -102,11 +107,14 @@ export function HeaderNavigation({
               }
               className={`rounded-full px-5 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${href === active ? "bg-primary/10 text-primary" : "text-muted hover:bg-canvas hover:text-foreground"}`}
             >
-              {label}
+              {t(label)}
             </Link>
           ))}
         </nav>
         <ThemePicker />
+        <div className="hidden lg:block">
+          <LanguagePicker />
+        </div>
         <div className="col-span-3 row-start-2 flex items-center justify-end gap-2">
           {userId && (
             <div ref={profileRoot} className="relative">
@@ -126,13 +134,13 @@ export function HeaderNavigation({
                 >
                   B
                 </span>
-                <span>내 프로필</span>
+                <span>{t("내 프로필")}</span>
                 <span aria-hidden="true">⌄</span>
               </button>
               {profileOpen && (
                 <nav
                   id={profileId}
-                  aria-label="내 프로필 메뉴"
+                  aria-label={t("내 프로필 메뉴")}
                   className="absolute right-0 top-[calc(100%+8px)] z-30 grid min-w-44 gap-1 rounded-2xl border border-line bg-surface p-2 shadow-[0_16px_45px_-12px_#34204b40]"
                 >
                   <PublicProfileLink
@@ -147,7 +155,7 @@ export function HeaderNavigation({
                     onClick={() => setProfileOpen(false)}
                     className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
-                    내 퀴즈
+                    {t("내 퀴즈")}
                   </Link>
                   <Link
                     href={withDemoUser(
@@ -157,7 +165,7 @@ export function HeaderNavigation({
                     onClick={() => setProfileOpen(false)}
                     className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
-                    코인 내역
+                    {t("코인 내역")}
                   </Link>
                   <button
                     type="button"
@@ -167,7 +175,7 @@ export function HeaderNavigation({
                     }}
                     className="rounded-xl px-3 py-3 text-left text-sm font-medium text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-primary"
                   >
-                    데모 나가기
+                    {t("데모 나가기")}
                   </button>
                 </nav>
               )}
@@ -178,7 +186,7 @@ export function HeaderNavigation({
             onClick={onSignIn}
             className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-semibold text-foreground hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
-            데모 사용자 선택
+            {t("데모 사용자 선택")}
           </button>
         </div>
         <MobileNavigation

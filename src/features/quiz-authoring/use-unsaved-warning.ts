@@ -1,11 +1,13 @@
 "use client";
 
+import { useTranslation } from "@/lib/i18n/use-translation";
 import { useEffect } from "react";
 
 export const leaveMessage =
   "저장하지 않은 변경이 있습니다. 변경을 버리고 이동할까요?";
 
 export function useUnsavedWarning(dirty: boolean) {
+  const t = useTranslation();
   useEffect(() => {
     if (!dirty) return;
 
@@ -23,7 +25,7 @@ export function useUnsavedWarning(dirty: boolean) {
         anchor.getAttribute("href")?.startsWith("#")
       )
         return;
-      if (!window.confirm(leaveMessage)) {
+      if (!window.confirm(t(leaveMessage))) {
         event.preventDefault();
         event.stopPropagation();
       }
@@ -38,5 +40,5 @@ export function useUnsavedWarning(dirty: boolean) {
       );
       document.removeEventListener("click", click, true);
     };
-  }, [dirty]);
+  }, [dirty, t]);
 }
