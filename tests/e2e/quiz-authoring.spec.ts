@@ -926,7 +926,7 @@ test("unconfirmed direct edits survive mode and quiz tab changes", async ({
   );
 });
 
-test("creation input and live preview remain visible together on desktop and mobile", async ({
+test("creation keeps desktop split preview and switches mobile tabs without losing input", async ({
   page,
 }) => {
   await page.goto("/quizzes/authoring");
@@ -952,11 +952,28 @@ test("creation input and live preview remain visible together on desktop and mob
   await expect(preview).toContainText("const value = 1;");
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(input).toBeVisible();
-  await expect(preview).toBeVisible();
+  await expect(preview).toHaveCount(0);
+  await page
+    .getByRole("tab", { name: "미리보기", exact: true })
+    .click();
+  await expect(page.getByRole("tabpanel")).toContainText(
+    "const value = 1;",
+  );
   await expect(page.locator("body")).toHaveJSProperty(
     "scrollWidth",
     390,
   );
+  await page
+    .getByRole("tab", { name: "작성", exact: true })
+    .click();
+  await expect(input).toHaveValue(
+    "# 실시간 미리보기\n\n```typescript\nconst value = 1;\n```",
+  );
   await input.fill("바꾼 내용");
-  await expect(preview).toContainText("바꾼 내용");
+  await page
+    .getByRole("tab", { name: "미리보기", exact: true })
+    .click();
+  await expect(page.getByRole("tabpanel")).toContainText(
+    "바꾼 내용",
+  );
 });

@@ -4,11 +4,33 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Dropdown } from "@/components/ui/dropdown";
 import { styles } from "@/components/ui/styles";
-import { useId, type KeyboardEventHandler } from "react";
+import {
+  useId,
+  useSyncExternalStore,
+  type KeyboardEventHandler,
+} from "react";
 import { useMarkdownEditor } from "@/components/ui/hooks/use-markdown-editor";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import { Button, Tabs } from "@/components/ui/index";
+
+const desktopQuery = "(min-width: 1024px)";
+
+function subscribeDesktop(onChange: () => void) {
+  const media = window.matchMedia?.(desktopQuery);
+
+  media?.addEventListener("change", onChange);
+  return () =>
+    media?.removeEventListener("change", onChange);
+}
+
+function getDesktopSnapshot() {
+  return window.matchMedia?.(desktopQuery).matches ?? false;
+}
+
+function getServerDesktopSnapshot() {
+  return false;
+}
 
 export function MarkdownEditor({
   value,
@@ -23,7 +45,7 @@ export function MarkdownEditor({
   density = "default",
 }: {
   density?: "default" | "compact";
-  layout?: "tabs" | "split";
+  layout?: "tabs" | "split" | "responsive";
   value: string;
   onChange: (value: string) => void;
   limit?: number;
@@ -54,6 +76,15 @@ export function MarkdownEditor({
     limit,
     preserveOverflow,
   });
+
+  const desktop = useSyncExternalStore(
+    subscribeDesktop,
+    getDesktopSnapshot,
+    getServerDesktopSnapshot,
+  );
+  const split =
+    layout === "split" ||
+    (layout === "responsive" && desktop);
 
   const compact = density === "compact";
   const codeButton = (
@@ -124,7 +155,9 @@ export function MarkdownEditor({
   );
 
   const preview = (
-    <div className={styles["markdown-preview"]}>
+    <div
+      className={`${styles["markdown-preview"]} ${layout === "responsive" ? "min-w-0 max-w-full [&_pre]:max-w-full" : ""} ${layout === "responsive" && !value.trim() ? "!min-h-0" : ""}`}
+    >
       {value.trim() ? (
         <Markdown
           skipHtml
@@ -177,8 +210,10 @@ export function MarkdownEditor({
           <span aria-hidden="true">Markdown</span>
         </div>
       )}
-      {layout === "split" ? (
-        <div className="grid min-w-0 gap-5 lg:grid-cols-2">
+      {split ? (
+        <div
+          className={`grid min-w-0 gap-5 lg:grid-cols-2 ${layout === "responsive" ? "items-start" : ""}`}
+        >
           <section
             aria-label={t("작성")}
             className="min-w-0 rounded-2xl border border-line bg-surface p-4"
@@ -200,6 +235,9 @@ export function MarkdownEditor({
         </div>
       ) : (
         <Tabs
+          label={
+            layout === "responsive" ? label : undefined
+          }
           items={["작성", "미리보기"]}
           value={tab}
           onChange={setTab}

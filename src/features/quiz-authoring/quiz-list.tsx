@@ -377,12 +377,13 @@ export function QuizList({
       )}
 
       {!!visible.length && (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {visible.map((quiz) => {
             const review = needsReview(quiz);
 
             return (
               <QuizCard
+                density="compact"
                 key={quiz.quizId}
                 title={quiz.title}
                 label={quiz.title}
@@ -408,7 +409,7 @@ export function QuizList({
                 }}
                 footer={
                   <div className="mt-2 flex items-end justify-between gap-3">
-                    <span className="min-w-0 flex-1 break-words text-sm text-muted [overflow-wrap:anywhere]">
+                    <span className="min-w-0 flex-1 break-words text-xs leading-5 text-muted [overflow-wrap:anywhere]">
                       {quiz.hashtagIds
                         .map((hashtagId) => `#${hashtagId}`)
                         .join(" ")}
@@ -425,6 +426,7 @@ export function QuizList({
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <StatusBadges quiz={quiz} />
                     <time
+                      className="whitespace-nowrap text-xs"
                       dateTime={quiz.updatedAt}
                       aria-label={t("마지막 수정 {0}", {
                         0: exactTime(quiz.updatedAt),

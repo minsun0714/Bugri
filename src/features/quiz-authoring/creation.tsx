@@ -101,28 +101,33 @@ export function Creation({
           )}
         </Tooltip>
       </div>
-      <fieldset disabled={busy} className="min-w-0">
-        <MarkdownEditor
-          layout="split"
-          label={t("학습 내용과 요청")}
-          value={source}
-          preserveOverflow
-          onChange={(value) => {
-            setSource(value);
-            onDirty(
-              editing ||
-                value !== (batch?.sourceContent ?? ""),
-            );
-          }}
-        />
-      </fieldset>
-      <div className="flex flex-wrap justify-end gap-3">
-        <Button
-          onClick={() => void generate()}
-          loading={busy}
-        >
-          {t("퀴즈 만들기")}
-        </Button>
+      <div className="grid min-w-0 gap-3">
+        <fieldset disabled={busy} className="min-w-0">
+          <MarkdownEditor
+            layout="responsive"
+            placeholder={t(
+              "HTTP 요청에는 메서드와 경로가 포함됩니다. GET은 데이터를 조회하고 POST는 데이터를 전송합니다. 서버는 상태 코드와 응답 본문을 반환합니다. 200은 성공, 404는 요청한 리소스를 찾을 수 없음을 뜻합니다.",
+            )}
+            label={t("학습 내용과 요청")}
+            value={source}
+            preserveOverflow
+            onChange={(value) => {
+              setSource(value);
+              onDirty(
+                editing ||
+                  value !== (batch?.sourceContent ?? ""),
+              );
+            }}
+          />
+        </fieldset>
+        <div className="flex flex-wrap justify-end gap-3">
+          <Button
+            onClick={() => void generate()}
+            loading={busy}
+          >
+            {t("퀴즈 만들기")}
+          </Button>
+        </div>
       </div>
       {!open && <RequestError error={error} />}
       <Modal

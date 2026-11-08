@@ -179,3 +179,38 @@ test("failed generation keeps outside input and offers retry inside the modal", 
     "실패해도 남길 내용",
   );
 });
+
+test("writing and preview tabs keep source, code and count before generation", () => {
+  setup();
+  const source =
+    "HTTP 응답\n```typescript\n  const status = 200;\n```😀";
+  const input = screen.getByRole("textbox");
+
+  expect(input).toHaveValue("");
+  expect(input).toHaveAttribute(
+    "placeholder",
+    expect.stringContaining("HTTP"),
+  );
+  expect(
+    screen.getByRole("tab", { name: "작성" }),
+  ).toHaveAttribute("aria-selected", "true");
+  fireEvent.change(input, { target: { value: source } });
+  fireEvent.keyDown(
+    screen.getByRole("tab", { name: "작성" }),
+    { key: "End" },
+  );
+  expect(
+    screen.getByRole("tab", { name: "미리보기" }),
+  ).toHaveFocus();
+  expect(screen.getByRole("tabpanel")).toHaveTextContent(
+    "const status = 200;",
+  );
+  expect(
+    screen.getByText(`${[...source].length} / 10,000자`),
+  ).toBeVisible();
+  fireEvent.keyDown(
+    screen.getByRole("tab", { name: "미리보기" }),
+    { key: "Home" },
+  );
+  expect(screen.getByRole("textbox")).toHaveValue(source);
+});
