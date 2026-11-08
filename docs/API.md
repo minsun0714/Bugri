@@ -1,6 +1,6 @@
 # 1단계 API·Mock 계층 사용 계약
 
-현재 코드(`src/api/contracts.ts`, `src/api/http.ts`)가 제공하는 21개 연산의 사용 계약이다. 제품 규칙은 [PRD](PRD.md), 화면 흐름은 [페이지 구조](PAGE_STRUCTURE.md)를 따른다. 2026-11-08 범위 축소로 삭제한 연산(구독·탐색·상점·BugCoin·데스크·공개 프로필·반응·방문자 체험 등 34개)의 목록은 [REMOVE-OUT-OF-SCOPE](tasks/REMOVE-OUT-OF-SCOPE.md)에 있고, 이전 계약은 git 기록으로 확인한다.
+현재 코드(`src/api/contracts.ts`, `src/api/http.ts`)가 제공하는 22개 연산의 사용 계약이다. 제품 규칙은 [PRD](PRD.md), 화면 흐름은 [페이지 구조](PAGE_STRUCTURE.md)를 따른다. 2026-11-08 범위 축소로 삭제한 연산(구독·탐색·상점·BugCoin·데스크·공개 프로필·반응·방문자 체험 등 34개)의 목록은 [REMOVE-OUT-OF-SCOPE](tasks/REMOVE-OUT-OF-SCOPE.md)에 있고, 이전 계약은 git 기록으로 확인한다.
 
 메모(REQ-01)와 메모에서 만드는 퀴즈(REQ-02)는 [메모 절](#메모--notes)과 [메모의 퀴즈 절](#메모의-퀴즈--note-to-quiz)에 있다. 복습 주기(REQ-03)는 [오늘 복습 절](#오늘-복습--review-schedule)에 있다.
 
