@@ -65,9 +65,9 @@ Markdown과 구문 강조처럼 라이브러리가 생성하는 자식 요소는
 | --- | --- |
 | User | 내부 `userId`, Google `sub`(유일), displayName, learningTimeZone(IANA). 이메일은 소유권 키가 아니다. 1단계에는 더미 사용자만 둔다 |
 | Note (예정) | ownerUserId, 본문(Markdown·코드 블록, 최대 10,000자), 작성·수정 시각, deletedAt. 태그는 연결된 퀴즈 태그에서 계산한다 |
-| Quiz | 독립 quizId, ownerUserId, 상태, 활성·검토 중 revision, deletedAt(soft delete). 예정: noteId 연결, 저장 즉시 풀이 가능(검토·승인 제거) |
+| Quiz | 독립 quizId, ownerUserId, 상태, 활성·검토 중 revision, deletedAt(soft delete). 예정: noteId 연결, 상태를 PENDING(생성·미확인, 목록·복습 제외)과 CONFIRMED(확인, 목록·복습 대상) 두 가지로 정리하고 PRIVATE/PUBLIC·검토·승인 제거 |
 | QuizRevision | 한 문제·정답·해설·원본 학습 내용·코드 블록·reviewed·최대 3개 해시태그. 풀이에 쓰인 버전은 불변 |
-| GenerationBatch | 요청당 후보 퀴즈 1~5개와 저장 여부. 후보마다 독립 quizId 부여 |
+| GenerationBatch | 요청당 생성 퀴즈 1~5개. 예정: 생성 결과를 PENDING Quiz로 저장하고, 같은 메모에서 다시 생성하면 기존 PENDING을 유지한 채 새로 추가 |
 | ReviewSchedule (예정) | userId·quizId·다음 복습일·현재 간격 단계. 정답이면 1→3→7→14→30일, 오답이면 다음 날·처음으로. 오늘 복습 풀이 결과로만 갱신 |
 | LearningDay | userId·사용자 시간대 기준 학습일, 판정에 사용한 시간대. 완료된 날짜는 소급 변경하지 않고 같은 날짜 중복 집계 방지 |
 | Attempt | solverUserId·quizId·revisionId·제출 결과·completedAt(2단계 서버 UTC 시각). 시작한 버전으로 채점하며 미제출 정답은 비공개 |
