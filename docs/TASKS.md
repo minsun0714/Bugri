@@ -1713,3 +1713,11 @@
 
 - DONE: REQ-02/AC-02e의 내 목록에서 생성 화면으로 이동하는 CTA를 제목 오른쪽 한 개로 통합했다. 공통 primary 스타일·+ 아이콘·44px 터치 영역을 적용하고 빈 목록 중복 링크를 제거했다.
 - 검증: Jest 6개, 관련 작성 E2E 12개, 변경 파일 lint/포맷·타입 검사 통과. PC·모바일 4상태 생성 이동과 독립 UX/UI R0 리뷰 완료(수정 회차 0). [근거와 한계](ux-reviews/QUIZ-CREATE-CTA.md). 로컬 완료 후 PR 검증: 전체 lint·타입·Jest 299개·도구 3개·빌드 통과. 전체 E2E 179개 통과/5개 실패 후 실패 5개 단일 worker 재실행 모두 통과(코드 수정 없음).
+
+
+## PROFILE-DND-PR — 공개 프로필 순서 편집 PR 검증
+
+- 상태: DONE(전체 검증·독립 통합 리뷰 완료). 사용자 요청으로 `feat/profile-dnd` → `dev` PR을 게시한다. 최신 `dev`의 `59c4a10`을 `8af40a9`에 통합했고, TASKS 충돌은 양쪽 기록을 모두 보존했다. upstream 퀴즈 생성 CTA 코드·테스트·리뷰 문서는 원본과 일치한다.
+- Node v22.23.3, 통합 커밋 `8af40a9`에서 `npm run verify -- -- --workers=2` 통과: 전체 ESLint·TypeScript, Jest 61 suites/306 tests, 도구 테스트 3개, production build, Chromium E2E 190개. 로그 `/tmp/profile-dnd-pr-integrated-verify.log`. 통합 전 `ad30139`도 같은 명령으로 Jest 304개/E2E 190개 통과했지만 최종 근거는 통합 후 결과다. 이번 PR 검증 중 실패·수정 재시도 없음.
+- 구현자와 별도인 리뷰어가 전체 기능의 API 검증·사용자별 저장·공개 조회 부작용·초안/저장 분리·실패 재시도·접근성 및 통합 diff를 검토했으며 차단 문제 없음. 기존 [모달 UX/UI 리뷰](ux-reviews/PROFILE-ORDER-MODAL.md), [헤더 리뷰](ux-reviews/PROFILE-HEADER-ACTIONS.md), [퀴즈 패널 리뷰](ux-reviews/PROFILE-QUIZ-SURFACE.md), [전체 보기 리뷰](ux-reviews/VIEW-ALL-STYLE.md)를 유지한다. 실기기 터치·스크린리더·다른 브라우저는 미실행이다.
+- 최종 검증 이후 변경은 이 기록뿐이므로 전체 검증 결과를 재사용하고 문서 링크·`git diff --check`를 확인한다. PR 게시까지 요청된 범위이며 병합은 수행하지 않는다.
