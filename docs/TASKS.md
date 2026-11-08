@@ -13,7 +13,7 @@
 1. 제품 방향 문서 정리 (`docs/product-refocus`)
 2. 제외 기능 코드 삭제 ([REMOVE-OUT-OF-SCOPE](tasks/REMOVE-OUT-OF-SCOPE.md), PR #53 병합). API·아키텍처·검증 지침 문서는 1번 브랜치에서 갱신
 3. 내 노트: 메모 API·목록·상세, 홈 빠른 메모, 헤더 정리
-   - 선행 수정(코드가 PRD와 다름, 별도 브랜치 가능): 다른 사용자의 퀴즈 풀이 차단(작성자 전용, PRD §7), 접속 시 브라우저 시간대 재감지·갱신(AC-04d)
+   - 선행 수정 완료([OWNER-ONLY-TIMEZONE](tasks/OWNER-ONLY-TIMEZONE.md)): 다른 사용자의 퀴즈 풀이 차단(작성자 전용, PRD §7), 접속 시 브라우저 시간대 재감지·갱신(AC-04d)
 4. 메모로 퀴즈 만들기: 생성 결과는 PENDING, 저장하면 CONFIRMED(PRD AC-02h~j), 개별·일괄 저장, "확인 안 한 퀴즈" 이어서 확인, 다시 만들면 기존 PENDING 유지, LLM 태그 자동 부여(Mock). PRIVATE/PUBLIC·검토·승인 흐름과 `discoverHashtags` 이름 등 잔재 정리
    - 시작 전 확정: 기존 저장 데이터 이전 방식. 제안은 PRIVATE·PUBLIC → CONFIRMED, 사용자가 임시저장한 기존 PENDING(활성 버전 없음) → 저장된 내용을 활성 버전으로 옮겨 CONFIRMED, 승인된 퀴즈에 남은 수정본 → 현재 버전으로 반영, 메모 없는 기존 퀴즈를 보여 줄 위치
 5. 복습 주기와 홈 "오늘 복습", 연속 학습일 연결

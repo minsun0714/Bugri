@@ -257,7 +257,7 @@ test.each(
 
 test("review state resets, stale versions fail, active revision remains and old attempts grade original answer", async () => {
   const owner = api("author"),
-    learner = api();
+    learner = api("author");
 
   const attempt = await learner.request("startAttempt", {
     quizId: "seed-quiz-1",
@@ -328,7 +328,7 @@ test("review state resets, stale versions fail, active revision remains and old 
   });
 
   await expect(
-    learner.request("reviewQuiz", {
+    api("friend").request("reviewQuiz", {
       quizId: old.quizId,
     }),
   ).rejects.toMatchObject({
@@ -377,7 +377,7 @@ test("regeneration failure leaves old pending content and successful prompt inta
 });
 
 test("deleting a quiz blocks pending submissions, preserves completion and hides content", async () => {
-  const learner = api("learner");
+  const learner = api("author");
 
   const done = await learner.request("startAttempt", {
     quizId: "seed-quiz-1",
@@ -442,6 +442,89 @@ test("deleting a quiz blocks pending submissions, preserves completion and hides
   });
 });
 
+test("only the author can solve a quiz, regardless of its status", async () => {
+  // seed-quiz-1 is the author's PUBLIC quiz.
+  for (const userId of ["learner", "friend"])
+    await expect(
+      api(userId).request("startAttempt", {
+        quizId: "seed-quiz-1",
+        context: "DIRECT",
+      }),
+    ).rejects.toMatchObject({
+      status: 409,
+      detail: { code: "QUIZ_UNAVAILABLE" },
+    });
+
+  const owner = api("author");
+
+  const publicAttempt = await owner.request("startAttempt", {
+    quizId: "seed-quiz-1",
+    context: "DIRECT",
+  });
+
+  expect(publicAttempt.completedAt).toBeNull();
+
+  // Same quiz turned PRIVATE is still solvable by its author.
+  const stored = JSON.parse(
+    localStorage.getItem(storageKey("author"))!,
+  );
+
+  stored.quizzes.find(
+    ({ quizId }: { quizId: string }) =>
+      quizId === "seed-quiz-1",
+  ).status = "PRIVATE";
+
+  localStorage.setItem(
+    storageKey("author"),
+    JSON.stringify(stored),
+  );
+
+  const privateAttempt = await owner.request("startAttempt", {
+    quizId: "seed-quiz-1",
+    context: "DIRECT",
+  });
+
+  expect(
+    (
+      await owner.request("answer", {
+        attemptId: privateAttempt.attemptId,
+        answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+      })
+    ).completedAt,
+  ).not.toBeNull();
+});
+
+test("an attempt in progress cannot be submitted once the quiz belongs to someone else", async () => {
+  const owner = api("author");
+
+  const { attemptId, quizId } = await owner.request(
+    "startAttempt",
+    { quizId: "seed-quiz-1", context: "DIRECT" },
+  );
+
+  // Move the in-progress attempt record to another user's storage.
+  const stored = JSON.parse(
+    localStorage.getItem(storageKey("author"))!,
+  );
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify({ ...stored, userId: "learner", quizzes: [] }),
+  );
+
+  await expect(
+    api("learner").request("answer", {
+      attemptId,
+      answer: { type: "SINGLE_CHOICE", choiceId: "a" },
+    }),
+  ).rejects.toMatchObject({
+    status: 409,
+    detail: { code: "QUIZ_UNAVAILABLE" },
+  });
+
+  expect(quizId).toBe("seed-quiz-1");
+});
+
 test("owner can solve; deleting twice is safe and blocks owner submission", async () => {
   const owner = api("author");
 
@@ -483,7 +566,7 @@ test("owner can solve; deleting twice is safe and blocks owner submission", asyn
 
 test("unknown fields and wrong answer shapes are rejected", async () => {
   await expect(
-    api().request("startAttempt", {
+    api("author").request("startAttempt", {
       quizId: "seed-quiz-1",
       context: "DIRECT",
       unknown: true,
@@ -494,13 +577,13 @@ test("unknown fields and wrong answer shapes are rejected", async () => {
     },
   });
 
-  const a = await api().request("startAttempt", {
+  const a = await api("author").request("startAttempt", {
     quizId: "seed-quiz-1",
     context: "DIRECT",
   });
 
   await expect(
-    api().request("answer", {
+    api("author").request("answer", {
       attemptId: a.attemptId,
       answer: {
         type: "TRUE_FALSE",
@@ -515,15 +598,15 @@ test("unknown fields and wrong answer shapes are rejected", async () => {
 });
 
 test("storage failure rolls back and corrupt state is not overwritten", async () => {
-  const client = api();
+  const client = api("author");
 
   await client.request("learningDay", {});
 
   const before = localStorage.getItem(
-    storageKey("learner"),
+    storageKey("author"),
   );
 
-  const broken = api("learner", {
+  const broken = api("author", {
     storage: {
       getItem: (key) => localStorage.getItem(key),
       setItem: () => {
@@ -543,11 +626,11 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
     },
   });
 
-  expect(localStorage.getItem(storageKey("learner"))).toBe(
+  expect(localStorage.getItem(storageKey("author"))).toBe(
     before,
   );
 
-  localStorage.setItem(storageKey("learner"), "{broken");
+  localStorage.setItem(storageKey("author"), "{broken");
 
   await expect(
     client.request("learningDay", {}),
@@ -557,7 +640,7 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
     },
   });
 
-  expect(localStorage.getItem(storageKey("learner"))).toBe(
+  expect(localStorage.getItem(storageKey("author"))).toBe(
     "{broken",
   );
 
@@ -604,34 +687,143 @@ test("timezone detection, explicit fallback and saved detection; no implicit fal
     ).timeZone,
   ).toBe("America/New_York");
 
-  // The first detection is saved; a later device zone does not rewrite it.
+  // A write-allowed request re-detects the device zone and replaces a different saved one.
   expect(
     (
       await api("learner", {
         detectTimeZone: () => "Asia/Seoul",
       }).request("learningTimezone", {})
     ).timeZone,
-  ).toBe("America/New_York");
+  ).toBe("Asia/Seoul");
+
+  // Failed or invalid detection keeps the saved zone.
+  for (const detected of [undefined, "Not/AZone"])
+    expect(
+      (
+        await api("learner", {
+          detectTimeZone: () => detected,
+          fallbackTimeZone: "UTC",
+        }).request("learningTimezone", {})
+      ).timeZone,
+    ).toBe("Asia/Seoul");
+
+  // A detector that throws also keeps the saved zone.
+  expect(
+    (
+      await api("learner", {
+        detectTimeZone: () => {
+          throw new Error("blocked");
+        },
+      }).request("learningTimezone", {})
+    ).timeZone,
+  ).toBe("Asia/Seoul");
 });
 
-function changeStoredTimeZone(timeZone: string) {
-  const state = JSON.parse(
-    localStorage.getItem(storageKey("learner"))!,
+test("re-detection writes only on a changed zone and never on read-only history views", async () => {
+  const storage = localStorage;
+  const key = storageKey("learner");
+
+  await api("learner", {
+    detectTimeZone: () => "Asia/Seoul",
+  }).request("learningTimezone", {});
+
+  const spy = jest.spyOn(Storage.prototype, "setItem");
+
+  await api("learner", {
+    detectTimeZone: () => "Asia/Seoul",
+  }).request("learningTimezone", {});
+
+  expect(spy).not.toHaveBeenCalled();
+
+  // Read-only views do not adopt a new device zone.
+  const before = storage.getItem(key);
+
+  await api("learner", {
+    detectTimeZone: () => "America/New_York",
+  }).request("attemptHistory", {});
+
+  expect(spy).not.toHaveBeenCalled();
+  expect(storage.getItem(key)).toBe(before);
+
+  await api("learner", {
+    detectTimeZone: () => "America/New_York",
+  }).request("learningTimezone", {});
+
+  expect(spy).toHaveBeenCalledTimes(1);
+
+  expect(JSON.parse(storage.getItem(key)!).timeZone).toBe(
+    "America/New_York",
   );
 
-  state.timeZone = timeZone;
+  spy.mockRestore();
+});
 
-  localStorage.setItem(
-    storageKey("learner"),
-    JSON.stringify(state),
+test("moving from Seoul to New York changes later learning days but keeps past completions", async () => {
+  let now = new Date("2026-03-07T20:00:00Z");
+  let zone = "Asia/Seoul";
+
+  const client = api("author", {
+    now: () => now,
+    detectTimeZone: () => zone,
+  });
+
+  const complete = async () => {
+    const { attemptId } = await client.request(
+      "startAttempt",
+      { quizId: "seed-quiz-1", context: "DIRECT" },
+    );
+
+    return client.request("answer", {
+      attemptId,
+      answer: { type: "SINGLE_CHOICE", choiceId: "b" },
+    });
+  };
+
+  // 2026-03-07T20:00Z is already 03-08 in Seoul, but still 03-07 in New York.
+  const seoul = await complete();
+
+  expect(seoul).toMatchObject({
+    learningDate: "2026-03-08",
+    timeZone: "Asia/Seoul",
+  });
+
+  zone = "America/New_York";
+  now = new Date("2026-03-07T21:00:00Z");
+
+  const newYork = await complete();
+
+  expect(newYork).toMatchObject({
+    learningDate: "2026-03-07",
+    timeZone: "America/New_York",
+  });
+
+  // The earlier completion is untouched by the zone change.
+  expect(
+    await client.request("attempt", {
+      attemptId: seoul.attemptId,
+    }),
+  ).toEqual(seoul);
+
+  const { dailyCounts, completedDates } =
+    await client.request("learningDay", {});
+
+  expect(
+    dailyCounts.map(({ learningDate }) => learningDate).sort(),
+  ).toEqual(["2026-03-07", "2026-03-08"]);
+
+  expect(completedDates).toEqual(
+    expect.arrayContaining(["2026-03-07", "2026-03-08"]),
   );
-}
+});
 
 test("daily completion/replay count once, midnight, and timezone changes preserve past attribution", async () => {
   let now = new Date("2026-03-07T14:59:00Z");
 
-  const client = api("learner", {
+  let zone = "Asia/Seoul";
+
+  const client = api("author", {
     now: () => now,
+    detectTimeZone: () => zone,
   });
 
   async function complete() {
@@ -664,7 +856,7 @@ test("daily completion/replay count once, midnight, and timezone changes preserv
     (await client.request("learningDay", {})).streak,
   ).toBe(2);
 
-  changeStoredTimeZone("America/New_York");
+  zone = "America/New_York";
 
   expect(
     await client.request("attempt", {
@@ -724,7 +916,12 @@ test("timezone local dates across DST and stale streaks", () => {
 
 test("learning volume counts distinct quizzes per stored local date, retaining wrong answers and deleted content", async () => {
   let now = new Date("2026-03-07T14:59:00Z");
-  const client = api("learner", { now: () => now });
+  let zone = "Asia/Seoul";
+
+  const client = api("author", {
+    now: () => now,
+    detectTimeZone: () => zone,
+  });
 
   async function complete(quizId: string, answer: Answer) {
     const { attemptId } = await client.request(
@@ -743,14 +940,19 @@ test("learning volume counts distinct quizzes per stored local date, retaining w
   await complete("seed-quiz-1", wrong);
   await complete("seed-quiz-1", wrong);
 
+  // An unfinished attempt is not counted.
+  await client.request("startAttempt", {
+    quizId: "seed-quiz-2",
+    context: "DIRECT",
+  });
+
+  expect(
+    (await client.request("learningDay", {})).dailyCounts,
+  ).toEqual([{ learningDate: "2026-03-07", count: 1 }]);
+
   await complete("seed-quiz-2", {
     type: "MULTIPLE_CHOICE",
     choiceIds: ["a"],
-  });
-
-  await client.request("startAttempt", {
-    quizId: "seed-quiz-3",
-    context: "DIRECT",
   });
 
   expect(
@@ -760,7 +962,7 @@ test("learning volume counts distinct quizzes per stored local date, retaining w
   now = new Date("2026-03-07T15:01:00Z");
   await complete("seed-quiz-1", wrong);
 
-  changeStoredTimeZone("America/New_York");
+  zone = "America/New_York";
 
   const owner = api("author");
 

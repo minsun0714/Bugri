@@ -1,8 +1,8 @@
 import { createApiClient } from "@/api/client";
 import { createMockTransport } from "@/mocks/adapter";
-import { initialState, storageKey } from "@/mocks/storage";
+import { storageKey } from "@/mocks/storage";
 
-const api = (userId = "learner") =>
+const api = (userId = "author") =>
   createApiClient(
     createMockTransport({
       userId,
@@ -34,7 +34,7 @@ test("completed attempts are separate, sorted with stable ties, filtered before 
   await complete();
 
   const state = JSON.parse(
-    localStorage.getItem(storageKey("learner"))!,
+    localStorage.getItem(storageKey("author"))!,
   );
 
   const {
@@ -65,7 +65,7 @@ test("completed attempts are separate, sorted with stable ties, filtered before 
   });
 
   localStorage.setItem(
-    storageKey("learner"),
+    storageKey("author"),
     JSON.stringify(state),
   );
 
@@ -122,19 +122,19 @@ test("history and result reads never migrate or write legacy activity", async ()
   const completed = await complete();
 
   const state = JSON.parse(
-    localStorage.getItem(storageKey("learner"))!,
+    localStorage.getItem(storageKey("author"))!,
   );
 
   delete state.learningDemoVersion;
   state.timeZone = null;
 
   localStorage.setItem(
-    storageKey("learner"),
+    storageKey("author"),
     JSON.stringify(state),
   );
 
   const before = localStorage.getItem(
-    storageKey("learner"),
+    storageKey("author"),
   );
 
   await api().request("attemptHistory", {});
@@ -143,21 +143,25 @@ test("history and result reads never migrate or write legacy activity", async ()
     attemptId: completed.attemptId,
   });
 
-  expect(localStorage.getItem(storageKey("learner"))).toBe(
+  expect(localStorage.getItem(storageKey("author"))).toBe(
     before,
   );
 });
 
 test("current edits do not replace saved results; hidden quizzes keep records but hide contents", async () => {
   const completed = await complete();
-  const author = initialState("author");
+
+  const author = JSON.parse(
+    localStorage.getItem(storageKey("author"))!,
+  );
 
   const quiz = author.quizzes.find(
-    ({ quizId }) => quizId === completed.quizId,
-  )!;
+    ({ quizId }: { quizId: string }) =>
+      quizId === completed.quizId,
+  );
 
-  quiz.active!.title = "Changed title";
-  quiz.active!.explanation = "Changed explanation";
+  quiz.active.title = "Changed title";
+  quiz.active.explanation = "Changed explanation";
 
   localStorage.setItem(
     storageKey("author"),
@@ -177,12 +181,10 @@ test("current edits do not replace saved results; hidden quizzes keep records bu
       .title,
   ).toBe(completed.quiz!.title);
 
-  for (const removed of [false, true]) {
-    quiz.status = "PRIVATE";
-
-    quiz.deletedAt = removed
-      ? "2026-11-08T14:00:00Z"
-      : null;
+  for (const status of ["PRIVATE", "PUBLIC"]) {
+    // Status is irrelevant to the owner; only deletion hides a record's content.
+    quiz.status = status;
+    quiz.deletedAt = "2026-11-08T14:00:00Z";
 
     localStorage.setItem(
       storageKey("author"),
@@ -265,7 +267,7 @@ test("legacy missing result fields stay missing without borrowing current quiz c
   const completed = await complete();
 
   const state = JSON.parse(
-    localStorage.getItem(storageKey("learner"))!,
+    localStorage.getItem(storageKey("author"))!,
   );
 
   const {
@@ -278,7 +280,7 @@ test("legacy missing result fields stay missing without borrowing current quiz c
   record.submittedAnswer = null;
 
   localStorage.setItem(
-    storageKey("learner"),
+    storageKey("author"),
     JSON.stringify(state),
   );
 
@@ -305,7 +307,7 @@ test("a legacy completed attempt without an answer cannot be submitted again", a
   const completed = await complete();
 
   const state = JSON.parse(
-    localStorage.getItem(storageKey("learner"))!,
+    localStorage.getItem(storageKey("author"))!,
   );
 
   const {
@@ -315,12 +317,12 @@ test("a legacy completed attempt without an answer cannot be submitted again", a
   record.submittedAnswer = null;
 
   localStorage.setItem(
-    storageKey("learner"),
+    storageKey("author"),
     JSON.stringify(state),
   );
 
   const before = localStorage.getItem(
-    storageKey("learner"),
+    storageKey("author"),
   );
 
   await expect(
@@ -332,7 +334,53 @@ test("a legacy completed attempt without an answer cannot be submitted again", a
     detail: { code: "ALREADY_ANSWERED" },
   });
 
-  expect(localStorage.getItem(storageKey("learner"))).toBe(
+  expect(localStorage.getItem(storageKey("author"))).toBe(
     before,
   );
+});
+
+test("records of another user's quiz keep their completion but hide content and retry", async () => {
+  const completed = await complete();
+
+  // The quiz changes hands (e.g. legacy data): the learner now holds a record of someone else's quiz.
+  const state = JSON.parse(
+    localStorage.getItem(storageKey("author"))!,
+  );
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify({
+      ...state,
+      userId: "learner",
+      quizzes: [],
+    }),
+  );
+
+  const learner = api("learner");
+
+  const history = await learner.request("attemptHistory", {});
+
+  expect(history.total).toBe(1);
+
+  expect(history.items[0]).toMatchObject({
+    attemptId: completed.attemptId,
+    title: null,
+    correct: true,
+  });
+
+  expect(
+    await learner.request("attempt", {
+      attemptId: completed.attemptId,
+    }),
+  ).toMatchObject({ quiz: null, result: null });
+
+  await expect(
+    learner.request("startAttempt", {
+      quizId: completed.quizId,
+      context: "DIRECT",
+    }),
+  ).rejects.toMatchObject({
+    status: 409,
+    detail: { code: "QUIZ_UNAVAILABLE" },
+  });
 });

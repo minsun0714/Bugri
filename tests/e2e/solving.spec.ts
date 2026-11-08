@@ -30,7 +30,7 @@ async function submit(page: Page, labels: string[]) {
 test("replay creates a separate attempt and users cannot read each other's result", async ({
   page,
 }) => {
-  await page.goto("/solve?user=learner&quiz=seed-quiz-1");
+  await page.goto("/solve?user=author&quiz=seed-quiz-1");
   await submit(page, ["number"]);
   const completed = page.url();
   await page
@@ -44,7 +44,7 @@ test("replay creates a separate attempt and users cannot read each other's resul
     }),
   ).toBeDisabled();
   await page.goto(
-    completed.replace("user=learner", "user=friend"),
+    completed.replace("user=author", "user=friend"),
   );
   await expect(
     page.getByRole("main").getByRole("alert"),
@@ -71,7 +71,12 @@ test("four formats are graded and restored after reload", async ({
   ];
 
   for (const [quizId, labels] of cases) {
-    await page.goto(`/solve?user=learner&quiz=${quizId}`);
+    // seed-quiz-1/2 belong to the author, 3/4 to the friend; only authors can solve.
+    const user = ["seed-quiz-1", "seed-quiz-2"].includes(quizId)
+      ? "author"
+      : "friend";
+
+    await page.goto(`/solve?user=${user}&quiz=${quizId}`);
     await expect(
       page.getByRole("button", {
         name: "답 제출",
@@ -93,27 +98,35 @@ test("four formats are graded and restored after reload", async ({
     ).toBeVisible();
   }
 
-  const attempts = await page.evaluate(
-    () =>
-      JSON.parse(
-        localStorage.getItem("bugri:mock:v1:learner")!,
-      ).attempts.length,
+  const attempts = await page.evaluate(() =>
+    ["author", "friend"].reduce(
+      (total, user) =>
+        total +
+        JSON.parse(
+          localStorage.getItem(`bugri:mock:v1:${user}`)!,
+        ).attempts.length,
+      0,
+    ),
   );
   expect(attempts).toBeGreaterThanOrEqual(4);
 });
 
-test("private transition blocks pending submission and hides completed content", async ({
+test("deleted quiz blocks pending submission and hides completed content", async ({
   page,
 }) => {
-  await page.goto("/solve?user=learner&quiz=seed-quiz-1");
+  await page.goto("/solve?user=author&quiz=seed-quiz-1");
   await submit(page, ["number"]);
   const completed = page.url();
   await page
     .getByRole("button", { name: "다시 풀기", exact: true })
     .click();
   await page.getByLabel("number", { exact: true }).check();
-  const state = initialState("author");
-  state.quizzes[0].status = QuizStatus.PRIVATE;
+  const state = JSON.parse(
+    await page.evaluate(
+      () => localStorage.getItem("bugri:mock:v1:author")!,
+    ),
+  );
+  state.quizzes[0].deletedAt = "2026-11-08T14:00:00.000Z";
   await page.evaluate(
     (value) =>
       localStorage.setItem(
@@ -145,7 +158,7 @@ test("private transition blocks pending submission and hides completed content",
 test("failed save preserves input and permits retry", async ({
   page,
 }) => {
-  await page.goto("/solve?user=learner&quiz=seed-quiz-4");
+  await page.goto("/solve?user=friend&quiz=seed-quiz-4");
   await page
     .getByLabel("답안", { exact: true })
     .fill("let");
@@ -224,7 +237,7 @@ test("direct owner access keeps private quizzes out of home and renders code on 
 test("retrying a failed direct restart stays on that quiz", async ({
   page,
 }) => {
-  await page.goto("/solve?user=learner&quiz=seed-quiz-1");
+  await page.goto("/solve?user=author&quiz=seed-quiz-1");
   await submit(page, ["number"]);
   const completed = page.url();
   await page.evaluate(() => {
