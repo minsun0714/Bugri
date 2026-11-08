@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { ErrorIllustration } from "@/components/errors/error-illustration";
 import { Button } from "@/components/ui";
 import { RecoveryHomeLink } from "@/components/errors/home-link";
@@ -9,6 +12,8 @@ export function ErrorPage({
   notFound?: boolean;
   onRetry?: () => void;
 }) {
+  const t = useTranslation();
+
   return (
     <main className="grid min-h-dvh place-items-center bg-canvas px-5 py-10 text-foreground md:px-12">
       <section
@@ -21,13 +26,15 @@ export function ErrorPage({
           className="mt-6 text-center text-xl leading-snug font-bold break-keep sm:text-2xl"
         >
           {notFound
-            ? "페이지를 찾지 못했어요"
-            : "앗, 잠깐 문제가 생겼어요"}
+            ? t("페이지를 찾지 못했어요")
+            : t("앗, 잠깐 문제가 생겼어요")}
         </h1>
         <div className="mt-8 flex flex-wrap justify-end gap-3">
           <RecoveryHomeLink secondary={!!onRetry} />
           {onRetry && (
-            <Button onClick={onRetry}>다시 시도</Button>
+            <Button onClick={onRetry}>
+              {t("다시 시도")}
+            </Button>
           )}
         </div>
       </section>

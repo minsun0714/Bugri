@@ -199,6 +199,10 @@ PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따
 - 오류 재현은 `BUGRI_UI_PREVIEW=1` 빌드의 `/ui-preview/errors`에서만 제공한다. 일반 빌드에서는 notFound로 차단한다. 외부 모니터링 서비스는 도입하지 않는다.
 
 
+### 공개 프로필 섹션 순서
+
+`DeveloperScreen`은 상단 `ProfileAbout`을 고정하고 `ProfileSections`에 데스크·최신 공개 퀴즈·학습 활동을 전달한다. 각 섹션은 ID를 React key로 유지하여 재배치 시 콘텐츠 상태를 보존한다. 순서 편집 트리거는 renderHeader 슬롯으로 ProfileAbout의 본인 관리 그룹에 전달하며 별도 본문 툴바를 만들지 않는다. 넓은 화면은 공개ID와 같은 행, 좁은 화면은 ID 아래 오른쪽에 두 편집 버튼을 묶는다. 공통 Modal에는 이름·손잡이·위/아래 버튼만 있는 세 행을 표시하고 본문은 저장된 순서와 기존 크기를 유지한다. 편집 초안은 로컬 상태, 저장/조회는 `useProfileOrder` → typed client → Mock service/HTTP 계약을 따른다. `UserState.profileOrder` 선택 필드로 기존 v1 저장과 호환된다. 모달 안 손잡이의 Pointer Events만 섹션 드래그를 시작하므로 데스크 카메라 드래그와 분리된다. 위/아래 버튼 및 손잡이 방향키로도 이동하며 저장/취소 후 편집 진입 버튼으로 초점을 복원한다. 사용자·프로필·데모 선택 상태 key로 편집 상태를 초기화한다. 공개 순서 조회는 상태 초기화/마이그레이션 없이 읽기 전용이다.
+
 ### 화면 테마
 
 REQ-15의 표시 설정은 `src/lib/theme`의 타입·브라우저 저장 어댑터·외부 store로 분리한다. UI는 localStorage에 직접 접근하지 않으며 테마는 계정 데이터/API 요청이 아닌 기기 표시 설정이다. 루트의 정적 초기화 스크립트가 본문 파싱 전에 저장값/시스템 설정을 적용한다. `data-theme`와 CSS `color-scheme`을 동기화하고 헤더는 useSyncExternalStore로 선택값·시스템 변경·탭 간 저장 변경을 구독한다. globals.css의 의미 토큰으로 색을 전환하며 버그리와 방 재질은 별도로 보존한다.
@@ -216,3 +220,9 @@ REQ-15의 표시 설정은 `src/lib/theme`의 타입·브라우저 저장 어댑
 ### 퀴즈 카드 전체 접근과 설정
 
 QuizCard는 제목 Link/button의 after 영역을 카드 전체로 확장해 기본 접근 영역으로 사용하고, 비상호작용 본문은 pointer-events-none으로 클릭을 전달한다. 설정과 footer의 평가·작성자 링크는 독립된 상위 클릭 영역이며 중첩 링크/버튼은 만들지 않는다. 제목은 접근 링크의 이름으로 제공하고 키보드 포커스는 카드 외곽에 표시한다. 내 퀴즈의 승인된 PUBLIC/PRIVATE 본문은 solve URL, PENDING 본문은 기존 검토 동작이다. 우상단 설정은 관리/수정본 검토를 열며 하단 actionText와 화살표를 제거한다. QuizList는 상태·수정일을 metadata에, 태그와 평가를 footer의 좌우 영역에 함께 배치해 별도 행을 줄인다.
+
+### 화면 언어 — I18N-01
+
+`src/lib/i18n`의 한국어 메시지 키·영어 사전과 `useTranslation`을 사용한다. UI가 명시한 서비스 문구만 번역하고 사용자 콘텐츠에는 번역 함수를 적용하지 않는다. 보간 값은 원문으로 유지하며 번역해야 하는 중첩 UI 메시지는 `UiMessage`로 구분한다. 알림·검증 오류는 원본 키 또는 메시지 descriptor로 보관해 표시 중 언어 변경도 반영한다. 편집 탭·상태 비교값은 언어와 독립적으로 유지한다.
+
+언어는 테마와 같은 브라우저 표시 설정이며 저장 접근은 `lib/i18n/store.ts`로 격리한다. `bugri.locale`의 유효한 명시 선택을 우선하고 없으면 브라우저 선호 언어에서 ko/en을 선택하며 지원 언어가 없으면 ko를 사용한다. `useSyncExternalStore`의 서버 snapshot은 ko이며 hydration 후 브라우저 설정과 문서 lang/title을 동기화한다. 경로·데모 사용자·쿼리 캐시·편집 입력은 변경하지 않는다. 공통 헤더 PC와 모바일 메뉴에서 `한국어 / English`를 제공한다. 사용자 작성 상품명·설명도 콘텐츠로서 원문을 유지한다.

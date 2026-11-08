@@ -1,4 +1,12 @@
 "use client";
+import {
+  type UiMessage,
+  message,
+} from "@/lib/i18n/messages";
+
+import { useTranslation } from "@/lib/i18n/use-translation";
+
+import { viewAllAction } from "@/components/ui/styles";
 
 import Link from "next/link";
 import {
@@ -39,6 +47,8 @@ export function DiscoverySearch({
   authorize,
   showSubscriptions = false,
 }: DiscoverySearchProps) {
+  const t = useTranslation();
+
   const isTags = request.kind === DiscoveryKind.HASHTAG;
   const [input, setInput] = useState(request.query);
   const [previousQuery, setPreviousQuery] = useState(
@@ -55,7 +65,9 @@ export function DiscoverySearch({
   const invalidInput = Array.from(input).length > 100;
   const invalidQuery =
     Array.from(request.query).length > 100;
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<UiMessage | null>(
+    null,
+  );
   const requestKey = JSON.stringify(request);
   const [feedbackRequest, setFeedbackRequest] =
     useState(requestKey);
@@ -110,24 +122,30 @@ export function DiscoverySearch({
   ) {
     function toggleSubscription() {
       if (authorize && !authorize()) return;
-      const message =
+      const notice =
         target.type === "HASHTAG"
           ? subscribed
-            ? `${name} 태그 구독을 취소했습니다.`
-            : `${name} 태그를 구독했습니다.`
+            ? message("{0} 태그 구독을 취소했습니다.", {
+                0: name,
+              })
+            : message("{0} 태그를 구독했습니다.", {
+                0: name,
+              })
           : subscribed
-            ? `${name}님 구독을 취소했습니다.`
-            : `${name}님을 구독했습니다.`;
+            ? message("{0}님 구독을 취소했습니다.", {
+                0: name,
+              })
+            : message("{0}님을 구독했습니다.", { 0: name });
 
       void subscribe
         .mutateAsync({ target, subscribed })
         .then(() => {
           pendingFocus.current = subscribed
-            ? `${name} 구독하기`
+            ? t("{0} 구독하기", { 0: name })
             : publicQuizCount === 0
-              ? `${name} 구독 메뉴`
-              : `${name} 학습하기`;
-          setToast(message);
+              ? t("{0} 구독 메뉴", { 0: name })
+              : t("{0} 학습하기", { 0: name });
+          setToast(notice);
         })
         .catch(() => undefined);
     }
@@ -145,12 +163,12 @@ export function DiscoverySearch({
                   : "!min-h-11"
               }
               disabled={busy || publicQuizCount === 0}
-              aria-label={`${name} 학습하기`}
+              aria-label={t("{0} 학습하기", { 0: name })}
               onClick={() => {
                 if (!authorize || authorize()) onLearn(tag);
               }}
             >
-              학습하기
+              {t("학습하기")}
               {isTags && <span aria-hidden="true">→</span>}
             </Button>
             <SubscriptionMenu
@@ -169,7 +187,7 @@ export function DiscoverySearch({
                 : "!min-h-11"
             }
             disabled={busy}
-            aria-label={`${name} 구독하기`}
+            aria-label={t("{0} 구독하기", { 0: name })}
             onClick={toggleSubscription}
           >
             {isTags && (
@@ -180,7 +198,7 @@ export function DiscoverySearch({
                 +
               </span>
             )}
-            구독하기
+            {t("구독하기")}
           </Button>
         )}
       </div>
@@ -224,18 +242,18 @@ export function DiscoverySearch({
               type="search"
               label={
                 request.kind === DiscoveryKind.USER
-                  ? "개발자 검색"
-                  : "태그 검색"
+                  ? t("개발자 검색")
+                  : t("태그 검색")
               }
               placeholder={
                 request.kind === DiscoveryKind.USER
-                  ? "개발자 이름 또는 ID"
-                  : "태그 이름 검색"
+                  ? t("개발자 이름 또는 ID")
+                  : t("태그 이름 검색")
               }
               value={input}
               error={
                 invalidInput
-                  ? "검색어는 100자 이하여야 합니다."
+                  ? t("검색어는 100자 이하여야 합니다.")
                   : undefined
               }
               readOnly={busy}
@@ -253,14 +271,14 @@ export function DiscoverySearch({
             }
             disabled={busy || invalidInput}
           >
-            검색
+            {t("검색")}
           </Button>
         </form>
         {request.kind === DiscoveryKind.HASHTAG &&
           showSubscriptions && (
             <div
               role="group"
-              aria-label="태그 목록 필터"
+              aria-label={t("태그 목록 필터")}
               className={tagDiscoveryStyles.filters}
             >
               <Button
@@ -280,7 +298,7 @@ export function DiscoverySearch({
                   })
                 }
               >
-                전체 태그
+                {t("전체 태그")}
               </Button>
               <Button
                 variant={
@@ -299,7 +317,7 @@ export function DiscoverySearch({
                   })
                 }
               >
-                내 구독
+                {t("내 구독")}
               </Button>
             </div>
           )}
@@ -307,20 +325,21 @@ export function DiscoverySearch({
       {discovery.isPending && !invalidQuery && <Skeleton />}
       {discovery.error && !invalidQuery && (
         <div role="alert">
-          <p>검색 결과를 불러오지 못했습니다.</p>
+          <p>{t("검색 결과를 불러오지 못했습니다.")}</p>
           <div className="flex justify-end">
             <Button
               onClick={() => void discovery.refetch()}
             >
-              다시 불러오기
+              {t("다시 불러오기")}
             </Button>
           </div>
         </div>
       )}
       {subscribe.error && (
         <p role="alert">
-          구독을 저장하지 못했습니다. 입력을 유지했으니 다시
-          시도해 주세요.
+          {t(
+            "구독을 저장하지 못했습니다. 입력을 유지했으니 다시 시도해 주세요.",
+          )}
         </p>
       )}
       {toast && (
@@ -334,8 +353,8 @@ export function DiscoverySearch({
         <section
           aria-label={
             request.kind === DiscoveryKind.USER
-              ? "개발자 검색 결과"
-              : "태그 검색 결과"
+              ? t("개발자 검색 결과")
+              : t("태그 검색 결과")
           }
           className="space-y-4"
         >
@@ -345,8 +364,10 @@ export function DiscoverySearch({
             role="status"
             className="text-sm text-muted"
           >
-            검색 결과 {data.total.toLocaleString()}개 ·{" "}
-            {data.page}페이지
+            {t("검색 결과 {0}개 · {1}페이지", {
+              0: data.total.toLocaleString(),
+              1: data.page,
+            })}
           </p>
           {data.items.length ? (
             <ul
@@ -429,7 +450,7 @@ export function DiscoverySearch({
                         </Link>
                         {subscribed && (
                           <p className="text-xs font-medium text-primary">
-                            구독 중
+                            {t("구독 중")}
                           </p>
                         )}
                       </div>
@@ -440,7 +461,10 @@ export function DiscoverySearch({
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           href={catalogHref}
-                          aria-label={`${name} 공개 퀴즈 ${publicQuizCount}개`}
+                          aria-label={t(
+                            "{0} 공개 퀴즈 {1}개",
+                            { 0: name, 1: publicQuizCount },
+                          )}
                           className={
                             discoveryStyles.quizLink
                           }
@@ -463,14 +487,14 @@ export function DiscoverySearch({
                             <path d="M5 6H3v10a2 2 0 0 0 2 2M8 7h5M8 10h5M8 13h3" />
                           </svg>
                           {publicQuizCount === 0 ? (
-                            "공개 퀴즈 없음"
+                            t("공개 퀴즈 없음")
                           ) : (
                             <>
-                              공개 퀴즈{" "}
+                              {t("공개 퀴즈")}{" "}
                               <span className="font-bold text-foreground">
                                 {publicQuizCount}
                               </span>
-                              개
+                              {t("개")}
                             </>
                           )}
                         </Link>
@@ -497,10 +521,12 @@ export function DiscoverySearch({
             >
               <p>
                 {data.total > 0
-                  ? "요청한 페이지에 결과가 없습니다."
+                  ? t("요청한 페이지에 결과가 없습니다.")
                   : request.subscribedOnly && !request.query
-                    ? "구독한 태그가 없습니다."
-                    : "검색 결과가 없습니다. 검색어를 바꿔 보세요."}
+                    ? t("구독한 태그가 없습니다.")
+                    : t(
+                        "검색 결과가 없습니다. 검색어를 바꿔 보세요.",
+                      )}
               </p>
               {request.page > 1 ? (
                 <Button
@@ -509,11 +535,12 @@ export function DiscoverySearch({
                     search({ ...request, page: 1 })
                   }
                 >
-                  첫 페이지로 이동
+                  {t("첫 페이지로 이동")}
                 </Button>
               ) : (
                 <Button
-                  variant="secondary"
+                  variant="ghost"
+                  className={viewAllAction}
                   onClick={() =>
                     search({
                       ...request,
@@ -524,15 +551,15 @@ export function DiscoverySearch({
                   }
                 >
                   {request.kind === DiscoveryKind.HASHTAG
-                    ? "전체 태그 보기"
-                    : "전체 개발자 보기"}
+                    ? t("전체 태그 보기")
+                    : t("전체 개발자 보기")}
                 </Button>
               )}
             </div>
           )}
           {totalPages > 1 && request.page <= totalPages && (
             <nav
-              aria-label="검색 결과 페이지"
+              aria-label={t("검색 결과 페이지")}
               className="flex flex-wrap items-center justify-end gap-4"
             >
               <Button
@@ -545,7 +572,7 @@ export function DiscoverySearch({
                   })
                 }
               >
-                이전 페이지
+                {t("이전 페이지")}
               </Button>
               <span>
                 {data.page} /{" "}
@@ -563,7 +590,7 @@ export function DiscoverySearch({
                   })
                 }
               >
-                다음 페이지
+                {t("다음 페이지")}
               </Button>
             </nav>
           )}

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { QuizReactionControl } from "@/components/solving/quiz-reaction";
 import { Creation } from "@/features/quiz-authoring/creation";
@@ -84,6 +85,8 @@ function Workspace({
 }: {
   mode: "create" | "manage" | "results";
 }) {
+  const t = useTranslation();
+
   const search = useSyncExternalStore(
     subscribe,
     () => window.location.search,
@@ -160,7 +163,7 @@ function Workspace({
     setLocationParams({ quiz: undefined });
   }
   function openReview(id: string) {
-    if (busy || (dirty && !window.confirm(leaveMessage)))
+    if (busy || (dirty && !window.confirm(t(leaveMessage))))
       return;
     setDirty(false);
     setLocationParams({ quiz: id });
@@ -221,7 +224,7 @@ function Workspace({
         <RequestError error={error} />
         <div className={styles.actions}>
           <Button onClick={() => void retry()}>
-            다시 불러오기
+            {t("다시 불러오기")}
           </Button>
         </div>
         <a
@@ -232,7 +235,9 @@ function Workspace({
           }
           className="text-primary underline"
         >
-          {mode === "create" ? "새로 만들기" : "목록으로"}
+          {mode === "create"
+            ? t("새로 만들기")
+            : t("목록으로")}
         </a>
       </div>
     );
@@ -262,14 +267,16 @@ function Workspace({
     if (!batch.data)
       return (
         <EmptyState
-          title="생성 결과를 선택하세요"
-          description="대화에서 퀴즈를 생성하면 이곳에서 확인할 수 있습니다."
+          title={t("생성 결과를 선택하세요")}
+          description={t(
+            "대화에서 퀴즈를 생성하면 이곳에서 확인할 수 있습니다.",
+          )}
           action={
             <a
               href={createHref}
               className="text-primary underline"
             >
-              대화로 돌아가기
+              {t("대화로 돌아가기")}
             </a>
           }
         />
@@ -292,7 +299,7 @@ function Workspace({
     <div className={styles.stack}>
       {notice && (
         <p role="status" className="text-primary">
-          {notice}
+          {t(notice)}
         </p>
       )}
       {review.data && quizId && (
@@ -304,7 +311,7 @@ function Workspace({
             initialQuiz={review.data}
             tags={tags.data ?? []}
             onBack={() => {
-              if (dirty && !window.confirm(leaveMessage))
+              if (dirty && !window.confirm(t(leaveMessage)))
                 return;
               closeReview();
             }}

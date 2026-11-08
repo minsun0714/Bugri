@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui";
@@ -14,6 +15,8 @@ export function SubscriptionMenu({
   onUnsubscribe: () => void;
   outlined?: boolean;
 }) {
+  const t = useTranslation();
+
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -71,7 +74,7 @@ export function SubscriptionMenu({
             : "!size-11 !min-h-11 !rounded-xl !border-0 !p-0 !shadow-none"
         }
         disabled={busy}
-        aria-label={`${name} 구독 메뉴`}
+        aria-label={t("{0} 구독 메뉴", { 0: name })}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? id : undefined}
@@ -92,7 +95,7 @@ export function SubscriptionMenu({
         <div
           id={id}
           role="menu"
-          aria-label={`${name} 구독 관리`}
+          aria-label={t("{0} 구독 관리", { 0: name })}
           className="absolute right-0 top-full z-20 mt-1 min-w-36 rounded-xl border border-line bg-surface p-1 shadow-lg"
         >
           <button
@@ -107,7 +110,7 @@ export function SubscriptionMenu({
               onUnsubscribe();
             }}
           >
-            구독 해제
+            {t("구독 해제")}
           </button>
         </div>
       )}

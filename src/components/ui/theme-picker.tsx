@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useSyncExternalStore } from "react";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -20,6 +21,8 @@ const options = [
 ];
 
 export function ThemePicker() {
+  const t = useTranslation();
+
   const preference = useSyncExternalStore(
     subscribeTheme,
     getThemePreference,
@@ -44,9 +47,12 @@ export function ThemePicker() {
         />
       </svg>
       <Dropdown
-        label="화면 테마"
+        label={t("화면 테마")}
         hideLabel
-        options={options}
+        options={options.map((option) => ({
+          ...option,
+          label: t(option.label),
+        }))}
         value={preference}
         onValueChange={(value) =>
           setThemePreference(parseThemePreference(value))

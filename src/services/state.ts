@@ -1,6 +1,7 @@
 import type { QuizReaction } from "@/api/constants";
 import type {
   ProfileAbout,
+  ProfileOrder,
   Answer,
   AuthoringConversation,
   Equipment,
@@ -45,6 +46,7 @@ export interface UserState {
     reaction: QuizReaction;
   }[];
   profileAbout?: ProfileAbout;
+  profileOrder?: ProfileOrder;
   /** One-time mock fixture upgrade; absent in older v1 snapshots. */
   learningDemoVersion?: 1;
   coinHistoryDemoVersion?: 1;

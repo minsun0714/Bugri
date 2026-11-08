@@ -262,3 +262,12 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - `updateQuizReaction({ quizId, reaction })`: PUT 같은 경로. 동일 DTO를 반환하며 null은 취소다. 토글이 아니라 목표 값을 저장하므로 같은 요청 재전송은 멱등이다. 이용 불가는 QUIZ_UNAVAILABLE, 잘못된 값은 VALIDATION_ERROR다.
 - 선택 필드 `UserState.quizReactions`는 사용자별 quizId/반응 배열이다. 기존 v1에서 필드가 없으면 빈 선택이며 손상/중복 값은 저장소 오류로 보존한다. 브라우저 저장 실패는 기존 반응을 유지한다. 방문자의 평가 조회는 공개 퀴즈에 한해 합계와 reaction:null을 반환하며 읽기만 수행한다. 방문자는 반응을 저장할 수 없다.
 - Query 키는 `["quizReaction", userId, quizId]`, 성공 시 해당 캐시를 응답으로 교체한다. 목록과 풀이 컨트롤이 동일한 사용자·문제 키를 공유하므로 해당 캐시 갱신으로 동기화한다. 화면 재진입 시 stale query를 재조회한다. 방문자는 userId:null 캐시로 공개 집계를 조회하며 평가 클릭 시 데모 선택만 연다. Mock 합계는 같은 브라우저에 있는 전체 더미 사용자별 반응을 합산하며 서버 전체 사용자 통계가 아니다. 자동 mutation 재시도는 없으며 사용자·문제 전환으로 UI를 초기화한다.
+
+
+### 공개 프로필 섹션 순서
+
+- `profileOrder`: GET `/users/{publicId}/section-order`, 요청 `{ publicId }`, 응답 `{ order: ProfileSection[] }`. 조회는 저장·시간대 초기화·마이그레이션을 수행하지 않는다.
+- `updateProfileOrder`: PUT `/me/section-order`, 요청/응답 `{ order: ProfileSection[] }`. 현재 더미 사용자만 변경하며 대상 사용자 필드 주입을 거부한다.
+- `ProfileSection`은 `DESK`, `QUIZZES`, `ACTIVITY`이며 세 값을 중복·누락 없이 정확히 한 번씩 포함해야 한다. 잘못된 요청은 400, 없는 공개 사용자는 404, 저장 실패는 기존 `STORAGE_UNAVAILABLE` 계약이다.
+- 기존 v1 저장값에 `profileOrder`가 없으면 `DESK → QUIZZES → ACTIVITY`를 반환한다. 손상된 저장 순서는 기존 저장소 오류로 처리하며 덮어쓰지 않는다. 공개 DTO에는 순서만 반환한다.
+- Query 키는 `profileOrder/userId/publicId`, 저장 성공 시 현재 캐시 갱신 및 `profileOrder` 조회 무효화. 실패 시 UI 초안 유지, 자동 mutation 재전송 없음.

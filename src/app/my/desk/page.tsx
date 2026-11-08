@@ -1,3 +1,4 @@
+import { LocalizedText } from "@/components/ui/localized-text";
 import { ProductLayout } from "@/components/navigation/product-layout";
 import { Suspense } from "react";
 import { ShopApp } from "@/components/shop/shop-app";
@@ -21,7 +22,7 @@ export default function Page(props: Props) {
       <Suspense
         fallback={
           <p role="status" className="p-8 text-muted">
-            불러오는 중…
+            <LocalizedText message="불러오는 중…" />
           </p>
         }
       >

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +29,8 @@ function useOwnPublicProfile(userId: string) {
 }
 
 function ProfileLink({ userId, onNavigate }: Props) {
+  const t = useTranslation();
+
   const profile = useOwnPublicProfile(userId);
 
   if (profile.isPending)
@@ -36,7 +39,7 @@ function ProfileLink({ userId, onNavigate }: Props) {
         role="status"
         className="px-3 py-3 text-sm text-muted"
       >
-        공개 프로필 불러오는 중…
+        {t("공개 프로필 불러오는 중…")}
       </span>
     );
   if (profile.isError)
@@ -46,7 +49,7 @@ function ProfileLink({ userId, onNavigate }: Props) {
         className={itemClass}
         onClick={() => void profile.refetch()}
       >
-        공개 프로필 다시 불러오기
+        {t("공개 프로필 다시 불러오기")}
       </button>
     );
   if (!profile.data)
@@ -55,7 +58,7 @@ function ProfileLink({ userId, onNavigate }: Props) {
         role="status"
         className="px-3 py-3 text-sm text-muted"
       >
-        공개 프로필을 찾을 수 없어요.
+        {t("공개 프로필을 찾을 수 없어요.")}
       </span>
     );
 
@@ -68,7 +71,7 @@ function ProfileLink({ userId, onNavigate }: Props) {
       onClick={onNavigate}
       className={itemClass}
     >
-      공개 프로필 보기
+      {t("공개 프로필 보기")}
     </Link>
   );
 }

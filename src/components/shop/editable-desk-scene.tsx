@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import type { ComponentProps } from "react";
 import type { DeskTransform } from "@/api/contracts";
 import { ThreeView } from "@/components/shop/three-view";
@@ -18,6 +21,8 @@ export function EditableDeskScene({
   current,
   ...props
 }: Props) {
+  const t = useTranslation();
+
   return (
     <>
       <ThreeView
@@ -27,17 +32,20 @@ export function EditableDeskScene({
         wheelZoom
         showViewPresets={false}
       />
-      <output aria-label="선택 상품" className="sr-only">
+      <output
+        aria-label={t("선택 상품")}
+        className="sr-only"
+      >
         {selectedName}
       </output>
       {current && (
         <output
-          aria-label="선택 상품 배치"
+          aria-label={t("선택 상품 배치")}
           className="sr-only"
         >
           X {current.x.toFixed(2)} · Y{" "}
           {current.y.toFixed(2)} · Z {current.z.toFixed(2)}{" "}
-          · 회전 {current.rotationY}°
+          {t("· 회전")} {current.rotationY}°
         </output>
       )}
     </>

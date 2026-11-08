@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useId, useRef } from "react";
 import {
@@ -25,6 +26,8 @@ export function Dropdown({
   hideLabel?: boolean;
   triggerClassName?: string;
 }) {
+  const t = useTranslation();
+
   const id = useId();
   const list = useRef<HTMLUListElement>(null);
   const {
@@ -101,7 +104,7 @@ export function Dropdown({
         }
       >
         <span className="min-w-0 truncate">
-          {selected?.label ?? "선택하세요"}
+          {selected?.label ?? t("선택하세요")}
         </span>
         <svg
           aria-hidden="true"

@@ -147,7 +147,7 @@ test("HTTP errors preserve code and requestId, network/invalid envelopes are dis
 });
 
 test("all declared operations have an HTTP endpoint", () => {
-  expect(Object.keys(endpoints)).toHaveLength(53);
+  expect(Object.keys(endpoints)).toHaveLength(55);
 
   expect(endpoints.quizReaction).toEqual({
     method: "GET",
@@ -420,5 +420,44 @@ test("developer multi-tag query preserves each tag as a repeated parameter", asy
 
   expect(parsed.pathname).toBe(
     "/api/v1/developers/bugri-author/quizzes",
+  );
+});
+
+test("profile section order uses public GET and actor PUT", async () => {
+  const fetcher = jest.fn().mockResolvedValue(
+    response({
+      data: { order: ["DESK", "QUIZZES", "ACTIVITY"] },
+    }),
+  );
+
+  const client = createApiClient(
+    createHttpTransport({ fetch: fetcher }),
+  );
+
+  await client.request("profileOrder", {
+    publicId: "bugri-author",
+  });
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/users/bugri-author/section-order",
+    expect.objectContaining({ method: "GET" }),
+  );
+
+  const request = {
+    order: [
+      "ACTIVITY",
+      "QUIZZES",
+      "DESK",
+    ] as import("@/api/constants").ProfileSection[],
+  };
+
+  await client.request("updateProfileOrder", request);
+
+  expect(fetcher).toHaveBeenLastCalledWith(
+    "/api/v1/me/section-order",
+    expect.objectContaining({
+      method: "PUT",
+      body: JSON.stringify(request),
+    }),
   );
 });

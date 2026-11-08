@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText } from "@/components/ui/localized-text";
 
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { catchError, type ErrorInfo } from "next/error";
@@ -19,7 +20,7 @@ const Boundary = catchError(function QueryFallback(
         {title}
       </h2>
       <p className="text-sm leading-6 text-muted">
-        {getErrorMessage(error)}
+        <LocalizedText message={getErrorMessage(error)} />
       </p>
       <div className="flex flex-wrap justify-end gap-3">
         <Button
@@ -28,7 +29,7 @@ const Boundary = catchError(function QueryFallback(
             retry();
           }}
         >
-          다시 시도
+          <LocalizedText message="다시 시도" />
         </Button>
       </div>
     </div>

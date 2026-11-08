@@ -115,3 +115,12 @@ export const QuizReaction = {
 
 export type QuizReaction =
   (typeof QuizReaction)[keyof typeof QuizReaction];
+
+export const ProfileSection = {
+  DESK: "DESK",
+  QUIZZES: "QUIZZES",
+  ACTIVITY: "ACTIVITY",
+} as const;
+
+export type ProfileSection =
+  (typeof ProfileSection)[keyof typeof ProfileSection];

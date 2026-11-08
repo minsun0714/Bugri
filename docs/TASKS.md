@@ -1,5 +1,9 @@
 # Bugri 개발 단계와 작업 계획
 
+### MERGE-DEV-QUIZ-CARDS — dev 병합
+
+- 상태: DONE. origin/dev f87b0a4와 카드·평가 변경 9개 충돌 해결. 프로필 순서·다국어·compact 카드·평가 동작을 모두 보존했다. Node22.23.3에서 lint·전체 타입·단위325개·도구3개·build·선정 E2E131개 통과. 독립 UX/UI 및 코드리뷰 완료. 영향 없는 상점/3D 전용 E2E는 최신 지침에 따라 제외하며 과거 실패는 유지한다. [충돌 해결·검증 기록](ux-reviews/MERGE-DEV-QUIZ-CARDS.md).
+
 ### QUIZ-CARD-ACTIONS — 카드 전체 접근과 설정 아이콘
 
 - 상태: IN_PROGRESS — 구현·독립 UX/UI 완료, 전체 검증 실패로 DONE 보류. AC-05k. 모든 공통 퀴즈 카드 화살표 제거·전체 영역 클릭, 내 퀴즈 우상단 설정 아이콘/관리 텍스트 제거. 후속 요청으로 상태·수정일 및 태그·평가를 각각 한 행으로 묶어 모바일 기본 카드 약194→164px로 축소. 승인 퀴즈 본문은 풀이, 미승인은 검토를 유지하고 평가/작성자링크/설정은 독립 동작.
@@ -1665,6 +1669,70 @@
 - 최종 Node22.23.3 `npm run verify -- -- --workers=2` exit0: lint·전체타입·Jest57 suites/290개·도구3개·production build·E2E178개 통과. 로그 `/tmp/bugri-error-cute-verify.log`. 검증대상31ff6d7+dev21eef94 통합코드이며 이후변경은결과기록뿐이다. 원격dev도21eef94임을확인했다. PR29에push/본문갱신하며 최종병합은사용자판단이다.
 
 
+## PROFILE-ORDER — 공개 프로필 섹션 순서
+
+- 상태: DONE(사용자 후속 승인·테스트 갱신·전체 검증 완료). REQ-09/AC-09d. 사용자 승인: 정보 상단 고정, 데스크·최신 공개 퀴즈·학습 활동 손잡이 드래그 및 위/아래 이동, 명시적 저장/취소, 사용자별 공개 조회. API/저장 변경이므로 관련 테스트 후 최종 전체 검증 및 독립 UX/UI 리뷰를 수행한다.
+
+- API TDD: 신규3개가 미구현으로 실패 후 정상/레거시/읽기전용/사용자분리/입력거부/저장실패 보존 통과. 관련 Jest17개(API HTTP 포함), 변경 후 UI/API5개·전체타입·lint·변경코드 Prettier 통과. production E2E 초기4개(신규2+기존프로필2), 연속스크롤 수정 후 신규3개 통과.
+- [독립 UX/UI 리뷰](ux-reviews/PROFILE-ORDER.md): R0 모바일 edge drag 연속스크롤 문제를 C1에서 수정, R1 두 역할 확인. UX 리뷰어가 양방향 장거리 드래그·Escape/드롭 중단·취소·실패후재시도·소개고정을 직접 확인. UI 리뷰어도 모바일 포커스/드래그 강조/저장 확인. 필수 미해결0개, UI 중첩 제목/테두리 선택개선은 보류. 실기기 터치/스크린리더 미확인.
+- 검증 실패 수정/재실행3회: 1) 새 RTL 테스트의 비동기 초점 대기 및 타입 옵션 수정, 2) 새 API 코드/테스트의 포맷 후 빈줄 lint 수정, 3) C1 훅의 누락 useEffect import 수정. 각 관련 재검증 통과, 테스트 제외/완화 없음. Hook 미활성 상태를 확인하여 최종 전체검증은 수동1회 실행한다.
+
+- 최종 Node v22.23.3 `npm run verify -- -- --workers=2` exit1: lint·전체타입 통과, Jest301통과/2실패(61 suites 중59통과). `tests/unit/developer.test.tsx`는 새 profileOrder 비동기 조회가 끝나기 전 ‘전체 보기’ 링크를 동기 검사한다. `tests/unit/shop/public-profile.test.tsx`의 DeveloperScreen Mock은 새 activity prop을 렌더하지 않아 ‘학습 활동’ 기대가 실패한다. 두 파일은 변경하지 않았다. 로그 `/tmp/bugri-profile-order-verify.log`.
+- 다음 작업: 공개 링크 준비를 기다리도록 기존 동작 테스트 갱신, DeveloperScreen Mock의 activity 전달 반영 후 두 테스트와 관련 회귀 검증 및 전체 verify. 기존 비공개정보/구독/순서 검증 기대를 보존해야 한다. 한도 도달로 추가 수정/재실행하지 않았으며, 전체 pipeline의 도구검사·build·전체 E2E는 Jest에서 중단되어 미실행이다. 앞서 최신 production build 및 신규 E2E3개는 통과했다(`/tmp/profile-order-e2e-r1-final.log`). 완료/DONE/병합 준비를 선언하지 않는다. 구현 및 기록은 미커밋 상태로 남겼고 push/PR/병합하지 않았다.
+
+- 사용자 후속 승인(“ㅇㅋ 수정해”)으로 중단된 테스트 수정을 재개했다. developer 테스트는 전체 보기 링크를 findByRole로 기다리고, public-profile 테스트의 Mock은 전달된 activity를 렌더한다. 링크 주소·구독·기본 배치·개인정보 비노출 기대는 유지했다. 관련 Jest5개 통과(`/tmp/profile-order-test-update.log`), 독립 정적 리뷰 및 전체 verify 진행. 앱 코드·UI·의존성은 R1과 같아 기존 UX/UI 리뷰 근거를 유지한다.
+
+- 후속 최종 검증: Node v22.23.3 `npm run verify -- -- --workers=2` exit0. lint·전체타입·Jest61 suites/303개·도구3개·production build·E2E187개 모두 통과. 로그 `/tmp/bugri-profile-order-final-verify.log`. 독립 정적 리뷰에서 두 테스트의 기존 assertion 보존 및 변경 적절성 확인. 변경 테스트 Prettier·git diff --check 통과. 사용자 후속 승인 이후 추가 검증 실패 없음. 검증 후 변경은 결과 문서뿐이며 순서 편집 기능과 테스트를 함께 로컬 커밋한다. push/PR/병합하지 않는다.
+
+
+## PROFILE-ORDER-MODAL — 순서 편집 모달
+
+- 상태: DONE(로컬 범위 검증·독립 리뷰 완료). 사용자 요청으로 본문 편집용 큰 컨테이너를 제거하고 공통 Modal의 간결한 세 행으로 이동 조작을 옮긴다. 본문은 저장 전까지 기존 순서·크기 유지, 저장/공개 조회 API 유지. 취소·닫기·Escape는 초안 폐기, 저장 실패 시 모달/초안 유지. UI 동작 변경으로 scoped 정적 검사·전체타입·관련 Jest 및 production E2E·독립 UX/UI 리뷰 수행. API/공통UI 변경 없음.
+- 새 모달/초안 격리 요구의 Jest2개 최초 실패 확인 후 구현하여 통과.
+
+- Node v22.23.3: 변경파일 ESLint/Prettier·전체 타입·관련 Jest10개 통과. production build 및 E2E8개(순서모달1280/390/320, 기존프로필배치3개·분리2개) 통과. 저장전 본문 순서/높이 보존, 모달500px미만, 드래그/키보드, 취소/닫기/Escape/초점, 저장실패후재시도, 방문자/타인 복원 검증. 기존 본문 장거리 edge scroll 테스트는 제거된 동작으로 모달 내 세 행 조작 테스트로 교체했다. 로그 `/tmp/profile-modal-e2e.log`, `/tmp/profile-modal-unit.log`, `/tmp/profile-modal-types.log`.
+- [독립 UX/UI R0](ux-reviews/PROFILE-ORDER-MODAL.md): UX는320/390실제브라우저핵심흐름·코드검토, UI는9개PC/mobile캡처 검토. 필수문제0개/수정0회, 작은화살표glyph 선택개선 보류. 실기기터치/스크린리더/낮은높이 미확인. API·저장·공통UI·의존성 변경 없이 로컬 동작 변경으로 전체 verify는 재실행하지 않았다. 검증 후 변경은 문서 기록뿐이며 로컬 커밋한다.
+
+
+## PROFILE-HEADER-ACTIONS — 프로필 상단 여백 정리
+
+- 상태: DONE(로컬 범위 검증·독립 리뷰 완료). 사용자 스크린샷 및 sub-agent 논의 요청에 따라 순서 편집 독립 행을 제거하고 프로필 편집과 헤더의 한 관리 그룹에 배치한다. 기존 프로필편집 우측끝 정렬을 유지한다. 좁은 화면은 ID 다음행에 두 버튼을 함께 배치한다. 공개 프로필 퀴즈 빈 상태만 아이콘/중복설명 없이 간결하게 표시하며 별도 목록의 EmptyState는 유지한다. 모달·API·저장 계약 유지.
+- UX/UI 설계 논의: 두 역할 모두 독립 툴바의44px높이+간격 중첩을 원인으로 확인. 배치 순서는 기존 프로필편집 우측끝 요구를 우선해 ‘순서 편집 → 프로필 편집’으로 선택했다. 본문 간격24px 유지. 변경 동작에 대한 header slot 테스트 최초실패 확인 후 관련 Jest9개/전체타입 통과.
+
+- [독립 UX/UI 리뷰](ux-reviews/PROFILE-HEADER-ACTIONS.md): 새 UX리뷰어320/390실제조작+코드검토, 새 UI리뷰어1280/390/320캡처확인. 필수문제0개/R0수정0회. 본인/게스트/타인·두 편집진입/초점복귀·순서저장 확인. 실기기터치/스크린리더 미확인.
+- Nodev22.23.3 관련Jest9개·변경파일ESLint/Prettier·전체타입·diff검사 통과. productionE2E 최초13개중11통과/모달2실패(3D준비중안내 높이40px차이). 준비완료 대기만 추가해 높이동일기대 유지, 수정후모달3개재통과. 앱/나머지테스트/환경동일하여 최초 나머지10개 성공재사용. 실패수정1회. 로그 `/tmp/profile-header-e2e.log`, `/tmp/profile-header-order-r1.log`, `/tmp/profile-header-unit.log`. UI 한정 로컬완료로 전체verify는 재실행하지 않았다. 검증 후 변경은 결과 기록뿐이며 로컬커밋한다. push/PR/병합 없음.
+
+
+## VIEW-ALL-STYLE — 전체 보기 액션 통일
+
+- 상태: DONE(로컬스타일검증·독립리뷰완료). 사용자 요청으로 전체보기류를 편집용 보라색과 구별되는 muted 기본/foreground hover 스타일로 통일한다. 전체 소스 검색으로 프로필전체보기·내구독전체보기·검색빈상태 전체개발자/태그보기·UI전시더보기를 확인했다. 공유 viewAllAction을 적용하고 전시는 ‘전체 보기’로 맞춘다. 링크/모달/검색초기화 동작은 유지하며 장식 화살표를 제거한다. 필터 ‘전체’는 이 액션 범위가 아니다.
+- UI 디자인 위임 후 기존토큰·44px터치높이·중립색강조 사용. 스타일/문구만 변경으로 새TDD는 생략하고 기존 동작검사·PC/mobile상태 및 독립UX/UI리뷰로 검증한다. 기존테스트의 링크기대는 화살표제거 문구만 맞추고 href/동작검증 유지.
+
+- Nodev22.23.3 변경파일ESLint/Prettier·전체타입·관련Jest5개·production빌드·관련E2E25개 통과. 처음에는머신load56.62에서기존Jest5초timeout1건/빌드포함서버준비120초timeout발생. 기대/시간제한을유지하고Jest→별도production빌드→1workerE2E로순차재실행하여통과(재시도1회). 기존Playwright설정을상속한임시설정은서버명령에서이미완료한빌드만분리하고검증후삭제했다. 로그 `/tmp/viewall-unit-r1.log`, `/tmp/viewall-build.log`, `/tmp/viewall-e2e-r1.log`.
+- 실제1280/320의4화면8상태 모두기본muted/hoverforeground/포커스foreground·14px·높이44px확인(`/tmp/viewall-metrics.json`). 전체개발자보기는현재직접노출되지않는공통검색USER분기의공유스타일적용코드만확인. [독립UX/UI리뷰](ux-reviews/VIEW-ALL-STYLE.md) R0필수문제0개/수정0회. UX는320Enter탐색/모달/Escape/검색초기화직접확인, UI는16개PC/mobile기본/포커스캡처확인. 스타일/문구만변경으로전체verify는재실행하지않았다. 검증후변경은문서결과뿐, 로컬커밋하며push/PR/병합없음.
+
+
+## PROFILE-QUIZ-SURFACE — 최신 공개 퀴즈 섹션
+
+- 상태: DONE(로컬스타일검증·독립리뷰완료). 사용자 요청에 따라 공개 프로필의 최신 퀴즈 섹션에 데스크/학습활동과 같은 rounded-3xl·border-line·bg-surface·p4/smp6를 적용한다. 빈 상태는 한줄안내와 작은내부여백으로 이전의 과도한높이를 되돌리지 않는다. 기존QuizCard·1/2열·최신4개·전체보기공통스타일·모달정렬·목록화면/API유지. UI디자이너 설계위임 후 구현하며 스타일만변경이라 새TDD는 생략한다. 관련검사 및독립UX/UI리뷰로완료한다.
+
+- Nodev22.23.3 변경파일ESLint/Prettier·전체타입·관련Jest6개·production빌드/E2E11개통과. 기존빈상태150px미만·간격·최신4개·전체보기·정렬모달검사를수정없이통과했다. 로그 `/tmp/profile-surface-unit.log`, `/tmp/profile-surface-types.log`, `/tmp/profile-surface-e2e.log`. 실패/수정재시도없음.
+- [독립UX/UI리뷰](ux-reviews/PROFILE-QUIZ-SURFACE.md): 두역할새컨텍스트로1280/390/320의목록/빈상태6캡처확인, UX는모바일본인/타인전체보기Enter·실제퀴즈풀이진입까지직접확인및코드리뷰. 필수문제0개/수정0회. 실제비로그인/오류/긴제목/실기기터치/스크린리더미확인. 스타일한정로컬완료로전체verify재실행없음. 검증후변경은문서기록뿐이며로컬커밋한다. push/PR/병합없음.
+
+
+## PROFILE-ORDER-ICON — 순서 편집 아이콘
+
+- 상태: DONE. 사용자 요청으로 순서 편집에도 프로필 편집과 같은16px EditIcon 하나를 추가한다. aria-hidden 장식아이콘이며 버튼문구/접근성명/동작유지. 기존아이콘재사용의소규모시각변경으로 별도디자인위임/UX루프·신규테스트는생략하고 scoped정적검사·PC/mobile기존배치E2E로확인한다.
+
+- Nodev22.23.3 scopedESLint/Prettier·production빌드 및기존프로필E2E6개통과(1280/390/320 배치·두편집진입/초점). 로그 `/tmp/profile-order-icon-e2e.log`. 기존독립UI리뷰어가최신320캡처/두줄diff를확인하여아이콘크기/간격일치·잘림/줄바꿈없음·추가문제없음확인. 동작없는변경으로전체verify는재실행하지않았다. 로컬커밋, push없음.
+
+
+## PROFILE-ORDER-ARROWS — 순서 편집 아이콘 정정
+
+- 상태: DONE. 사용자 정정대로 순서편집만 연필 대신 위/아래화살표 한개 SVG로 교체한다. 기존16px·선굵기·색·aria-hidden유지, 프로필편집연필은변경하지않는다. 소규모장식변경으로 신규테스트/전체UX루프는생략하며정적검사·기존배치E2E·간단독립리뷰로확인한다.
+
+- Nodev22.23.3 scopedESLint/Prettier·production빌드·기존프로필E2E6개통과(`/tmp/profile-order-arrows-e2e.log`). 독립UI리뷰어가최신320캡처·코드확인: 위아래화살표/연필구분·크기/간격일치·줄바꿈/잘림없음. 수정0회,로컬커밋/push없음.
+
 ## THEME-01 — 라이트·다크·시스템 테마
 
 - 상태: IN_PROGRESS(구현·독립리뷰 완료, PR 통합의 간헐 E2E 실패 이력 및 갤럭시 Chrome 실기기 확인 대기). 사용자 승인 계획 구현. REQ-15: 공통 헤더 선택, 기기 설정 기본/명시 선택 우선/브라우저 저장, 첫 화면 테마 적용, 버그리 고유색과 사용자 방 보존. 삼성 강제 다크는 실기기 별도 검증이며 CSS만으로 보장하지 않는다.
@@ -1686,9 +1754,53 @@
 - 검증: Jest 6개, 관련 작성 E2E 12개, 변경 파일 lint/포맷·타입 검사 통과. PC·모바일 4상태 생성 이동과 독립 UX/UI R0 리뷰 완료(수정 회차 0). [근거와 한계](ux-reviews/QUIZ-CREATE-CTA.md). 로컬 완료 후 PR 검증: 전체 lint·타입·Jest 299개·도구 3개·빌드 통과. 전체 E2E 179개 통과/5개 실패 후 실패 5개 단일 worker 재실행 모두 통과(코드 수정 없음).
 
 
+## PROFILE-DND-PR — 공개 프로필 순서 편집 PR 검증
+
+- 상태: DONE(전체 검증·독립 통합 리뷰 완료). 사용자 요청으로 `feat/profile-dnd` → `dev` PR을 게시한다. 최신 `dev`의 `59c4a10`을 `8af40a9`에 통합했고, TASKS 충돌은 양쪽 기록을 모두 보존했다. upstream 퀴즈 생성 CTA 코드·테스트·리뷰 문서는 원본과 일치한다.
+- Node v22.23.3, 통합 커밋 `8af40a9`에서 `npm run verify -- -- --workers=2` 통과: 전체 ESLint·TypeScript, Jest 61 suites/306 tests, 도구 테스트 3개, production build, Chromium E2E 190개. 로그 `/tmp/profile-dnd-pr-integrated-verify.log`. 통합 전 `ad30139`도 같은 명령으로 Jest 304개/E2E 190개 통과했지만 최종 근거는 통합 후 결과다. 이번 PR 검증 중 실패·수정 재시도 없음.
+- 구현자와 별도인 리뷰어가 전체 기능의 API 검증·사용자별 저장·공개 조회 부작용·초안/저장 분리·실패 재시도·접근성 및 통합 diff를 검토했으며 차단 문제 없음. 기존 [모달 UX/UI 리뷰](ux-reviews/PROFILE-ORDER-MODAL.md), [헤더 리뷰](ux-reviews/PROFILE-HEADER-ACTIONS.md), [퀴즈 패널 리뷰](ux-reviews/PROFILE-QUIZ-SURFACE.md), [전체 보기 리뷰](ux-reviews/VIEW-ALL-STYLE.md)를 유지한다. 실기기 터치·스크린리더·다른 브라우저는 미실행이다.
+- 최종 검증 이후 변경은 이 기록뿐이므로 전체 검증 결과를 재사용하고 문서 링크·`git diff --check`를 확인한다. PR 게시까지 요청된 범위이며 병합은 수행하지 않는다.
+
 ### THEME-01 PR 통합
 
 - 사용자 PR 게시 요청으로 최신 dev59c4a10을 통합한다. TASKS양쪽 기록 보존, QuizList생성 CTA는 최신dev공통 버튼·아이콘·중복 제거를 유지하며 공통 토큰으로 다크를 지원한다. 다크 페이지네이션도 보존한다. 독립 통합리뷰와 최신코드 전체검증 후 dev대상 PR게시. 실기기 호환성 미확인 한계는 유지한다.
 - 통합 독립리뷰: upstream공통CTA·중복제거·단위테스트와 다크토큰/페이지네이션 보존 확인. UX390px다크 두사용자 생성이동, UI1280/390px양테마 두사용자 총8상태 확인, 추가결함없음. 관련단위11개 통과. 전체검증 진행중.
 
 - PR 통합 검증: Node22.23.3 lint·전체타입·Jest60 suites/304개·도구3개·production build 통과. 전체 E2E190/191 통과, 모바일 구독 모달1개가30초 timeout으로 실패했다(`/tmp/bugri-theme-pr-verify.log`). 코드/테스트 변경 없이 `npm run test:e2e -- tests/e2e/developer-discovery-repair.spec.ts --workers=1` 재실행8개 모두통과(`/tmp/bugri-theme-pr-recheck.log`). 원인은 확정하지 않았으며 최초전체verify exit1을 전체일괄통과로 표현하지 않는다. 성공결과는동일코드에서재사용한다. 실기기미확인·간헐실패이력을명시한 Draft PR을 게시한다. 검증대상061eddd+dev59c4a10 통합이며 이후변경은기록뿐이다.
+
+
+### PROFILE-DND-PR 추가 통합
+
+- PR #33 게시 중 dev에 다크모드 PR #32(`12680f5`)가 병합되어 Draft로 전환한 뒤 `beb2b70`에 추가 통합했다. 문서 3곳은 양쪽 내용을 보존하고 퀴즈 패널 설명을 테마 대응으로 맞췄다. source 자동 통합은 upstream 다크 토큰과 기존 프로필 추가 스타일을 모두 보존한다.
+- Node v22.23.3, `beb2b70`에서 `npm run verify -- -- --workers=2` exit 0: ESLint·전체 TypeScript·Jest 62 suites/311 tests·도구 테스트 3개·production build·Chromium E2E 197개 통과. 로그 `/tmp/profile-dnd-pr-theme-verify.log`. 이전 결과를 대체하는 최종 통합 검증이며 실패·재시도 없음.
+- [독립 UX/UI 통합 리뷰](ux-reviews/PROFILE-DND-INTEGRATION.md): 두 테마·PC/모바일 본인/방문자 화면과 저장/취소/포커스/탐색을 직접 확인해 필수 문제 0개, 수정 0회. upstream 코드·문서 보존 정적 리뷰도 완료. 실기기·스크린리더 등 한계는 리뷰 문서에 기록했다.
+- 검증 후 변경은 작업 기록·리뷰 문서뿐이므로 성공 결과를 재사용한다. 문서 링크·diff check 확인 후 PR을 Ready로 갱신하며 병합은 하지 않는다.
+
+## I18N-01 — 한국어·영어 화면 언어
+
+- 상태: IN_PROGRESS — 구현 커밋, 최종 검증 미완료. REQ-16에 따라 서비스 UI만 번역하며 퀴즈·프로필·사용자 입력은 원문 유지. 브라우저 언어 감지, 명시 선택 저장, 공통 헤더 언어 선택, 오류·접근성 문구를 포함한다.
+- 검증 계획: 언어 선택/복원/저장 차단/콘텐츠 보존 단위 및 E2E, 독립 UX·UI 화면 리뷰, 최종 전체 verify.
+
+- I18N-01 검증: Node v22.23.3. `PLAYWRIGHT_PORT=3447 npm run verify`에서 lint·전체 타입·Jest 64 suites/316개·도구3개·production build 통과, E2E 201개 중198개 통과/3개 실패(exit1). 다국어 E2E4개는 통과했다. 변경 파일 Prettier·diff check 통과. 전체 통과나 병합 준비 완료로 간주하지 않는다.
+- 남은 실패: `profile-split.spec.ts:19`의 ‘개인 관리’ region 이름을 변경해 기존 접근성 계약 회귀(번역 가능한 region 이름 복원 필요). `developer-discovery-repair.spec.ts:317` 구독 모달과 `scene-centering.spec.ts:4` mobile390은30초 시간 초과로 원인 추가 확인 필요. 시간 초과를 환경 문제로 단정하거나 테스트를 제외하지 않았다.
+- 검증 수정·재실행 한도 도달로 추가 재시도 중단. 당시 구현 변경은 미커밋으로 보존했다. 이후 사용자 요청에 따라 아래와 같이 커밋했다. push/PR 없음. 최종 로그 `.bugri-hooks/i18n/verify-final.log`, 실패 스냅샷 `test-results/`. [독립 UX/UI·코드 리뷰 및 검증 기록](ux-reviews/I18N-01.md).
+
+### I18N-01 후속 — 접근성 이름 기대값과 구독 모달 확인
+
+- 사용자가 ‘데스크 꾸미기 바로가기’ 영역 이름을 유지하고 테스트를 맞추도록 명시했다. 앞선 ‘기존 개인 관리 이름 복원 필요’ 판단은 이 요청으로 대체한다. `profile-split.spec.ts`의 region 이름만 변경하고 링크 경로 검증은 유지했다.
+- Node v22.23.3에서 `PLAYWRIGHT_PORT=3447 npm run test:e2e -- tests/e2e/profile-split.spec.ts tests/e2e/developer-discovery-repair.spec.ts --grep 'private management|subscription modal' --workers=1 --trace=on` 실행: 두 테스트 통과(각6.6초/7.3초). 변경 테스트 ESLint·Prettier 통과. 새 전체 verify 통과를 의미하지 않는다.
+- 구독 모달 애플리케이션 코드는 변경하지 않았다. 이전 실패 스냅샷은 author 검색 완료·관리 버튼에 초점·해제 메뉴 닫힘 상태였다. 단독 실행에서는 검색→필터→해제→초점 복귀→재진입→이동 모두 통과했다. 이전 병렬 실행의 시간 초과 원인은 미확정이며 서버 요청이30초 걸렸다고 해석하지 않는다. mobile390 scene-centering 실패는 이번 재검증 범위 밖으로 남는다.
+- 이전 검증 한도 중단 뒤 사용자의 명시적인 테스트 수정·실패 확인 요청에 따라 이 두 검사를 재실행했다. 로그 `.bugri-hooks/i18n/followup-e2e.log`, trace는 `test-results/`에 보존한다. 사용자 요청으로 다국어 기능은 `3777037`에 커밋했으며, 접근성 이름 테스트와 이 후속 기록은 별도 커밋한다. 미통과 상태로 남은 것은 mobile390 scene-centering 검사이며 전체 verify 성공으로 표시하지 않는다.
+
+
+### I18N-01 후속 — 모바일 3D 시간 초과 조사
+
+- 사용자 요청으로 `4143352`의 코드에서 Node v22.23.3·production 서버(port 3447)로 조사했다. `scene-centering.spec.ts`는 데스크·상점 미리보기·공개 데스크 세 화면에서 총15회 드래그와 캔버스 픽셀 검사를 수행한다. 원래 실패는 mouse.move 도중 전체 테스트 제한30초를 소진한 것이며, 중심 위치 assertion 실패는 아니다. 렌더링 엔진과 해당 테스트는 다국어 구현 전후 동일하다.
+- `npm run test:e2e -- tests/e2e/scene-centering.spec.ts --grep '390px' --repeat-each=3 --workers=1 --trace=on --reporter=line,json`은3회 통과(7.0~11.8초). scene-centering·room-zoom·room-theme-bugri·shop-additive-preview를 workers=4로 함께 실행한10개도 통과했다. 같은 모바일 테스트를 repeat-each=4·workers=4로 실행한4회는23.3~23.8초로 모두 통과했다. 각 명령에는 `PLAYWRIGHT_PORT=3447`과 별도 JSON 출력 경로를 지정했다.
+- 병렬 부하에 따른 지연은 확인했지만 최초 실행의 정확한 지연 원인은 미확정이다. 당시 trace가 없어 단정하지 않는다. 앱·테스트·timeout 변경은 없으며, 앞선3개 실패는 후속 개별 실행에서 모두 통과했다. 최초 전체 verify exit1은 유지하고 새 전체 일괄 통과로 표시하지 않는다. 로그: `.bugri-hooks/i18n/scene-serial.log`, `scene-parallel.log`, `scene-concurrent.log`.
+
+## VERIFY-SHOP-SCOPE — 상점·3D 검증 범위 지침
+
+- 사용자 승인으로 검증 지침·AGENTS·구현/PR 스킬·Hook 안내를 정합화했다. 상점 동작/렌더링과 무관하면 전용 E2E를 제외하고, 공통 UI 변경은 영향을 받는 흐름을 확인한다. 영향이 불명확하면 포함한다. 필요한 상점·3D 검사는 worker1개로 순차 실행한다. PR 최종화·통합에도 같은 기준을 적용하고 선택·제외 근거를 기록한다.
+- 문서만 변경했다. 실행 스크립트의 자동 제외 기능은 추가하지 않았으며 기존 실패를 삭제하거나 테스트를 약화하지 않았다. 이 문서 변경을 위한 앱 pipeline·Hook은 실행하지 않는다.
+- 문서 링크·정합성·diff 검사 통과. 스킬 quick_validate는 환경에 PyYAML이 없어 실행 차단되었으며 frontmatter·참조·적용 조건은 직접 확인했다. 구현자 외 최종 리뷰와 병합 판단은 사용자에게 남긴다.

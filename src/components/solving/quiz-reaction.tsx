@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "@/lib/i18n/use-translation";
 import { useId } from "react";
 import { QuizReaction } from "@/api/constants";
 import { useDemoSession } from "@/components/navigation/demo-session";
@@ -15,6 +16,7 @@ export function QuizReactionControl({
   quizId: string;
   align?: "left" | "right";
 }) {
+  const t = useTranslation();
   const countId = useId();
   const { signIn } = useDemoSession();
   const { query, update } = useQuizReaction(userId, quizId);
@@ -26,7 +28,7 @@ export function QuizReactionControl({
     <div className="flex min-w-0 max-w-full flex-col gap-2">
       <div
         role="group"
-        aria-label="문제 평가"
+        aria-label={t("문제 평가")}
         className={`flex flex-wrap gap-2 ${align === "left" ? "justify-start" : "justify-end"}`}
       >
         {[
@@ -45,7 +47,7 @@ export function QuizReactionControl({
             key={value}
             variant="ghost"
             size="sm"
-            aria-label={label}
+            aria-label={t(label)}
             aria-describedby={`${countId}-${value}`}
             aria-pressed={selected === value}
             disabled={
@@ -100,7 +102,7 @@ export function QuizReactionControl({
               className="tabular-nums"
             >
               {count === undefined ? "—" : count}
-              <span className="sr-only">명</span>
+              <span className="sr-only">{t("명")}</span>
             </span>
           </Button>
         ))}
@@ -109,14 +111,14 @@ export function QuizReactionControl({
         {!userId
           ? ""
           : update.isPending
-            ? "평가 저장 중"
+            ? t("평가 저장 중")
             : query.isPending
-              ? "평가 불러오는 중"
+              ? t("평가 불러오는 중")
               : selected === QuizReaction.LIKE
-                ? "좋아요 선택됨"
+                ? t("좋아요 선택됨")
                 : selected === QuizReaction.DISLIKE
-                  ? "싫어요 선택됨"
-                  : "선택한 평가 없음"}
+                  ? t("싫어요 선택됨")
+                  : t("선택한 평가 없음")}
       </p>
       {query.isError && (
         <div
@@ -126,14 +128,14 @@ export function QuizReactionControl({
             role="alert"
             className="text-sm text-danger-ink"
           >
-            평가를 불러오지 못했어요.
+            {t("평가를 불러오지 못했어요.")}
           </p>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => void query.refetch()}
           >
-            다시 불러오기
+            {t("다시 불러오기")}
           </Button>
         </div>
       )}
@@ -142,8 +144,9 @@ export function QuizReactionControl({
           role="alert"
           className={`text-sm text-danger-ink ${align === "left" ? "text-left" : "text-right"}`}
         >
-          평가를 저장하지 못했어요. 버튼을 눌러 다시 시도해
-          주세요.
+          {t(
+            "평가를 저장하지 못했어요. 버튼을 눌러 다시 시도해 주세요.",
+          )}
         </p>
       )}
     </div>

@@ -1,4 +1,12 @@
 "use client";
+import {
+  type UiMessage,
+  message,
+} from "@/lib/i18n/messages";
+
+import { useTranslation } from "@/lib/i18n/use-translation";
+
+import { viewAllAction } from "@/components/ui/styles";
 
 import { createQueryClient } from "@/api/query-client";
 
@@ -19,6 +27,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import { EditIcon } from "@/components/profile/edit-icon";
 import { profileStyles } from "@/components/profile/styles";
+import { ProfileSections } from "@/components/profile/profile-sections";
 import { ProfileAbout } from "@/components/profile/profile-about";
 import { ApiClientError } from "@/api/client";
 import {
@@ -60,23 +69,25 @@ function PageControls({
   busy: boolean;
   onPage: (page: number) => void;
 }) {
+  const t = useTranslation();
+
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   if (pages <= 1) return null;
 
   return (
     <nav
-      aria-label={`${label} 페이지`}
+      aria-label={t("{0} 페이지", { 0: label })}
       className="mt-3 flex flex-wrap items-center justify-end gap-2"
     >
       <Button
         size="sm"
         variant="ghost"
-        aria-label={`${label} 이전 페이지`}
+        aria-label={t("{0} 이전 페이지", { 0: label })}
         disabled={page <= 1 || busy}
         onClick={() => onPage(page - 1)}
       >
-        이전
+        {t("이전")}
       </Button>
       <span className="text-sm text-muted">
         {page} / {Math.max(pages, page)}
@@ -84,11 +95,11 @@ function PageControls({
       <Button
         size="sm"
         variant="ghost"
-        aria-label={`${label} 다음 페이지`}
+        aria-label={t("{0} 다음 페이지", { 0: label })}
         disabled={page >= pages || busy}
         onClick={() => onPage(page + 1)}
       >
-        다음
+        {t("다음")}
       </Button>
     </nav>
   );
@@ -103,6 +114,8 @@ function TagSearch({
   busy: boolean;
   onSearch: (query: string) => void;
 }) {
+  const t = useTranslation();
+
   const [query, setQuery] = useState(value);
 
   return (
@@ -116,9 +129,9 @@ function TagSearch({
       <div className={developerStyles.searchField}>
         <TextField
           type="search"
-          label="이 개발자의 태그 검색"
+          label={t("이 개발자의 태그 검색")}
           hideLabel
-          placeholder="태그 검색"
+          placeholder={t("태그 검색")}
           value={query}
           maxLength={100}
           disabled={busy}
@@ -132,7 +145,7 @@ function TagSearch({
         className={developerStyles.searchButton}
         disabled={busy}
       >
-        검색
+        {t("검색")}
       </Button>
     </form>
   );
@@ -147,16 +160,20 @@ function Catalog({
   onNotice,
   profile = false,
   afterHeader,
+  activity,
 }: {
   userId: string;
   publicId: string;
   profile?: boolean;
   afterHeader?: ReactNode;
+  activity?: ReactNode;
   filters: Filters;
   navigating: boolean;
   onChange: (filters: Filters) => void;
-  onNotice: (message: string, duration?: number) => void;
+  onNotice: (message: UiMessage, duration?: number) => void;
 }) {
+  const t = useTranslation();
+
   const { signedIn, signIn } = useDemoSession();
   const { page, tagPage, tagQuery, hashtagIds } = filters;
   const { quizzes, tags, subscribe } = useDeveloper(
@@ -186,12 +203,12 @@ function Catalog({
         <h1>
           {quizzes.error instanceof ApiClientError &&
           quizzes.error.status === 404
-            ? "개발자를 찾을 수 없습니다"
-            : "공개 퀴즈를 불러오지 못했습니다"}
+            ? t("개발자를 찾을 수 없습니다")
+            : t("공개 퀴즈를 불러오지 못했습니다")}
         </h1>
         <div className="flex justify-end">
           <Button onClick={() => void quizzes.refetch()}>
-            다시 불러오기
+            {t("다시 불러오기")}
           </Button>
         </div>
       </div>
@@ -205,7 +222,8 @@ function Catalog({
   ) : (
     <div className="min-w-0 flex-1">
       <h1 className="break-words text-lg sm:text-2xl">
-        {data.user.displayName}의 퀴즈
+        {data.user.displayName}
+        {t("의 퀴즈")}
       </h1>
       <Link
         className="mt-1 inline-flex min-h-8 max-w-full items-center break-all text-sm text-muted hover:text-primary hover:underline"
@@ -239,83 +257,241 @@ function Catalog({
           .then(() =>
             onNotice(
               profile && data.subscribed
-                ? `${data.user.displayName}님 구독을 취소했습니다.`
-                : `${data.user.displayName}님을 구독했습니다.`,
+                ? message("{0}님 구독을 취소했습니다.", {
+                    0: data.user.displayName,
+                  })
+                : message("{0}님을 구독했습니다.", {
+                    0: data.user.displayName,
+                  }),
             ),
           )
           .catch(() => undefined);
       }}
     >
       {profile && !signedIn
-        ? "데모 사용자 선택 후 구독하기"
+        ? t("데모 사용자 선택 후 구독하기")
         : profile && data.subscribed
-          ? "개발자 구독 해제"
-          : "개발자 구독하기"}
+          ? t("개발자 구독 해제")
+          : t("개발자 구독하기")}
     </Button>
   );
 
-  return (
-    <div className={profile ? "space-y-4" : "space-y-5"}>
-      {profile ? (
-        <ProfileAbout
+  const quizSection = (
+    <section
+      aria-label={t("개발자의 공개 퀴즈")}
+      className={
+        profile ? developerStyles.profileQuizzes : "min-w-0"
+      }
+    >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg">
+          {profile ? t("최신 공개 퀴즈") : t("공개 퀴즈")}{" "}
+          <span className="text-muted">
+            {profile ? data.items.length : data.total}
+            {t("개")}
+          </span>
+        </h2>
+        {profile && (
+          <Link
+            href={`/developers/${encodeURIComponent(publicId)}/quizzes?user=${encodeURIComponent(userId)}`}
+            className={viewAllAction}
+          >
+            {t("전체 보기")}
+          </Link>
+        )}
+        {!profile && hashtagIds.length > 0 && (
+          <div className="flex max-w-full flex-wrap items-center gap-2">
+            {hashtagIds.map((id) => (
+              <button
+                key={id}
+                type="button"
+                aria-label={t("{0} 필터 해제", { 0: id })}
+                className="min-h-11 break-all rounded-xl bg-primary/10 px-3 text-xs font-semibold text-primary"
+                onClick={() =>
+                  onChange({
+                    ...filters,
+                    hashtagIds: hashtagIds.filter(
+                      (selected) => selected !== id,
+                    ),
+                    page: 1,
+                  })
+                }
+              >
+                #{id} ×
+              </button>
+            ))}
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={busy}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  hashtagIds: [],
+                  page: 1,
+                })
+              }
+            >
+              {t("전체 퀴즈")}
+            </Button>
+          </div>
+        )}
+      </div>
+      {data.items.length ? (
+        <ul
+          className={
+            profile
+              ? "grid gap-4 sm:grid-cols-2"
+              : "space-y-4"
+          }
+        >
+          {data.items.map(
+            ({ quizId, title, hashtagIds }) => (
+              <li key={quizId}>
+                <QuizCard
+                  title={title}
+                  action={{
+                    href: `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`,
+                  }}
+                  footer={
+                    <div className="mt-3">
+                      <QuizReactionControl
+                        key={`${signedIn}:${userId}:${quizId}`}
+                        userId={signedIn ? userId : null}
+                        quizId={quizId}
+                      />
+                    </div>
+                  }
+                  metadata={hashtagIds
+                    .map((id) => `#${id}`)
+                    .join(" ")}
+                />
+              </li>
+            ),
+          )}
+        </ul>
+      ) : profile ? (
+        <p className="py-2 text-center text-sm text-muted">
+          {t("공개된 퀴즈가 없습니다")}
+        </p>
+      ) : (
+        <EmptyState
+          title={t("공개된 퀴즈가 없습니다")}
+          description={
+            !profile && hashtagIds.length > 0
+              ? t("다른 태그를 선택해 보세요.")
+              : t(
+                  "이 개발자가 공개한 퀴즈가 아직 없습니다.",
+                )
+          }
+        />
+      )}
+      {!profile && (
+        <PageControls
+          label={t("퀴즈")}
+          page={page}
+          total={data.total}
+          pageSize={20}
+          busy={busy}
+          onPage={(next) =>
+            onChange({ ...filters, page: next })
+          }
+        />
+      )}
+    </section>
+  );
+  if (profile)
+    return (
+      <div className="space-y-6">
+        <ProfileSections
           key={`${userId}:${publicId}:${signedIn}`}
           userId={userId}
           publicId={publicId}
           owner={signedIn && data.user.userId === userId}
-          identity={identity}
-          visitorAction={subscription}
           onNotice={onNotice}
-        />
-      ) : (
-        <header className={developerStyles.header}>
-          <span
-            aria-hidden="true"
-            className={developerStyles.avatar}
-          >
-            <Avatar name={data.user.displayName} />
-          </span>
-          {identity}
-          <DeveloperSubscriptionPanel
-            userId={userId}
-            publicId={publicId}
-            authorUserId={data.user.userId}
-            subscribed={data.subscribed}
-          />
-        </header>
-      )}
-      {afterHeader && (
-        <div className="space-y-2">
-          {profile &&
-            signedIn &&
-            data.user.userId === userId && (
-              <div className="flex justify-end">
-                <Link
-                  href={`/my/desk?user=${encodeURIComponent(userId)}`}
-                  className={profileStyles.action}
-                >
-                  <EditIcon />
-                  데스크 편집
-                </Link>
+          renderHeader={(orderAction) => (
+            <div className="space-y-3">
+              {" "}
+              <ProfileAbout
+                key={`${userId}:${publicId}:${signedIn}`}
+                userId={userId}
+                publicId={publicId}
+                owner={
+                  signedIn && data.user.userId === userId
+                }
+                identity={identity}
+                visitorAction={subscription}
+                ownerAction={orderAction}
+                onNotice={onNotice}
+              />
+              {subscribe.error && (
+                <p role="alert">
+                  {t(
+                    "구독을 저장하지 못했습니다. 다시 시도해 주세요.",
+                  )}
+                </p>
+              )}
+            </div>
+          )}
+          sections={{
+            DESK: (
+              <div className="space-y-2">
+                {signedIn &&
+                  data.user.userId === userId && (
+                    <div className="flex justify-end">
+                      <Link
+                        href={`/my/desk?user=${encodeURIComponent(userId)}`}
+                        className={profileStyles.action}
+                      >
+                        <EditIcon />
+                        {t("데스크 편집")}
+                      </Link>
+                    </div>
+                  )}
+                {afterHeader}
               </div>
-            )}
-          {afterHeader}
-        </div>
-      )}
+            ),
+            QUIZZES: quizSection,
+            ACTIVITY: activity,
+          }}
+        />
+      </div>
+    );
+
+  return (
+    <div className={profile ? "space-y-4" : "space-y-5"}>
+      <header className={developerStyles.header}>
+        <span
+          aria-hidden="true"
+          className={developerStyles.avatar}
+        >
+          <Avatar name={data.user.displayName} />
+        </span>
+        {identity}
+        <DeveloperSubscriptionPanel
+          userId={userId}
+          publicId={publicId}
+          authorUserId={data.user.userId}
+          subscribed={data.subscribed}
+        />
+      </header>
       {subscribe.error && (
         <p role="alert">
-          구독을 저장하지 못했습니다. 다시 시도해 주세요.
+          {t(
+            "구독을 저장하지 못했습니다. 다시 시도해 주세요.",
+          )}
         </p>
       )}
       <div className={profile ? "space-y-8" : "space-y-5"}>
         {!profile && (
           <section
             ref={tagRegion}
-            aria-label="개발자의 태그"
+            aria-label={t("개발자의 태그")}
             className={developerStyles.filters}
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-sm font-semibold">
-                태그
+                {t("태그")}
               </h2>
               <TagSearch
                 key={tagQuery}
@@ -333,12 +509,12 @@ function Catalog({
             {tags.isPending && <Skeleton />}
             {tags.error && (
               <div role="alert">
-                <p>태그를 불러오지 못했습니다.</p>
+                <p>{t("태그를 불러오지 못했습니다.")}</p>
                 <div className="flex justify-end">
                   <Button
                     onClick={() => void tags.refetch()}
                   >
-                    태그 다시 불러오기
+                    {t("태그 다시 불러오기")}
                   </Button>
                 </div>
               </div>
@@ -365,11 +541,11 @@ function Catalog({
                 />
                 {!tags.data.items.length && (
                   <p className="mt-4 text-sm text-muted">
-                    표시할 태그가 없습니다.
+                    {t("표시할 태그가 없습니다.")}
                   </p>
                 )}
                 <PageControls
-                  label="태그"
+                  label={t("태그")}
                   page={tagPage}
                   total={tags.data.total}
                   pageSize={10}
@@ -382,121 +558,7 @@ function Catalog({
             )}
           </section>
         )}
-        <section
-          aria-label="개발자의 공개 퀴즈"
-          className="min-w-0"
-        >
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg">
-              {profile ? "최신 공개 퀴즈" : "공개 퀴즈"}{" "}
-              <span className="text-muted">
-                {profile ? data.items.length : data.total}개
-              </span>
-            </h2>
-            {profile && (
-              <Link
-                href={`/developers/${encodeURIComponent(publicId)}/quizzes?user=${encodeURIComponent(userId)}`}
-                className="rounded text-sm font-semibold text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
-              >
-                전체 보기 →
-              </Link>
-            )}
-            {!profile && hashtagIds.length > 0 && (
-              <div className="flex max-w-full flex-wrap items-center gap-2">
-                {hashtagIds.map((id) => (
-                  <button
-                    key={id}
-                    type="button"
-                    aria-label={`${id} 필터 해제`}
-                    className="min-h-11 break-all rounded-xl bg-primary/10 px-3 text-xs font-semibold text-primary"
-                    onClick={() =>
-                      onChange({
-                        ...filters,
-                        hashtagIds: hashtagIds.filter(
-                          (selected) => selected !== id,
-                        ),
-                        page: 1,
-                      })
-                    }
-                  >
-                    #{id} ×
-                  </button>
-                ))}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={busy}
-                  onClick={() =>
-                    onChange({
-                      ...filters,
-                      hashtagIds: [],
-                      page: 1,
-                    })
-                  }
-                >
-                  전체 퀴즈
-                </Button>
-              </div>
-            )}
-          </div>
-          {data.items.length ? (
-            <ul
-              className={
-                profile
-                  ? "grid gap-4 sm:grid-cols-2"
-                  : "space-y-4"
-              }
-            >
-              {data.items.map(
-                ({ quizId, title, hashtagIds }) => (
-                  <li key={quizId}>
-                    <QuizCard
-                      title={title}
-                      action={{
-                        href: `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`,
-                      }}
-                      footer={
-                        <div className="mt-3">
-                          <QuizReactionControl
-                            key={`${signedIn}:${userId}:${quizId}`}
-                            userId={
-                              signedIn ? userId : null
-                            }
-                            quizId={quizId}
-                          />
-                        </div>
-                      }
-                      metadata={hashtagIds
-                        .map((id) => `#${id}`)
-                        .join(" ")}
-                    />
-                  </li>
-                ),
-              )}
-            </ul>
-          ) : (
-            <EmptyState
-              title="공개된 퀴즈가 없습니다"
-              description={
-                !profile && hashtagIds.length > 0
-                  ? "다른 태그를 선택해 보세요."
-                  : "이 개발자가 공개한 퀴즈가 아직 없습니다."
-              }
-            />
-          )}
-          {!profile && (
-            <PageControls
-              label="퀴즈"
-              page={page}
-              total={data.total}
-              pageSize={20}
-              busy={busy}
-              onPage={(next) =>
-                onChange({ ...filters, page: next })
-              }
-            />
-          )}
-        </section>
+        {quizSection}
       </div>
     </div>
   );
@@ -505,16 +567,22 @@ function Catalog({
 export function DeveloperScreen({
   profile = false,
   afterHeader,
+  activity,
 }: {
   profile?: boolean;
   afterHeader?: ReactNode;
+  activity?: ReactNode;
 }) {
+  const t = useTranslation();
+
   const { publicId } = useParams<{ publicId: string }>();
   const params = useSearchParams();
   const { signedIn } = useDemoSession();
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<UiMessage | null>(
+    null,
+  );
   const toastTimer = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -526,7 +594,10 @@ export function DeveloperScreen({
     [],
   );
 
-  function showNotice(message: string, duration?: number) {
+  function showNotice(
+    message: UiMessage,
+    duration?: number,
+  ) {
     if (toastTimer.current)
       clearTimeout(toastTimer.current);
     setToast(message);
@@ -566,13 +637,14 @@ export function DeveloperScreen({
             )}
           >
             <span aria-hidden="true">←</span>
-            탐색으로 돌아가기
+            {t("탐색으로 돌아가기")}
           </Link>
         )}
         <Catalog
           key={`${userId}:${publicId}`}
           profile={profile}
           afterHeader={afterHeader}
+          activity={activity}
           userId={userId}
           publicId={publicId}
           filters={filters}

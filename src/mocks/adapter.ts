@@ -236,6 +236,7 @@ export function createMockTransport(
 
         if (
           operation !== "publicLearningDay" &&
+          operation !== "profileOrder" &&
           !state.timeZone
         ) {
           let detected: string | undefined;
@@ -272,6 +273,7 @@ export function createMockTransport(
         // Commit the marker with the requested operation so a failed write never partially migrates.
         if (
           operation !== "publicLearningDay" &&
+          operation !== "profileOrder" &&
           state.learningDemoVersion === undefined
         ) {
           for (const target of subscriptions[userId] ??
@@ -284,6 +286,7 @@ export function createMockTransport(
 
         if (
           operation !== "publicLearningDay" &&
+          operation !== "profileOrder" &&
           state.coinHistoryDemoVersion === undefined
         ) {
           state.ledger = state.ledger.flatMap((entry) =>

@@ -53,3 +53,7 @@ npx prettier --write src/api src/mocks src/services tests/unit/api tests/e2e/moc
 `padding-line-between-statements`는 패키지 변경 없이 설치된 ESLint 9 내장 규칙을 사용한다. 이 규칙은 deprecated 상태이므로 향후 ESLint 11 전환 시 `@stylistic/eslint-plugin` 이전을 검토한다. 검증 절차와 문서 전용 변경 예외는 [검증 지침](../.agents/skills/implement-feature/references/verification.md)을 따른다.
 
 - 실행 버튼 그룹은 기본적으로 컨테이너 오른쪽에 정렬하고 모바일에서는 줄바꿈을 허용한다. 제목·본문과 탭·선택지 같은 입력 탐색 요소의 정렬은 유지한다.
+
+## 전체 보기 액션
+
+목록 전체 조회·전체 목록 모달·검색 초기화의 ‘전체 … 보기’는 `src/components/ui/styles.ts`의 `viewAllAction`을 공유한다. 기본 `text-muted`, hover `text-foreground`, 최소44px높이, 중립색 포커스 표시를 사용한다. 프로필 편집 등 편집 액션의 `text-primary`와 구분하며 링크는 링크, 모달/검색동작은 버튼 의미를 유지한다. 장식 화살표 없이 짧은 문구로 표시한다.

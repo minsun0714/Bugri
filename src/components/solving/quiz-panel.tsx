@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { useEffect, useRef, type ReactNode } from "react";
 import type {
   Answer,
@@ -15,6 +17,7 @@ import { solvingStyles } from "@/components/solving/styles";
 function answerText(
   answer: Answer,
   question: Question,
+  t: (message: string) => string,
 ): string {
   const choices =
     "choices" in question ? question.choices : [];
@@ -26,7 +29,7 @@ function answerText(
     case "MULTIPLE_CHOICE":
       return answer.choiceIds.map(label).join(", ");
     case "TRUE_FALSE":
-      return answer.value ? "참" : "거짓";
+      return t(answer.value ? "참" : "거짓");
     case "SHORT_ANSWER":
       return answer.text;
   }
@@ -57,6 +60,8 @@ export function QuizPanel({
   children?: ReactNode;
   reaction?: ReactNode;
 }) {
+  const t = useTranslation();
+
   const start = useRef<HTMLDivElement>(null);
   const handledFocus = useRef<string | null>(null);
   const hasResult = !!result;
@@ -92,9 +97,9 @@ export function QuizPanel({
         aria-label={
           result
             ? result.correct
-              ? "정답입니다"
-              : "오답입니다"
-            : (quiz?.title ?? "풀이 완료")
+              ? t("정답입니다")
+              : t("오답입니다")
+            : (quiz?.title ?? t("풀이 완료"))
         }
         className="scroll-mt-6 outline-none"
       >
@@ -117,14 +122,14 @@ export function QuizPanel({
                 </span>
                 <span>
                   {verdict === true
-                    ? "정답입니다"
+                    ? t("정답입니다")
                     : verdict === false
-                      ? "오답입니다"
-                      : "풀이 완료"}
+                      ? t("오답입니다")
+                      : t("풀이 완료")}
                 </span>
               </h2>
               <p className="mt-1 text-xs text-muted">
-                풀이 완료
+                {t("풀이 완료")}
                 {learningDate ? ` · ${learningDate}` : ""}
               </p>
             </div>
@@ -144,25 +149,30 @@ export function QuizPanel({
       {quiz ? (
         result ? (
           <section
-            aria-label="제출 결과"
+            aria-label={t("제출 결과")}
             className="space-y-6 border-t border-line pt-6"
           >
             <div className="grid gap-4 rounded-2xl border border-line bg-canvas/50 p-4 sm:grid-cols-2">
               <p>
-                내 답:{" "}
+                {t("내 답:")}{" "}
                 {answerText(
                   result.submittedAnswer,
                   quiz.question,
+                  t,
                 )}
               </p>
               <p className="font-semibold">
-                정답:{" "}
-                {answerText(result.answer, quiz.question)}
+                {t("정답:")}{" "}
+                {answerText(
+                  result.answer,
+                  quiz.question,
+                  t,
+                )}
               </p>
             </div>
             <div className="space-y-3 leading-7">
               <h3 className="text-xs font-medium text-muted">
-                해설
+                {t("해설")}
               </h3>
               <QuizText>{result.explanation}</QuizText>
             </div>
@@ -181,8 +191,9 @@ export function QuizPanel({
         )
       ) : (
         <p>
-          이 퀴즈는 더 이상 이용할 수 없습니다. 완료 기록과
-          이미 획득한 성과는 유지됩니다.
+          {t(
+            "이 퀴즈는 더 이상 이용할 수 없습니다. 완료 기록과 이미 획득한 성과는 유지됩니다.",
+          )}
         </p>
       )}
       {quiz && result ? (

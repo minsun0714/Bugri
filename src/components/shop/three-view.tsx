@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import {
   deskItems,
@@ -50,6 +51,8 @@ type Props = Omit<
 };
 
 export function ThreeView(props: Props) {
+  const t = useTranslation();
+
   const descriptionId = useId();
   const host = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
@@ -100,7 +103,7 @@ export function ThreeView(props: Props) {
       props.previewSelected,
     );
   }
-  const label = props.label ?? "내 데스크";
+  const label = props.label ?? t("내 데스크");
   const names =
     [
       ...Object.values(props.equipment).map(
@@ -108,7 +111,7 @@ export function ThreeView(props: Props) {
       ),
       ...(props.preview?.category === Category.DESK &&
       !props.equipment.DESK
-        ? ["기본 데스크"]
+        ? [t("기본 데스크")]
         : []),
       ...(props.preview
         ? [
@@ -116,7 +119,7 @@ export function ThreeView(props: Props) {
               props.preview.productId,
           ]
         : []),
-    ].join(", ") || "기본 데스크";
+    ].join(", ") || t("기본 데스크");
 
   useEffect(() => {
     latest.current = props;
@@ -158,6 +161,13 @@ export function ThreeView(props: Props) {
     };
   }, [retry]);
 
+  // The canvas is owned by the scene engine, so synchronize its accessible name separately.
+  useEffect(() => {
+    host.current
+      ?.querySelector("canvas")
+      ?.setAttribute("aria-label", t("3D 데스크 캔버스"));
+  }, [ready, t]);
+
   return (
     <div role="group" aria-label={`${label} · ${names}`}>
       <div
@@ -170,9 +180,9 @@ export function ThreeView(props: Props) {
         {props.showViewPresets !== false && (
           <div className="flex gap-1">
             {[
-              [DeskView.ANGLED, "45도 시점"],
-              [DeskView.FRONT, "정면"],
-              [DeskView.TOP, "위에서"],
+              [DeskView.ANGLED, t("45도 시점")],
+              [DeskView.FRONT, t("정면")],
+              [DeskView.TOP, t("위에서")],
             ].map(([view, text]) => (
               <Button
                 key={view}
@@ -189,13 +199,13 @@ export function ThreeView(props: Props) {
           </div>
         )}
         <output
-          aria-label="카메라 방위각"
+          aria-label={t("카메라 방위각")}
           className="sr-only"
         >
           {camera.yaw}°
         </output>
         <output
-          aria-label="카메라 높낮이 각도"
+          aria-label={t("카메라 높낮이 각도")}
           className="sr-only"
         >
           {camera.pitch}°
@@ -220,7 +230,7 @@ export function ThreeView(props: Props) {
           }
           role="img"
           data-disabled={props.disabled}
-          aria-label="3D 데스크 캔버스"
+          aria-label={t("3D 데스크 캔버스")}
           aria-describedby={descriptionId}
           data-renderer={
             ready && !failed ? "canvas" : "unavailable"
@@ -260,11 +270,16 @@ export function ThreeView(props: Props) {
           )}
       </div>
       <p id={descriptionId} className="sr-only">
-        버그리가 공간에서 함께하고 있어요.
+        {t("버그리가 공간에서 함께하고 있어요.")}
         {props.onKeyDown &&
-          " Home 키로 첫 상품을 선택하고 PageDown/PageUp 키로 상품을 바꿉니다. 방향키로 이동하고 Alt와 방향키로 회전합니다. Shift와 위아래 방향키로 높이를 조절하고 Enter로 저장, Escape로 취소합니다."}
+          t(
+            " Home 키로 첫 상품을 선택하고 PageDown/PageUp 키로 상품을 바꿉니다. 방향키로 이동하고 Alt와 방향키로 회전합니다. Shift와 위아래 방향키로 높이를 조절하고 Enter로 저장, Escape로 취소합니다.",
+          )}
       </p>
-      <output aria-label="겹침 순서" className="sr-only">
+      <output
+        aria-label={t("겹침 순서")}
+        className="sr-only"
+      >
         {normalizeOrder(props.layerOrder ?? [], [
           ...deskItems(props.equipment),
           ...(props.preview ? [SceneObject.PREVIEW] : []),
@@ -273,14 +288,17 @@ export function ThreeView(props: Props) {
             target === SceneObject.PREVIEW
               ? artworkNames[props.preview!.productId]
               : target === DeskObject.BUGRI
-                ? "버그리"
+                ? t("버그리")
                 : (artworkNames[
                     props.equipment[target] ?? ""
-                  ] ?? "기본 데스크"),
+                  ] ?? t("기본 데스크")),
           )
           .join(" · ")}
       </output>
-      <ul aria-label="3D 배치 정보" className="sr-only">
+      <ul
+        aria-label={t("3D 배치 정보")}
+        className="sr-only"
+      >
         {Object.entries(props.equipment).map(
           ([category, id]) => {
             if (!isMovable(category)) return null;
@@ -290,21 +308,21 @@ export function ThreeView(props: Props) {
             return (
               <li key={category}>
                 {artworkNames[id]}: X{" "}
-                {transform.x.toFixed(2)}, 높이{" "}
-                {transform.y.toFixed(2)}, Z{" "}
-                {transform.z.toFixed(2)}, 회전{" "}
-                {transform.rotationY}°
+                {transform.x.toFixed(2)}
+                {t(", 높이")} {transform.y.toFixed(2)}, Z{" "}
+                {transform.z.toFixed(2)}
+                {t(", 회전")} {transform.rotationY}°
               </li>
             );
           },
         )}
         <li>
-          버그리: X{" "}
+          {t("버그리: X")}{" "}
           {(
             props.transforms.BUGRI ??
             defaultTransforms.BUGRI
           ).x.toFixed(2)}
-          , 높이{" "}
+          {t(", 높이")}{" "}
           {(
             props.transforms.BUGRI ??
             defaultTransforms.BUGRI
@@ -314,7 +332,7 @@ export function ThreeView(props: Props) {
             props.transforms.BUGRI ??
             defaultTransforms.BUGRI
           ).z.toFixed(2)}
-          , 회전{" "}
+          {t(", 회전")}{" "}
           {
             (
               props.transforms.BUGRI ??
@@ -326,7 +344,7 @@ export function ThreeView(props: Props) {
       </ul>
       {!ready && !failed && (
         <p role="status" className="p-3 text-xs text-muted">
-          3D 공간을 준비하고 있어요…
+          {t("3D 공간을 준비하고 있어요…")}
         </p>
       )}
       {failed && (
@@ -335,8 +353,9 @@ export function ThreeView(props: Props) {
           className="p-3 text-sm text-muted"
         >
           <p>
-            데스크를 불러오지 못했어요. 다시 열어 주세요.
-            구매·배치 기록은 그대로 유지됩니다.
+            {t(
+              "데스크를 불러오지 못했어요. 다시 열어 주세요. 구매·배치 기록은 그대로 유지됩니다.",
+            )}
           </p>
           <Button
             size="sm"
@@ -347,7 +366,7 @@ export function ThreeView(props: Props) {
               setRetry((value) => value + 1);
             }}
           >
-            3D 다시 열기
+            {t("3D 다시 열기")}
           </Button>
         </div>
       )}

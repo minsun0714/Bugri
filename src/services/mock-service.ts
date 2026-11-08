@@ -1,5 +1,10 @@
 import { quizReactionSummary } from "@/services/quiz-reactions";
 import { QuizReaction } from "@/api/constants";
+
+import {
+  defaultProfileOrder,
+  validProfileOrder,
+} from "@/lib/profile-order";
 import { publicLearningTimeZones } from "@/mocks/learning-history";
 import { moveDeskIndependently } from "@/lib/desk-independent";
 import { tagQuizzes } from "@/services/tag-quizzes";
@@ -174,6 +179,8 @@ const allowed: Record<Operation, string[]> = {
     "productId",
     "transform",
   ],
+  profileOrder: ["publicId"],
+  updateProfileOrder: ["order"],
   profileAbout: ["publicId"],
   updateProfileAbout: ["biography", "links"],
   publicProfile: ["publicId"],
@@ -1710,6 +1717,44 @@ export function execute<K extends Operation>(
       s.transforms[category] = r.transform;
 
       return s.transforms;
+    }
+
+    case "updateProfileOrder": {
+      requireValue(
+        validProfileOrder(r.order),
+        "세 섹션의 순서를 확인하세요.",
+      );
+
+      s.profileOrder = {
+        order: [
+          ...(r.order as import("@/api/constants").ProfileSection[]),
+        ],
+      };
+
+      return s.profileOrder;
+    }
+
+    case "profileOrder": {
+      text(r.publicId);
+
+      const user = users.find(
+        (u) => u.publicId === r.publicId,
+      );
+
+      if (!user)
+        throw new ServiceError(
+          "NOT_FOUND",
+          "사용자를 찾을 수 없습니다.",
+          404,
+        );
+
+      return (
+        allStates.find(
+          (state) => state.userId === user.userId,
+        )!.profileOrder ?? {
+          order: [...defaultProfileOrder],
+        }
+      );
     }
 
     case "updateProfileAbout": {

@@ -65,7 +65,7 @@ Bugri is a developer learning platform with AI-generated quizzes.
 
 ## Completion and review
 
-- Select verification by change risk and completion stage using the verification guide. Small changes may finish locally with scoped checks; code PR finalization and code integration require full verification. Reuse successful results for unchanged code/tests/dependencies/runtime configuration. Documentation-only work does not run the application pipeline.
+- Select verification by change risk and completion stage using the verification guide. Small changes may finish locally with scoped checks; code PR finalization and code integration require the final checks defined in the guide. Exclude unrelated shop/3D E2E according to its impact-based rules, and run required shop/3D E2E with one worker. Reuse successful results for unchanged code/tests/dependencies/runtime configuration. Documentation-only work does not run the application pipeline.
 
 - Never claim an unexecuted check passed or skip/weaken tests to obtain a pass. Apply the [verification and failure-handling procedure](.agents/skills/implement-feature/references/verification.md) before reporting completion.
 - Require review by someone other than the implementer. The user makes the final merge decision.

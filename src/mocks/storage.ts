@@ -1,4 +1,5 @@
 import { QuizReaction } from "@/api/constants";
+import { validProfileOrder } from "@/lib/profile-order";
 import { validateProfileAbout } from "@/lib/profile-about";
 import { deskItems, validOrder } from "@/lib/desk-order";
 import {
@@ -112,6 +113,15 @@ function validateState(
 
       seen.add(entry.quizId);
     }
+  }
+
+  if (value.profileOrder !== undefined) {
+    object(value.profileOrder);
+
+    requireValue(
+      validProfileOrder(value.profileOrder.order),
+      "저장된 섹션 순서가 올바르지 않습니다.",
+    );
   }
 
   if (value.profileAbout !== undefined)

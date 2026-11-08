@@ -1,4 +1,7 @@
 "use client";
+import { type UiMessage } from "@/lib/i18n/messages";
+
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { styles } from "@/components/ui/styles";
 
@@ -96,6 +99,7 @@ export function TextField({
   error?: string;
   hint?: string;
 }) {
+  const t = useTranslation();
   const generated = useId();
   const fieldId = id ?? generated;
 
@@ -120,7 +124,7 @@ export function TextField({
           id={`${fieldId}-help`}
           className={error ? "error-text" : ""}
         >
-          {error || hint}
+          {error ? t(error) : hint}
         </small>
       )}
     </div>
@@ -152,6 +156,8 @@ export function TextArea({
   className?: string;
   onKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
 }) {
+  const t = useTranslation();
+
   const generated = useId();
   const id = suppliedId ?? generated;
   const { length: count } = Array.from(value);
@@ -174,7 +180,7 @@ export function TextArea({
         aria-describedby={
           showCount ? `${id}-count` : undefined
         }
-        placeholder={placeholder}
+        placeholder={t(placeholder)}
         rows={rows}
         disabled={disabled}
         className={className}
@@ -361,11 +367,13 @@ export function EmptyState({
 }
 
 export function Skeleton() {
+  const t = useTranslation();
+
   return (
     <div
       className={styles["ui-skeleton"]}
       role="status"
-      aria-label="불러오는 중"
+      aria-label={t("불러오는 중")}
     >
       <span />
       <span />
@@ -413,6 +421,8 @@ export function Tabs({
   className?: string;
   panelClassName?: string;
 }) {
+  const t = useTranslation();
+
   const id = useId();
   const index = items.indexOf(value);
   const pendingTabFocus = useRef<string | null>(null);
@@ -429,13 +439,13 @@ export function Tabs({
       <div
         className={styles["ui-tabs"]}
         role="tablist"
-        aria-label={label}
+        aria-label={t(label)}
       >
         {items.map((item, i) => (
           <button
             type="button"
             disabled={disabled}
-            key={item}
+            key={t(item)}
             role="tab"
             id={`${id}-${i}`}
             aria-controls={`${id}-panel`}
@@ -466,7 +476,7 @@ export function Tabs({
                 ?.focus();
             }}
           >
-            {item}
+            {t(item)}
           </button>
         ))}
       </div>
@@ -500,6 +510,8 @@ export function Modal({
   size?: "standard" | "room";
   initialFocusSelector?: string;
 }) {
+  const t = useTranslation();
+
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
 
@@ -535,7 +547,7 @@ export function Modal({
         <h2 id={id}>{title}</h2>
         <Button
           variant="ghost"
-          aria-label="닫기"
+          aria-label={t("닫기")}
           onClick={onClose}
         >
           ×
@@ -551,10 +563,12 @@ export function Toast({
   message,
   onClose,
 }: {
-  message: string;
+  message: UiMessage;
   placement?: "floating" | "inline";
   onClose: () => void;
 }) {
+  const t = useTranslation();
+
   return (
     <div
       role="status"
@@ -565,10 +579,10 @@ export function Toast({
       }
     >
       <span aria-hidden="true">✓</span>
-      {message}
+      {t(message)}
       <button
         type="button"
-        aria-label="알림 닫기"
+        aria-label={t("알림 닫기")}
         onClick={onClose}
       >
         ×
@@ -629,16 +643,18 @@ export function Pagination({
   total: number;
   onChange: (page: number) => void;
 }) {
+  const t = useTranslation();
+
   return (
     <nav
       className={styles["pagination"]}
-      aria-label="페이지 이동"
+      aria-label={t("페이지 이동")}
     >
       <Button
         variant="ghost"
         disabled={page === 1}
         onClick={() => onChange(page - 1)}
-        aria-label="이전 페이지"
+        aria-label={t("이전 페이지")}
       >
         ←
       </Button>
@@ -647,14 +663,14 @@ export function Pagination({
           role="status"
           className="px-2 text-sm tabular-nums"
         >
-          {page} / {total} 페이지
+          {t("{0} / {1} 페이지", { 0: page, 1: total })}
         </span>
       ) : (
         Array.from({ length: total }, (_, i) => (
           <button
             type="button"
             key={i}
-            aria-label={`${i + 1}페이지`}
+            aria-label={t("{0}페이지", { 0: i + 1 })}
             aria-current={
               page === i + 1 ? "page" : undefined
             }
@@ -668,7 +684,7 @@ export function Pagination({
         variant="ghost"
         disabled={page === total}
         onClick={() => onChange(page + 1)}
-        aria-label="다음 페이지"
+        aria-label={t("다음 페이지")}
       >
         →
       </Button>
