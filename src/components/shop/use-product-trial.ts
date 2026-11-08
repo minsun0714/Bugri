@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { sceneKeyDown } from "@/components/shop/scene-keyboard";
 import {
   deskItems,
@@ -56,6 +59,8 @@ export function useProductTrial({
     request: Request<"transformEquipment">,
   ) => Promise<unknown>;
 }) {
+  const t = useTranslation();
+
   const { category, productId } = product;
   const movable = isMovable(category) ? category : null;
   const [space] = useState(() => ({
@@ -201,10 +206,10 @@ export function useProductTrial({
     ? previewSelected
       ? product.name
       : editor.selected === DeskObject.BUGRI
-        ? "버그리"
+        ? t("버그리")
         : (artworkNames[
             space.equipment[editor.selected] ?? ""
-          ] ?? "기본 데스크")
+          ] ?? t("기본 데스크"))
     : "";
   const current = movable
     ? (previewEditor.effective[movable] ??

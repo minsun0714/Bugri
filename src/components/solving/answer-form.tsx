@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useState } from "react";
 import { solvingStyles } from "@/components/solving/styles";
@@ -21,6 +22,8 @@ export function AnswerForm({
   onDirtyChange?: (dirty: boolean) => void;
   pending: boolean;
 }) {
+  const t = useTranslation();
+
   const [answer, setAnswer] = useState<Answer | null>(null);
   const dirty = answer
     ? answer.type === "MULTIPLE_CHOICE"
@@ -52,10 +55,10 @@ export function AnswerForm({
       <fieldset disabled={pending} className="space-y-3">
         <legend className="mb-3 text-xs font-medium text-muted">
           {question.type === "MULTIPLE_CHOICE"
-            ? "정답을 모두 선택하세요"
+            ? t("정답을 모두 선택하세요")
             : question.type === "SHORT_ANSWER"
-              ? "답안 입력"
-              : "답안 선택"}
+              ? t("답안 입력")
+              : t("답안 선택")}
         </legend>
         {question.type === "SINGLE_CHOICE" &&
           question.choices.map(({ id, text }) => (
@@ -109,7 +112,7 @@ export function AnswerForm({
               key={String(value)}
               name="answer"
               value={String(value)}
-              label={value ? "참" : "거짓"}
+              label={value ? t("참") : t("거짓")}
               checked={
                 answer?.type === "TRUE_FALSE" &&
                 answer.value === value
@@ -121,7 +124,7 @@ export function AnswerForm({
           ))}
         {question.type === "SHORT_ANSWER" && (
           <TextField
-            label="답안"
+            label={t("답안")}
             value={
               answer?.type === "SHORT_ANSWER"
                 ? answer.text
@@ -133,7 +136,9 @@ export function AnswerForm({
                 text: event.target.value,
               })
             }
-            hint="앞뒤 공백을 제외하고 대소문자를 구분합니다."
+            hint={t(
+              "앞뒤 공백을 제외하고 대소문자를 구분합니다.",
+            )}
           />
         )}
       </fieldset>
@@ -144,7 +149,7 @@ export function AnswerForm({
           disabled={!valid}
           loading={pending}
         >
-          답 제출
+          {t("답 제출")}
         </Button>
       </div>
     </form>

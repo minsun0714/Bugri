@@ -302,3 +302,45 @@ test("guest settings restore system following and keyboard toggles both ways", a
     }),
   ).toBeVisible();
 });
+
+for (const width of [1280, 320]) {
+  test(`English appearance settings preserve system behavior at ${width}px`, async ({
+    browser,
+    baseURL,
+  }) => {
+    const context = await browser.newContext({
+      baseURL,
+      locale: "en-US",
+      colorScheme: "light",
+      viewport: { width, height: 900 },
+    });
+    const page = await context.newPage();
+    await page.goto("/discover/developers?user=learner");
+    await page
+      .getByRole("button", { name: "Switch to dark mode" })
+      .click();
+    if (width < 1024)
+      await page
+        .getByRole("button", { name: "Open menu" })
+        .click();
+    await page
+      .getByRole("link", { name: /Appearance settings$/ })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "Appearance settings",
+      }),
+    ).toBeVisible();
+    await page
+      .getByRole("radio", {
+        name: "Follow system settings",
+      })
+      .check();
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-theme",
+      "light",
+    );
+    await expect(page).toHaveURL(/settings\?user=learner/);
+    await context.close();
+  });
+}

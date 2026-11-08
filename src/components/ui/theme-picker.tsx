@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "@/lib/i18n/use-translation";
 import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/index";
 import { ThemePreference } from "@/lib/theme/preference";
@@ -11,6 +12,8 @@ import {
 } from "@/lib/theme/store";
 
 export function ThemePicker() {
+  const t = useTranslation();
+
   const theme = useSyncExternalStore(
     subscribeTheme,
     getResolvedTheme,
@@ -21,9 +24,9 @@ export function ThemePicker() {
   return (
     <Button
       variant="ghost"
-      aria-label={
-        dark ? "라이트 모드로 전환" : "다크 모드로 전환"
-      }
+      aria-label={t(
+        dark ? "라이트 모드로 전환" : "다크 모드로 전환",
+      )}
       onClick={() =>
         setThemePreference(
           dark

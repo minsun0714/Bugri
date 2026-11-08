@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { Dropdown } from "@/components/ui/dropdown";
 import { DeskEditor } from "@/components/shop/desk-editor";
@@ -64,6 +65,8 @@ function ShopContent({
   userId: string;
   editing: boolean;
 }) {
+  const t = useTranslation();
+
   const {
     products,
     wallet,
@@ -182,14 +185,14 @@ function ShopContent({
     <>
       <div className="mb-7 flex min-w-0 items-center justify-between gap-4">
         <h1 className="min-w-0 text-2xl">
-          {editing ? "내 데스크" : "상점"}
+          {editing ? t("내 데스크") : t("상점")}
         </h1>
-        <div aria-label="내 잔액" className="shrink-0">
+        <div aria-label={t("내 잔액")} className="shrink-0">
           {wallet.data ? (
             <Coin amount={wallet.data.balance} />
           ) : (
             <span className="text-xs text-muted">
-              잔액 불러오는 중
+              {t("잔액 불러오는 중")}
             </span>
           )}
         </div>
@@ -199,7 +202,7 @@ function ShopContent({
           href={`/users/${encodeURIComponent(currentUser.publicId)}?${new URLSearchParams({ user: userId })}`}
           className="mb-5 mr-5 inline-block rounded text-sm text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
         >
-          내 공개 프로필 보기
+          {t("내 공개 프로필 보기")}
         </Link>
       )}
       {editing && users.error && (
@@ -207,7 +210,7 @@ function ShopContent({
           variant="ghost"
           onClick={() => void users.refetch()}
         >
-          공개 프로필 링크 다시 불러오기
+          {t("공개 프로필 링크 다시 불러오기")}
         </Button>
       )}
       {editing && (
@@ -215,23 +218,23 @@ function ShopContent({
           href={`/shop?user=${userId}`}
           className="mb-5 inline-block text-sm text-primary underline"
         >
-          상점에서 상품 구경하기
+          {t("상점에서 상품 구경하기")}
         </Link>
       )}
       {editing && (
         <section
           id="desk"
-          aria-label="내 데스크 편집"
+          aria-label={t("내 데스크 편집")}
           className="mb-10 rounded-[2rem] border border-line bg-surface p-3"
         >
           <div className="flex items-center justify-between px-4 pt-3">
-            <h2 className="text-sm">내 데스크</h2>
+            <h2 className="text-sm">{t("내 데스크")}</h2>
             <Badge>
               {
                 Object.keys(inventory.data?.equipment ?? {})
                   .length
               }
-              개 장착
+              {t("개 장착")}
             </Badge>
           </div>
           <DeskEditor
@@ -249,33 +252,40 @@ function ShopContent({
           />
         </section>
       )}
-      <section id="collection" aria-label="상품 컬렉션">
+      <section
+        id="collection"
+        aria-label={t("상품 컬렉션")}
+      >
         <div className="flex flex-col gap-4 border-b border-line pb-4 lg:flex-row lg:items-end lg:justify-between">
           <h2
             ref={collectionHeading}
             tabIndex={-1}
             className="text-lg"
           >
-            {editing ? "보유 상품" : "상품 목록"}
+            {editing ? t("보유 상품") : t("상품 목록")}
           </h2>
           {editing ? (
             <span className="text-xs text-muted">
-              {visible.length}개의 오브젝트
+              {visible.length}
+              {t("개의 오브젝트")}
             </span>
           ) : (
             <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_180px] lg:w-[460px]">
               <TextField
                 type="search"
-                label="상품 검색"
-                placeholder="상품명 또는 설명 검색"
+                label={t("상품 검색")}
+                placeholder={t("상품명 또는 설명 검색")}
                 value={search}
                 onChange={(event) =>
                   setSearch(event.target.value)
                 }
               />
               <Dropdown
-                label="상품 정렬"
-                options={[...sortOptions]}
+                label={t("상품 정렬")}
+                options={sortOptions.map((option) => ({
+                  ...option,
+                  label: t(option.label),
+                }))}
                 value={sort}
                 onValueChange={(value) =>
                   setSort(value as ProductSort)
@@ -286,13 +296,13 @@ function ShopContent({
         </div>
         <div
           className="my-5 flex flex-wrap gap-2"
-          aria-label="상품 카테고리"
+          aria-label={t("상품 카테고리")}
         >
           <Tag
             selected={!category}
             onClick={() => setCategory(null)}
           >
-            전체
+            {t("전체")}
           </Tag>
           {Object.entries(categories).map(
             ([value, label]) => (
@@ -303,7 +313,7 @@ function ShopContent({
                   setCategory(value as Category)
                 }
               >
-                {label}
+                {t(label)}
               </Tag>
             ),
           )}
@@ -312,21 +322,21 @@ function ShopContent({
           role="status"
           className="mb-3 text-sm text-primary"
         >
-          {message}
+          {t(message)}
         </div>
         {actionError ? (
           <p
             role="alert"
             className="mb-4 rounded-xl border border-coral bg-coral/10 p-4 text-sm"
           >
-            {errorMessage(actionError)}
+            {t(errorMessage(actionError))}
           </p>
         ) : null}
         {loading ? (
           <Skeleton />
         ) : error ? (
           <div role="alert">
-            <p>{errorMessage(error)}</p>
+            <p>{t(errorMessage(error))}</p>
             <Button
               onClick={() => {
                 void products.refetch();
@@ -334,24 +344,28 @@ function ShopContent({
                 void inventory.refetch();
               }}
             >
-              다시 시도
+              {t("다시 시도")}
             </Button>
           </div>
         ) : visible.length === 0 ? (
           <EmptyState
             title={
               editing
-                ? "아직 보관한 상품이 없어요"
+                ? t("아직 보관한 상품이 없어요")
                 : query || category
-                  ? "검색 결과가 없어요"
-                  : "아직 상품이 없어요"
+                  ? t("검색 결과가 없어요")
+                  : t("아직 상품이 없어요")
             }
             description={
               editing
-                ? "상점에서 마음에 드는 상품을 골라보세요."
+                ? t(
+                    "상점에서 마음에 드는 상품을 골라보세요.",
+                  )
                 : query || category
-                  ? "다른 검색어나 카테고리를 선택해 보세요."
-                  : "상품이 등록되면 이곳에 표시됩니다."
+                  ? t(
+                      "다른 검색어나 카테고리를 선택해 보세요.",
+                    )
+                  : t("상품이 등록되면 이곳에 표시됩니다.")
             }
             action={
               editing ? (
@@ -359,7 +373,7 @@ function ShopContent({
                   href={`/shop?user=${userId}`}
                   className="text-primary underline"
                 >
-                  상점 보기
+                  {t("상점 보기")}
                 </Link>
               ) : (
                 <Button
@@ -369,7 +383,7 @@ function ShopContent({
                     setSort(ProductSort.DEFAULT);
                   }}
                 >
-                  필터 초기화
+                  {t("필터 초기화")}
                 </Button>
               )
             }
@@ -394,7 +408,7 @@ function ShopContent({
                 >
                   <div className="relative flex h-52 items-center justify-center bg-canvas p-9 transition-colors group-hover:bg-primary/5">
                     <span className="absolute left-5 top-4 text-[10px] font-bold tracking-[.14em] text-muted">
-                      {categories[category]}
+                      {t(categories[category])}
                     </span>
                     <ProductPreview
                       productId={productId}
@@ -403,7 +417,7 @@ function ShopContent({
                     {equipped && (
                       <span className="absolute right-4 top-3">
                         <Badge tone="success">
-                          장착 중
+                          {t("장착 중")}
                         </Badge>
                       </span>
                     )}
@@ -436,7 +450,7 @@ function ShopContent({
                                 setMessage("");
                               }}
                             >
-                              장착해 보기
+                              {t("장착해 보기")}
                             </Button>
                           )}
                           <Button
@@ -456,8 +470,8 @@ function ShopContent({
                             }
                           >
                             {owned.has(productId)
-                              ? "보유 중"
-                              : "구매하기"}
+                              ? t("보유 중")
+                              : t("구매하기")}
                           </Button>
                         </div>
                       ) : (
@@ -477,8 +491,8 @@ function ShopContent({
                           }
                         >
                           {equipped
-                            ? "장착 해제"
-                            : "장착하기"}
+                            ? t("장착 해제")
+                            : t("장착하기")}
                         </Button>
                       )}
                     </div>
@@ -501,7 +515,7 @@ function ShopContent({
               else collectionHeading.current?.focus();
             });
           }}
-          title={`${trial.name} 장착해 보기`}
+          title={t("{0} 장착해 보기", { 0: trial.name })}
         >
           <ProductTrial
             product={trial}
@@ -517,12 +531,12 @@ function ShopContent({
           />
           {message && (
             <p role="status" className="mt-3">
-              {message}
+              {t(message)}
             </p>
           )}
           {actionError ? (
             <p role="alert" className="mt-3">
-              {errorMessage(actionError)}
+              {t(errorMessage(actionError))}
             </p>
           ) : null}
         </Modal>
@@ -540,6 +554,8 @@ export function ShopApp({
   embedded?: boolean;
   initialUser?: string;
 }) {
+  const t = useTranslation();
+
   const [selectedUserId, setUserId] = useState(initialUser);
   const usesLayoutUser = embedded && !editing;
   const userId = usesLayoutUser
@@ -552,14 +568,14 @@ export function ShopApp({
         <ShowcaseHeader
           preview={false}
           sections={[
-            ["top", editing ? "내 공간" : "상점"],
+            ["top", editing ? t("내 공간") : t("상점")],
             ...(editing
-              ? ([["desk", "내 데스크"]] as [
+              ? ([["desk", t("내 데스크")]] as [
                   string,
                   string,
                 ][])
               : []),
-            ["collection", "컬렉션"],
+            ["collection", t("컬렉션")],
           ]}
         />
       )}
@@ -573,10 +589,10 @@ export function ShopApp({
       >
         {!usesLayoutUser && (
           <div className="mb-7 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
-            <Link href="/">← Bugri 홈</Link>
+            <Link href="/">{t("← Bugri 홈")}</Link>
             <Select
               layout="inline"
-              label="더미 사용자"
+              label={t("더미 사용자")}
               options={userOptions}
               value={userId}
               onChange={(event) => {
@@ -597,7 +613,9 @@ export function ShopApp({
         />
       </ContentContainer>
       {!embedded && (
-        <Footer note="Bugri objects · 작은 공간, 쌓이는 배움" />
+        <Footer
+          note={t("Bugri objects · 작은 공간, 쌓이는 배움")}
+        />
       )}
     </ShopProvider>
   );

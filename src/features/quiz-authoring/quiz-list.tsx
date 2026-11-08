@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import {
   QuizStatus,
@@ -83,19 +84,25 @@ function compareQuizzes(
     : -difference;
 }
 
-function relativeTime(value: string) {
+function relativeTime(
+  value: string,
+  t: ReturnType<typeof useTranslation>,
+) {
   const date = new Date(value);
   const elapsed = Math.max(0, Date.now() - date.getTime());
   const minutes = Math.floor(elapsed / 60_000);
   const hours = Math.floor(elapsed / 3_600_000);
   const days = Math.floor(elapsed / 86_400_000);
 
-  if (minutes < 1) return "방금 수정";
-  if (minutes < 60) return `${minutes}분 전 수정`;
-  if (hours < 24) return `${hours}시간 전 수정`;
-  if (days < 7) return `${days}일 전 수정`;
+  if (minutes < 1) return t("방금 수정");
+  if (minutes < 60)
+    return t("{0}분 전 수정", { 0: minutes });
+  if (hours < 24) return t("{0}시간 전 수정", { 0: hours });
+  if (days < 7) return t("{0}일 전 수정", { 0: days });
 
-  return `${date.toLocaleDateString("ko-KR")} 수정`;
+  return t("{0} 수정", {
+    0: date.toISOString().slice(0, 10),
+  });
 }
 
 function exactTime(value: string) {
@@ -103,21 +110,23 @@ function exactTime(value: string) {
 }
 
 function StatusBadges({ quiz }: { quiz: QuizSummary }) {
+  const t = useTranslation();
+
   const review = needsReview(quiz);
 
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {quiz.status === QuizStatus.PUBLIC && (
-        <Badge tone="success">공개 중</Badge>
+        <Badge tone="success">{t("공개 중")}</Badge>
       )}
       {quiz.status === QuizStatus.PRIVATE && (
-        <Badge>나만 보기</Badge>
+        <Badge>{t("나만 보기")}</Badge>
       )}
       {review && (
         <Badge tone="warning">
           {quiz.status === QuizStatus.PENDING
-            ? "검토 필요"
-            : "수정본 검토 필요"}
+            ? t("검토 필요")
+            : t("수정본 검토 필요")}
         </Badge>
       )}
     </span>
@@ -143,6 +152,8 @@ export function QuizList({
   onOpen: (quizId: string) => void;
   onRefresh: () => void;
 }) {
+  const t = useTranslation();
+
   const { query, filter, sort, page } = view;
   const normalizedQuery = query
     .trim()
@@ -182,22 +193,22 @@ export function QuizList({
   const tabs = [
     {
       value: QuizListFilter.ALL,
-      label: "전체",
+      label: t("전체"),
       count: quizzes.length,
     },
     {
       value: QuizListFilter.NEEDS_REVIEW,
-      label: "검토 필요",
+      label: t("검토 필요"),
       count: reviewCount,
     },
     {
       value: QuizListFilter.PUBLIC,
-      label: "공개",
+      label: t("공개"),
       count: publicCount,
     },
     {
       value: QuizListFilter.PRIVATE,
-      label: "나만 보기",
+      label: t("나만 보기"),
       count: privateCount,
     },
   ];
@@ -206,11 +217,11 @@ export function QuizList({
     <section
       id="my-quizzes"
       className="grid gap-5"
-      aria-label="내 퀴즈 목록"
+      aria-label={t("내 퀴즈 목록")}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">
-          내 퀴즈{" "}
+          {t("내 퀴즈")}{" "}
           <span className="text-primary">
             {quizzes.length}
           </span>
@@ -229,7 +240,7 @@ export function QuizList({
           >
             <path d="M12 5v14M5 12h14" />
           </svg>
-          새 퀴즈 만들기
+          {t("새 퀴즈 만들기")}
         </a>
       </div>
 
@@ -237,7 +248,7 @@ export function QuizList({
         <>
           <div
             role="tablist"
-            aria-label="퀴즈 상태"
+            aria-label={t("퀴즈 상태")}
             className="flex gap-5 overflow-x-auto whitespace-nowrap border-b border-line"
           >
             {tabs.map(({ value, label, count }) => (
@@ -258,7 +269,9 @@ export function QuizList({
 
           <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_minmax(220px,auto)] md:items-end">
             <label className="grid gap-2 text-xs font-semibold">
-              <span className="sr-only">퀴즈 검색</span>
+              <span className="sr-only">
+                {t("퀴즈 검색")}
+              </span>
               <span className="relative block">
                 <svg
                   aria-hidden="true"
@@ -273,7 +286,7 @@ export function QuizList({
                 </svg>
                 <input
                   type="search"
-                  aria-label="퀴즈 검색"
+                  aria-label={t("퀴즈 검색")}
                   value={query}
                   onChange={(event) =>
                     onViewChange({
@@ -281,15 +294,18 @@ export function QuizList({
                       page: 1,
                     })
                   }
-                  placeholder="제목이나 태그 검색"
+                  placeholder={t("제목이나 태그 검색")}
                   className="min-h-11 w-full rounded-2xl border border-line bg-surface py-3 pl-10 pr-4 text-[13px] text-foreground placeholder:text-muted"
                 />
               </span>
             </label>
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
               <Dropdown
-                label="정렬"
-                options={sortOptions}
+                label={t("정렬")}
+                options={sortOptions.map((option) => ({
+                  ...option,
+                  label: t(option.label),
+                }))}
                 value={sort}
                 onValueChange={(value) =>
                   onViewChange({
@@ -301,7 +317,7 @@ export function QuizList({
               <Button
                 variant="ghost"
                 size="sm"
-                aria-label="목록 새로고침"
+                aria-label={t("목록 새로고침")}
                 loading={isFetching}
                 onClick={onRefresh}
                 className="mb-1"
@@ -325,15 +341,19 @@ export function QuizList({
 
       {!quizzes.length && (
         <EmptyState
-          title="저장한 퀴즈가 없습니다"
-          description="퀴즈를 만들고 마음에 드는 결과를 저장하세요."
+          title={t("저장한 퀴즈가 없습니다")}
+          description={t(
+            "퀴즈를 만들고 마음에 드는 결과를 저장하세요.",
+          )}
         />
       )}
 
       {!!quizzes.length && !visible.length && (
         <EmptyState
-          title="조건에 맞는 퀴즈가 없습니다"
-          description="검색어나 상태 필터를 바꿔보세요."
+          title={t("조건에 맞는 퀴즈가 없습니다")}
+          description={t(
+            "검색어나 상태 필터를 바꿔보세요.",
+          )}
           action={
             <Button
               variant="secondary"
@@ -345,7 +365,7 @@ export function QuizList({
                 })
               }
             >
-              검색과 필터 초기화
+              {t("검색과 필터 초기화")}
             </Button>
           }
         />
@@ -364,16 +384,18 @@ export function QuizList({
                 action={{
                   onClick: () => onOpen(quiz.quizId),
                   disabled: busy,
-                  label: `${quiz.title} ${review ? "검토하기" : "관리하기"}`,
+                  label: `${quiz.title} ${review ? t("검토하기") : t("관리하기")}`,
                 }}
                 badges={<StatusBadges quiz={quiz} />}
                 metadata={
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <time
                       dateTime={quiz.updatedAt}
-                      aria-label={`마지막 수정 ${exactTime(quiz.updatedAt)}`}
+                      aria-label={t("마지막 수정 {0}", {
+                        0: exactTime(quiz.updatedAt),
+                      })}
                     >
-                      {relativeTime(quiz.updatedAt)}
+                      {relativeTime(quiz.updatedAt, t)}
                     </time>
                     {quiz.hashtagIds.map((hashtagId) => (
                       <span key={hashtagId}>
@@ -383,7 +405,7 @@ export function QuizList({
                   </span>
                 }
                 actionText={
-                  review ? "검토하기" : "관리하기"
+                  review ? t("검토하기") : t("관리하기")
                 }
               />
             );
@@ -393,7 +415,7 @@ export function QuizList({
 
       {filtered.length > PAGE_SIZE && (
         <nav
-          aria-label="퀴즈 목록 페이지"
+          aria-label={t("퀴즈 목록 페이지")}
           className="flex flex-wrap items-center justify-center gap-1.5"
         >
           {Array.from({ length: pageCount }, (_, index) => {
@@ -403,7 +425,7 @@ export function QuizList({
               <button
                 type="button"
                 key={number}
-                aria-label={`${number}페이지`}
+                aria-label={t("{0}페이지", { 0: number })}
                 aria-current={
                   number === currentPage
                     ? "page"

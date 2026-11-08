@@ -1,4 +1,8 @@
 "use client";
+import {
+  useLocale,
+  useTranslation,
+} from "@/lib/i18n/use-translation";
 
 import { useEffect, useRef, useState } from "react";
 import type { LearningDay } from "@/api/contracts";
@@ -45,6 +49,9 @@ export function ActivityPeriods({
 }: {
   data: LearningDay;
 }) {
+  const t = useTranslation();
+  const locale = useLocale();
+
   const root = useRef<HTMLDivElement>(null);
   const focusHeading = useRef(false);
   const [view, setView] = useState<PeriodView>(
@@ -67,7 +74,14 @@ export function ActivityPeriods({
   const requested = selected ?? today;
   const anchor =
     requested < firstDate ? firstDate : requested;
-  const { start, end, title } = periodRange(view, anchor);
+  const { start, end } = periodRange(view, anchor);
+  const title =
+    view === PeriodView.YEAR
+      ? t("{0}년", { 0: Number(anchor.slice(0, 4)) })
+      : t("{0}년 {1}월", {
+          0: Number(anchor.slice(0, 4)),
+          1: Number(anchor.slice(5, 7)),
+        });
   const current = periodRange(view, today);
   const isCurrent =
     current.start === start && current.end === end;
@@ -154,7 +168,7 @@ export function ActivityPeriods({
           <Button
             variant="ghost"
             className="size-11 p-0"
-            aria-label="이전 기간"
+            aria-label={t("이전 기간")}
             disabled={
               periodRange(view, previous).start < earliest
             }
@@ -166,7 +180,9 @@ export function ActivityPeriods({
             <Button
               variant="ghost"
               data-period-heading
-              aria-label={`${title}, 월별 학습량 보기`}
+              aria-label={t("{0}, 월별 학습량 보기", {
+                0: title,
+              })}
               className="h-11 min-w-0 px-1 py-0 text-center text-xs font-semibold tabular-nums sm:text-sm"
               onClick={openHeading}
             >
@@ -176,7 +192,7 @@ export function ActivityPeriods({
             <div className="mx-auto w-44 max-w-full">
               <Dropdown
                 variant="compact"
-                label={`${title}, 연도 선택`}
+                label={t("{0}, 연도 선택", { 0: title })}
                 value={String(year)}
                 options={Array.from(
                   {
@@ -190,7 +206,7 @@ export function ActivityPeriods({
                       Number(today.slice(0, 4)) - index;
                     return {
                       value: String(value),
-                      label: `${value}년`,
+                      label: t("{0}년", { 0: value }),
                     };
                   },
                 )}
@@ -203,7 +219,7 @@ export function ActivityPeriods({
           <Button
             variant="ghost"
             className="size-11 p-0"
-            aria-label="다음 기간"
+            aria-label={t("다음 기간")}
             disabled={
               isCurrent ||
               periodRange(view, next).start > today
@@ -215,15 +231,17 @@ export function ActivityPeriods({
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="text-muted">
-            완료한 퀴즈{" "}
+            {t("완료한 퀴즈")}{" "}
             <strong className="ml-1 font-semibold text-foreground">
-              총 {total.toLocaleString()}개
+              {t("총 {0}개", {
+                0: total.toLocaleString(locale),
+              })}
             </strong>
           </span>
           <Button
             variant="ghost"
             size="sm"
-            aria-label="현재 기간"
+            aria-label={t("현재 기간")}
             disabled={
               isCurrent && view === PeriodView.MONTH
             }
@@ -232,13 +250,13 @@ export function ActivityPeriods({
               returnToMonth();
             }}
           >
-            이번 달
+            {t("이번 달")}
           </Button>
         </div>
         <div className="flex h-[292px] items-center sm:h-[340px]">
           {view === PeriodView.MONTH ? (
             <table
-              aria-label={`${title} 학습 달력`}
+              aria-label={t("{0} 학습 달력", { 0: title })}
               className="w-full table-fixed border-separate border-spacing-1 text-center"
             >
               <thead>
@@ -249,7 +267,9 @@ export function ActivityPeriods({
                       scope="col"
                       className="pb-1 text-xs font-normal text-muted"
                     >
-                      {day}
+                      {locale === "en" && day === "월"
+                        ? "Mon"
+                        : t(day)}
                     </th>
                   ))}
                 </tr>
@@ -294,7 +314,7 @@ export function ActivityPeriods({
                           return (
                             <td
                               key={date}
-                              aria-label={`${date}${date === today ? " 오늘" : ""}${completedDates.includes(date) ? " 학습 완료" : ""}, ${future ? "예정" : `${count}개`}`}
+                              aria-label={`${date}${date === today ? t(" 오늘") : ""}${completedDates.includes(date) ? t(" 학습 완료") : ""}, ${future ? t("예정") : t("{0}개", { 0: count })}`}
                               aria-current={
                                 date === today
                                   ? "date"
@@ -323,7 +343,9 @@ export function ActivityPeriods({
                                 >
                                   {count.toLocaleString()}
                                   <span className="ml-0.5 text-[10px] font-medium">
-                                    개
+                                    {locale === "ko"
+                                      ? "개"
+                                      : ""}
                                   </span>
                                 </span>
                               )}
@@ -338,7 +360,9 @@ export function ActivityPeriods({
             </table>
           ) : (
             <div
-              aria-label={`${year}년 월별 학습량`}
+              aria-label={t("{0}년 월별 학습량", {
+                0: year,
+              })}
               className="grid w-full grid-cols-2 gap-x-3 gap-y-1 sm:gap-x-6"
             >
               {months.map(({ value, count, month }) => (
@@ -348,7 +372,20 @@ export function ActivityPeriods({
                   disabled={
                     value < firstMonth || value > today
                   }
-                  aria-label={`${year}년 ${month}월, ${value > today ? "예정" : `${count}개${value < firstMonth ? "" : ", 월별 보기"}`}`}
+                  aria-label={t("{0}년 {1}월, {2}", {
+                    0: year,
+                    1: month,
+                    2:
+                      value > today
+                        ? t("예정")
+                        : t("{0}개{1}", {
+                            0: count,
+                            1:
+                              value < firstMonth
+                                ? ""
+                                : t(", 월별 보기"),
+                          }),
+                  })}
                   className="h-11 min-w-0 gap-2 rounded-lg px-1 py-2 text-xs"
                   onClick={() => {
                     focusHeading.current = true;
@@ -357,13 +394,24 @@ export function ActivityPeriods({
                   }}
                 >
                   <span className="w-7 shrink-0 text-left tabular-nums">
-                    {month}월
+                    {locale === "ko"
+                      ? `${month}월`
+                      : new Intl.DateTimeFormat("en", {
+                          month: "short",
+                          timeZone: "UTC",
+                        }).format(
+                          new Date(`${value}T12:00:00Z`),
+                        )}
                   </span>
                   <Bar count={count} maximum={maximum} />
                   <span className="min-w-8 shrink-0 text-right tabular-nums">
                     {value > today
                       ? "—"
-                      : `${count.toLocaleString()}개`}
+                      : locale === "ko"
+                        ? t("{0}개", {
+                            0: count.toLocaleString(),
+                          })
+                        : count.toLocaleString(locale)}
                   </span>
                 </Button>
               ))}

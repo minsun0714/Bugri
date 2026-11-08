@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { ActivityPeriods } from "@/components/streak/activity-periods";
 import { ApiClientError } from "@/api/client";
@@ -14,6 +15,8 @@ export function StreakSummary({
   userId: string;
   publicId?: string;
 }) {
+  const t = useTranslation();
+
   const { data, isPending, error, refetch, isFetching } =
     useLearningDay(userId, publicId);
   const timezoneRequired =
@@ -33,18 +36,18 @@ export function StreakSummary({
             : "sr-only"
         }
       >
-        {publicId ? "학습 활동" : "연속 학습"}
+        {publicId ? t("학습 활동") : t("연속 학습")}
       </h2>
       {isPending ? (
         <p role="status" className="mt-4 text-muted">
-          연속 학습 불러오는 중…
+          {t("연속 학습 불러오는 중…")}
         </p>
       ) : error ? (
         <div className="mt-4 space-y-3">
           <p role="alert">
             {timezoneRequired
-              ? "학습 시간대를 확인할 수 없어요."
-              : "연속 학습을 불러오지 못했어요."}
+              ? t("학습 시간대를 확인할 수 없어요.")
+              : t("연속 학습을 불러오지 못했어요.")}
           </p>
           <div className="flex justify-end">
             <Button
@@ -53,7 +56,7 @@ export function StreakSummary({
               loading={isFetching}
               onClick={() => void refetch()}
             >
-              다시 시도
+              {t("다시 시도")}
             </Button>
           </div>
         </div>
@@ -83,30 +86,35 @@ export function StreakSummary({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1 text-xs font-medium text-muted">
-                <span>연속 학습</span>
-                <Tooltip label="학습일 기준 안내">{`${data.timeZone} 기준 · 하루 한 문제를 완료하면 기록돼요. 정답 여부와 관계없이 인정돼요. 하루에 같은 퀴즈를 다시 풀어도 개수는 늘지 않아요.`}</Tooltip>
+                <span>{t("연속 학습")}</span>
+                <Tooltip label={t("학습일 기준 안내")}>
+                  {t(
+                    "{0} 기준 · 하루 한 문제를 완료하면 기록돼요. 정답 여부와 관계없이 인정돼요. 하루에 같은 퀴즈를 다시 풀어도 개수는 늘지 않아요.",
+                    { 0: data.timeZone },
+                  )}
+                </Tooltip>
               </div>
               <div className="flex items-center gap-3 sm:mt-1">
                 <strong className="text-2xl font-bold tracking-tight text-foreground">
                   {data.streak > 0
-                    ? `${data.streak}일 연속`
+                    ? t("{0}일 연속", { 0: data.streak })
                     : publicId
-                      ? "연속 학습 0일"
+                      ? t("연속 학습 0일")
                       : data.completedDates.length > 0
-                        ? "오늘부터 다시"
-                        : "오늘부터 시작"}
+                        ? t("오늘부터 다시")
+                        : t("오늘부터 시작")}
                 </strong>
               </div>
               <p className="mt-1 text-xs text-muted">
                 {data.completed
-                  ? "✓ 오늘 학습 완료"
+                  ? t("✓ 오늘 학습 완료")
                   : publicId
-                    ? "오늘 학습 기록 없음"
+                    ? t("오늘 학습 기록 없음")
                     : data.streak > 0
-                      ? "오늘 한 문제로 이어가요"
+                      ? t("오늘 한 문제로 이어가요")
                       : data.completedDates.length > 0
-                        ? "한 문제로 다시 시작해요"
-                        : "한 문제 풀고 첫 기록"}
+                        ? t("한 문제로 다시 시작해요")
+                        : t("한 문제 풀고 첫 기록")}
               </p>
             </div>
           </div>

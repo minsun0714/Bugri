@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { useState } from "react";
 import {
   useMutation,
@@ -32,6 +34,8 @@ function GuestRound({
   round: number;
   next: () => void;
 }) {
+  const t = useTranslation();
+
   const quiz = useQuery({
     queryKey: ["guestQuiz", round],
     queryFn: async () =>
@@ -66,15 +70,17 @@ function GuestRound({
       <div className="space-y-4">
         <ErrorNotice error={quiz.error} />
         <Button onClick={() => void quiz.refetch()}>
-          다시 불러오기
+          {t("다시 불러오기")}
         </Button>
       </div>
     );
   if (!quiz.data)
     return (
       <EmptyState
-        title="공개된 퀴즈가 없습니다"
-        description="새로운 퀴즈가 공개되면 체험할 수 있어요."
+        title={t("공개된 퀴즈가 없습니다")}
+        description={t(
+          "새로운 퀴즈가 공개되면 체험할 수 있어요.",
+        )}
       />
     );
   return (
@@ -89,7 +95,7 @@ function GuestRound({
       >
         {(submit.data || submit.error) && (
           <div className="flex justify-end">
-            <Button onClick={next}>다음 문제</Button>
+            <Button onClick={next}>{t("다음 문제")}</Button>
           </div>
         )}
       </QuizPanel>

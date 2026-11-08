@@ -44,3 +44,20 @@
 저장 차단·탭 간 동기화는 구현자 자동 테스트 근거이며 리뷰어 직접 확인과 구분한다. 기존 강제 다크 실기기 호환성은 이번 작업에서 검증하지 않는다.
 
 수정 1회(C1/R1)로 종료했다. 필수 미해결·보류 문제 없음. R1 직접 화면 근거: `/tmp/theme-r1-demo-light.png`, `/tmp/theme-r1-demo-dark.png`, `/tmp/theme-r1-settings-menu-dark.png`, `/tmp/theme-r1-desktop.png`, `/tmp/ux-c1-demo.png`, `/tmp/ux-c1-menu-guest.png`. 구현자 E2E는 시스템 변경·저장/새로고침·키보드·저장 차단·첫 렌더·캐릭터/방 색상 보존을 검증하며 Jest는 탭 간 저장 이벤트도 확인한다.
+
+## dev 통합 검증 계획
+
+사용자 pull 오류 해결 요청으로 `f1a2f1f`에 `origin/dev`의 `f87b0a4`를 통합한다. 다국어 헤더와 토글을 모두 보존하며 설정 제목/선택지/접근성 이름도 번역한다. 새 검증 지침에 따라 상점 구매·3D 배치/카메라/렌더러를 변경하지 않은 이번 통합은 해당 전용 E2E를 제외한다. 헤더·언어 표시는 locale/navigation/shop/theme spec에서, 방 색상 보존은 theme spec에서 확인한다. 공통 Button/상점/렌더러 코드는 origin/dev와 같다. 이전 상점/책상 테스트 실패 이력은 TASKS에 유지한다.
+
+- 실행 spec: `coin-history.spec.ts`, `design-system.spec.ts`, `developer-discovery-repair.spec.ts`, `developer.spec.ts`, `discovery-split.spec.ts`, `error-handling.spec.ts`, `home-quiz-review.spec.ts`, `locale.spec.ts`, `markdown-editor.spec.ts`, `mock-api.spec.ts`, `navigation.spec.ts`, `profile-about.spec.ts`, `profile-layout.spec.ts`, `profile-order.spec.ts`, `profile-polish.spec.ts`, `profile-split.spec.ts`, `profile-streak.spec.ts`, `quiz-authoring.spec.ts`, `shop.spec.ts`, `solving.spec.ts`, `streak.spec.ts`, `tag-catalog.spec.ts`, `tag-discovery.spec.ts`, `theme.spec.ts`.
+- 제외 spec: `bugri-tabletop.spec.ts`, `camera-drag-direction.spec.ts`, `desk-3d.spec.ts`, `desk-bugri.spec.ts`, `desk-direct.spec.ts`, `desk-foot-orbit.spec.ts`, `desk-free-placement.spec.ts`, `desk-height.spec.ts`, `desk-independent-trial.spec.ts`, `desk-layer-menu.spec.ts`, `desk-shared-controls.spec.ts`, `desk-visibility.spec.ts`, `front-height-drag.spec.ts`, `item-tabletop.spec.ts`, `monitor-screens.spec.ts`, `my-desk.spec.ts`, `room-projection.spec.ts`, `room-theme-bugri.spec.ts`, `room-zoom.spec.ts`, `scene-centering.spec.ts`, `shop-additive-preview.spec.ts`, `shop-extra-items.spec.ts`, `shop-tryon-edit.spec.ts`, `shop-tryon.spec.ts`, `stable-placement-view.spec.ts`, `trial-zoom.spec.ts`.
+- 최종 검사: lint·전체 타입·전체 Jest·도구·production build 및 위 선택 E2E를 순차 실행한다. `npm run verify` 전체 성공이라고 표현하지 않는다.
+
+### C2 / R2 — 다국어 dev 통합
+
+- C2는 사용자 pull 오류 해결에 따른 dev 통합이다. 토글/설정의 번역을 추가하고 upstream 언어 선택과 공존시켰다. R2에서 UX·UI 모두 기존 문제 해결 유지와 추가 필수 문제 없음을 보고했다.
+- UX 직접 확인: 320/1280 × ko/en × 게스트/데모 8조합에서 토글→언어 변경→설정→시스템 복원, user 유지 및 모든 문구 번역 확인. `HEAD`/`origin/dev` 대비 코드 검토에서도 두 기능 보존 확인.
+- UI 직접 확인: 모바일 133px·2행, 데스크톱 77px·1행. 설정 항목과 언어 선택은 모바일 메뉴의 구분선으로 분리된다. 영어 설정 제목만 자연스럽게 두 줄이고 선택지 잘림은 없다. 영어 다크 모바일에서도 동일하다.
+- 근거: `/tmp/theme-r2-*.png`, `/tmp/ux-r2-settled-en.png`, `/tmp/ux-r2-menu-en.png`. 총 변경 회차 2회(C1 모바일 수정, C2 dev 통합), 필수 미해결 없음. 실기기·스크린리더·색 대비 수치 한계 유지.
+
+최종 통합 검증: Node v22.23.3 lint·전체 타입·Jest64 suites/317개·도구3개·production build·선택 E2E129개 통과. 이전 전체 검증의 상점 단위/책상 E2E 시간 초과는 TASKS에 보존했다. 통합 후 상점 단위를 포함한 전체 Jest는 통과했으며, 무관한 3D 전용 spec은 위 새 지침과 사전 계획에 따라 재실행하지 않았다.

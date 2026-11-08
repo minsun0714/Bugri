@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { ConversationRole } from "@/api/constants";
 import { useEffect, useRef, useState } from "react";
@@ -14,6 +15,8 @@ import {
 import { styles } from "@/features/quiz-authoring/styles";
 
 export function Conversation(props: ConversationProps) {
+  const t = useTranslation();
+
   const [open, setOpen] = useState(true);
   const {
     conversation,
@@ -43,32 +46,31 @@ export function Conversation(props: ConversationProps) {
   return (
     <section
       id="generate"
-      aria-label="학습 대화"
+      aria-label={t("학습 대화")}
       className={styles.stack}
     >
       <div className={styles.actions}>
         <h1 className="text-xl font-semibold tracking-tight">
-          퀴즈 만들기
+          {t("퀴즈 만들기")}
         </h1>
       </div>
       <div>
         <Button onClick={() => setOpen(true)}>
-          버그리와 대화하기
+          {t("버그리와 대화하기")}
         </Button>
       </div>
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="버그리와 퀴즈 만들기"
+        title={t("버그리와 퀴즈 만들기")}
         layout="conversation"
       >
         <div className="mb-3 flex shrink-0 items-center gap-2">
           <span className="text-xs text-muted">Mock</span>
-          <Tooltip label="대화 도움말">
-            현재는 실제 AI 대신 준비된 예시 답변을
-            제공합니다. 비밀키·개인정보는 입력하지 마세요.
-            보낸 대화로 퀴즈를 만들며, 작성 중인 입력은
-            그대로 남습니다.
+          <Tooltip label={t("대화 도움말")}>
+            {t(
+              "현재는 실제 AI 대신 준비된 예시 답변을 제공합니다. 비밀키·개인정보는 입력하지 마세요. 보낸 대화로 퀴즈를 만들며, 작성 중인 입력은 그대로 남습니다.",
+            )}
           </Tooltip>
         </div>
         <div
@@ -76,16 +78,16 @@ export function Conversation(props: ConversationProps) {
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1"
           tabIndex={0}
           role="region"
-          aria-label="대화 메시지"
+          aria-label={t("대화 메시지")}
         >
           {!conversation.messages.length && (
             <p className="py-6 text-lg font-medium text-muted">
-              무엇을 배우고 있나요?
+              {t("무엇을 배우고 있나요?")}
             </p>
           )}
           {!!conversation.messages.length && (
             <ol
-              aria-label="대화 기록"
+              aria-label={t("대화 기록")}
               className="grid gap-5"
             >
               {conversation.messages.map(
@@ -100,8 +102,8 @@ export function Conversation(props: ConversationProps) {
                   >
                     <span className="mb-2 block text-xs font-semibold text-muted">
                       {role === ConversationRole.USER
-                        ? "나"
-                        : "버그리"}
+                        ? t("나")
+                        : t("버그리")}
                     </span>
                     <MarkdownContent>
                       {content}
@@ -117,7 +119,7 @@ export function Conversation(props: ConversationProps) {
           className="mt-3 min-w-0 shrink-0 rounded-2xl border border-line bg-surface p-3 [&_textarea]:h-24 [&_textarea]:min-h-0! [&_textarea]:max-h-[20dvh] [&_.markdown-preview]:max-h-[20dvh] [&_.markdown-preview]:overflow-y-auto"
         >
           <MarkdownEditor
-            label="질문이나 학습 내용"
+            label={t("질문이나 학습 내용")}
             value={draft}
             preserveOverflow
             onChange={changeDraft}
@@ -138,7 +140,7 @@ export function Conversation(props: ConversationProps) {
               onClick={send}
               loading={busy === "message"}
             >
-              보내기
+              {t("보내기")}
             </Button>
             <Button
               variant="secondary"
@@ -146,7 +148,7 @@ export function Conversation(props: ConversationProps) {
               loading={busy === "generate"}
               onClick={generate}
             >
-              이 대화로 퀴즈 만들기
+              {t("이 대화로 퀴즈 만들기")}
             </Button>
           </div>
         </fieldset>
@@ -158,17 +160,17 @@ export function Conversation(props: ConversationProps) {
               disabled={!!busy}
               onClick={reload}
             >
-              최신 대화 불러오기
+              {t("최신 대화 불러오기")}
             </Button>
           </div>
         )}
         {busy && (
           <p role="status" className="text-sm text-primary">
             {busy === "generate"
-              ? "퀴즈를 만들고 있어요…"
+              ? t("퀴즈를 만들고 있어요…")
               : busy === "message"
-                ? "답변을 준비하고 있어요…"
-                : "대화를 불러오는 중…"}
+                ? t("답변을 준비하고 있어요…")
+                : t("대화를 불러오는 중…")}
           </p>
         )}
       </Modal>

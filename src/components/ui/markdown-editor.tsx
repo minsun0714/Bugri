@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { Tooltip } from "@/components/ui/tooltip";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -32,6 +33,8 @@ export function MarkdownEditor({
   className?: string;
   onKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
 }) {
+  const t = useTranslation();
+
   const id = useId();
   const {
     input,
@@ -60,7 +63,7 @@ export function MarkdownEditor({
       aria-expanded={picker}
       onClick={togglePicker}
     >
-      + 코드 블럭
+      {t("+ 코드 블럭")}
     </Button>
   );
 
@@ -68,7 +71,7 @@ export function MarkdownEditor({
     <div
       className={styles["editor-shell"]}
       role="group"
-      aria-label="Markdown 작성"
+      aria-label={t("Markdown 작성")}
     >
       {!compact && (
         <div className={styles["editor-tools"]}>
@@ -78,7 +81,7 @@ export function MarkdownEditor({
       {picker && (
         <div className={styles["editor-picker"]}>
           <Dropdown
-            label="삽입할 코드 언어"
+            label={t("삽입할 코드 언어")}
             value={language}
             onValueChange={setLanguage}
             options={[
@@ -95,7 +98,7 @@ export function MarkdownEditor({
             ].map((value) => ({ value, label: value }))}
           />
           <Button size="sm" onClick={insertCode}>
-            삽입
+            {t("삽입")}
           </Button>
         </div>
       )}
@@ -112,7 +115,9 @@ export function MarkdownEditor({
         rows={compact ? 5 : 9}
         placeholder={
           placeholder ??
-          "오늘 배운 내용을 Markdown으로 적어보세요.\n\n# 제목\n- 배운 점\n\n코드는 코드 블록 버튼으로 추가할 수 있어요."
+          t(
+            "오늘 배운 내용을 Markdown으로 적어보세요.\n\n# 제목\n- 배운 점\n\n코드는 코드 블록 버튼으로 추가할 수 있어요.",
+          )
         }
       />
     </div>
@@ -131,7 +136,10 @@ export function MarkdownEditor({
           ]}
           components={{
             img: ({ alt }) => (
-              <span>[이미지: {alt ?? ""}]</span>
+              <span>
+                {t("[이미지:")}
+                {alt ?? ""}]
+              </span>
             ),
           }}
         >
@@ -139,7 +147,7 @@ export function MarkdownEditor({
         </Markdown>
       ) : (
         <p className={styles["preview-placeholder"]}>
-          내용을 작성하면 여기에 미리보기가 표시돼요.
+          {t("내용을 작성하면 여기에 미리보기가 표시돼요.")}
         </p>
       )}
     </div>
@@ -151,11 +159,12 @@ export function MarkdownEditor({
     >
       {compact ? (
         <div className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold">
-          <span id={`${id}-label`}>{label}</span>
+          <span id={`${id}-label`}>{t(label)}</span>
           <div className="flex items-center gap-1">
-            <Tooltip label="Markdown 작성 도움말">
-              제목은 #, 목록은 -로 시작할 수 있어요. 코드는
-              실행되지 않아요.
+            <Tooltip label={t("Markdown 작성 도움말")}>
+              {t(
+                "제목은 #, 목록은 -로 시작할 수 있어요. 코드는 실행되지 않아요.",
+              )}
             </Tooltip>
           </div>
         </div>
@@ -164,26 +173,27 @@ export function MarkdownEditor({
           className={styles["editor-title"]}
           id={`${id}-label`}
         >
-          {label} <span aria-hidden="true">Markdown</span>
+          {t(label)}{" "}
+          <span aria-hidden="true">Markdown</span>
         </div>
       )}
       {layout === "split" ? (
         <div className="grid min-w-0 gap-5 lg:grid-cols-2">
           <section
-            aria-label="작성"
+            aria-label={t("작성")}
             className="min-w-0 rounded-2xl border border-line bg-surface p-4"
           >
             <h2 className="mb-3 text-sm font-semibold">
-              작성
+              {t("작성")}
             </h2>
             {editor}
           </section>
           <section
-            aria-label="미리보기"
+            aria-label={t("미리보기")}
             className="min-w-0 rounded-2xl border border-line bg-surface p-4"
           >
             <h2 className="mb-3 text-sm font-semibold">
-              미리보기
+              {t("미리보기")}
             </h2>
             {preview}
           </section>
@@ -204,13 +214,13 @@ export function MarkdownEditor({
         id={`${id}-count`}
       >
         <span>
-          Markdown 기호 포함 · 코드는 실행되지 않아요
+          {t("Markdown 기호 포함 · 코드는 실행되지 않아요")}
         </span>
         {Number.isFinite(limit) && (
           <span>
             {count.toLocaleString()} /{" "}
             {limit.toLocaleString()}
-            {preserveOverflow ? "자" : ""}
+            {preserveOverflow ? t("자") : ""}
           </span>
         )}
       </div>
@@ -219,7 +229,7 @@ export function MarkdownEditor({
         id={`${id}-error`}
         aria-live="polite"
       >
-        {error}
+        {t(error)}
       </p>
     </div>
   );

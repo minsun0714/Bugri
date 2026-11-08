@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useSyncExternalStore } from "react";
 import { styles } from "@/components/ui/styles";
@@ -15,6 +16,8 @@ export function RecoveryHomeLink({
 }: {
   secondary?: boolean;
 }) {
+  const t = useTranslation();
+
   const search = useSyncExternalStore(
     subscribe,
     () => window.location.search,
@@ -31,7 +34,7 @@ export function RecoveryHomeLink({
       href={href}
       className={`${styles["ui-button"]} ${secondary ? "secondary" : "primary"}`}
     >
-      홈으로 이동
+      {t("홈으로 이동")}
     </a>
   );
 }

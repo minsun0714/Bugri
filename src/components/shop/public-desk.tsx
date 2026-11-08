@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { ApiClientError } from "@/api/client";
 import { QueryBoundary } from "@/components/errors/query-boundary";
@@ -14,12 +15,14 @@ import { usePublicDesk } from "@/components/shop/use-shop";
 import { errorMessage } from "@/components/shop/errors";
 
 function Profile({ publicId }: { publicId: string }) {
+  const t = useTranslation();
+
   const profile = usePublicDesk(publicId);
   if (profile.isPending) return <Skeleton />;
   if (profile.error && !profile.data)
     return (
       <div role="alert">
-        <p>{errorMessage(profile.error)}</p>
+        <p>{t(errorMessage(profile.error))}</p>
         {profile.error instanceof ApiClientError &&
         profile.error.status === 404 ? (
           <RecoveryHomeLink />
@@ -28,7 +31,7 @@ function Profile({ publicId }: { publicId: string }) {
             loading={profile.isFetching}
             onClick={() => void profile.refetch()}
           >
-            다시 시도
+            {t("다시 시도")}
           </Button>
         )}
       </div>
@@ -41,13 +44,13 @@ function Profile({ publicId }: { publicId: string }) {
     <>
       {profile.error && (
         <div role="alert" className="mb-4 space-y-3">
-          <p>{errorMessage(profile.error)}</p>
+          <p>{t(errorMessage(profile.error))}</p>
           <div className="flex justify-end">
             <Button
               loading={profile.isFetching}
               onClick={() => void profile.refetch()}
             >
-              다시 시도
+              {t("다시 시도")}
             </Button>
           </div>
         </div>
@@ -61,7 +64,7 @@ function Profile({ publicId }: { publicId: string }) {
         equipment={equipment}
         transforms={transforms}
         layerOrder={order}
-        label={`${user.displayName}의 데스크`}
+        label={t("{0}의 데스크", { 0: user.displayName })}
       />
     </>
   );
@@ -72,6 +75,8 @@ export function PublicDesk({
 }: {
   publicId: string;
 }) {
+  const t = useTranslation();
+
   return (
     <ProductLayout>
       <div className="space-y-8">
@@ -87,13 +92,15 @@ export function PublicDesk({
           }
           afterHeader={
             <section
-              aria-label="공개 데스크"
+              aria-label={t("공개 데스크")}
               className="rounded-3xl border border-line bg-surface p-4"
             >
               <ShopProvider>
                 <QueryBoundary
                   key={publicId}
-                  title="공개 데스크를 불러오지 못했습니다"
+                  title={t(
+                    "공개 데스크를 불러오지 못했습니다",
+                  )}
                 >
                   <Profile publicId={publicId} />
                 </QueryBoundary>

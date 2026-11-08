@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { InputValidationError } from "@/api/errors";
 
@@ -49,6 +50,8 @@ export function ReviewEditor({
   onDirty: (dirty: boolean) => void;
   onBusy?: (busy: boolean) => void;
 }) {
+  const t = useTranslation();
+
   const api = useAuthoringActions(client, userId);
   const initialRevision = (initialQuiz.pending ??
     initialQuiz.active)!;
@@ -91,10 +94,10 @@ export function ReviewEditor({
       JSON.stringify(editableContent(saved));
   const dirty = edited || prompt !== sentPrompt;
   const statusLabel = quiz.pending
-    ? "검토 중"
+    ? t("검토 중")
     : quiz.status === QuizStatus.PUBLIC
-      ? "전체 공개"
-      : "나만 보기";
+      ? t("전체 공개")
+      : t("나만 보기");
 
   useEffect(() => {
     onDirty(dirty);
@@ -174,7 +177,7 @@ export function ReviewEditor({
   }
 
   function reload() {
-    if (dirty && !window.confirm(leaveMessage)) return;
+    if (dirty && !window.confirm(t(leaveMessage))) return;
 
     void run(async () => {
       accept(
@@ -221,22 +224,26 @@ export function ReviewEditor({
   return (
     <section
       id="review"
-      aria-label="퀴즈 검토"
+      aria-label={t("퀴즈 검토")}
       className={styles.stack}
     >
       <header className="sticky top-0 z-30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-line bg-canvas/95 py-3 backdrop-blur-sm">
         <Button
           size="sm"
           variant="ghost"
-          aria-label="내 퀴즈로 돌아가기"
+          aria-label={t("내 퀴즈로 돌아가기")}
           disabled={busy}
           onClick={onBack}
         >
           <span aria-hidden="true">←</span>
-          <span className="hidden sm:inline">내 퀴즈</span>
+          <span className="hidden sm:inline">
+            {t("내 퀴즈")}
+          </span>
         </Button>
         <div className="min-w-0">
-          <p className="text-xs text-muted">퀴즈 검토</p>
+          <p className="text-xs text-muted">
+            {t("퀴즈 검토")}
+          </p>
           <h2 className="truncate text-lg font-semibold">
             {saved.title}
           </h2>
@@ -248,13 +255,13 @@ export function ReviewEditor({
       <RequestError error={regenerateOpen ? null : error} />
       {message && (
         <p role="status" className="text-primary">
-          {message}
+          {t(message)}
         </p>
       )}
       {!editing && quiz.active && quiz.pending && (
         <details className="rounded-2xl border border-line bg-surface p-5">
           <summary className="cursor-pointer font-semibold text-primary">
-            현재 공개본과 비교
+            {t("현재 공개본과 비교")}
           </summary>
           <div className="mt-5 grid gap-5 border-t border-line pt-5">
             <h3 className="text-lg">{quiz.active.title}</h3>
@@ -276,20 +283,22 @@ export function ReviewEditor({
           </fieldset>
           <div
             role="group"
-            aria-label="편집 작업"
+            aria-label={t("편집 작업")}
             className="fixed inset-x-3 bottom-3 z-40 mx-auto flex w-[calc(100%-1.5rem)] max-w-3xl items-center justify-between gap-3 rounded-2xl border border-line bg-surface/95 p-3 shadow-xl backdrop-blur-sm sm:bottom-6 sm:w-[calc(100%-3rem)]"
           >
             <div className="flex min-w-0 items-center gap-1">
               <span className="min-w-0 truncate text-xs font-semibold text-muted">
                 {edited
-                  ? "저장하지 않은 변경 있음"
-                  : "변경 사항 없음"}
+                  ? t("저장하지 않은 변경 있음")
+                  : t("변경 사항 없음")}
               </span>
               <Button
                 size="sm"
                 variant="ghost"
-                aria-label="최신 내용 다시 불러오기"
-                title="작성 중인 내용을 버리고 최신 저장본을 불러옵니다"
+                aria-label={t("최신 내용 다시 불러오기")}
+                title={t(
+                  "작성 중인 내용을 버리고 최신 저장본을 불러옵니다",
+                )}
                 disabled={busy}
                 className="size-9 min-h-9! shrink-0 p-0!"
                 onClick={reload}
@@ -315,13 +324,13 @@ export function ReviewEditor({
                 disabled={busy}
                 onClick={cancelEditing}
               >
-                취소
+                {t("취소")}
               </Button>
               <Button
                 disabled={busy || !edited}
                 onClick={save}
               >
-                수정 저장
+                {t("수정 저장")}
               </Button>
             </div>
           </div>
@@ -331,7 +340,7 @@ export function ReviewEditor({
           <div className="flex flex-wrap items-center justify-end gap-3">
             <div
               role="group"
-              aria-label="퀴즈 수정 방식"
+              aria-label={t("퀴즈 수정 방식")}
               className="flex flex-wrap justify-end gap-2"
             >
               <Button
@@ -339,7 +348,7 @@ export function ReviewEditor({
                 disabled={busy}
                 onClick={() => setEditing(true)}
               >
-                직접 수정
+                {t("직접 수정")}
               </Button>
               <Button
                 variant="secondary"
@@ -349,13 +358,13 @@ export function ReviewEditor({
                   setRegenerateOpen(true);
                 }}
               >
-                추가 프롬프트로 재생성
+                {t("추가 프롬프트로 재생성")}
               </Button>
             </div>
           </div>
           <details>
             <summary className="cursor-pointer text-primary">
-              원본 학습 내용
+              {t("원본 학습 내용")}
             </summary>
             <pre className={styles.prose}>
               {saved.sourceContent}
@@ -365,21 +374,21 @@ export function ReviewEditor({
           {quiz.pending && (
             <div className="grid items-end gap-3 border-t border-line pt-5 sm:grid-cols-[minmax(0,1fr)_auto]">
               <Dropdown
-                label="승인 공개 범위"
+                label={t("승인 공개 범위")}
                 value={visibility}
                 disabled={busy}
                 options={[
                   {
                     value: "",
-                    label: "공개 범위 선택",
+                    label: t("공개 범위 선택"),
                   },
                   {
                     value: QuizStatus.PRIVATE,
-                    label: "나만 풀기",
+                    label: t("나만 풀기"),
                   },
                   {
                     value: QuizStatus.PUBLIC,
-                    label: "공개",
+                    label: t("공개"),
                   },
                 ]}
                 onValueChange={(value) =>
@@ -391,7 +400,7 @@ export function ReviewEditor({
                 disabled={busy || dirty || !visibility}
                 onClick={approvePending}
               >
-                승인
+                {t("승인")}
               </Button>
             </div>
           )}
@@ -401,7 +410,7 @@ export function ReviewEditor({
         <Modal
           open
           onClose={() => setRegenerateOpen(false)}
-          title="추가 프롬프트로 재생성"
+          title={t("추가 프롬프트로 재생성")}
         >
           <form
             className="grid gap-5"
@@ -426,13 +435,15 @@ export function ReviewEditor({
           >
             <RequestError error={error} />
             <TextArea
-              label="추가 프롬프트"
+              label={t("추가 프롬프트")}
               value={prompt}
               disabled={busy}
               rows={4}
               limit={Number.POSITIVE_INFINITY}
               showCount={false}
-              placeholder="바꾸고 싶은 내용을 입력하세요"
+              placeholder={t(
+                "바꾸고 싶은 내용을 입력하세요",
+              )}
               onChange={setPrompt}
             />
             <div className={styles.actions}>
@@ -442,14 +453,14 @@ export function ReviewEditor({
                 disabled={busy}
                 onClick={() => setRegenerateOpen(false)}
               >
-                취소
+                {t("취소")}
               </Button>
               <Button
                 type="submit"
                 disabled={busy || edited || !prompt.trim()}
                 loading={busy}
               >
-                수정본 재생성
+                {t("수정본 재생성")}
               </Button>
             </div>
           </form>
@@ -457,17 +468,22 @@ export function ReviewEditor({
       )}
       {!editing && quiz.active && !quiz.pending && (
         <Card className={styles.stack}>
-          <h3 className="text-xl">현재 버전 공개 범위</h3>
+          <h3 className="text-xl">
+            {t("현재 버전 공개 범위")}
+          </h3>
           <Dropdown
-            label="변경할 공개 범위"
+            label={t("변경할 공개 범위")}
             value={nextVisibility}
             disabled={busy || dirty}
             options={[
               {
                 value: QuizStatus.PRIVATE,
-                label: "나만 풀기",
+                label: t("나만 풀기"),
               },
-              { value: QuizStatus.PUBLIC, label: "공개" },
+              {
+                value: QuizStatus.PUBLIC,
+                label: t("공개"),
+              },
             ]}
             onValueChange={(value) =>
               setNextVisibility(value as Visibility)
@@ -493,7 +509,7 @@ export function ReviewEditor({
                 })
               }
             >
-              공개 범위 변경
+              {t("공개 범위 변경")}
             </Button>
           </div>
         </Card>
@@ -501,15 +517,17 @@ export function ReviewEditor({
       {!editing && (
         <section
           role="group"
-          aria-label="위험 영역"
+          aria-label={t("위험 영역")}
           className="grid gap-4 rounded-2xl border border-coral/30 bg-coral/5 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5"
         >
           <div>
             <h3 className="font-semibold text-coral">
-              위험 영역
+              {t("위험 영역")}
             </h3>
             <p className="mt-1 text-xs text-muted">
-              삭제한 퀴즈는 목록과 학습 후보에서 사라집니다.
+              {t(
+                "삭제한 퀴즈는 목록과 학습 후보에서 사라집니다.",
+              )}
             </p>
           </div>
           <Button
@@ -518,7 +536,17 @@ export function ReviewEditor({
             onClick={() => {
               if (
                 !window.confirm(
-                  `“${saved.title}” 퀴즈를 삭제할까요?${dirty ? " 저장하지 않은 변경도 사라집니다." : ""} 완료한 풀이 기록과 보상은 유지됩니다.`,
+                  t(
+                    "“{0}” 퀴즈를 삭제할까요?{1} 완료한 풀이 기록과 보상은 유지됩니다.",
+                    {
+                      0: saved.title,
+                      1: dirty
+                        ? t(
+                            " 저장하지 않은 변경도 사라집니다.",
+                          )
+                        : "",
+                    },
+                  ),
                 )
               )
                 return;
@@ -531,7 +559,7 @@ export function ReviewEditor({
               });
             }}
           >
-            퀴즈 삭제
+            {t("퀴즈 삭제")}
           </Button>
         </section>
       )}
