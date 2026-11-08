@@ -1,5 +1,9 @@
 export const quizCardStyles = {
   card: "relative isolate min-w-0 rounded-3xl border border-line bg-surface p-4 shadow-[0_3px_0_var(--color-line)] sm:p-5",
+  compactCard:
+    "relative isolate min-w-0 rounded-3xl border border-line bg-surface p-3 shadow-[0_3px_0_var(--color-line)] sm:p-4",
+  compactTitle:
+    "grid min-h-11 grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 text-left text-base font-bold leading-6 text-foreground",
   access:
     "block w-full cursor-pointer outline-none after:absolute after:inset-0 after:z-0 after:rounded-3xl hover:after:bg-primary/5 focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-primary disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed",
   title:

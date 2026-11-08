@@ -699,5 +699,6 @@
   "첫 학습을 시작해요": "Start your first quiz",
   "오늘 완료 ✓": "Done today ✓",
   "오늘 미완료": "Not done today",
-  "달력": "Calendar"
+  "달력": "Calendar",
+  "HTTP 요청에는 메서드와 경로가 포함됩니다. GET은 데이터를 조회하고 POST는 데이터를 전송합니다. 서버는 상태 코드와 응답 본문을 반환합니다. 200은 성공, 404는 요청한 리소스를 찾을 수 없음을 뜻합니다.": "An HTTP request includes a method and a path. GET retrieves data, while POST sends data. The server returns a status code and a response body. 200 means success; 404 means the requested resource was not found."
 }
