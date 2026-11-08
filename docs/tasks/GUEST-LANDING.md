@@ -1,6 +1,6 @@
 # GUEST-LANDING — 방문자 애니메이션 랜딩
 
-- 상태: DONE (역스크롤 고정 구간 빠른 복귀)
+- 상태: DONE (재하강 시 본 구간 빠른 복귀)
 - 요청: 비로그인 홈에 움직임 있는 랜딩을 보여주고 스크롤로 실제 퀴즈에 연결한다.
 - 기준: REQ-05 / AC-05h. 기존 방문자 제출·다음 문제·비저장 정책과 로그인 홈은 유지한다.
 - 범위: 홈 전용 랜딩, 번역, 모션 토큰, 홈 연결 및 테스트. 새 API·의존성 없음.
@@ -96,3 +96,13 @@
 
 - 최종 Node22.23.3: 변경 파일 ESLint/Prettier, 전체 typecheck, 관련 Jest3suites/16tests 통과. production build 포함 guest-landing-return/guest-landing/guest-landing-3d E2E10개(worker1) 통과. PC1440×900 휠·키보드, 모바일390×900 CDP 터치 직접 확인. 전체 lint/Jest/tools/기타 E2E는 랜딩 전용 컴포넌트 동작 변경의 영향 기반 로컬 완료 기준으로 미실행.
 - 독립 UX/UI R0 필수문제0. 검사 발견 제스처 초기화 수정 후 동일 리뷰어 R1에서 빠른 상하 전환·프로그램 이동 재검증, 필수문제0. 리뷰 지적 수정0회, 검사에 따른 수정3회(TDD 제외). 실제 모바일 기기·Safari 관성/SR 미확인. 최종 코드 검증 후 문서만 갱신, git diff --check 후 커밋. push/PR 없음.
+
+## 재하강 시 본 구간 빠른 복귀
+
+- 사용자 요청: 내렸다 올렸다 다시 내릴 때도 긴 고정 구간 건너뛰기. 이전 최고 진행률까지 양방향 복귀하며 미관람 부분/첫 하강 속도, 퍼즐 전환, 아이템낙하·배경상태 유지. hook·전용 E2E 변경.
+- 검증: 전용 return/landing/landing-3d E2E worker1, 관련 Jest3개, 전체 타입·변경정적 검사 및 독립 UX/UI. 랜딩 전용 위치보정으로 다른 상점·3D renderer/구매/배치 영향 없어 제외.
+
+- TDD: 재하강 새 기대값/부분관람 4개가 기존 코드에서 미복귀로 실패 확인. 첫 구현 후 관련E2E10통과/2실패(빠른 PageUp→PageDown). 기존 키 스크롤의 잔여 이동이 새 방향 의도를 취소하는 문제를 고정구간 키 skip의 keydown 즉시 처리로 수정. 일반 키이동/버튼 Space 활성화는 보존하며 목표점 반올림 경계1px 허용. 수정·재실행1회, 테스트 단언/timeout 완화 없음.
+- 최종 Node22.23.3: 변경파일 ESLint/Prettier·전체typecheck 통과, 관련Jest3suites/16tests 통과. production build 포함 전용3spec E2E12/12(worker1)통과. 첫 하강·부분관람 왕복2회·후속미관람 거리·정지·키보드 상하·프로그램 이동·3D유지·바로가기·체험·감소모션 검증. 전체lint/Jest/tools/기타E2E는 랜딩전용 컴포넌트 영향 기반 로컬완료 기준으로 미실행.
+
+- 독립 resume_ux/resume_ui R0 필수/선택문제0, 리뷰지적 수정0회. UX 최신 데스크톱 부분/완성 반복·100ms키보드왕복3회·모바일CDP터치·퀴즈앵커포커스 직접 확인. UI PC/모바일 외형·wheel 및 최신키보드 확인. 실제 모바일 기기/Safari/SR 미확인. 검증 후 문서만 갱신하여 코드 검사 재사용, git diff --check 후 커밋. push/PR 없음.

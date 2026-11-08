@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-// The desk is fully visible here. Returning to this point skips only
-// the retained furnishing hold, without changing the scene on screen.
+// The desk is fully visible here. Skip only the already-seen hold
+// between this entrance and the furthest point, in either direction.
 const deskEntrance = 0.72 / 1.625;
 
 export function useLandingReturn() {
@@ -12,10 +12,13 @@ export function useLandingReturn() {
   useEffect(() => {
     let previousY = scrollY;
     let returnUntil = 0;
+    let inputDirection = 0;
+    let furthest = 0;
     let touchY: number | undefined;
 
     const reset = () => {
       returnUntil = 0;
+      inputDirection = 0;
       previousY = scrollY;
     };
     const acceptsInput = (event: Event) =>
@@ -26,14 +29,27 @@ export function useLandingReturn() {
           'dialog, [role="dialog"], input, textarea, select, [contenteditable="true"]',
         )
       );
+    const arm = (
+      event: Event,
+      direction: number,
+      duration: number,
+    ) => {
+      inputDirection = acceptsInput(event)
+        ? Math.sign(direction)
+        : 0;
+      returnUntil = inputDirection
+        ? performance.now() + duration
+        : 0;
+    };
     const wheel = (event: WheelEvent) => {
-      returnUntil =
-        acceptsInput(event) &&
+      arm(
+        event,
         !event.ctrlKey &&
-        event.deltaY < 0 &&
-        Math.abs(event.deltaY) > Math.abs(event.deltaX)
-          ? performance.now() + 400
-          : 0;
+          Math.abs(event.deltaY) > Math.abs(event.deltaX)
+          ? event.deltaY
+          : 0,
+        400,
+      );
     };
     const touchStart = (event: TouchEvent) => {
       reset();
@@ -47,62 +63,103 @@ export function useLandingReturn() {
         event.touches.length === 1
           ? event.touches[0].clientY
           : undefined;
-      returnUntil =
-        acceptsInput(event) &&
-        nextY !== undefined &&
-        touchY !== undefined &&
-        nextY > touchY
-          ? performance.now() + 700
-          : 0;
+      arm(
+        event,
+        nextY !== undefined && touchY !== undefined
+          ? touchY - nextY
+          : 0,
+        700,
+      );
       touchY = nextY;
     };
     const keydown = (event: KeyboardEvent) => {
+      if (
+        event.key === " " &&
+        event.target instanceof Element &&
+        event.target.closest(
+          'button, summary, [role="button"], [role="checkbox"], [role="switch"]',
+        )
+      ) {
+        reset();
+        return;
+      }
       const upward =
         event.key === "ArrowUp" ||
         event.key === "PageUp" ||
         (event.key === " " && event.shiftKey);
-      returnUntil =
-        acceptsInput(event) &&
-        upward &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !event.altKey
-          ? performance.now() + 400
-          : 0;
+      const downward =
+        event.key === "ArrowDown" ||
+        event.key === "PageDown" ||
+        (event.key === " " && !event.shiftKey);
+      arm(
+        event,
+        !event.ctrlKey && !event.metaKey && !event.altKey
+          ? upward
+            ? -1
+            : downward
+              ? 1
+              : 0
+          : 0,
+        400,
+      );
+      // Handle a keyboard skip before its native smooth scroll starts, so
+      // opposite key presses cannot leave competing scroll animations.
+      if (inputDirection && jump(inputDirection))
+        event.preventDefault();
     };
-    const scroll = () => {
+    const jump = (direction: number) => {
       const currentY = window.scrollY;
-      const upward = currentY < previousY;
-      // A new downward journey ends the prior return gesture, including
-      // its momentum window. Do not apply it to subsequent navigation.
-      if (currentY > previousY) returnUntil = 0;
-      previousY = currentY;
+      const element = section.current;
+      if (!element) return;
+      const { top, height } =
+        element.getBoundingClientRect();
+      const hold = height - innerHeight;
+      if (hold <= 0) return;
+      const offset = -top;
+      furthest = Math.max(
+        furthest,
+        Math.min(1, Math.max(0, offset / hold)),
+      );
 
       if (
-        !upward ||
-        performance.now() > returnUntil ||
+        !direction ||
         matchMedia("(prefers-reduced-motion: reduce)")
           .matches ||
         innerHeight < 700 ||
         !CSS.supports("animation-timeline", "view()")
       )
         return;
-      const element = section.current;
-      if (!element) return;
-      const { top, height } =
-        element.getBoundingClientRect();
-      const hold = height - innerHeight;
-      const offset = -top;
       const entrance = hold * deskEntrance;
+      const target =
+        direction < 0 ? entrance : hold * furthest;
 
-      // Let the desk naturally re-enter from the quiz before skipping its hold.
-      if (offset <= entrance || offset > hold) return;
+      // Preserve the scene transition and stop at the furthest seen point.
+      // A completed scene skips to the end of its hold, not into the quiz.
+      if (
+        offset < entrance - 1 ||
+        offset > hold ||
+        Math.abs(target - offset) < 1
+      )
+        return;
       returnUntil = 0;
-      previousY = currentY + top + entrance;
+      inputDirection = 0;
+      previousY = currentY + top + target;
       window.scrollTo({
         top: previousY,
         behavior: "instant",
       });
+      return true;
+    };
+    const scroll = () => {
+      const currentY = window.scrollY;
+      const direction = Math.sign(currentY - previousY);
+      // End stale momentum intent when navigation changes direction.
+      if (direction && direction !== inputDirection)
+        returnUntil = 0;
+      previousY = currentY;
+      jump(
+        performance.now() <= returnUntil ? direction : 0,
+      );
     };
 
     addEventListener("wheel", wheel, { passive: true });
