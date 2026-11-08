@@ -21,6 +21,7 @@ import { SubscriptionCollection } from "@/components/discovery/subscription-coll
 import { DiscoveryMascot } from "@/components/discovery/discovery-mascot";
 import {
   discoveryStyles,
+  tagDiscoveryStyles,
   avatarTones,
 } from "@/components/discovery/styles";
 import { ApiClientError } from "@/api/client";
@@ -471,7 +472,7 @@ function DeveloperContent({
                     return (
                       <li
                         key={id}
-                        className={discoveryStyles.card}
+                        className={tagDiscoveryStyles.card}
                       >
                         <div className="flex min-w-0 items-center gap-3">
                           <div
@@ -536,7 +537,7 @@ function DeveloperContent({
                             </p>
                           )}
                         </div>
-                        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line/70 pt-3">
+                        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-control-line pt-3">
                           {summary && (
                             <Link
                               className={`${discoveryStyles.quizLink} text-sm font-semibold text-primary underline underline-offset-4`}
