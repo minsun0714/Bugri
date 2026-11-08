@@ -139,7 +139,7 @@ test("a changed time zone does not rewrite a stored date", () => {
 
 test("dateDistance counts calendar days", () => {
   expect(dateDistance("2026-11-08", "2026-11-11")).toBe(3);
-  expect(dateDistance("2026-12-30", "2027-01-02")).toBe(4);
+  expect(dateDistance("2026-12-30", "2027-01-02")).toBe(3);
   expect(dateDistance("2026-11-08", "2026-11-08")).toBe(0);
   expect(dateDistance("2026-11-10", "2026-11-08")).toBe(-2);
 });
