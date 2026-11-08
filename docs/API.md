@@ -272,6 +272,10 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - 기존 v1 저장값에 `profileOrder`가 없으면 `DESK → QUIZZES → ACTIVITY`를 반환한다. 손상된 저장 순서는 기존 저장소 오류로 처리하며 덮어쓰지 않는다. 공개 DTO에는 순서만 반환한다.
 - Query 키는 `profileOrder/userId/publicId`, 저장 성공 시 현재 캐시 갱신 및 `profileOrder` 조회 무효화. 실패 시 UI 초안 유지, 자동 mutation 재전송 없음.
 
+### 상품 표시 언어
+
+SHOP-I18N은 기존 `Product` 요청·응답 및 저장 형식을 유지한다. Mock 상품은 `src/lib/shop/catalog.ts`의 한국어 정의로 기존 `name`·`description`을 반환한다. 클라이언트는 상품 ID로 표시 문구만 현재 한국어/영어에 맞추고 검색·정렬에 사용한다. 가격·카테고리·보유 상태는 API 응답이 기준이며 카탈로그에 없는 ID는 응답 이름·설명을 그대로 표시한다. 언어 변경으로 구매·장착 요청이나 상태 저장을 수행하지 않는다.
+
 ## BUGCOIN-POLICY 제출·조회 계약
 
 `answer`/`attempt`의 `AttemptView.rewardBugCent`는 해당 Attempt로 실제 지급된 풀이자 보상의 정수 합계다(미제출/무보상0). 완료 재전송은 최초 결과를 반환하며 재계산하지 않는다. 삭제·비공개로 문제 본문이 숨겨져도 확정 합계는 남는다. UI는 기존 제출 성공 후 wallet 무효화를 재사용한다.
