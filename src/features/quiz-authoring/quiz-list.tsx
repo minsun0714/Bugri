@@ -7,7 +7,7 @@ import {
   type QuizSummary,
 } from "@/api/contracts";
 import { Badge, Button, EmptyState } from "@/components/ui";
-import { styles } from "@/components/ui/styles";
+import { pageTitle, styles } from "@/components/ui/styles";
 import { QuizCard } from "@/components/ui/quiz-card";
 import { Dropdown } from "@/components/ui/dropdown";
 
@@ -225,7 +225,7 @@ export function QuizList({
       aria-label={t("내 퀴즈 목록")}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">
+        <h1 className={pageTitle}>
           {t("내 퀴즈")}{" "}
           <span className="text-primary">
             {quizzes.length}

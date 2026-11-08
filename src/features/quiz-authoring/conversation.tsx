@@ -13,6 +13,7 @@ import {
   type ConversationProps,
 } from "@/features/quiz-authoring/hooks/use-conversation";
 import { styles } from "@/features/quiz-authoring/styles";
+import { pageTitle } from "@/components/ui/styles";
 
 export function Conversation(props: ConversationProps) {
   const t = useTranslation();
@@ -50,9 +51,7 @@ export function Conversation(props: ConversationProps) {
       className={styles.stack}
     >
       <div className={styles.actions}>
-        <h1 className="text-xl font-semibold tracking-tight">
-          {t("퀴즈 만들기")}
-        </h1>
+        <h1 className={pageTitle}>{t("퀴즈 만들기")}</h1>
       </div>
       <div>
         <Button onClick={() => setOpen(true)}>

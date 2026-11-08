@@ -5,6 +5,7 @@ import Link from "next/link";
 import { withDemoUser } from "@/components/navigation/routes";
 
 import { CoinHistory } from "@/components/coins/coin-history";
+import { pageTitle } from "@/components/ui/styles";
 
 type Props = { searchParams: Promise<{ user?: string }> };
 
@@ -16,7 +17,7 @@ async function Content({ searchParams }: Props) {
       : "learner";
   return (
     <>
-      <h1 className="text-3xl font-semibold">
+      <h1 className={pageTitle}>
         <LocalizedText message="코인 내역" />
       </h1>
       <div className="mt-6">

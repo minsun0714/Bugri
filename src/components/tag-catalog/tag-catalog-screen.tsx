@@ -26,6 +26,7 @@ import { useSubscribe } from "@/components/discovery/queries";
 import { tagDiscoveryStyles } from "@/components/discovery/styles";
 import { SubscriptionMenu } from "@/components/discovery/subscription-menu";
 import { Button, Skeleton, Toast } from "@/components/ui";
+import { pageTitle } from "@/components/ui/styles";
 
 function Catalog({
   userId,
@@ -175,7 +176,7 @@ function Catalog({
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
               <h1
                 id="tag-title"
-                className="w-fit max-w-full break-all rounded-2xl bg-success-soft px-3 py-2 text-xl sm:text-2xl"
+                className={`w-fit max-w-full break-all rounded-2xl bg-success-soft px-3 py-2 ${pageTitle}`}
               >
                 #{data.hashtag.name}
               </h1>

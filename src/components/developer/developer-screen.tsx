@@ -6,7 +6,10 @@ import {
 
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import { viewAllAction } from "@/components/ui/styles";
+import {
+  pageTitle,
+  viewAllAction,
+} from "@/components/ui/styles";
 
 import { createQueryClient } from "@/api/query-client";
 
@@ -153,7 +156,7 @@ function Catalog({
   if (quizzes.error)
     return (
       <div role="alert" className="space-y-4">
-        <h1>
+        <h1 className={pageTitle}>
           {quizzes.error instanceof ApiClientError &&
           quizzes.error.status === 404
             ? t("개발자를 찾을 수 없습니다")
@@ -174,7 +177,7 @@ function Catalog({
     </h1>
   ) : (
     <div className="min-w-40 max-w-full flex-1">
-      <h1 className="break-words text-lg sm:text-2xl">
+      <h1 className={`break-words ${pageTitle}`}>
         {data.user.displayName}
         {t("의 퀴즈")}
       </h1>

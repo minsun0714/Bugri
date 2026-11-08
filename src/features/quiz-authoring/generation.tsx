@@ -20,6 +20,7 @@ import {
   useGeneration,
   type GenerationProps,
 } from "@/features/quiz-authoring/hooks/use-generation";
+import { pageTitle } from "@/components/ui/styles";
 
 export function Generation(props: GenerationProps) {
   const t = useTranslation();
@@ -277,9 +278,7 @@ export function Generation(props: GenerationProps) {
     >
       {!props.embedded && (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold tracking-tight">
-            {t("생성 결과")}
-          </h1>
+          <h1 className={pageTitle}>{t("생성 결과")}</h1>
           <a
             className="text-sm font-semibold text-primary"
             href={`/quizzes/authoring?user=${encodeURIComponent(props.userId ?? "learner")}`}

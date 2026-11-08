@@ -80,3 +80,7 @@ export const styles = {
 // Shared by full-list navigation and full-list dialogs; distinct from purple editing actions.
 export const viewAllAction =
   "inline-flex !min-h-11 items-center justify-center !rounded-lg !border-0 !bg-transparent !px-3 !py-2 !text-sm !font-semibold !text-muted !shadow-none !transform-none transition-colors hover:!bg-canvas hover:!text-foreground focus-visible:outline-2 focus-visible:!outline-foreground";
+
+// Single size for every page-level h1 so sibling screens share one heading scale.
+export const pageTitle =
+  "text-2xl font-bold leading-8 tracking-tight text-foreground";

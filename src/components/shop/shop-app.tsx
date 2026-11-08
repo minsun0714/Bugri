@@ -30,6 +30,7 @@ import { Footer } from "@/components/ui/footer";
 import { ProductPreview } from "@/components/shop/product-preview";
 import { ShopProvider } from "@/components/shop/provider";
 import { useShop } from "@/components/shop/use-shop";
+import { pageTitle } from "@/components/ui/styles";
 
 const categories: Record<Category, string> = {
   KEYBOARD: "키보드",
@@ -193,7 +194,7 @@ function ShopContent({
   return (
     <>
       <div className="mb-7 flex min-w-0 items-center justify-between gap-4">
-        <h1 className="min-w-0 text-2xl">
+        <h1 className={`min-w-0 ${pageTitle}`}>
           {editing ? t("내 데스크") : t("상점")}
         </h1>
         <div aria-label={t("내 잔액")} className="shrink-0">

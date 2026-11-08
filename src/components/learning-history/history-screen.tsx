@@ -28,7 +28,10 @@ import { useSolvingQueries } from "@/components/solving/queries";
 import { useAttemptHistory } from "@/components/learning-history/queries";
 import { Bugri } from "@/components/ui/bugri";
 import { historyStyles } from "@/components/learning-history/styles";
-import { viewAllAction } from "@/components/ui/styles";
+import {
+  pageTitle,
+  viewAllAction,
+} from "@/components/ui/styles";
 
 const koreanLabels = {
   [AttemptHistoryFilter.ALL]: "전체",
@@ -391,7 +394,7 @@ export function HistoryScreen({
             </div>
           </div>
         )}
-        <h1 className="text-2xl leading-8 tracking-tight">
+        <h1 className={pageTitle}>
           {t(attemptId ? "풀이 결과" : "풀이 내역")}
         </h1>
       </div>

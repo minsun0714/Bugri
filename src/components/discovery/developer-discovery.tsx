@@ -42,6 +42,7 @@ import {
   useSubscriptions,
 } from "@/components/discovery/developer-queries";
 import { SubscriptionControl } from "@/components/discovery/subscription-control";
+import { pageTitle } from "@/components/ui/styles";
 
 const linkStyle =
   "inline-flex min-h-11 items-center rounded-xl text-primary font-semibold hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
@@ -242,9 +243,7 @@ function DeveloperContent({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <DiscoveryMascot />
-          <h1 className="text-2xl leading-8 tracking-tight">
-            {t("개발자 탐색")}
-          </h1>
+          <h1 className={pageTitle}>{t("개발자 탐색")}</h1>
         </div>
       </div>
       <form
