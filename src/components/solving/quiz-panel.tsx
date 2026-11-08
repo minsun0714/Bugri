@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
+import { RewardExplanation } from "@/components/solving/reward-explanation";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useRef, type ReactNode } from "react";
 import type {
+  RewardOutcome,
   Answer,
   AttemptResult,
   LearningQuizView,
@@ -43,6 +45,7 @@ export function QuizPanel({
   correct,
   learningDate,
   rewardBugCent,
+  rewardOutcome,
   rewardHistoryHref,
   focusKey,
   pending,
@@ -57,6 +60,7 @@ export function QuizPanel({
   correct?: boolean | null;
   learningDate?: string | null;
   rewardBugCent?: number;
+  rewardOutcome?: RewardOutcome;
   rewardHistoryHref?: string;
   focusKey: string;
   pending: boolean;
@@ -140,18 +144,25 @@ export function QuizPanel({
               {rewardBugCent !== undefined &&
                 rewardHistoryHref && (
                   <div className="flex flex-wrap items-center gap-x-3 text-sm">
-                    <span
-                      className={
-                        rewardBugCent > 0
-                          ? "font-semibold tabular-nums text-primary"
-                          : "tabular-nums text-foreground"
-                      }
-                    >
-                      {rewardBugCent > 0 ? "+" : ""}
-                      {(rewardBugCent / 100).toFixed(
-                        2,
-                      )}{" "}
-                      BugCoin
+                    <span className="inline-flex items-center gap-1">
+                      <span
+                        className={
+                          rewardBugCent > 0
+                            ? "whitespace-nowrap font-semibold tabular-nums text-primary"
+                            : "whitespace-nowrap tabular-nums text-foreground"
+                        }
+                      >
+                        {rewardBugCent > 0 ? "+" : ""}
+                        {(rewardBugCent / 100).toFixed(
+                          2,
+                        )}{" "}
+                        BugCoin
+                      </span>
+                      {rewardBugCent === 0 && (
+                        <RewardExplanation
+                          outcome={rewardOutcome}
+                        />
+                      )}
                     </span>
                     <Link
                       href={rewardHistoryHref}

@@ -252,3 +252,170 @@ test("deletion preserves committed solver and creator rewards", async () => {
     (await api("author").request("wallet", {})).balance,
   ).toBe(100.4);
 });
+
+test("zero reward records wrong-answer reason and preserves it after timezone/date changes", async () => {
+  const result = await solve(false);
+
+  expect(result.rewardOutcome).toMatchObject({
+    reasonCodes: ["INCORRECT"],
+    learningDate: "2026-02-01",
+    timeZone: "UTC",
+  });
+
+  now = new Date("2026-03-01T00:00:00Z");
+
+  await api().request("updateTimezone", {
+    timeZone: "Asia/Seoul",
+  });
+
+  expect(
+    await api().request("attempt", {
+      attemptId: result.attemptId,
+    }),
+  ).toEqual(result);
+
+  expect(
+    await api().request("answer", {
+      attemptId: result.attemptId,
+      answer: { type: "SINGLE_CHOICE", choiceId: "b" },
+    }),
+  ).toEqual(result);
+});
+
+test("zero correct replay explains both review cooldown and already paid daily bonus", async () => {
+  await solve();
+
+  const result = await solve();
+
+  expect(result.rewardBugCent).toBe(0);
+
+  expect(result.rewardOutcome).toEqual({
+    reasonCodes: ["REVIEW_WAIT", "DAILY_ALREADY_PAID"],
+    eligibleAt: "2026-02-08T00:00:00.000Z",
+    learningDate: "2026-02-01",
+    timeZone: "UTC",
+  });
+});
+
+test.each(["2026-02-01T00:00:00Z", undefined])(
+  "owner eligibility reason for creation %s",
+  async (createdAt) => {
+    const state = initialState("author");
+
+    const quiz = state.quizzes.find(
+      ({ quizId }) => quizId === "seed-quiz-1",
+    )!;
+
+    quiz.createdAt = createdAt;
+
+    localStorage.setItem(
+      storageKey("author"),
+      JSON.stringify(state),
+    );
+
+    const result = await solve(true, "author");
+
+    expect(result.rewardOutcome?.reasonCodes).toEqual([
+      createdAt ? "OWNER_WAIT" : "CREATION_UNKNOWN",
+    ]);
+  },
+);
+
+test("legacy zero attempts have no invented explanation", async () => {
+  const result = await solve(false);
+
+  const state = JSON.parse(
+    localStorage.getItem(storageKey("learner"))!,
+  );
+
+  delete state.attempts.find(
+    (a: { attemptId: string }) =>
+      a.attemptId === result.attemptId,
+  ).rewardOutcome;
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify(state),
+  );
+
+  expect(
+    (
+      await api().request("attempt", {
+        attemptId: result.attemptId,
+      })
+    ).rewardOutcome,
+  ).toBeUndefined();
+});
+
+test("legacy correct history explains missing initial award and paid daily bonus", async () => {
+  await solve();
+
+  const state = JSON.parse(
+    localStorage.getItem(storageKey("learner"))!,
+  );
+
+  state.rewards = state.rewards.filter(
+    (entry: { reason: string }) =>
+      entry.reason !== "FIRST_CORRECT",
+  );
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify(state),
+  );
+
+  expect(
+    (await solve()).rewardOutcome?.reasonCodes,
+  ).toEqual(["LEGACY_CORRECT", "DAILY_ALREADY_PAID"]);
+});
+
+test.each(["UNKNOWN", null])(
+  "corrupt reason %j is rejected without replacing stored data",
+  async (reason) => {
+    await solve(false);
+
+    const state = JSON.parse(
+      localStorage.getItem(storageKey("learner"))!,
+    );
+
+    state.attempts.at(-1).rewardOutcome.reasonCodes = [
+      reason,
+    ];
+
+    const raw = JSON.stringify(state);
+
+    localStorage.setItem(storageKey("learner"), raw);
+
+    await expect(
+      api().request("wallet", {}),
+    ).rejects.toMatchObject({
+      detail: { code: "STORAGE_CORRUPT" },
+    });
+
+    expect(
+      localStorage.getItem(storageKey("learner")),
+    ).toBe(raw);
+  },
+);
+
+test("waiting reason requires a valid saved eligibility timestamp", async () => {
+  await solve();
+  await solve();
+
+  const state = JSON.parse(
+    localStorage.getItem(storageKey("learner"))!,
+  );
+
+  delete state.attempts.at(-1).rewardOutcome.eligibleAt;
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify(state),
+  );
+
+  await expect(
+    api().request("wallet", {}),
+  ).rejects.toMatchObject({
+    detail: { code: "STORAGE_CORRUPT" },
+  });
+});

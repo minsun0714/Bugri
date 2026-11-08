@@ -12,6 +12,7 @@ import {
 } from "@/lib/desk-layout";
 import {
   RewardReason,
+  RewardNonPaymentReason,
   QuizStatus,
   LearningMode,
   DeskObject,
@@ -460,6 +461,50 @@ function validateState(
           typeof a.correct === "boolean"),
       "풀이가 손상되었습니다.",
     );
+
+    const { rewardOutcome } = a;
+
+    if (rewardOutcome !== undefined) {
+      object(rewardOutcome);
+
+      const {
+        reasonCodes,
+        eligibleAt,
+        learningDate,
+        timeZone,
+      } = rewardOutcome;
+
+      requireValue(
+        a.completedAt !== null &&
+          Array.isArray(reasonCodes) &&
+          reasonCodes.every((code) =>
+            Object.values(RewardNonPaymentReason).some(
+              (reason) => reason === code,
+            ),
+          ) &&
+          new Set(reasonCodes).size ===
+            reasonCodes.length &&
+          typeof learningDate === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(learningDate) &&
+          learningDate === a.learningDate &&
+          timeZoneValid(timeZone) &&
+          timeZone === a.timeZone &&
+          (eligibleAt === undefined ||
+            (typeof eligibleAt === "string" &&
+              Number.isFinite(Date.parse(eligibleAt)))),
+        "보상 판정 기록이 손상되었습니다.",
+      );
+
+      requireValue(
+        reasonCodes.some(
+          (code) =>
+            code === RewardNonPaymentReason.OWNER_WAIT ||
+            code === RewardNonPaymentReason.REVIEW_WAIT,
+        ) ===
+          (eligibleAt !== undefined),
+        "보상 대기 시각이 손상되었습니다.",
+      );
+    }
 
     revision(a.revision);
   }

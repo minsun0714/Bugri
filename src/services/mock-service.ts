@@ -1,4 +1,4 @@
-import { calculateRewards } from "@/services/bugcoin";
+import { evaluateRewards } from "@/services/bugcoin";
 import { quizReactionSummary } from "@/services/quiz-reactions";
 import { QuizReaction } from "@/api/constants";
 
@@ -294,6 +294,7 @@ export function execute<K extends Operation>(
     timeZone,
     correct,
     submittedAnswer,
+    rewardOutcome,
   }: StoredAttempt): AttemptView => {
     const q = allQuizzes.find(
       ({ quizId: currentQuizId }) =>
@@ -317,6 +318,7 @@ export function execute<K extends Operation>(
       learningDate,
       timeZone,
       correct,
+      ...(rewardOutcome ? { rewardOutcome } : {}),
       rewardBugCent: (s.rewards ?? [])
         .filter(
           (entry) =>
@@ -1446,21 +1448,23 @@ export function execute<K extends Operation>(
           (entry) => entry.quizId === a.quizId,
         )!;
 
-        const granted = calculateRewards({
-          userId: s.userId,
-          ownerUserId: a.ownerUserId,
-          quizId: a.quizId,
-          attemptId: a.attemptId,
-          correct: isCorrect(r.answer, a.revision.answer),
-          quizCreatedAt: quiz.createdAt,
-          now,
-          timeZone: s.timeZone,
-          previousAttempts: s.attempts.filter(
-            (entry) => entry.attemptId !== a.attemptId,
-          ),
-          rewards: s.rewards ?? [],
-        });
+        const { grants: granted, outcome } =
+          evaluateRewards({
+            userId: s.userId,
+            ownerUserId: a.ownerUserId,
+            quizId: a.quizId,
+            attemptId: a.attemptId,
+            correct: isCorrect(r.answer, a.revision.answer),
+            quizCreatedAt: quiz.createdAt,
+            now,
+            timeZone: s.timeZone,
+            previousAttempts: s.attempts.filter(
+              (entry) => entry.attemptId !== a.attemptId,
+            ),
+            rewards: s.rewards ?? [],
+          });
 
+        a.rewardOutcome = outcome;
         s.rewards = [...(s.rewards ?? []), ...granted];
       }
 

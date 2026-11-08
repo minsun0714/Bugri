@@ -1,4 +1,7 @@
-import type { RewardReason } from "@/api/constants";
+import type {
+  RewardNonPaymentReason,
+  RewardReason,
+} from "@/api/constants";
 import type {
   QuizReaction,
   ProfileSection,
@@ -168,7 +171,16 @@ export interface AttemptResult {
   explanation: string;
 }
 
+/** Immutable submission-time explanation; absent on legacy attempts. */
+export interface RewardOutcome {
+  reasonCodes: RewardNonPaymentReason[];
+  eligibleAt?: string;
+  learningDate: string;
+  timeZone: string;
+}
+
 export interface AttemptView {
+  rewardOutcome?: RewardOutcome;
   rewardBugCent?: number;
   attemptId: string;
   quizId: string;

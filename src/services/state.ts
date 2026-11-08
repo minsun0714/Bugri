@@ -1,6 +1,7 @@
 import type { QuizReaction } from "@/api/constants";
 import type {
   RewardGrant,
+  RewardOutcome,
   ProfileAbout,
   ProfileOrder,
   Answer,
@@ -23,6 +24,7 @@ export interface StoredQuiz extends ReviewQuiz {
 }
 
 export interface StoredAttempt {
+  rewardOutcome?: RewardOutcome;
   attemptId: string;
   quizId: string;
   revision: Revision;

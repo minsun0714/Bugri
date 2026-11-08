@@ -279,3 +279,9 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 `wallet`의 balance와 ledger.amount는 기존 BugCoin 표시 단위를 유지한다. 신규 FIRST_CORRECT/RETRY_CORRECT/DAILY_CORRECT/REVIEW/CREATOR 사유와 수령자에 해당하는 기록을 반환한다. 저장 `rewards`는 정수 amountBugCent, 사용자·풀이자·Quiz·Attempt·사유·학습일·시간대·UTC 시각·멱등 ID를 포함한다. 내부 outbox 형태의 출제자 지급은 풀이자 스냅샷에 함께 저장되어 저장 실패 시 양쪽 지급이 모두 취소된다. 읽기 요청이 과거 풀이를 소급 정산하지 않는다.
 
 기존 저장 데이터의 rewards 부재는 빈 기록으로 호환한다. 새로운 퀴즈에는 불변 createdAt을 저장한다. 생성 시각이 없는 이전 퀴즈는 본인 보상 자격을 추정하지 않는다. 기록 연결이 없는 방문자 체험은 그대로 무보상이며 익명24시간 세션/청구 의존성은 정책 문서의 후속 계약을 따른다.
+
+### 0 BugCoin 사유 — ZERO-REWARD
+
+새 정상 제출은 `AttemptView.rewardOutcome`과 저장 Attempt에 `{ reasonCodes, eligibleAt?, learningDate, timeZone }`를 함께 남긴다. 사유 코드는 INCORRECT, REVIEW_WAIT, OWNER_WAIT, CREATION_UNKNOWN, LEGACY_CORRECT, DAILY_ALREADY_PAID이며 복수 사유를 허용한다. 양수 지급은 빈 사유 배열이다. 대기 사유에만 정확한 UTC `eligibleAt`을 포함한다. 재조회·동일 답안 재제출은 원래 판정을 그대로 반환하며 현재 날짜·시간대·후속 지급으로 재계산하지 않는다. 사유가 없는 v1 이전 기록은 그대로 호환하고 일반 안내만 표시한다. 저장 시 사유 코드·학습일/시간대 일치·대기 시각을 검증한다.
+
+결과 UI는 제출 완료의 정확한0 지급에만 기존 ⓘ Tooltip을 보여준다. 문구는 한국어/영어로 표시하고 시각은 판정 당시 학습 시간대 기준으로 형식화한다. 대기 안내에는 제출 당시 기준과 새 정답 제출 조건을 명시해 자동 지급으로 오해하지 않도록 한다. 양수·미제출·방문자에는 미지급 사유 버튼을 추가하지 않는다. 금액과 ⓘ는 묶되 Tooltip 문장은 줄바꿈한다.
