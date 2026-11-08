@@ -29,7 +29,7 @@ description: Bugri의 명시적으로 요청된 기능 구현·수정에 사용�
 
 ## 검증 Hook을 사용할 때
 
-일부 E2E spec만 선택해 실행하려면 [검증 지침](references/verification.md)의 수동 명령을 사용하고 Hook을 활성화하지 않는다. 현재 Hook은 spec 선택·worker 인자를 지원하지 않는다. [Hook 사용법](../../../docs/HOOKS.md)을 읽고 Hook 기본 명령으로 전체 검증할 필요가 있는 최종 시점에만 `python3 -B scripts/hooks/verify_stop.py arm TASK_ID`로 활성화한다. Hook의 실제 로드·신뢰가 확인되지 않은 환경에서는 검증 지침을 직접 수행한다. Hook을 사용해도 관련 테스트는 직접 실행하며 마지막 전체 검증은 Hook이 실행한다. 성공 후 코드가 바뀌면 재검증한다. 환경 차단·사용자 중단은 `blocked "사유"`로 기록하고 성공으로 취급하지 않는다. 문서 작업에는 활성화하지 않는다.
+Hook은 `npm run verify:fast`(lint·typecheck·Jest·도구 테스트)만 실행하며 build와 E2E는 실행하지 않는다. E2E는 [검증 지침](references/verification.md)의 수동 명령(`npm run test:e2e -- <spec>`, 최종 단계의 `npm run verify`)으로 직접 실행한다. [Hook 사용법](../../../docs/HOOKS.md)을 읽고 빠른 검증을 자동화할 마무리 시점에만 `python3 -B scripts/hooks/verify_stop.py arm TASK_ID`로 활성화한다. Hook의 실제 로드·신뢰가 확인되지 않은 환경에서는 검증 지침을 직접 수행한다. Hook 통과를 전체 검증 통과로 표현하지 않으며, build·E2E를 포함한 최종 검증은 직접 실행한다. 성공 후 코드가 바뀌면 재검증한다. 환경 차단·사용자 중단은 `blocked "사유"`로 기록하고 성공으로 취급하지 않는다. 문서 작업에는 활성화하지 않는다.
 
 ## 디자인 시스템 사용
 

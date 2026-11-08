@@ -14,11 +14,13 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "node scripts/run-playwright.mjs",
+    "verify:fast": "npm run lint && npm run typecheck && npm test -- --runInBand && npm run test:tools",
     "verify": "npm run lint && npm run typecheck && npm test -- --runInBand && npm run test:tools && npm run build && npm run test:e2e",
     "predev": "node scripts/check-node.cjs",
     "prebuild": "node scripts/check-node.cjs",
     "prestart": "node scripts/check-node.cjs",
     "preverify": "node scripts/check-node.cjs",
+    "preverify:fast": "node scripts/check-node.cjs",
     "test:tools": "node --test scripts/tests/*.test.mjs"
   },
   "dependencies": {
