@@ -48,6 +48,7 @@ export function QuizPanel({
   rewardOutcome,
   rewardHistoryHref,
   focusKey,
+  autoFocus = true,
   pending,
   onDirtyChange,
   onSubmit,
@@ -63,6 +64,7 @@ export function QuizPanel({
   rewardOutcome?: RewardOutcome;
   rewardHistoryHref?: string;
   focusKey: string;
+  autoFocus?: boolean;
   pending: boolean;
   onDirtyChange?: (dirty: boolean) => void;
   onSubmit: (answer: Answer) => void;
@@ -76,6 +78,7 @@ export function QuizPanel({
   const hasResult = !!result;
   const verdict = result?.correct ?? correct;
   useEffect(() => {
+    if (!autoFocus) return;
     const node = start.current;
     const { activeElement } = document;
     const identity = `${focusKey}:${hasResult}`;
@@ -96,7 +99,7 @@ export function QuizPanel({
       block: "nearest",
       behavior: "instant",
     });
-  }, [focusKey, hasResult]);
+  }, [focusKey, hasResult, autoFocus]);
 
   return (
     <Card className={solvingStyles.card}>

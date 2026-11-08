@@ -3,6 +3,10 @@ import { HomeSections } from "@/components/navigation/home-sections";
 
 let signedIn = false;
 
+jest.mock("@/components/landing/reward-desk", () => ({
+  RewardDesk: () => <div>3D desk illustration</div>,
+}));
+
 jest.mock("@/components/navigation/demo-session", () => ({
   useDemoSession: () => ({ signedIn }),
 }));

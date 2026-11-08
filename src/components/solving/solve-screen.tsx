@@ -269,7 +269,7 @@ export function SolveScreen({
         ) : (
           <>
             <h1 className={solvingStyles.title}>
-              {t("오늘의 퀴즈")}
+              {t("한 문제, 직접 풀어볼까요?")}
             </h1>
             <GuestQuiz />
           </>
