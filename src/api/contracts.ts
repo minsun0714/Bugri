@@ -1,3 +1,4 @@
+import type { RewardReason } from "@/api/constants";
 import type {
   ProfileSection,
   ProfileLinkKind,
@@ -73,6 +74,7 @@ export interface Revision extends QuizContent {
 }
 
 export interface ReviewQuiz {
+  createdAt?: string;
   publishedAt?: string;
   quizId: string;
   ownerUserId: string;
@@ -160,6 +162,7 @@ export interface AttemptResult {
 }
 
 export interface AttemptView {
+  rewardBugCent?: number;
   attemptId: string;
   quizId: string;
   revisionId: string;
@@ -219,7 +222,8 @@ export type DeskTransforms = Partial<
 export interface LedgerEntry {
   id: string;
   amount: number;
-  reason: "SEED" | "DAILY_COMPLETION" | "PURCHASE";
+  reason:
+    "SEED" | "DAILY_COMPLETION" | "PURCHASE" | RewardReason;
   reference: string;
   createdAt: string;
 }
@@ -668,4 +672,18 @@ export interface ApiTransport {
 
 export interface ProfileOrder {
   order: ProfileSection[];
+}
+
+/** Committed in the solver snapshot, including grants addressed to the creator. */
+export interface RewardGrant {
+  id: string;
+  userId: string;
+  solverUserId: string;
+  quizId: string;
+  attemptId: string;
+  reason: RewardReason;
+  amountBugCent: number;
+  createdAt: string;
+  learningDate: string;
+  timeZone: string;
 }

@@ -10,6 +10,7 @@ import {
   validPosition,
 } from "@/lib/desk-layout";
 import {
+  RewardReason,
   QuizStatus,
   LearningMode,
   DeskObject,
@@ -323,6 +324,9 @@ function validateState(
         q.version > 0 &&
         Object.values(QuizStatus).includes(q.status) &&
         typeof q.updatedAt === "string" &&
+        (q.createdAt === undefined ||
+          (typeof q.createdAt === "string" &&
+            Number.isFinite(Date.parse(q.createdAt)))) &&
         (q.publishedAt === undefined ||
           (typeof q.publishedAt === "string" &&
             Number.isFinite(Date.parse(q.publishedAt)))) &&
@@ -445,6 +449,44 @@ function validateState(
         typeof d.completedAt === "string",
       "학습일이 손상되었습니다.",
     );
+  }
+
+  if (value.rewards !== undefined) {
+    requireValue(
+      Array.isArray(value.rewards),
+      "보상 기록이 손상되었습니다.",
+    );
+
+    const ids = new Set<string>();
+
+    for (const entry of value.rewards) {
+      object(entry);
+
+      requireValue(
+        typeof entry.id === "string" &&
+          !ids.has(entry.id) &&
+          entry.solverUserId === userId &&
+          users.some(
+            (user) => user.userId === entry.userId,
+          ) &&
+          typeof entry.quizId === "string" &&
+          typeof entry.attemptId === "string" &&
+          Object.values(RewardReason).some(
+            (reason) => reason === entry.reason,
+          ) &&
+          typeof entry.amountBugCent === "number" &&
+          Number.isSafeInteger(entry.amountBugCent) &&
+          entry.amountBugCent > 0 &&
+          typeof entry.createdAt === "string" &&
+          Number.isFinite(Date.parse(entry.createdAt)) &&
+          typeof entry.learningDate === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(entry.learningDate) &&
+          timeZoneValid(entry.timeZone),
+        "보상 기록이 손상되었습니다.",
+      );
+
+      ids.add(entry.id);
+    }
   }
 
   for (const l of ledger) {

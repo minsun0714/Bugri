@@ -1,3 +1,4 @@
+import { calculateRewards } from "@/services/bugcoin";
 import {
   defaultProfileOrder,
   validProfileOrder,
@@ -94,7 +95,7 @@ export interface ServiceContext {
   now: Date;
   id: () => string;
   generate: MockGenerator;
-  dailyReward: number;
+  dailyReward?: number;
   reply?: (
     messages: AuthoringMessage[],
     content: string,
@@ -311,6 +312,16 @@ export function execute<K extends Operation>(
       learningDate,
       timeZone,
       correct,
+      rewardBugCent: (s.rewards ?? [])
+        .filter(
+          (entry) =>
+            entry.userId === s.userId &&
+            entry.attemptId === attemptId,
+        )
+        .reduce(
+          (sum, { amountBugCent }) => sum + amountBugCent,
+          0,
+        ),
       result:
         visible && submittedAnswer
           ? {
@@ -396,8 +407,22 @@ export function execute<K extends Operation>(
     return r.visibility;
   };
 
-  const balance = () =>
-    s.ledger.reduce((sum, { amount }) => sum + amount, 0);
+  const rewards = () =>
+    allStates
+      .flatMap((state) => state.rewards ?? [])
+      .filter((entry) => entry.userId === s.userId);
+
+  const balanceBugCent = () =>
+    s.ledger.reduce(
+      (sum, { amount }) => sum + amount * 100,
+      0,
+    ) +
+    rewards().reduce(
+      (sum, { amountBugCent }) => sum + amountBugCent,
+      0,
+    );
+
+  const balance = () => balanceBugCent() / 100;
 
   const conversation: AuthoringConversation =
     s.authoringConversation ?? {
@@ -642,6 +667,7 @@ export function execute<K extends Operation>(
       source(batch.sourceContent);
 
       const quiz: StoredQuiz = {
+        createdAt: timestamp,
         quizId: id(),
         ownerUserId: s.userId,
         status: QuizStatus.PUBLIC,
@@ -751,6 +777,7 @@ export function execute<K extends Operation>(
         }
 
         const q: StoredQuiz = {
+          createdAt: timestamp,
           quizId: id(),
           ownerUserId: s.userId,
           status: QuizStatus.PENDING,
@@ -1368,6 +1395,29 @@ export function execute<K extends Operation>(
 
       const date = localDate(now, s.timeZone);
 
+      if (dailyReward === undefined) {
+        const quiz = allQuizzes.find(
+          (entry) => entry.quizId === a.quizId,
+        )!;
+
+        const granted = calculateRewards({
+          userId: s.userId,
+          ownerUserId: a.ownerUserId,
+          quizId: a.quizId,
+          attemptId: a.attemptId,
+          correct: isCorrect(r.answer, a.revision.answer),
+          quizCreatedAt: quiz.createdAt,
+          now,
+          timeZone: s.timeZone,
+          previousAttempts: s.attempts.filter(
+            (entry) => entry.attemptId !== a.attemptId,
+          ),
+          rewards: s.rewards ?? [],
+        });
+
+        s.rewards = [...(s.rewards ?? []), ...granted];
+      }
+
       a.submittedAnswer = r.answer;
       a.correct = isCorrect(r.answer, a.revision.answer);
       a.completedAt = timestamp;
@@ -1381,7 +1431,7 @@ export function execute<K extends Operation>(
           completedAt: timestamp,
         });
 
-        if (dailyReward > 0)
+        if (dailyReward !== undefined && dailyReward > 0)
           s.ledger.push({
             id: id(),
             amount: dailyReward,
@@ -1410,7 +1460,24 @@ export function execute<K extends Operation>(
     case "wallet":
       return {
         balance: balance(),
-        ledger: s.ledger,
+        ledger: [
+          ...s.ledger,
+          ...rewards().map(
+            ({
+              id,
+              amountBugCent,
+              reason,
+              quizId,
+              createdAt,
+            }) => ({
+              id,
+              amount: amountBugCent / 100,
+              reason,
+              reference: quizId,
+              createdAt,
+            }),
+          ),
+        ],
       };
 
     case "purchase": {
@@ -1454,7 +1521,7 @@ export function execute<K extends Operation>(
           409,
         );
 
-      if (balance() < product.price)
+      if (balanceBugCent() < product.price * 100)
         throw new ServiceError(
           "INSUFFICIENT_BALANCE",
           "BugCoin이 부족합니다.",

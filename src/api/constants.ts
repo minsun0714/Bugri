@@ -116,3 +116,14 @@ export const ProfileSection = {
 
 export type ProfileSection =
   (typeof ProfileSection)[keyof typeof ProfileSection];
+
+export const RewardReason = {
+  FIRST_CORRECT: "FIRST_CORRECT",
+  RETRY_CORRECT: "RETRY_CORRECT",
+  DAILY_CORRECT: "DAILY_CORRECT",
+  REVIEW: "REVIEW",
+  CREATOR: "CREATOR",
+} as const;
+
+export type RewardReason =
+  (typeof RewardReason)[keyof typeof RewardReason];

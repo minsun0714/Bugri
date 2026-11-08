@@ -1,4 +1,5 @@
 import type {
+  RewardGrant,
   ProfileAbout,
   ProfileOrder,
   Answer,
@@ -40,6 +41,7 @@ export interface StoredDay {
 
 export interface UserState {
   schemaVersion: 1;
+  rewards?: RewardGrant[];
   profileAbout?: ProfileAbout;
   profileOrder?: ProfileOrder;
   /** One-time mock fixture upgrade; absent in older v1 snapshots. */

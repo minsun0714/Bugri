@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 import type {
   Answer,
@@ -38,6 +39,8 @@ export function QuizPanel({
   completedAt,
   correct,
   learningDate,
+  rewardBugCent,
+  rewardHistoryHref,
   focusKey,
   pending,
   onDirtyChange,
@@ -49,6 +52,8 @@ export function QuizPanel({
   completedAt?: string | null;
   correct?: boolean | null;
   learningDate?: string | null;
+  rewardBugCent?: number;
+  rewardHistoryHref?: string;
   focusKey: string;
   pending: boolean;
   onDirtyChange?: (dirty: boolean) => void;
@@ -125,6 +130,30 @@ export function QuizPanel({
                 풀이 완료
                 {learningDate ? ` · ${learningDate}` : ""}
               </p>
+              {rewardBugCent !== undefined &&
+                rewardHistoryHref && (
+                  <div className="flex flex-wrap items-center gap-x-3 text-sm">
+                    <span
+                      className={
+                        rewardBugCent > 0
+                          ? "font-semibold tabular-nums text-primary"
+                          : "tabular-nums text-foreground"
+                      }
+                    >
+                      {rewardBugCent > 0 ? "+" : ""}
+                      {(rewardBugCent / 100).toFixed(
+                        2,
+                      )}{" "}
+                      BugCoin
+                    </span>
+                    <Link
+                      href={rewardHistoryHref}
+                      className={solvingStyles.supportLink}
+                    >
+                      내역 보기
+                    </Link>
+                  </div>
+                )}
             </div>
           </div>
         ) : null}

@@ -125,3 +125,23 @@ test.each([
     ).toBeVisible();
   },
 );
+
+test("completed member attempt displays credited coins and history link", () => {
+  render(
+    <QuizPanel
+      quiz={quiz}
+      result={null}
+      completedAt="2026-02-01T00:00:00Z"
+      correct={true}
+      rewardBugCent={150}
+      rewardHistoryHref="/coin-history?user=learner"
+      focusKey="reward"
+      pending={false}
+      onSubmit={() => {}}
+    />,
+  );
+  expect(screen.getByText("+1.50 BugCoin")).toBeVisible();
+  expect(
+    screen.getByRole("link", { name: "내역 보기" }),
+  ).toHaveAttribute("href", "/coin-history?user=learner");
+});

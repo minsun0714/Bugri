@@ -164,6 +164,8 @@ function Session({
               quiz={data.quiz}
               result={data.result}
               completedAt={data.completedAt}
+              rewardBugCent={data.rewardBugCent}
+              rewardHistoryHref={`/coin-history?user=${encodeURIComponent(userId)}`}
               correct={data.correct}
               learningDate={data.learningDate}
               focusKey={data.attemptId}
