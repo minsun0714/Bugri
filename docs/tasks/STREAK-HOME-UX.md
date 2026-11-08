@@ -29,3 +29,15 @@
 - Node22.23.3, 변경 파일 ESLint·Prettier, summary 단위9개, production build, diff 검사 통과. 실제 브라우저1280/390/320px에서 SVG/버튼 세로중심차0px·수평넘침 없음과 펼침/접힘 확인. 기존 영어 ‘Learning history’ 번역 재사용.
 - 별도 dev 실행은 동일 워크트리의 기존 서버 잠금으로 종료됐다. 해당 서버는 중단·재사용하지 않고 production build와 별도3217 포트에서 검증했다.
 - 독립 UI 후속 리뷰에서320px 어절 분리 개선 의견을 반영해 break-keep 적용. `.bugri-hooks/previews/streak-compact/label-320-fixed.png` 및 `label-320-open.png`로 재확인. 문구·정렬만 변경하여 전체 타입/Jest/E2E 파이프라인은 재실행하지 않았다.
+
+### PR 최종 검증 계획
+
+- 기준 코드: c625d08, Node22.23.3. 전체 lint·타입·Jest·도구 검사와 아래 E2E 실행. 최종 코드 production build 성공 결과 재사용, E2E도 동일 코드로 빌드한다.
+- 실행 spec: bugcoin-rewards.spec.ts, coin-history.spec.ts, design-system.spec.ts, developer-discovery-repair.spec.ts, developer.spec.ts, discovery-split.spec.ts, error-handling.spec.ts, home-quiz-review.spec.ts, locale.spec.ts, markdown-editor.spec.ts, mock-api.spec.ts, navigation.spec.ts, profile-about.spec.ts, profile-layout.spec.ts, profile-order.spec.ts, profile-polish.spec.ts, profile-split.spec.ts, profile-streak.spec.ts, quiz-authoring.spec.ts, quiz-card-actions.spec.ts, quiz-reactions.spec.ts, solving.spec.ts, streak.spec.ts, tag-catalog.spec.ts, tag-discovery.spec.ts, theme.spec.ts.
+- 제외 spec: bugri-tabletop.spec.ts, camera-drag-direction.spec.ts, desk-3d.spec.ts, desk-bugri.spec.ts, desk-direct.spec.ts, desk-foot-orbit.spec.ts, desk-free-placement.spec.ts, desk-height.spec.ts, desk-independent-trial.spec.ts, desk-layer-menu.spec.ts, desk-shared-controls.spec.ts, desk-visibility.spec.ts, front-height-drag.spec.ts, item-tabletop.spec.ts, monitor-screens.spec.ts, my-desk.spec.ts, room-projection.spec.ts, room-theme-bugri.spec.ts, room-zoom.spec.ts, scene-centering.spec.ts, shop-additive-preview.spec.ts, shop-extra-items.spec.ts, shop-locale.spec.ts, shop-tryon-edit.spec.ts, shop-tryon.spec.ts, shop.spec.ts, stable-placement-view.spec.ts, trial-zoom.spec.ts. 홈 전용 표시·신규 번역만 변경해 상점 구매/데스크 렌더링·조작 영향 없음. profile/theme 등 혼합 spec은 유지하며 worker1 사용.
+
+### PR 최종 검증 결과
+
+- 검증 코드 c625d08, Node22.23.3. `npm run lint`, `npm run typecheck` 통과. `npm test -- --runInBand`:69 suites/363 tests 통과. `npm run test:tools`:3 tests 통과.
+- 위26개 spec을 `npm run test:e2e -- <선택 spec> --workers=1`로 실행:141개 통과(2.4분). E2E 서버 production build 성공. 상점/3D 전용28개 spec 제외, 혼합 spec 유지.
+- 최종 검증 실패 없음. 이후 변경은 이 검증 기록 문서뿐이므로 성공 결과 재사용. `git diff --check` 통과. 최신 origin/dev(d9e257e)와 merge-tree로 충돌 없음 확인했으며 해당 브랜치를 로컬 코드에 통합하지는 않았다.
