@@ -1860,3 +1860,10 @@
 
 - 추가 사용자 pull: origin/dev1c5004e 테마토글과 진행중파일이 겹쳐 tooltip 작업을 명명된stash로 보관했다. 테마병합 en.json충돌에서 두사전을 보존하고 관련11개통과 후3306472에 병합. stash재적용 사전충돌은 stashbase 대비 새8개키만 최신사전에 반영하여 해결했다. 독립리뷰가 양부모번역·tooltip8키·코드복원을 확인했다.
 - 최종 결과(3306472+ZERO-REWARD): 전체 lint·typecheck·Jest68 suites/358 tests·도구3개·production build 통과. 선택27파일 E2E148개 worker1/port3430에서 전부 통과(2.5분). 변경파일 Prettier·diff 검사 통과. 상세3D26파일 제외 근거는 위 기록 참조. 검증 후 변경은 기록문서뿐이며 결과를 재사용한다. 로그 `.bugri-hooks/zero-reward/{static-final,unit-final,tools-final,build-final,e2e-final}.log`.
+
+## HEADER-REMOVE-APPEARANCE 헤더 화면 설정 제거
+
+- 상태: DONE. 사용자 요청에 따라 PC 헤더와 모바일 메뉴의 화면 설정 링크만 제거한다. REQ-15 테마 토글과 `/settings` 직접 접근은 유지한다.
+- 검증 범위: 변경 파일 lint/포맷, 전체 타입 검사, navigation/header 단위 테스트, theme E2E(한국어·영어 PC/모바일). 단순 링크 제거의 로컬 검증으로 한정하며 구매·배치·회전 등 상점/3D 흐름은 영향이 없어 제외한다.
+- 실행 결과(Node v22.23.3): 변경 TSX/spec ESLint·Prettier, 전체 typecheck, Jest navigation/header-profile-link 12개, theme E2E 10개 통과. E2E 서버 production build 통과. 최초 typecheck는 생성된 LayoutProps 부재로 실패했으며 E2E 빌드로 Next 타입 생성 후 재실행 통과했다. 전체 verify는 미실행(단순 링크 제거 로컬 완료 범위). theme spec의 기존 Canvas 색상 보존 검사는 유지하고 worker 1로 실행했다.
+- 독립 UX/UI 실제 PC·모바일 리뷰: 문제 0개, 수정 0회. [리뷰 근거](ux-reviews/HEADER-REMOVE-APPEARANCE.md). 로컬 완료이며 전체 PR 최종 검증은 수행하지 않았다.
