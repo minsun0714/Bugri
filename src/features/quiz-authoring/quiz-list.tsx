@@ -5,6 +5,7 @@ import {
   type QuizSummary,
 } from "@/api/contracts";
 import { Badge, Button, EmptyState } from "@/components/ui";
+import { styles } from "@/components/ui/styles";
 import { QuizCard } from "@/components/ui/quiz-card";
 import { Dropdown } from "@/components/ui/dropdown";
 
@@ -216,8 +217,18 @@ export function QuizList({
         </h1>
         <a
           href={createHref}
-          className="inline-flex min-h-10 items-center justify-center rounded-[13px] border-2 border-[#4b30ac] bg-primary px-4 py-2 text-[13px] font-semibold text-white shadow-[0_3px_0_#4b30ac] transition hover:-translate-y-0.5 hover:bg-[#5032ba]"
+          className={`${styles["ui-button"]} primary min-h-11 motion-reduce:transform-none!`}
         >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="size-4 shrink-0"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
           새 퀴즈 만들기
         </a>
       </div>
@@ -316,14 +327,6 @@ export function QuizList({
         <EmptyState
           title="저장한 퀴즈가 없습니다"
           description="퀴즈를 만들고 마음에 드는 결과를 저장하세요."
-          action={
-            <a
-              href={createHref}
-              className="text-primary underline"
-            >
-              퀴즈 만들기
-            </a>
-          }
         />
       )}
 

@@ -45,7 +45,10 @@ const quizzes: QuizSummary[] = [
   },
 ];
 
-function renderList(overrides: Partial<QuizListView> = {}) {
+function renderList(
+  overrides: Partial<QuizListView> = {},
+  items = quizzes,
+) {
   const onViewChange = jest.fn();
   const onOpen = jest.fn();
   const view: QuizListView = {
@@ -58,7 +61,7 @@ function renderList(overrides: Partial<QuizListView> = {}) {
 
   render(
     <QuizList
-      quizzes={quizzes}
+      quizzes={items}
       view={view}
       createHref="/quizzes/authoring?user=learner"
       isFetching={false}
@@ -205,3 +208,20 @@ test("shows a focused empty state for filters with no matches", () => {
     }),
   ).toBeVisible();
 });
+
+test.each([{ items: quizzes }, { items: [] }])(
+  "keeps one creation link for populated and empty lists (%#)",
+  ({ items }) => {
+    renderList({}, items);
+
+    const links = screen.getAllByRole("link", {
+      name: /퀴즈 만들기/,
+    });
+
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "/quizzes/authoring?user=learner",
+    );
+  },
+);
