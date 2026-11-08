@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme inline {
+  --font-editorial:
+    var(--font-landing-editorial), "Batang", Georgia, serif;
+}
+
 @theme {
   --color-primary: #6544dc;
   --color-foreground: #29243d;

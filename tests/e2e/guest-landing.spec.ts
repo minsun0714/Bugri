@@ -42,23 +42,31 @@ test("reduced motion renders a static introduction", async ({
   await expect(
     page.locator("#landing-title"),
   ).toBeVisible();
-  expect(
-    await section
-      .locator("*")
-      .evaluateAll((elements) =>
-        elements.every(
-          (element) =>
-            getComputedStyle(element).animationName ===
-            "none",
+  await expect(section.locator("canvas")).toBeVisible();
+  await expect
+    .poll(() =>
+      section
+        .locator("*")
+        .evaluateAll((elements) =>
+          elements.every(
+            (element) =>
+              getComputedStyle(element).animationName ===
+              "none",
+          ),
         ),
-      ),
-  ).toBe(true);
+    )
+    .toBe(true);
 });
 
 test("completed guest practice offers optional demo continuation without transferring rewards", async ({
   page,
 }) => {
   await page.goto("/");
+  await expect(
+    page.getByText("읽고, 풀고, 나만의 공간으로.", {
+      exact: true,
+    }),
+  ).toHaveCount(0);
   const continueButton = page.getByRole("button", {
     name: "데모 사용자로 계속하기",
   });
@@ -68,7 +76,7 @@ test("completed guest practice offers optional demo continuation without transfe
       name: "상점 둘러보기",
       exact: true,
     }),
-  ).toHaveAttribute("href", "/shop");
+  ).toHaveCount(0);
   await page
     .getByRole("link", { name: "바로 퀴즈 풀기" })
     .click();

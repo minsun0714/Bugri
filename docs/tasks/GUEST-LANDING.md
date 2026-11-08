@@ -1,6 +1,6 @@
 # GUEST-LANDING — 방문자 애니메이션 랜딩
 
-- 상태: DONE (학습 보상 문구 명확화)
+- 상태: DONE (하단 정리·랜딩 타이포 변경)
 - 요청: 비로그인 홈에 움직임 있는 랜딩을 보여주고 스크롤로 실제 퀴즈에 연결한다.
 - 기준: REQ-05 / AC-05h. 기존 방문자 제출·다음 문제·비저장 정책과 로그인 홈은 유지한다.
 - 범위: 홈 전용 랜딩, 번역, 모션 토큰, 홈 연결 및 테스트. 새 API·의존성 없음.
@@ -113,3 +113,14 @@
 - 문구 전용: 변경 정적 검사·타입 키 확인, PC/모바일 인접 화면 확인과 독립 리뷰. 코드 동작 변경 없어 앱 전체 pipeline 및 상점·3D E2E 제외.
 
 - Node22.23.3. 변경파일 ESLint/Prettier·전체typecheck 통과. 3189 PC1440×900/모바일390×900 한국어 화면 직접확인, 가로넘침없음. 독립 UX/UI R0 필수문제0·수정0회. 문구전용으로 Jest/build/E2E 재실행 없음; 영어는 소스/타입만 확인. 최종 문서후 git diff --check 및 커밋.
+
+## 하단 정리·랜딩 타이포 변경
+
+- 사용자 요청: 하단 슬로건/상점링크/구분선 제거, 두 장면 제목·설명의 정형적인 타이포 개선. Hahmlet500 명조제목/고딕본문, 반복 보라강조 제거 및 행간 정리. 기존 퍼즐/3D/스크롤/퀴즈진입 유지.
+- UI디자이너 설계 위임, 독립 UX/UI 최종 화면리뷰 예정. 로컬폰트와 랜딩전용 스타일만 변경. 변경정적/타입·관련Jest·guest-landing/guest-landing-return/guest-landing-3d E2E(worker1) 예정. 공통 renderer/상점구매·배치 변경없어 기타 상점3D 제외.
+
+- 구현: Hahmlet 원본 가변폰트를 full glyph static500 WOFF2(240,644bytes)로 변환, OFL/출처·변환기록 동봉. next/font/local로 랜딩에만 적용, 프로젝트 의존성 추가/외부폰트요청 없음. 새 font-editorial @theme inline 토큰은 랜딩만 소비하며 기존 공통스타일 변화없음.
+- Node22.23.3: 변경ESLint/Prettier·전체typecheck·관련Jest3suites/16tests 통과. 선택E2E 최초11통과/1실패(삭제된 상점링크의 옛 기대값). 제거기대값으로 수정 후5개 재실행에서 해당흐름통과, 감소모션1건간헐실패. production3190 진단에서 animationName 빈값을 낸 P가 connected:false인 3D로딩 placeholder임을 재현. 실제모션 문제가 아닌 DOM교체시점으로 확인, canvas표시를 기다리고 동일 ‘모든 animationName none’ 조건을 expect.poll로 검증. assertion/timeout 완화 없음. 수정재실행2회.
+- 직접 화면: PC1440×900/모바일390×900/320×700, 감소모션390×844, 영어390×900 캡처·font loaded·넘침없음 확인. 독립UX 실제앵커→포커스→선택→제출→해설/다음문제 확인, UI 직접320px제목/설명2줄·폰트500확인. 리뷰 R0 필수문제0/수정0회.
+
+- 최종 guest-landing5/5통과, 변경없는 return/3D7개 최초성공결과 재사용해 선택12개 충족. production build 통과. 최종제품코드 변경 없이 테스트 동기화/렌더완료대기만 수정. 전체lint/Jest/tools/기타E2E 미실행(랜딩전용 표시/링크제거·새 전용토큰, 기존공통동작변경없음). 문서갱신후 diff검사·커밋, push/PR 없음.
