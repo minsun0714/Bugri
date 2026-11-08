@@ -4,7 +4,15 @@ import { DemoSessionProvider } from "@/components/navigation/demo-session";
 import { ThemeSync } from "@/components/ui/theme-sync";
 import { themeBootstrapScript } from "@/lib/theme/bootstrap";
 import type { Metadata, Viewport } from "next";
+import { IBM_Plex_Sans_KR } from "next/font/google";
 import "@/app/globals.css";
+
+const ibmPlexSansKr = IBM_Plex_Sans_KR({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  preload: false,
+  variable: "--font-ibm-plex-sans-kr",
+});
 
 export const metadata: Metadata = {
   title: "Bugri | 퀴즈 관리 플랫폼",
@@ -20,7 +28,11 @@ export default function RootLayout({
   children,
 }: LayoutProps<"/">) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html
+      lang="ko"
+      className={ibmPlexSansKr.variable}
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
