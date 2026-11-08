@@ -271,3 +271,7 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - `ProfileSection`은 `DESK`, `QUIZZES`, `ACTIVITY`이며 세 값을 중복·누락 없이 정확히 한 번씩 포함해야 한다. 잘못된 요청은 400, 없는 공개 사용자는 404, 저장 실패는 기존 `STORAGE_UNAVAILABLE` 계약이다.
 - 기존 v1 저장값에 `profileOrder`가 없으면 `DESK → QUIZZES → ACTIVITY`를 반환한다. 손상된 저장 순서는 기존 저장소 오류로 처리하며 덮어쓰지 않는다. 공개 DTO에는 순서만 반환한다.
 - Query 키는 `profileOrder/userId/publicId`, 저장 성공 시 현재 캐시 갱신 및 `profileOrder` 조회 무효화. 실패 시 UI 초안 유지, 자동 mutation 재전송 없음.
+
+### 상품 표시 언어
+
+SHOP-I18N은 기존 `Product` 요청·응답 및 저장 형식을 유지한다. Mock 상품은 `src/lib/shop/catalog.ts`의 한국어 정의로 기존 `name`·`description`을 반환한다. 클라이언트는 상품 ID로 표시 문구만 현재 한국어/영어에 맞추고 검색·정렬에 사용한다. 가격·카테고리·보유 상태는 API 응답이 기준이며 카탈로그에 없는 ID는 응답 이름·설명을 그대로 표시한다. 언어 변경으로 구매·장착 요청이나 상태 저장을 수행하지 않는다.

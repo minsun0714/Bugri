@@ -34,7 +34,7 @@ import {
   type LayerAction,
 } from "@/api/constants";
 import { Button } from "@/components/ui";
-import { artworkNames } from "@/components/shop/artwork";
+import { useProductNames } from "@/components/shop/use-product-names";
 
 type Engine = ReturnType<typeof createDeskEngine>;
 type Props = Omit<
@@ -52,6 +52,7 @@ type Props = Omit<
 
 export function ThreeView(props: Props) {
   const t = useTranslation();
+  const artworkNames = useProductNames();
 
   const descriptionId = useId();
   const host = useRef<HTMLDivElement>(null);
