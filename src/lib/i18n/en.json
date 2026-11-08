@@ -330,5 +330,5 @@
   "메모를 퀴즈로 만들면 여기서 복습해요": "Turn a note into a quiz and review it here",
   "오늘 복습 불러오는 중…": "Loading today's review…",
   "오늘 복습을 불러오지 못했어요.": "Couldn't load today's review.",
-  "다음 복습: {0}일 뒤 ({1}) · {2}개": "Next review: in {0} days ({1}) · {2}"
+  "다음 복습: {0}일 뒤 ({1}) · {2}개": "Next review: in {0} days ({1}) · {2} due"
 }

@@ -199,8 +199,15 @@ export function TodayReview({
       >
         <h2
           id="today-review-heading"
-          className={reviewStyles.heading}
+          className={
+            data && remaining === 0
+              ? reviewStyles.headingDone
+              : reviewStyles.heading
+          }
         >
+          {data && remaining === 0 && (
+            <span aria-hidden="true">✓</span>
+          )}
           {data
             ? remaining === 0
               ? t("오늘 복습 끝")
