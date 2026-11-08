@@ -43,22 +43,22 @@ export function QueryRecoveryPreview() {
         requestId: "preview-503",
       });
 
-    return t("데스크를 다시 불러왔습니다");
+    return t("다시 불러왔습니다");
   }
 
   return (
     <QueryClientProvider client={client}>
       <section
-        aria-label={t("공개 데스크")}
+        aria-label={t("미리보기 영역")}
         className="mt-6 max-w-xl rounded-3xl border border-line bg-surface p-4"
       >
         <QueryBoundary
-          title={t("공개 데스크를 불러오지 못했습니다")}
+          title={t("미리보기 영역을 불러오지 못했습니다")}
         >
           <PreviewData request={request} />
         </QueryBoundary>
       </section>
-      <p className="mt-4">{t("다른 프로필 영역")}</p>
+      <p className="mt-4">{t("다른 영역")}</p>
     </QueryClientProvider>
   );
 }

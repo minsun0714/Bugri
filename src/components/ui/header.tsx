@@ -29,7 +29,7 @@ export function ShowcaseHeader({
             b.
           </span>
           bugri
-          <span className="-ml-1 mt-2 self-start text-[8px] text-coral">
+          <span className="-ml-1 mt-2 self-start text-xs text-coral">
             ●
           </span>
         </Link>
@@ -61,7 +61,7 @@ export function ShowcaseHeader({
             key={id}
             className="flex shrink-0 items-center gap-2 rounded-full px-3 py-2.5 text-xs text-muted transition-colors hover:bg-primary/10 hover:text-primary focus-visible:bg-primary/10"
           >
-            <span className="font-mono text-[10px] text-primary/60">
+            <span className="font-mono text-xs text-primary">
               0{i + 1}
             </span>
             {t(label)}

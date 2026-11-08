@@ -1,11 +1,6 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import { QuizReactionControl } from "@/components/solving/quiz-reaction";
-import { Creation } from "@/features/quiz-authoring/creation";
-import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
 import {
   QuizScope,
@@ -16,22 +11,26 @@ import {
   EmptyState,
   Skeleton,
 } from "@/components/ui";
-import { Generation } from "@/features/quiz-authoring/generation";
-import { ReviewEditor } from "@/features/quiz-authoring/review-editor";
+import { Creation } from "@/features/quiz-authoring/creation";
 import { RequestError } from "@/features/quiz-authoring/feedback";
-import { AuthoringQueryProvider } from "@/features/quiz-authoring/query-provider";
+import { Generation } from "@/features/quiz-authoring/generation";
 import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring-api";
-import { styles } from "@/features/quiz-authoring/styles";
-import {
-  leaveMessage,
-  useUnsavedWarning,
-} from "@/features/quiz-authoring/use-unsaved-warning";
+import { AuthoringQueryProvider } from "@/features/quiz-authoring/query-provider";
 import {
   QuizList,
   QuizListFilter,
   QuizListSort,
   type QuizListView,
 } from "@/features/quiz-authoring/quiz-list";
+import { ReviewEditor } from "@/features/quiz-authoring/review-editor";
+import { styles } from "@/features/quiz-authoring/styles";
+import {
+  leaveMessage,
+  useUnsavedWarning,
+} from "@/features/quiz-authoring/use-unsaved-warning";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useState, useSyncExternalStore } from "react";
 
 function subscribe(callback: () => void) {
   window.addEventListener("popstate", callback);
@@ -339,13 +338,6 @@ function Workspace({
           quizHref={(quizId) =>
             `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`
           }
-          renderReaction={(quizId) => (
-            <QuizReactionControl
-              key={`${userId}:${quizId}`}
-              userId={params.get("user")}
-              quizId={quizId}
-            />
-          )}
           quizzes={list.data ?? []}
           view={listView}
           createHref={createHref}

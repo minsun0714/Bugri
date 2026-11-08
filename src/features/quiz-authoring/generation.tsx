@@ -1,25 +1,26 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import { useEffect, useRef, useState } from "react";
 import { QuizScope, QuizStatus } from "@/api/constants";
-import { ContentFields } from "@/features/quiz-authoring/content-fields";
-import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring-api";
 import {
   Button,
   Card,
   EmptyState,
-  TextArea,
   Tabs,
+  TextArea,
 } from "@/components/ui";
-import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
+import { pageTitle } from "@/components/ui/styles";
+import { ContentFields } from "@/features/quiz-authoring/content-fields";
 import { ContentPreview } from "@/features/quiz-authoring/content-preview";
 import { RequestError } from "@/features/quiz-authoring/feedback";
-import { styles } from "@/features/quiz-authoring/styles";
+import { useAuthoringQuery } from "@/features/quiz-authoring/hooks/use-authoring-api";
 import {
   useGeneration,
   type GenerationProps,
 } from "@/features/quiz-authoring/hooks/use-generation";
+import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
+import { styles } from "@/features/quiz-authoring/styles";
+import { useEffect, useRef, useState } from "react";
 
 export function Generation(props: GenerationProps) {
   const t = useTranslation();
@@ -29,7 +30,6 @@ export function Generation(props: GenerationProps) {
   >({});
   const {
     batch,
-    publish,
     removeCandidate,
     notice,
     editing,
@@ -85,10 +85,8 @@ export function Generation(props: GenerationProps) {
       );
 
       if (!saved) return t("상태 확인 중");
-      if (saved.status === QuizStatus.PUBLIC)
-        return t("공개됨");
-      if (saved.status === QuizStatus.PRIVATE)
-        return t("비공개");
+      if (saved.status !== QuizStatus.PENDING)
+        return t("승인됨");
       return t("임시저장됨");
     },
   );
@@ -277,9 +275,7 @@ export function Generation(props: GenerationProps) {
     >
       {!props.embedded && (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold tracking-tight">
-            {t("생성 결과")}
-          </h1>
+          <h1 className={pageTitle}>{t("생성 결과")}</h1>
           <a
             className="text-sm font-semibold text-primary"
             href={`/quizzes/authoring?user=${encodeURIComponent(props.userId ?? "learner")}`}
@@ -486,17 +482,6 @@ export function Generation(props: GenerationProps) {
                       </div>
                     ) : (
                       <div className="flex flex-wrap items-center justify-end gap-3">
-                        <div className="flex items-center gap-1">
-                          <Button
-                            size="sm"
-                            disabled={
-                              busy || !!prompt.trim()
-                            }
-                            onClick={publish}
-                          >
-                            {t("바로 공개")}
-                          </Button>
-                        </div>
                         <div className="flex items-center gap-1">
                           <Button
                             size="sm"

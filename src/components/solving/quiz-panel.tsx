@@ -1,11 +1,9 @@
 "use client";
-import Link from "next/link";
-import { RewardExplanation } from "@/components/solving/reward-explanation";
+
 import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useRef, type ReactNode } from "react";
 import type {
-  RewardOutcome,
   Answer,
   AttemptResult,
   LearningQuizView,
@@ -18,10 +16,11 @@ import { AnswerForm } from "@/components/solving/answer-form";
 import { solvingStyles } from "@/components/solving/styles";
 
 function answerText(
-  answer: Answer,
+  answer: Answer | null,
   question: Question,
   t: (message: string) => string,
 ): string {
+  if (!answer) return t("기록 없음");
   const choices =
     "choices" in question ? question.choices : [];
   const label = (id: string) =>
@@ -44,30 +43,24 @@ export function QuizPanel({
   completedAt,
   correct,
   learningDate,
-  rewardBugCent,
-  rewardOutcome,
-  rewardHistoryHref,
   focusKey,
+  autoFocus = true,
   pending,
   onDirtyChange,
   onSubmit,
   children,
-  reaction,
 }: {
   quiz: LearningQuizView | null;
   result: AttemptResult | null;
   completedAt?: string | null;
   correct?: boolean | null;
   learningDate?: string | null;
-  rewardBugCent?: number;
-  rewardOutcome?: RewardOutcome;
-  rewardHistoryHref?: string;
   focusKey: string;
+  autoFocus?: boolean;
   pending: boolean;
   onDirtyChange?: (dirty: boolean) => void;
   onSubmit: (answer: Answer) => void;
   children?: ReactNode;
-  reaction?: ReactNode;
 }) {
   const t = useTranslation();
 
@@ -76,6 +69,7 @@ export function QuizPanel({
   const hasResult = !!result;
   const verdict = result?.correct ?? correct;
   useEffect(() => {
+    if (!autoFocus) return;
     const node = start.current;
     const { activeElement } = document;
     const identity = `${focusKey}:${hasResult}`;
@@ -96,7 +90,7 @@ export function QuizPanel({
       block: "nearest",
       behavior: "instant",
     });
-  }, [focusKey, hasResult]);
+  }, [focusKey, hasResult, autoFocus]);
 
   return (
     <Card className={solvingStyles.card}>
@@ -105,9 +99,11 @@ export function QuizPanel({
         tabIndex={-1}
         aria-label={
           result
-            ? result.correct
+            ? result.correct === true
               ? t("정답입니다")
-              : t("오답입니다")
+              : result.correct === false
+                ? t("오답입니다")
+                : t("기록 없음")
             : (quiz?.title ?? t("풀이 완료"))
         }
         className="scroll-mt-6 outline-none"
@@ -134,51 +130,22 @@ export function QuizPanel({
                     ? t("정답입니다")
                     : verdict === false
                       ? t("오답입니다")
-                      : t("풀이 완료")}
+                      : t("기록 없음")}
                 </span>
               </h2>
               <p className="mt-1 text-xs text-muted">
                 {t("풀이 완료")}
                 {learningDate ? ` · ${learningDate}` : ""}
               </p>
-              {rewardBugCent !== undefined &&
-                rewardHistoryHref && (
-                  <div className="flex flex-wrap items-center gap-x-3 text-sm">
-                    <span className="inline-flex items-center gap-1">
-                      <span
-                        className={
-                          rewardBugCent > 0
-                            ? "whitespace-nowrap font-semibold tabular-nums text-primary"
-                            : "whitespace-nowrap tabular-nums text-foreground"
-                        }
-                      >
-                        {rewardBugCent > 0 ? "+" : ""}
-                        {(rewardBugCent / 100).toFixed(
-                          2,
-                        )}{" "}
-                        BugCoin
-                      </span>
-                      {rewardBugCent === 0 && (
-                        <RewardExplanation
-                          outcome={rewardOutcome}
-                        />
-                      )}
-                    </span>
-                    <Link
-                      href={rewardHistoryHref}
-                      className={solvingStyles.supportLink}
-                    >
-                      {t("내역 보기")}
-                    </Link>
-                  </div>
-                )}
             </div>
           </div>
         ) : null}
         {quiz && (
           <>
-            <h2 className="mb-3 min-w-0 break-words [overflow-wrap:anywhere] [&_.ui-badge]:bg-transparent [&_.ui-badge]:p-0 [&_.ui-badge]:text-xs [&_.ui-badge]:font-medium [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-muted">
-              <Badge>{quiz.title}</Badge>
+            <h2 className="mb-3 min-w-0 break-words [overflow-wrap:anywhere] [&_.ui-badge]:block [&_.ui-badge]:max-w-full [&_.ui-badge]:bg-transparent [&_.ui-badge]:p-0 [&_.ui-badge]:text-xs [&_.ui-badge]:font-medium [&_.ui-badge]:tracking-normal [&_.ui-badge]:text-muted">
+              <Badge>
+                {quiz.title || t("이용할 수 없는 퀴즈")}
+              </Badge>
             </h2>
             <div className="break-keep text-xl font-semibold leading-8 tracking-tight [overflow-wrap:anywhere] sm:text-2xl sm:leading-9 [&_pre]:text-sm [&_pre]:font-normal">
               <QuizText>{quiz.question.prompt}</QuizText>
@@ -192,7 +159,7 @@ export function QuizPanel({
             aria-label={t("제출 결과")}
             className="space-y-6 border-t border-line pt-6"
           >
-            <div className="grid gap-4 rounded-2xl border border-line bg-canvas/50 p-4 sm:grid-cols-2">
+            <div className="grid gap-4 [overflow-wrap:anywhere] rounded-2xl border border-line bg-canvas/50 p-4 sm:grid-cols-2">
               <p>
                 {t("내 답:")}{" "}
                 {answerText(
@@ -214,14 +181,15 @@ export function QuizPanel({
               <h3 className="text-xs font-medium text-muted">
                 {t("해설")}
               </h3>
-              <QuizText>{result.explanation}</QuizText>
+              <QuizText>
+                {result.explanation ?? t("기록 없음")}
+              </QuizText>
             </div>
           </section>
         ) : (
           !completedAt && (
             <AnswerForm
               key={focusKey}
-              reaction={reaction}
               question={quiz.question}
               pending={pending}
               onDirtyChange={onDirtyChange}
@@ -232,13 +200,12 @@ export function QuizPanel({
       ) : (
         <p>
           {t(
-            "이 퀴즈는 더 이상 이용할 수 없습니다. 완료 기록과 이미 획득한 성과는 유지됩니다.",
+            "이 퀴즈는 더 이상 이용할 수 없습니다. 완료 기록은 유지됩니다.",
           )}
         </p>
       )}
       {quiz && result ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {reaction}
           {children && (
             <div className="ml-auto">{children}</div>
           )}

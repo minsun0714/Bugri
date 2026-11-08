@@ -17,7 +17,7 @@ test.each([404, 500, 502, 503])(
     );
 
     await expect(
-      api.request("wallet", {}),
+      api.request("learningDay", {}),
     ).rejects.toMatchObject({
       status,
       detail: {
@@ -39,7 +39,7 @@ test("network rejection stays distinct from an HTTP response", async () => {
   );
 
   await expect(
-    api.request("wallet", {}),
+    api.request("learningDay", {}),
   ).rejects.toMatchObject({
     detail: {
       code: "NETWORK_ERROR",
@@ -76,7 +76,7 @@ test("the request timeout also covers a stalled response body and aborts the req
   );
 
   const result = expect(
-    api.request("wallet", {}),
+    api.request("learningDay", {}),
   ).rejects.toMatchObject({
     status: 504,
     detail: { code: "REQUEST_TIMEOUT" },
@@ -105,7 +105,7 @@ test("successful requests clear their timeout", async () => {
   );
 
   await expect(
-    api.request("wallet", {}),
+    api.request("learningDay", {}),
   ).resolves.toMatchObject({ balance: 10 });
 
   expect(jest.getTimerCount()).toBe(0);

@@ -1,21 +1,24 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import type { ReactNode } from "react";
 import {
   QuizStatus,
   type QuizSummary,
 } from "@/api/contracts";
-import { Badge, Button, EmptyState } from "@/components/ui";
-import { styles } from "@/components/ui/styles";
-import { QuizCard } from "@/components/ui/quiz-card";
+import {
+  Badge,
+  Button,
+  EmptyState,
+  SearchField,
+} from "@/components/ui";
 import { Dropdown } from "@/components/ui/dropdown";
+import { QuizCard } from "@/components/ui/quiz-card";
+import { pageTitle, styles } from "@/components/ui/styles";
 
 export const QuizListFilter = {
   ALL: "ALL",
   NEEDS_REVIEW: "NEEDS_REVIEW",
-  PUBLIC: "PUBLIC",
-  PRIVATE: "PRIVATE",
+  APPROVED: "APPROVED",
 } as const;
 
 export type QuizListFilter =
@@ -60,10 +63,8 @@ function matchesFilter(
 ) {
   if (filter === QuizListFilter.NEEDS_REVIEW)
     return needsReview(quiz);
-  if (filter === QuizListFilter.PUBLIC)
-    return quiz.status === QuizStatus.PUBLIC;
-  if (filter === QuizListFilter.PRIVATE)
-    return quiz.status === QuizStatus.PRIVATE;
+  if (filter === QuizListFilter.APPROVED)
+    return quiz.status !== QuizStatus.PENDING;
 
   return true;
 }
@@ -117,11 +118,8 @@ function StatusBadges({ quiz }: { quiz: QuizSummary }) {
 
   return (
     <span className="flex flex-wrap items-center gap-1.5">
-      {quiz.status === QuizStatus.PUBLIC && (
-        <Badge tone="success">{t("공개 중")}</Badge>
-      )}
-      {quiz.status === QuizStatus.PRIVATE && (
-        <Badge>{t("나만 보기")}</Badge>
+      {quiz.status !== QuizStatus.PENDING && (
+        <Badge>{t("승인됨")}</Badge>
       )}
       {review && (
         <Badge tone="warning">
@@ -143,7 +141,6 @@ export function QuizList({
   onViewChange,
   onOpen,
   onRefresh,
-  renderReaction,
   quizHref,
 }: {
   quizzes: QuizSummary[];
@@ -154,7 +151,6 @@ export function QuizList({
   onViewChange: (change: Partial<QuizListView>) => void;
   onOpen: (quizId: string) => void;
   onRefresh: () => void;
-  renderReaction?: (quizId: string) => ReactNode;
   quizHref?: (quizId: string) => string;
 }) {
   const t = useTranslation();
@@ -164,11 +160,8 @@ export function QuizList({
     .trim()
     .toLocaleLowerCase("ko-KR");
   const reviewCount = quizzes.filter(needsReview).length;
-  const publicCount = quizzes.filter(
-    ({ status }) => status === QuizStatus.PUBLIC,
-  ).length;
-  const privateCount = quizzes.filter(
-    ({ status }) => status === QuizStatus.PRIVATE,
+  const approvedCount = quizzes.filter(
+    ({ status }) => status !== QuizStatus.PENDING,
   ).length;
   const filtered = quizzes
     .filter((quiz) => matchesFilter(quiz, filter))
@@ -207,14 +200,9 @@ export function QuizList({
       count: reviewCount,
     },
     {
-      value: QuizListFilter.PUBLIC,
-      label: t("공개"),
-      count: publicCount,
-    },
-    {
-      value: QuizListFilter.PRIVATE,
-      label: t("나만 보기"),
-      count: privateCount,
+      value: QuizListFilter.APPROVED,
+      label: t("승인됨"),
+      count: approvedCount,
     },
   ];
 
@@ -225,7 +213,7 @@ export function QuizList({
       aria-label={t("내 퀴즈 목록")}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">
+        <h1 className={pageTitle}>
           {t("내 퀴즈")}{" "}
           <span className="text-primary">
             {quizzes.length}
@@ -273,37 +261,17 @@ export function QuizList({
           </div>
 
           <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_minmax(220px,auto)] md:items-end">
-            <label className="grid gap-2 text-xs font-semibold">
-              <span className="sr-only">
-                {t("퀴즈 검색")}
-              </span>
-              <span className="relative block">
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted"
-                >
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m16 16 4 4" />
-                </svg>
-                <input
-                  type="search"
-                  aria-label={t("퀴즈 검색")}
-                  value={query}
-                  onChange={(event) =>
-                    onViewChange({
-                      query: event.target.value,
-                      page: 1,
-                    })
-                  }
-                  placeholder={t("제목이나 태그 검색")}
-                  className="min-h-11 w-full rounded-2xl border border-line bg-surface py-3 pl-10 pr-4 text-[13px] text-foreground placeholder:text-muted"
-                />
-              </span>
-            </label>
+            <SearchField
+              label={t("퀴즈 검색")}
+              value={query}
+              onChange={(event) =>
+                onViewChange({
+                  query: event.target.value,
+                  page: 1,
+                })
+              }
+              placeholder={t("제목이나 태그 검색")}
+            />
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
               <Dropdown
                 label={t("정렬")}
@@ -414,12 +382,6 @@ export function QuizList({
                         .map((hashtagId) => `#${hashtagId}`)
                         .join(" ")}
                     </span>
-                    {quiz.status === QuizStatus.PUBLIC &&
-                      renderReaction && (
-                        <div className="shrink-0">
-                          {renderReaction(quiz.quizId)}
-                        </div>
-                      )}
                   </div>
                 }
                 metadata={

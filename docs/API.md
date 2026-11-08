@@ -1,291 +1,155 @@
 # 1단계 API·Mock 계층 사용 계약
 
-관련 작업: P01/P01M/P02의 데이터 계층과 P02T/P03~P08의 서비스 부분. 관련 요구사항: REQ-01~05, REQ-07~09, REQ-11~12. UI와 REQ-06 캐릭터 반응은 구현하지 않는다. PRD·ARCHITECTURE의 확정 요구사항을 유지한다.
+현재 코드(`src/api/contracts.ts`, `src/api/http.ts`)가 제공하는 22개 연산의 사용 계약이다. 제품 규칙은 [PRD](PRD.md), 화면 흐름은 [페이지 구조](PAGE_STRUCTURE.md)를 따른다. 2026-11-08 범위 축소로 삭제한 연산(구독·탐색·상점·BugCoin·데스크·공개 프로필·반응·방문자 체험 등 34개)의 목록은 [REMOVE-OUT-OF-SCOPE](tasks/REMOVE-OUT-OF-SCOPE.md)에 있고, 이전 계약은 git 기록으로 확인한다.
+
+새 PRD의 메모(REQ-01)·복습 주기(REQ-03)·저장 즉시 내 퀴즈(AC-02e) 계약은 아직 없다. 해당 구현 TASK에서 이 문서에 추가한다.
 
 ## UI 연결
 
-UI는 `src/api/contracts.ts`의 DTO와 `src/api/browser.ts`의 조립 함수만 사용한다. 브라우저 effect 또는 이벤트에서 다음처럼 구성한다. UI 컴포넌트에 Mock 배열·localStorage 접근을 추가하지 않는다.
+UI는 `src/api/contracts.ts`의 DTO와 `src/api/browser.ts`의 조립 함수만 사용한다. UI 컴포넌트에 Mock 배열·localStorage 접근을 추가하지 않는다.
 
 ```ts
 import { createBrowserApi } from "@/api/browser";
-import { LearningMode } from "@/api/contracts";
 
 const api = await createBrowserApi({
   mode: "mock",
   userId: "learner",
 });
-const selection = await api.request("learningQuiz", {
-  hashtagId: null, // 전체
-  mode: LearningMode.UNSOLVED,
+const history = await api.request("attemptHistory", {
+  filter: "ALL",
+  page: 1,
 });
-// 이후 next는 현재 태그/모드를 유지. 명시적으로 지정해도 된다.
-const next = await api.request("learningNext", {});
 ```
 
 Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`로 교체한다. HTTP 어댑터는 실제 fetch를 사용하며 더미 userId를 전송하지 않는다. 실제 인증 설정·JWT·OAuth는 구현하지 않았다. 서버에서 브라우저 Mock을 호출하면 저장소 오류가 반환된다. Route Handler는 추가하지 않았다.
 
 `api.request()`는 성공 DTO를 반환하고 실패 시 `ApiClientError`를 던진다. `status`, `detail.code`, `detail.message`, `detail.fieldErrors?`, `detail.requestId`로 처리한다. 하위 transport의 성공은 `{ data }`, 실패는 `{ error: { code, message, fieldErrors?, requestId } }`이며 HTTP status는 envelope 외부에 둔다. 모든 요청·응답 타입은 `ApiOperations`, HTTP 메서드·경로는 `src/api/http.ts`의 `endpoints`가 정의한다. GET의 경로 변수를 제외한 요청은 query, 그 외는 JSON body다. 경로 변수는 URL 인코딩하고 body에서 제외한다. HTTP 어댑터는 응답 envelope를 검증하며 실제 서버의 DTO 필드 검증은 2단계 통합 대상이다.
 
-## P05·P07 홈 풀이 연결
+## 연산 목록
 
-- `/`: 방문자는 `guestQuiz`로 전체 활성 PUBLIC 후보의 랜덤 문제를 체험한다. 태그와 개인 학습 상태를 표시하지 않으며 `guestAnswer` 제출 결과는 화면 메모리에만 유지한다. `/?user={userId}`에서는 구독 조건과 선택 태그에 맞는 문제 하나를 즉시 표시한다. 공개 퀴즈 목록이나 시작 버튼을 거치지 않는다. 학습자(learner)는 3종 예시 구독으로 네 형식을 바로 체험한다. 작성자(author)·친구(friend)는 구독 없는 빈 상태로 시작한다. 구독이 없는 사용자에게는 탐색·구독 안내를 제공하며 임의 추천을 추가하지 않는다.
-- `/?user={userId}&attempt={attemptId}&tag={hashtagId}`: 풀이·완료 결과와 단일 태그를 복원한다. `tag` 생략은 전체, `mode=REPLAY`는 완료 문제 다시 풀기다. 미제출 답안 입력 자체는 새로고침 시 복원하지 않는다.
-- `/solve?user=author&quiz={quizId}`: 작성자 화면 등에서 특정 퀴즈로 직접 진입하는 경로. 목록 없이 해당 퀴즈를 바로 표시하며 API가 PRIVATE/PUBLIC 접근을 판단한다. 결과 URL은 `/solve?user={userId}&attempt={attemptId}`다. 인자 없는 `/solve`는 홈으로 이동한다.
-- 홈의 문제 선택은 `learningQuiz`/`learningNext` → `startAttempt(context: LEARNING)` 순서다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다. 특정 퀴즈 직접 풀이는 DIRECT를 사용한다. 태그 변경은 구독을 수정하지 않고, 다음 문제는 현재 태그·모드를 유지한다.
-- 마지막 결과의 다음 문제에서 미풀이 후보를 소진하면 소진 화면을 표시한다. 사용자가 태그 탐색을 눌렀을 때 `/discover/tags?user={userId}`로 이동한다. 개발자 탐색(`/discover/developers`)과 태그 탐색은 독립 페이지이며 기존 `/discover?kind=...`는 새 경로로 리다이렉트한다. 검색어·페이지·더미 사용자는 `query`, `page`, `user`로 복원한다. 검색 버튼/Enter로 검색하며 조건 변경 시 1페이지부터 조회한다.
-- `searchDiscovery`(`GET /discover/search`)는 `{ kind: USER|HASHTAG, query, page, pageSize, subscribedOnly?: boolean }`을 받고 `{ items, page, pageSize, total }`을 반환한다. 태그 페이지의 내 구독 필터는 `subscribed=true` URL로 복원하고 `subscribedOnly: true`로 조회한다. HASHTAG 직접 구독을 검색·필터링한 뒤 공개 퀴즈가 있는 태그를 먼저 두고 각 그룹 안에서 기존 ID순 정렬 및 페이지 처리하므로 다른 페이지의 구독도 누락하지 않는다. 개발자·개발자와 태그 조합 구독 관리는 이 필터의 대상이 아니다.
-- 화면은 20개씩 표시하고 API는 page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 유니코드 코드포인트를 검증한다. 검색은 대소문자를 구분하지 않으며 NFC 정규화하고, 태그 검색은 선행 `#`과 주변 공백을 제거하고 개발자 검색은 표시된 `@publicId`도 허용한다. UI도 같은 길이 기준으로 입력 오류를 표시한다. 잘못된 URL 검색어는 조회를 반복하지 않고 수정하도록 안내한다. 범위 밖 페이지는 첫 페이지 복귀를 제공한다.
-- 검색 대상은 모든 더미 개발자와 등록 태그이며 공개 퀴즈가 없는 태그도 포함한다. 태그 결과에는 `subscribed`와 `publicQuizCount`를 제공한다. 개수는 활성 PUBLIC 퀴즈만 포함하며 PRIVATE·PENDING·삭제 퀴즈와 답·해설·원문은 노출하지 않는다. `learningTags`는 기존대로 현재 구독에 맞는 공개 퀴즈의 태그만 반환한다.
-- 태그 페이지는 데모 로그인 전 구독·해제·학습 행동에 로그인 안내를 제공한다. 로그인 후 검색 조건을 유지하고 원래 행동을 자동 실행하지 않는다. 실제 인증은 아니며 URL user별 Mock 상태를 유지한다. 다른 페이지의 세션 통합까지 구현한 것은 아니다.
-- 구독 등록·해제는 현재 검색 조건을 유지하고 성공 토스트 및 구독 상태를 갱신한다. 내 구독 필터에서도 해제가 가능하며 결과에서 사라지면 결과 개수로 초점을 복구한다. 전체 목록에서는 같은 카드 버튼으로 복구한다. 공개 퀴즈 0개 태그는 구독할 수 있지만 학습 버튼은 비활성화한다. 학습 버튼을 명시적으로 누르면 해당 태그로 홈에 이동한다. 개발자 탐색의 전체 학습 이동은 공통 홈 링크를 사용한다.
-- 쿼리 키는 `['discovery', userId, request]`이며 구독 변경 후 discovery/developerQuizzes/developerTags/tagQuizzes/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 무효화한다. UI는 Mock·localStorage를 직접 접근하지 않는다. 검색·필터 후 결과 개수로 키보드 초점을 연결하고 메뉴는 항목 포커스·방향키·Escape·이탈 닫기를 지원한다.
+| 영역 | 연산 (메서드 경로) |
+| --- | --- |
+| 작성 대화(호환용) | `authoringConversation` (GET /authoring/conversation), `sendAuthoringMessage` (POST /authoring/conversation/messages), `generateFromConversation` (POST /authoring/conversation/generate) |
+| 생성 후보 | `generate` (POST /quizzes/generate), `generationBatch` (GET /generation-batches/{id}), `editCandidate` (POST …/edit), `refineCandidate` (POST …/refine), `deleteCandidate` (DELETE …/candidates), `saveBatch` (POST …/save) |
+| 내 퀴즈 | `quizzes` (GET /quizzes), `reviewQuiz` (GET /quizzes/{id}/review), `updatePending` (PUT /quizzes/{id}/pending), `regenerate` (POST /quizzes/{id}/regenerate), `approve` (POST /quizzes/{id}/approve), `deleteQuiz` (DELETE /quizzes/{id}) |
+| 태그 | `discoverHashtags` (GET /discover/hashtags) — 퀴즈 생성의 태그 입력용 등록 태그 목록. 이름은 이전 탐색 기능의 잔재이며 후속 TASK에서 정리한다 |
+| 풀이 | `startAttempt` (POST /quizzes/{id}/attempts), `attempt` (GET /attempts/{id}), `answer` (POST /attempts/{id}/answer) |
+| 학습 기록 | `learningDay` (GET /learning/day), `learningTimezone` (GET /me/learning-timezone), `attemptHistory` (GET /me/attempts) |
 
-- USER 결과는 `user`, `subscribed`, `summary: { publicQuizCount, hashtags } | null`을 포함한다. 요약은 삭제되지 않은 활성 PUBLIC 퀴즈만 집계하며 태그는 등록 순서의 최대 3개다. 문제·정답·해설·원문은 포함하지 않는다. 타 사용자 저장 데이터가 손상되면 해당 요약만 null로 표시하고 정상 사용자 탐색은 유지한다. 손상 데이터를 초기값으로 대체하거나 덮어쓰지 않는다. HASHTAG 결과 계약은 유지한다.
-- 개발자 화면은 `discoverUsers`·`discoverHashtags`로 데모 사용자 검증과 구독 대상 이름을 조회하고, 로그인 시 `subscriptions`로 3종 내 구독을 조회한다. 이 공개 디렉터리 조회는 사용자 저장 데이터에 의존하지 않는다. 검색 목록 자체는 `searchDiscovery`로 페이지 처리한다. `subscriptions`·`subscribe`·`unsubscribe`는 현재 사용자 상태만 읽는다.
-- 개발자 탐색에서 방문자 구독 조작은 공통 데모 사용자 선택 모달을 열고 원래 검색 조건을 유지한다. 사용자 선택만으로 구독하지 않으며 사용자가 다시 명시적으로 실행한다. 구독 상태는 ‘구독 중’과 펼침형 해제 버튼으로 표시하고 성공/실패를 해당 상태와 함께 안내한다. 내 구독은 3종 구독의 목록·대상 이동·개별 해제를 제공한다. 방문자의 검색·공개프로필/퀴즈 이동은 user를 임의로 추가하지 않는다.
-- 개발자 이름은 `/users/[publicId]`, 공개 퀴즈 수는 `/developers/[publicId]/quizzes`로 연결한다. 개발자 카드의 학습 버튼 대신 공통 ‘홈에서 학습하기’를 제공한다. 태그 탐색은 기존 단일 태그 학습 이동을 유지한다. 구독 변경 후 discovery/developerQuizzes/developerTags/tagQuizzes/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다.
-- 잘못된 사용자·검색어는 입력 수정/사용자 복귀를 제공하고, 현재 사용자 저장 데이터 손상은 데이터를 유지한 채 다른 데모 사용자 선택 또는 복구 후 재조회 경로를 제공한다. 일시적 조회·저장소 접근 오류는 수동 재시도를 제공한다.
-- 결과 화면은 정오·제출 답안·정답·해설과 다음 행동만 표시하며 `Bugri` 캐릭터나 별도 반응 문구를 표시하지 않는다.
-- TanStack Query Provider는 풀이 화면에 한 번 생성한다. Attempt 키는 `['solving', userId, 'attempt', attemptId]`, 태그 키는 `['learningTags', userId]`다. 사용자·Attempt·필터 변경 시 입력과 mutation 화면을 새로 만든다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
-- 제출 성공 시 Attempt 캐시를 응답으로 교체하고 `[resource, userId]` 형태의 `learningDay`, `learningQuiz`, `wallet`, `history`를 무효화한다. 해당 후속 화면을 통합할 때 Provider와 키를 맞춰야 한다. 현재 다른 제품 화면의 캐시가 구현되었다는 의미는 아니다.
-- 기존 API·Mock 채점/보상 정책을 유지한다. 시간대 감지 실패에는 오류 안내를 제공하며, 임의 기본 시간대나 BugCoin 지급량을 추가하지 않는다. 구독 관리와 시간대 설정 UI는 각각 P06/P02T 범위다.
+## 화면 경로
 
-### 방문자 체험 계약
+- `/`: 데모 사용자는 연속 학습일 요약, 방문자는 데모 사용자 선택 안내만 표시하는 임시 홈이다. 새 홈(빠른 메모·오늘 복습)은 후속 TASK에서 만든다.
+- `/solve?user={userId}&quiz={quizId}`: 특정 퀴즈 직접 풀이. 결과 URL은 `/solve?user={userId}&attempt={attemptId}`이며 인자 없는 `/solve`는 홈으로 이동한다.
+- `/quizzes/authoring`, `/quizzes/authoring/manage`, `/quizzes/authoring/results`: 퀴즈 생성과 내 퀴즈 관리.
+- `/my/learning`, `/my/learning/[attemptId]`: 개인 풀이 내역(아래 절).
+- 헤더의 ‘데모 사용자 선택’은 공통 선택 모달에서 사용자를 명시적으로 선택한 뒤 URL `user`를 갱신한다. 사용자 전환 시 기존 `attempt`를 제거해 이전 사용자의 풀이를 섞지 않는다. 실제 인증 기능이 아니다.
 
-- `guestQuiz({})`: `GET /guest/quiz`, `LearningQuizView | null`. 활성 PUBLIC·미삭제 후보만 무작위 선택하며 정답·해설·원문은 반환하지 않는다.
-- `guestAnswer({ quizId, revisionId, answer })`: `POST /guest/answer`, `AttemptResult`. 현재 공개·삭제·활성 버전을 재검사하고 답안 타입/선택지를 검증한 뒤 채점한다. 버전이 바뀌거나 이용할 수 없으면 `QUIZ_UNAVAILABLE`을 반환한다.
-- 브라우저 Mock은 모든 더미 사용자 퀴즈 상태를 읽되 방문자 요청에서는 시간대 초기화·데이터 마이그레이션·Attempt·학습일·보상 쓰기를 수행하지 않는다. 익명 사용자/OwnerSession을 만들지 않으며 데모 선택 시 체험 결과를 이관하지 않는다. 새로고침 복원은 제공하지 않는다.
-- 헤더의 ‘데모 사용자 선택’은 공통 선택 모달에서 사용자를 명시적으로 선택한 뒤 URL `user`를 갱신한다. 기존 직접 데모 URL도 같은 상태로 복원한다. 사용자 전환 시 기존 `attempt`·`tag`·`mode`를 제거해 이전 사용자의 풀이를 섞지 않는다. 실제 인증 기능이 아니다.
+## 상태 상수
 
-## 상태·모드 상수
+`src/api/constants.ts`에 `QuizStatus`(`PENDING`·`PRIVATE`·`PUBLIC`), `QuizScope`(`OWN`), `ConversationRole`을 `as const` 객체로 정의하고 같은 이름의 타입을 값에서 추출한다. `src/api/contracts.ts`에서도 다시 내보낸다.
 
-`src/api/constants.ts`에 `QuizStatus`, `LearningMode`, `LearningState`, `QuizScope`를 `as const` 객체로 정의하고 같은 이름의 타입을 값에서 추출한다. `src/api/contracts.ts`에서도 다시 내보내므로 UI는 계약 진입점에서 가져올 수 있다. 예: `QuizStatus.PUBLIC`, `LearningState.EXHAUSTED`. 공개 목록 범위는 별도 개념인 `QuizScope.PUBLIC`을 사용한다.
-
-API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한다. 숫자 enum이나 새로운 상태를 추가하지 않는다. 문자열 상수 변경은 계약·저장 데이터 호환성 변경이므로 별도 검토가 필요하다.
+API 요청/응답과 localStorage에는 기존 문자열을 그대로 기록한다. `PUBLIC` 값은 저장 데이터 호환을 위해 남아 있으나 공개 전환 UI·연산은 없다. 상태 모델 정리(PENDING·승인 제거)는 "메모로 퀴즈 만들기" TASK에서 저장 데이터 호환과 함께 검토한다.
 
 ## 문제 형식과 생성
 
-사용자 지시에 따라 문제별로 적합한 형식을 선택할 수 있도록 다음 4가지 discriminated union을 제공한다. 최종 제품의 모든 문제 형식이나 AI 제공자 스키마가 확정되었다는 의미는 아니다. 실제 AI 대신 읽기 전용 fixture 4개를 반환하며 입력 내용에 맞춘 추론은 하지 않는다. 생성기 교체 테스트에서는 1~5개 출력을 주입할 수 있다. 재생성은 현재 내용·원본·추가 프롬프트를 입력으로 받아 정확히 1개 수정본을 반환한다.
+다음 4가지 discriminated union을 제공한다. 실제 AI 대신 읽기 전용 fixture 4개를 반환하며 입력 내용에 맞춘 추론은 하지 않는다. 생성기 교체 테스트에서는 1~5개 출력을 주입할 수 있다. 재생성은 현재 내용·원본·추가 프롬프트를 입력으로 받아 정확히 1개 수정본을 반환한다.
 
-| type            | 문제 데이터                       | 답안과 채점                                                                                                         |
-| --------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| SINGLE_CHOICE   | prompt, choices: `{ id, text }[]` | `{ type, choiceId }`, ID 일치                                                                                       |
-| MULTIPLE_CHOICE | prompt, choices                   | `{ type, choiceIds }`, 순서와 무관한 정확한 집합 일치, 부분 점수 없음                                               |
-| TRUE_FALSE      | prompt                            | `{ type, value: boolean }`, boolean 일치                                                                            |
-| SHORT_ANSWER    | prompt                            | `{ type, text }`, 양끝 공백 제거·Unicode NFC 정규화 후 대소문자를 구분한 정확한 일치. 의미 기반/코드 실행 채점 없음 |
+| type | 문제 데이터 | 답안과 채점 |
+| --- | --- | --- |
+| SINGLE_CHOICE | prompt, choices: `{ id, text }[]` | `{ type, choiceId }`, ID 일치 |
+| MULTIPLE_CHOICE | prompt, choices | `{ type, choiceIds }`, 순서와 무관한 정확한 집합 일치, 부분 점수 없음 |
+| TRUE_FALSE | prompt | `{ type, value: boolean }`, boolean 일치 |
+| SHORT_ANSWER | prompt | `{ type, text }`, 양끝 공백 제거·Unicode NFC 정규화 후 대소문자를 구분한 정확한 일치. 의미 기반/코드 실행 채점 없음 |
 
-제목·문제·해설·단답은 공백뿐인 문자열을 거부한다. 선택지는 최소 2개이며 ID와 표시 텍스트는 중복될 수 없다. 답은 해당 형식·선택지에 맞아야 한다. 해시태그는 등록된 ID 0~3개이며 중복은 거부한다. 원본 학습 내용은 공백만 허용하지 않고 유니코드 코드 포인트 최대 10,000자다. 코드 블록·언어·줄바꿈·들여쓰기를 문자열 그대로 보존하며 실행하지 않는다. 별도 제목/문제/해설 길이 상한은 확정하지 않았다.
+제목·문제·해설·단답은 공백뿐인 문자열을 거부한다. 선택지는 최소 2개이며 ID와 표시 텍스트는 중복될 수 없다. 답은 해당 형식·선택지에 맞아야 한다. 해시태그는 등록된 ID 0~3개이며 중복은 거부한다. 원본 학습 내용은 공백만 허용하지 않고 유니코드 코드 포인트 최대 10,000자다. 코드 블록·언어·줄바꿈·들여쓰기를 문자열 그대로 보존하며 실행하지 않는다.
 
-생성 후보는 작성자 전용 `GenerationBatch`다. 최초 생성 결과는 1~5개이며 모든 후보를 삭제한 묶음은 0개 상태로 복원할 수 있다. `saveBatch`의 SINGLE은 한 후보, ALL은 후보별 독립 PENDING 퀴즈를 저장한다. 이미 저장된 후보는 같은 퀴즈를 반환하여 재전송이 복제하지 않는다. `deleteCandidate({ batchId, candidateId })`는 `DELETE /generation-batches/{id}/candidates`로 작성자의 후보를 묶음에서 제거한다. 이미 임시저장되었거나 공개된 후보라면 연결된 퀴즈도 soft delete하고 일반 목록에서 숨긴다. 삭제한 후보의 재삭제·재저장은 409로 거부하며 다른 사용자의 묶음은 404로 숨긴다.
+생성 후보는 작성자 전용 `GenerationBatch`다. 최초 생성 결과는 1~5개이며 모든 후보를 삭제한 묶음은 0개 상태로 복원할 수 있다. `saveBatch`의 SINGLE은 한 후보, ALL은 후보별 독립 PENDING 퀴즈를 저장한다. 이미 저장된 후보는 같은 퀴즈를 반환하여 재전송이 복제하지 않는다. `deleteCandidate({ batchId, candidateId })`는 작성자의 후보를 묶음에서 제거하며, 이미 임시저장된 후보라면 연결된 퀴즈도 soft delete한다. 삭제한 후보의 재삭제·재저장은 409로 거부하며 다른 사용자의 묶음은 404로 숨긴다.
 
-### 기존 학습 대화 계약
+### 작성 대화 계약 (호환용)
 
-아래 대화 전용 계약은 기존 데이터 호환을 위해 유지한다. 현재 작성 UI는 `generate`로 작업 모달을 열고 `refineCandidate`·`editCandidate`로 후보를 다듬는다.
+현재 작성 UI는 `generate`로 작업 모달을 열고 `refineCandidate`·`editCandidate`로 후보를 다듬는다. 아래 대화 계약은 기존 데이터 호환을 위해 유지한다.
 
-- `authoringConversation({})`: GET /authoring/conversation. 사용자별 대화의 version, messages, draft, latestBatchId를 반환한다.
-- `sendAuthoringMessage({ content, expectedVersion })`: POST /authoring/conversation/messages. 사용자 메시지와 검증된 Mock 답변을 함께 저장한다. 퀴즈는 생성하지 않는다.
-- `generateFromConversation({ draft, expectedVersion })`: POST /authoring/conversation/generate. 보낸 메시지와 답변을 원문으로 후보를 생성하고, 미전송 draft는 복귀용으로만 보존한다. conversation과 batch를 반환하며 퀴즈 저장·승인은 하지 않는다.
+- `authoringConversation({})`: 사용자별 대화의 version, messages, draft, latestBatchId를 반환한다.
+- `sendAuthoringMessage({ content, expectedVersion })`: 사용자 메시지와 검증된 Mock 답변을 함께 저장한다. 퀴즈는 생성하지 않는다.
+- `generateFromConversation({ draft, expectedVersion })`: 보낸 메시지와 답변을 원문으로 후보를 생성하고, 미전송 draft는 복귀용으로만 보존한다. 퀴즈 저장·승인은 하지 않는다.
 
-대화 변경 시 version을 증가시키고 오래된 버전은 VERSION_CONFLICT로 거부한다. 입력·답변·생성에 사용한 전체 대화는 각각 기존 10,000자 검증을 적용한다. 실패 시 저장 상태를 유지한다. 기존 schemaVersion 1 데이터의 선택적 authoringConversation 필드가 없으면 빈 대화로 읽는다. UI는 API로 복원하며 대화 키에도 사용자 식별자를 포함한다. 실제 AI 호출이나 여러 대화 목록은 구현하지 않는다.
-
-### 후보 바로 공개
-
-`publishCandidate({ batchId, candidateId, reviewed: true })`는 POST /generation-batches/{id}/publish 계약이다. 현재 표시된 미저장 후보에 대한 명시적 검토·공개 요청을 받아 내용을 검증하고 PUBLIC 퀴즈·검토된 active revision·후보 저장 연결을 한 스냅샷으로 저장한다. 다른 후보는 바꾸지 않는다. 오래된 ID는 VERSION_CONFLICT, 타인 batch는 NOT_FOUND이며 검토 표시가 없으면 VALIDATION_ERROR다. 이미 PUBLIC으로 저장된 후보의 재전송은 중복 생성하지 않는다. 저장 후 비공개·삭제·수정본이 생긴 퀴즈는 이 경로로 공개하지 않는다. 저장소 실패는 기존 상태를 유지한다. 기존 `approve`의 미검토 승인 거부 규칙은 그대로 유지한다.
+대화 변경 시 version을 증가시키고 오래된 버전은 VERSION_CONFLICT로 거부한다. 입력·답변·생성에 사용한 전체 대화는 각각 10,000자 검증을 적용한다. 실패 시 저장 상태를 유지한다.
 
 ### 저장 전 후보의 직접 편집
 
-`editCandidate({ batchId, candidateId, content })`는 POST /generation-batches/{id}/edit 계약이다. 작성자의 미저장 후보에 QuizContent 전체 검증을 적용하고 후보 ID를 교체한다. 오래된 ID는 VERSION_CONFLICT, 저장된 후보는 VALIDATION_ERROR, 타인의 batch는 NOT_FOUND다. 원문·다른 후보·이전 대화 이력은 유지하고 자동 저장·승인은 하지 않는다. 이후 추가 요청은 직접 수정한 현재 내용을 사용한다. 실패 시 후보를 바꾸지 않는다.
+`editCandidate({ batchId, candidateId, content })`는 작성자의 미저장 후보에 QuizContent 전체 검증을 적용하고 후보 ID를 교체한다. 오래된 ID는 VERSION_CONFLICT, 저장된 후보는 VALIDATION_ERROR, 타인의 batch는 NOT_FOUND다. 원문·다른 후보·이전 대화 이력은 유지하고 자동 저장·승인은 하지 않는다. 이후 추가 요청은 직접 수정한 현재 내용을 사용한다. 실패 시 후보를 바꾸지 않는다.
 
 ### 저장 전 후보의 추가 요청
 
-`refineCandidate({ batchId, candidateId, prompt })`는 `POST /generation-batches/{id}/refine` 계약이다. 작성자의 미저장 후보 한 개에 원본 학습 내용·현재 후보·추가 요청을 전달하고 검증된 한 개 결과로 갱신한다. 다른 후보·저장한 퀴즈는 바꾸지 않는다. 후보의 선택적 `history` 배열에 `{ prompt, content }` 요청·응답을 보존하며 기존 history 없는 저장 데이터도 읽는다.
+`refineCandidate({ batchId, candidateId, prompt })`는 작성자의 미저장 후보 한 개에 원본 학습 내용·현재 후보·추가 요청을 전달하고 검증된 한 개 결과로 갱신한다. 다른 후보·저장한 퀴즈는 바꾸지 않는다. 후보의 선택적 `history` 배열에 `{ prompt, content }` 요청·응답을 보존한다.
 
 성공하면 해당 candidateId를 새 ID로 교체한다. 오래된 후보 ID 요청은 VERSION_CONFLICT이며 최신 후보를 재조회해야 한다. 저장된 후보는 VALIDATION_ERROR, 타인의 batch는 NOT_FOUND다. 생성/저장소 실패 시 기존 결과는 그대로 남는다. 실제 AI는 호출하지 않으며 Mock은 추가 요청을 문제 문구에 표시한다.
 
-작성 UI는 TanStack Query의 사용자별 키로 후보·목록·상세를 조회하고, 변경 성공 후 관련 조회를 무효화한다. 오류 자동 재시도와 창 포커스 자동 재조회는 끄고 편집 입력을 보존한다. QueryClientProvider는 작성 영역에 안정적으로 유지하며 사용자 식별자를 모든 작성 데이터 키에 포함한다.
+작성 UI는 TanStack Query의 사용자별 키로 후보·목록·상세를 조회하고, 변경 성공 후 관련 조회를 무효화한다. 오류 자동 재시도와 창 포커스 자동 재조회는 끄고 편집 입력을 보존한다.
 
-## 수정·검토·공개
+## 내 퀴즈 수정·검토·승인
 
-`reviewQuiz`만 원본·정답·해설을 포함하는 작성자 DTO를 반환한다. `updatePending`은 다음 두 동작을 분리한다.
+`quizzes({ scope: 'OWN' })`는 현재 사용자의 삭제되지 않은 퀴즈 요약을 반환한다. 관리 화면은 전체 / 검토 필요(PENDING 수정본 있음) / 승인됨 필터를 제공한다.
 
-1. `action: 'EDIT'`, `content`, `sourceContent`, `expectedVersion`으로 저장한다. 검토 표시는 항상 해제한다.
+`reviewQuiz`만 원본·정답·해설을 포함하는 작성자 DTO를 반환한다. 검토 흐름은 다음과 같다.
+
+1. `updatePending`에 `action: 'EDIT'`, `content`, `sourceContent`, `expectedVersion`으로 저장한다. 검토 표시는 항상 해제한다.
 2. 저장된 내용을 확인한 뒤 `action: 'MARK_REVIEWED'`, 최신 `expectedVersion`으로 검토 완료를 저장한다.
-3. `approve`에 최신 버전을 전달한다. 첫 승인은 PRIVATE/PUBLIC을 지정해야 하며, 수정본 승인은 생략하면 기존 공개 범위를 유지한다.
+3. `approve({ quizId, expectedVersion })`로 승인한다. 공개 범위는 받지 않는다. 첫 승인은 PENDING을 PRIVATE로 바꾸고, 수정본 승인은 기존 상태를 유지한다. 검토 완료 표시가 없으면 409 NOT_REVIEWED다.
 
-검토 UI는 2와 3을 별도 버튼으로 노출하지 않는다. 작성자가 저장된 미리보기에서 `승인`을 누르면 `MARK_REVIEWED` 성공 응답의 최신 버전으로 `approve`를 이어서 요청한다. 첫 요청만 성공하고 승인이 실패하면 검토 완료 상태를 유지하고 최신 버전으로 승인을 다시 시도할 수 있어야 한다.
+검토 UI는 2와 3을 별도 버튼으로 노출하지 않는다. 작성자가 `승인`을 누르면 `MARK_REVIEWED` 성공 응답의 최신 버전으로 `approve`를 이어서 요청한다. 첫 요청만 성공하고 승인이 실패하면 검토 완료 상태를 유지하고 다시 승인할 수 있어야 한다.
 
-승인된 문제를 수정·재생성해도 active는 유지하고 pending만 만든다. stale version은 409 VERSION_CONFLICT다. 실패 시 저장 상태를 변경하지 않으며 UI는 오류 시 아직 저장되지 않은 편집 내용·추가 프롬프트를 유지해야 한다. 생성·재생성으로 자동 승인하지 않는다.
+승인된 문제를 수정·재생성(`regenerate`)해도 active는 유지하고 pending만 만든다. stale version은 409 VERSION_CONFLICT다. 실패 시 저장 상태를 변경하지 않으며 UI는 저장되지 않은 편집 내용·추가 프롬프트를 유지한다. 생성·재생성으로 자동 승인하지 않는다.
 
-`visibility`는 내용 변경과 별도이며 `expectedVersion`을 요구한다. `deleteQuiz`는 작성자만 가능한 멱등 soft delete다. 삭제한 퀴즈는 목록·학습·새 풀이에서 숨긴다.
+`deleteQuiz`는 작성자만 가능한 멱등 soft delete다. 삭제한 퀴즈는 목록·새 풀이에서 숨긴다.
 
-## 학습·풀이
+## 풀이
 
-구독 대상은 PERSON(authorUserId), HASHTAG(hashtagId), PERSON_HASHTAG(authorUserId, hashtagId)다. 같은 구독의 재등록은 기존 구독을 반환한다. 공개 퀴즈 중 직접 구독에 맞는 퀴즈만 후보이며 quizId로 중복되지 않는다. 태그 선택지는 이 후보들의 태그다. 구독이 없으면 빈 상태이며 추천 퀴즈를 넣지 않는다.
+`startAttempt({ quizId, context: 'DIRECT' })`는 삭제되지 않은 승인 퀴즈 중 작성자 본인의 PRIVATE 퀴즈 또는 PUBLIC 퀴즈에 새 Attempt를 만든다. PUBLIC 접근은 기존 seed·저장 데이터 호환 때문에 남아 있으며 새 UI에서 다른 사용자의 퀴즈로 가는 경로는 없다(PRD상 모든 퀴즈는 작성자 전용, 후속 TASK에서 정리). 각 시작은 새 Attempt다. 상태를 변경하므로 TanStack Query mutation을 사용하며 포커스·자동 재조회로 새 Attempt를 만들지 않는다.
 
-`learningQuiz`에서 hashtagId 생략/null은 전체, mode 생략은 UNSOLVED다. `learningNext`는 생략된 필터를 저장된 선택에서 가져온다. 명시적 null은 전체로 바꾼다. 선택·기록은 사용자별로 복원되며 태그 변경은 구독·완료 기록을 변경하지 않는다. UNSOLVED는 완료한 quizId와 문제 형식·본문·선택지가 같은 완료 문제를 제외하고 REPLAY는 완료한 quizId만 사용한다. 가능한 경우 현재 퀴즈 다음 후보를 고르며 미제출 문제를 건너뛰어도 완료로 처리하지 않는다.
+제출 답은 형식별 Answer이며 시작 당시 revision으로 채점한다. 동일 답 재전송은 최초 결과를 반환하며 답 변경은 409 ALREADY_ANSWERED다. 미제출 Attempt 응답은 원본·정답·해설을 포함하지 않는다. 삭제된 퀴즈는 작성자도 제출할 수 없다(409 QUIZ_UNAVAILABLE). 완료 기록·정오는 유지하고 이용 불가 문제의 본문·해설은 숨긴다.
 
-| state     | 의미                                                        |
-| --------- | ----------------------------------------------------------- |
-| AVAILABLE | 문제 있음                                                   |
-| EMPTY     | 조건에 맞는 공개 후보 자체가 없음. 탐색·구독·다른 태그 안내 |
-| EXHAUSTED | 미풀이 소진. 완료 문제를 반복하지 않고 태그 탐색 안내       |
-| NO_REPLAY | 후보는 있지만 완료한 문제가 없어 다시 풀 수 없음            |
+Attempt 키는 `['solving', userId, 'attempt', attemptId]`다. 제출 성공 시 Attempt 캐시를 응답으로 교체하고 `learningDay`, `history`를 무효화한다. 실패는 자동 재전송하지 않으며 조회 오류에는 수동 재시도를 제공한다.
 
-`startAttempt`의 context는 DIRECT 또는 LEARNING이다. DIRECT는 PUBLIC/작성자 PRIVATE 접근, LEARNING은 현재 구독·태그 조건까지 검사한다. 각 시작은 새 Attempt다. 제출 답은 형식별 Answer이며 시작 당시 revision으로 채점한다. 동일 답 재전송은 최초 결과를 반환하며 답 변경은 409 ALREADY_ANSWERED다.
+## 시간대와 학습일
 
-학습 DTO·공개 목록·미제출 Attempt는 원본·정답·해설을 포함하지 않는다. 비공개·삭제 전환 시 진행 중 타인 제출을 409 QUIZ_UNAVAILABLE로 거부한다. PRIVATE 작성자는 제출할 수 있지만 삭제는 작성자도 차단한다. 완료 기록·정오·성과는 유지하고 이용 불가 문제의 본문·결과 해설은 숨긴다.
+- 현재 구현: 사용자 상태에 시간대가 없을 때 브라우저 IANA 시간대를 감지해 저장하고, 이후에는 저장값을 사용한다. 직접 변경 API·화면은 없다. 감지 실패 시 조립 설정의 `fallbackTimeZone`이 있으면 사용하고, 없으면 null을 저장하며 제출·학습일 조회는 409 TIMEZONE_REQUIRED로 거부한다. 국가 코드 추론·Vercel IP 호출은 하지 않는다.
+- PRD AC-04d는 "사용자가 지금 있는 곳의 시간대"를 따르도록 정했다. 저장한 첫 시간대를 고정하는 현재 동작과 다르며, 후속 TASK에서 맞춘다.
+- `learningTimezone({})`는 저장된 시간대를 반환한다.
+- 정오·재도전 여부와 무관하게 첫 완료가 해당 사용자 현지 날짜를 인정한다. 완료 당시 UTC 시각·시간대·날짜를 저장하고 시간대가 바뀌어도 과거를 재계산하지 않는다. 현재 스트릭은 오늘 또는 어제부터 이어진 완료 날짜의 수이며 그보다 오래 쉬면 0이다.
+- `learningDay`의 `dailyCounts`는 `{ learningDate, count }[]`를 날짜 오름차순으로 반환한다. 본인의 완료 Attempt에서 저장된 학습일·quizId를 중복 제거한 개수다. 같은 날 재풀이는 추가하지 않고 다른 날은 별도 집계한다. 미제출은 제외한다.
 
-## 시간대·보상
+## 개인 풀이 내역 — QUIZ-HISTORY
 
-브라우저 IANA 시간대를 감지하고 저장된 설정을 우선한다. `learningTimezone`/`updateTimezone`으로 조회·변경한다. 감지 실패 시 기본 시간대가 미결정이므로 null을 반환하고 완료 처리/학습일 조회는 TIMEZONE_REQUIRED로 거부한다. 명시적으로 합의한 `fallbackTimeZone`을 조립 설정에 줄 수 있으나 제품 기본값은 넣지 않았다. 국가 코드 추론·Vercel IP 호출도 하지 않는다.
+- `attemptHistory({ filter?, query?, page?, pageSize? })`: filter는 `ALL`(기본)/`CORRECT`/`INCORRECT`, query는 선택 문자열(trim 후 비어 있으면 검색 없음, 100자 초과 거부), page 기본 1·양의 안전 정수, pageSize 기본 20·1~50 정수. 알 수 없는 필터·요청 필드는 거부한다.
+- 응답은 `{ items: { attemptId, title: string|null, correct: boolean|null, completedAt, matchedIn: 'TITLE'|'BODY'|null, excerpt: string|null }[], page, pageSize, total }`. 현재 더미 사용자의 완료 Attempt만 대상으로 필터·검색 적용 → 완료 시각 내림차순 → 동일 시각 attemptId 오름차순 → 페이지 분할한다. 같은 quizId의 여러 제출을 합치지 않는다. 범위 밖 페이지는 빈 items를 반환한다.
+- 검색은 저장된 revision의 `title`과 문제 본문(`question.prompt`, 선택지 `text`)에서 대소문자 무시 부분 일치(공백 구분 단어가 모두 포함되면 일치, 순서 무관)를 찾는다. 정답·제출 답안·해설·`sourceContent`는 검색 대상이 아니다. 현재 접근 불가·삭제된 퀴즈의 기록은 검색어가 있으면 제외한다. `matchedIn`이 BODY일 때만 `excerpt`(일치 단어 주변 최대 80자)를 반환한다.
+- 제목은 저장된 revision에서만 읽는다. 접근 불가·삭제된 문제 또는 제목 없는 과거 기록은 title=null. 목록에는 답안·정답·해설·원문을 포함하지 않는다.
+- 상세는 기존 `attempt`와 `QuizPanel`을 재사용한다. 본인 저장소에 없는 Attempt는 404. `/my/learning/[attemptId]`는 완료 기록만 보여 주며 목록의 filter/page/user를 복귀 링크에 유지한다. 결과의 누락 필드는 ‘기록 없음’으로 표시하며 현재 버전으로 보충하지 않는다.
+- `attemptHistory`와 `attempt` 조회는 시간대 초기화·데모 마이그레이션을 수행하지 않으며 저장소·스트릭을 변경하지 않는다.
+- 재도전은 `startAttempt(context: DIRECT)` 후 `/solve?user=…&attempt=…`로 이동한다. 기존 기록은 보존한다. PRD에 따라 재도전 결과는 복습 일정에 영향을 주지 않는다(복습 주기 구현 시 적용). Query 키는 `['history', userId, filter, query, page]`다.
 
-정오·태그·재도전 여부와 무관하게 첫 완료가 해당 사용자 현지 날짜를 인정한다. 완료 당시 UTC 시각·시간대·날짜를 저장하고 변경 시 과거를 재계산하지 않는다. 현재 스트릭은 오늘 또는 어제부터 이어진 완료 날짜의 수이며 그보다 오래 쉬면 0이다.
+## 저장소
 
-`learningDay`의 `dailyCounts`는 `{ learningDate, count }[]`를 날짜 오름차순으로 반환한다. 요청자 본인의 완료 Attempt에서 저장된 학습일·quizId를 중복 제거한 개수다. 같은 날 재풀이는 추가하지 않고 다른 날은 별도 집계한다. 정오와 현재 공개/삭제 상태는 필터링하지 않으며 미제출은 제외한다. 기록 없는 날짜는 UI에서 0으로 표시한다. `completedDates`/스트릭 판정은 기존대로 유지한다. 별도 저장 필드나 스냅샷 마이그레이션 없이 기존 Attempt로 계산한다.
+localStorage 키는 `bugri:mock:v1:{userId}`다. 각 사용자의 작성 퀴즈·후보·작성 대화·풀이·학습일·시간대를 한 스냅샷(`schemaVersion: 1`)으로 저장한다. 모든 요청은 최신 저장소를 다시 읽고 요청자 자신의 키만 변경한다. 변경된 스냅샷은 단일 setItem으로 저장한 후 성공을 반환한다. 손상/버전 불일치는 STORAGE_CORRUPT, 접근/용량 오류는 STORAGE_UNAVAILABLE이며 기존 데이터를 자동 초기화하지 않는다.
 
-BugCoin 자동 보상은 [확정 정책](archive/BUGCOIN_POLICY.md)을 적용한다. 기본 fixture 시작 잔액100은 유지한다. 기존 테스트용 `dailyReward`를 명시하면 과거 일일 완료 fixture 동작을 별도로 사용하며 제품 조립에서는 지정하지 않는다. XP·Streak 보상은 추가하지 않는다.
-
-## 상점·저장소
-
-상품은 관리자 입력을 가정한 5개 카테고리·15종의 고정 데이터다. 각 카테고리의 세 번째 상품5종은 새ID에 대한 공통 동작 검증용fixture이며 합계100 BugCoin이다. 1단계 시각 자산은 `src/components/shop/zdog/models.ts`의 자체 제작 3D 모델이며 상품 ID로 연결한다. 카드 미리보기와 3D 데스크에서 동일한 모델을 사용한다. 공개 프로필은 장착 ID와 공간 배치를 전달한다. 가격은 Mock fixture이며 실결제가 아니다. `purchase`에는 productId와 requestKey가 필수다. 같은 키·상품은 최초 구매를 반환하고 같은 키·다른 상품은 IDEMPOTENCY_CONFLICT, 이미 보유한 상품은 ALREADY_OWNED, 잔액 부족은 INSUFFICIENT_BALANCE다. 보관함과 같은 카테고리의 상품만 장착하며 productId null로 해제한다. 공개 프로필은 표시 사용자와 장착 상태만 반환하고 잔액·원장·보관함은 노출하지 않는다.
-
-localStorage 키는 `bugri:mock:v1:{userId}`다. 각 사용자의 작성 퀴즈·후보·구독·풀이·날짜·원장·구매·장착·시간대를 한 스냅샷으로 저장한다. 모든 요청은 최신 저장소를 다시 읽어 다른 더미 사용자의 공개 범위·삭제·장착을 반영하고 요청자 자신의 키만 변경한다. 변경된 스냅샷은 단일 setItem으로 저장한 후 성공을 반환한다. 손상/버전 불일치는 STORAGE_CORRUPT, 접근/용량 오류는 STORAGE_UNAVAILABLE이며 기존 데이터를 자동 초기화하지 않는다.
-
-학습자 예시 구독은 author 개발자 전체, 모든 작성자의 web 태그, friend 개발자의 javascript 태그다. 이 세 조건으로 기존 퀴즈 4개를 모두 학습한다. author/friend의 초기 구독은 비어 있다. `src/mocks/subscriptions.ts`에 사용자별 읽기 전용 fixture를 둔다.
-
-기존 v1 저장 데이터는 요청한 사용자만 `learningDemoVersion: 1`로 한 번 갱신한다. learner에는 예시 구독을 기존 구독과 대상 기준으로 중복 없이 추가하고, 풀이·작성 퀴즈·구매·잔액·장착·시간대는 유지한다. marker가 저장된 뒤 해제한 구독은 다시 자동 추가하지 않는다. 최초 보완은 이 프로토타입의 더미 데이터 준비 요청에 따른 것이며 실제 서비스의 신규 사용자 자동 구독 정책이 아니다. marker와 요청 결과는 같은 스냅샷으로 저장하며 저장 실패 시 기존 스냅샷을 유지한다.
+범위 축소 전 스냅샷에 남아 있는 구독·지갑·데스크 등 필드는 검증 대상이 아니며 읽기는 성공한다. 해당 필드를 정리하는 마이그레이션은 하지 않았다.
 
 더미 사용자는 learner/author/friend다. 데이터는 실제 보안 경계가 아니며 브라우저에서 열람·변조 가능하다. localStorage 삭제 시 seed로 돌아가고 다른 브라우저/기기와 공유하지 않는다. 동시 탭의 경합을 직렬화하는 DB 거래 보장은 없으며 2단계에서 구현한다. seed 파일·서버 메모리·Vercel 파일에 사용자 변경을 쓰지 않는다.
 
+## HTTP 장애 구분 (ERROR-TRANSPORT)
+
+- HTTP 어댑터는 요청 시작부터 JSON 본문 읽기까지 기본 15초 제한을 적용하고 AbortController로 취소한다. 테스트/연결 환경에서 `timeoutMs`로 조정할 수 있다.
+- 네트워크 연결 실패는 `NETWORK_ERROR`(합성 502), 시간 초과는 `REQUEST_TIMEOUT`(합성 504)다. 서버의 실제 HTTP 응답과 구분하려면 상태와 `detail.code`를 함께 확인한다.
+- 계약에 맞는 오류 envelope는 기존 status/code/requestId를 보존한다. 비계약 오류 응답도 실제 HTTP status를 보존하며 404는 NOT_FOUND, 403은 FORBIDDEN, 5xx는 SERVER_ERROR, 그 외는 HTTP_ERROR로 변환한다. 정상 HTTP 응답의 잘못된 envelope는 INVALID_RESPONSE(합성 502)다. 원본 HTML·파싱 예외는 사용자 메시지에 포함하지 않는다.
+- 전송 계층은 요청을 자동 재전송하지 않는다. 응답이 유실된 변경 요청은 처리 여부가 불명확할 수 있으므로 답안 제출의 재조회·중복 방지 계약을 유지한다.
+
 ## 검증 범위
 
-Jest는 계약·생성 검증·리비전·권한 UX·구독/태그/재도전·시간대·원장·구매·장착·저장 실패·HTTP 변환을 검증한다. Playwright는 테스트 전용 번들로 동일 서비스 코드를 실제 브라우저에 로드해 localStorage 재접속 복원과 탭 간 변경을 검증한다. 제품 UI의 컴포넌트/클릭 여정 검증은 이 작업에 포함하지 않는다.
+Jest는 계약·생성 검증·리비전·권한·재도전·시간대·학습일·풀이 내역·저장 실패·HTTP 변환을 검증한다. Playwright는 테스트 전용 번들로 동일 서비스 코드를 실제 브라우저에 로드해 localStorage 재접속 복원과 탭 간 변경을 검증한다.
 
-기본 `npm run verify`는 E2E 전용 3107번 포트를 사용한다. 해당 포트도 사용 중이면 `PLAYWRIGHT_PORT=3108 npm run verify`처럼 빈 포트를 지정한다. 서버 실행 포트와 테스트 baseURL에 같은 값을 적용하며 다른 워크트리의 서버는 재사용하거나 종료하지 않는다. Mock 서비스만 실행하는 `npx playwright test --config=tests/e2e/mock.config.ts`도 같은 설정을 따른다.
+기본 `npm run verify`는 E2E 전용 3107번 포트를 사용한다. 해당 포트도 사용 중이면 `PLAYWRIGHT_PORT=3108 npm run verify`처럼 빈 포트를 지정한다. 다른 워크트리의 서버는 재사용하거나 종료하지 않는다. Mock 서비스만 실행하는 `npx playwright test --config=tests/e2e/mock.config.ts`도 같은 설정을 따른다.
 
 ## 코드 작성·정리 규칙
 
 import 별칭, `as const`, 구조 분해 할당, 빈 줄·객체 줄바꿈 및 범위 제한 자동 수정 명령은 [코딩 규칙](CODING_CONVENTIONS.md)을 따른다. API 의미와 직렬화 계약은 이 문서와 `src/api/contracts.ts`를 기준으로 유지한다.
-
-## 3D 데스크 배치 (P08-3D)
-
-`transformEquipment`는 `PUT /me/desk/transform`에 `{ category, productId, transform: { x, y, z, rotationY } }`를 보내고 카테고리별 `DeskTransforms`를 반환한다. Y는 높이, rotationY는 수직축 회전 각도(0~359도)다. 책상 폭은 4, 깊이는 2.4, 상판 높이는 1.55이며 상품 좌표는 책상 로컬 좌표다. 책상 자체는 바닥 Y=0을 유지하며 이동/회전한다. 책상을 움직이면 자식 상품이 함께 움직인다.
-
-공통 `src/lib/desk-spatial.ts`는 x/z를 0.001 단위로 맞추며 상판/방 외곽으로 제한하지 않는다. 상품 기본 높이는 1.55이며 0 이상의 높이를 0.001 단위로 저장할 수 있다. 책상 높이는 0으로 유지한다. 일반 수평 이동/회전은 현재 높이를 유지한다. 키보드·모니터·소품·버그리의 상판 드롭은 UI에서 실제 상판 좌표와 높이를 함께 계산해 상품은 기존 transformEquipment, 버그리는 transformBugri 요청으로 저장한다. 별도의 스냅 API나 저장 필드는 추가하지 않는다. API는 비유한 좌표·정규화되지 않은 정밀도·지하 높이·책상 자체의 높이 변경·잘못된 회전을 거부한다(400 VALIDATION_ERROR). 현재 구매·장착한 productId가 아니면 403 FORBIDDEN이다. 같은 상품의 재장착 요청은 배치를 유지하며 교체·해제는 해당 카테고리의 배치만 제거한다. 아이템 간 충돌/쌓기는 이 작업에서 구현하지 않는다.
-
-Inventory/PublicProfile에 `transforms`를 추가했다. 공개 프로필은 사용자·장착 ID·배치만 제공하고 잔액·원장·구매·보관함은 포함하지 않는다. 변경 성공 시 보관함·공개 프로필 캐시를 갱신한다. 저장 실패는 이전 저장 상태를 유지하고 UI는 이동·회전 초안을 유지해 재시도할 수 있다.
-
-기존 v1의 구매·장착과 2D `positions`는 삭제하지 않는다. `transforms`가 없는 스냅샷을 읽을 때 기존 2D x/y 이동량을 1/100 단위로 기본 3D x/z에 더하고 0.001 단위로 맞춘다. 회전은 0도, 높이는 상판/바닥으로 설정한다. 변환되지 않는 손상된 저장 데이터는 STORAGE_CORRUPT로 거부하며 초기화하지 않는다. 기존 `moveEquipment`/`PUT /me/desk/position`은 호환 목적으로 유지하고 성공 시 해당 3D 배치도 변환한다. 상품 배치 화면은 transformEquipment를 호출한다.
-
-카메라 시점은 뷰어 상태이고 상품 배치 API에 저장하지 않는다. 공개 데스크도 시점 회전은 가능하며 편집 도구/배치 API는 제공하지 않는다. Three.js의 OrbitControls와 TransformControls를 사용하고, React 컴포넌트가 언마운트되면 WebGL 렌더러·컨트롤·기하·재질 자원을 정리한다. 카드 이미지는 화면에 들어올 때만 같은 3D 모델로 생성한다.
-
-### 버그리 배치
-
-`transformBugri`는 `PUT /me/desk/bugri`에 `{ transform: { x, y, z, rotationY } }`를 보내고 `DeskTransforms`를 반환한다. 상품 구매/장착과 별개인 기본 캐릭터이므로 productId·category·대상 사용자 필드를 받지 않는다. 현재 더미 사용자의 `transforms.BUGRI`만 갱신하며 잔액·구매 내역·equipment는 바꾸지 않는다. 유한 좌표·Y>=0·0~359도 회전·0.001 위치 정밀도를 검증한다. 실패 시 기존 저장값은 유지한다. `inventory`와 `publicProfile`에 같은 배치를 반환한다. 저장되지 않은 기존 스냅샷은 기본 좌표 `{ x: -2.3, y: 0, z: 1.8, rotationY: 0 }`로 렌더한다. 신규 DB/인증은 도입하지 않는다. 장착해보기의 버그리 이동은 로컬 초안이며 API를 호출하지 않는다.
-
-### 겹침 순서
-
-`reorderDesk`는 `PUT /me/desk/order`에 `{ order: DeskItem[] }`를 보내고 저장된 배열을 반환한다. 배열은 뒤에서 앞으로 순서이며 `BUGRI`, 기본/장착 `DESK`, 현재 장착한 KEYBOARD/MONITOR/ACCESSORY를 각각 한 번 포함한다. BACKGROUND와 미리보기 식별자는 허용하지 않는다. 빈 배열은 기본 깊이 정렬이다. 중복·누락·미장착 대상은 400으로 거부하고 기존 순서를 유지한다. 현재 더미 사용자의 순서만 변경하며 좌표·높이·잔액은 바꾸지 않는다. 장착/해제 시 기존 상대 순서를 유지하며 새 대상을 추가하거나 해제 대상을 제거한다. `inventory`/`publicProfile`의 `order`로 복원하며 기존 v1 스냅샷에는 빈 배열을 보충한다. 미리보기 기존 상품의 변경은 저장하지 않고, 실제 장착 시 추가 상품의 순서만 저장된 기존 순서에 삽입한다.
-### 개발자의 공개 퀴즈 페이지
-
-- 탐색 결과의 공개 퀴즈 수는 `/developers/{publicId}/quizzes?user={viewerId}`로 연결하고 이름은 공개 프로필로 연결한다. `tag/page`로 퀴즈 필터와 퀴즈 페이지를 복원한다. 이전 URL의 `tagQuery/tagPage`는 목록 태그 표시를 제한하지 않으며 다음 필터 조작 시 제거한다.
-- `developerQuizzes`: GET `/developers/{publicId}/quizzes`, 요청 `{publicId,page,pageSize,hashtagIds?:string[],hashtagId?}`. 다중 태그는 OR로 필터 후 정렬/전체 개수/페이지를 계산한다. 빈 배열은 전체이며 legacy hashtagId도 유지한다. HTTP는 반복 hashtagIds 쿼리, 화면 URL은 반복 tag 쿼리로 복원한다., 응답 `{user,subscribed,items:[{quizId,title,hashtagIds,updatedAt}],page,pageSize,total}`.
-- `developerTags`: GET `/developers/{publicId}/tags`, 요청 `{publicId,page,pageSize,query}`, 응답 `{items:[{id,name,quizCount,subscribed}],page,pageSize,total}`.
-- 두 조회는 지정 개발자의 삭제되지 않은 PUBLIC active 퀴즈만 사용한다. 태그는 이 퀴즈에서 사용된 등록 태그만 포함한다. ID 오름차순, page≥1 정수, pageSize 1~50 정수, 검색어 최대 100 코드 포인트. 미등록 개발자는 NOT_FOUND(404). 화면은 퀴즈 20개씩 표시하며 태그는 기존 API를 페이지당 최대 50개씩 조회해 전부 모은 뒤 한 번에 표시한다. 요청·응답 계약은 유지하고 구독 설정 패널의 독립 검색·페이지 이동도 유지한다. 목록에는 문제·정답·해설·원문을 포함하지 않는다.
-- 개발자 구독은 PERSON, 태그 구독은 PERSON_HASHTAG(authorUserId,hashtagId)이며 기존 subscribe 계약을 사용한다. 태그 필터는 다중 선택/재선택 해제만 수행한다. 헤더 구독 설정(PC Popover/모바일 Drawer)에서 개발자 전체 및 태그별 구독/해제를 수행한다. 패널의 태그 검색과 페이지는 퀴즈 필터와 독립이며 저장 후에도 패널에 머문다. 성공 후 URL·검색 조건을 유지하고 developerQuizzes/developerTags/discovery/subscriptions/learningTags/learningQuiz의 사용자별 캐시를 갱신한다. 퀴즈 제목을 누를 때만 기존 직접 풀이로 이동한다.
-
-## 비로그인 홈 체험 — 문서 합의, 구현 별도
-
-PRD AC-05h~i와 [페이지 구조](PAGE_STRUCTURE.md)의 방문자 정책을 따른다. 기존 구독 기반 학습·사용자별 Attempt·학습일·보상 설명은 로그인 사용자(1단계 더미 사용자) 대상이다. 비로그인 방문자는 전체 활성 PUBLIC 퀴즈의 랜덤 풀이·제출 후 해설·다음 문제만 체험하고 개인 기록·스트릭·보상을 남기지 않는다. 익명 소유권이나 더미 사용자 계정에 방문자 기록을 저장하지 않는다.
-
-기존 사용자 기반 API 계약이 이 방문자 기능을 이미 지원한다는 의미는 아니다. 구현 시 별도의 방문자 조회·채점 계약과 제출 전 정답 비노출, 제출 시 공개·삭제 상태 확인을 정의해야 한다. 이번 문서 변경에서는 DTO·엔드포인트·코드를 추가하지 않는다. 1단계 실제 인증·서버 영속성 제외 정책은 유지한다.
-
-
-### 공개 퀴즈 최신순과 프로필 미리보기
-
-- `developerQuizzes`는 최근 공개 시각 내림차순, 동률은 quizId 오름차순으로 정렬한 후 페이지를 나눈다. 프로필은 `{page:1,pageSize:4}`로 조회하며 URL의 이전 필터/페이지 값을 적용하지 않는다. 전체 목록은 기존 페이지·필터 계약을 유지한다.
-- Mock 퀴즈 저장 필드 `publishedAt`은 직접 공개, 최초 PUBLIC 승인, PRIVATE→PUBLIC 전환 때 기록한다. PUBLIC 내용 수정·수정본 승인과 같은 상태 저장으로는 바뀌지 않는다. 공개 응답에 정답·해설·원문을 추가하지 않는다.
-- 기존 v1 저장 데이터의 `publishedAt` 누락은 허용하고 시각 미상으로 처리한다. 알려진 공개 시각 뒤에 안정적으로 배치하며 updatedAt으로 공개 시각을 추정하지 않는다. seeds에는 명시적인 공개 시각을 부여한다. 기본값·가짜 역사 데이터로 기존 저장소를 덮어쓰지 않는다.
-
-## 공개 프로필 자기소개·링크
-
-- `profileAbout({ publicId })`: `GET /users/{id}/about` → `{ biography: string, links: ProfileLink[] }`. 사용자 없음은 404. 기존 프로필/데스크 API와 분리하며 레거시 저장 데이터의 profileAbout 누락은 빈 자기소개·빈 링크로 읽는다.
-- `updateProfileAbout({ biography, links })`: `PUT /me/about`. 현재 사용자 자기소개와 링크 전체를 교체하고 같은 형태를 반환한다. 요청에 소유자 ID를 받지 않으며 다른 필드는 거부한다. Mock은 현재 더미 사용자 상태만 기록한다.
-- `ProfileLink`: `{ kind: GITHUB|BLOG|PORTFOLIO|LINKEDIN|OTHER, url: string, label?: string }`. http(s) 절대 URL만 허용하고 자격 증명이 포함된 URL을 거부한다. OTHER에만 비어 있지 않은 label을 받는다. URL·표시 이름 양끝 공백을 제거한다. 자기소개는 Markdown 원문을 보존하고 길이·링크 개수의 별도 제품 상한을 추가하지 않는다.
-- UI와 서비스가 같은 순수 검증을 사용한다. 잘못된 요청은 VALIDATION_ERROR, 저장 실패는 STORAGE_UNAVAILABLE이며 기존 저장 내용을 바꾸지 않는다. 저장 상태를 읽을 때도 프로필 구조를 검증한다.
-- TanStack Query 키는 `['profileAbout', viewerUserId, publicId]`. 저장 성공 시 해당 캐시를 교체하고 프로필 조회 캐시를 무효화한다. 사용자·프로필·로그인 상태 변경 시 편집 폼을 재생성해 다른 사용자에게 초안이 남지 않게 한다.
-
-## P08 BugCoin 내역 화면
-
-`/my`의 BugCoin 영역은 `wallet`의 잔액·원장을 조회하며 별도 지급이나 구매 요청을 발생시키지 않는다. 내역은 최신순(동일 시각은 원장 뒤 항목 우선)이고 데모 시작 지급·일일 학습 보상·상품 구매와 부호 있는 금액, 브라우저 시간대가 표시된 시각을 제공한다. 빈 내역·로딩·오류 재시도를 구분한다. 지급량 정책과 fixture는 변경하지 않는다.
-
-`useWallet`의 사용자별 키 `["wallet", userId]`를 상점과 내역 화면에서 공유하여 구매와 기존 답안 제출의 무효화 대상이 일치한다. 페이지별 QueryClient는 이동 후 최신 API를 조회한다. UI는 typed API만 사용하며 저장소 오류 시 기존 데이터를 초기화하지 않는다.
-
-BugCoin 내역은 최신순 10개씩 클라이언트 페이지네이션한다. `wallet`은 기존처럼 전체 원장과 잔액을 반환하므로 네트워크·저장소 조회량을 줄이는 서버 페이지네이션은 아니다. 이전/다음과 현재/전체 페이지를 표시하고 한 페이지 이하에서는 이동 UI를 숨긴다. 사용자 전환·새로고침은 첫 페이지, 재조회로 내역이 줄면 마지막 유효 페이지로 보정한다. 페이지와 무관하게 잔액은 전체 원장 기준이다.
-
-화면용 더미 내역 요청에 따라 초기 지급 100을 `src/mocks/coin-history.ts`의 25개 날짜별 `SEED` 지급(+4)으로 나눴다. 화면에는 ‘데모 지급’으로 표시하며 실제 일일 학습 보상 정책이나 완료 기록을 뜻하지 않는다. 기본 페이지 수는 3(10/10/5)이다. 사용 내역은 실제 Mock 구매 원장을 그대로 표시한다.
-
-기존 v1은 `coinHistoryDemoVersion: 1`로 요청 사용자만 한 번 보완한다. 원본 `seed-balance-{userId}`의 사유·참조·금액100·시각이 모두 일치할 때만 동일 합계 예시 내역으로 치환하고 기존 구매·보상·설정은 유지한다. 원본 seed가 없거나 수정되었다면 원장을 그대로 둔다. marker와 결과는 기존 단일 setItem으로 저장하며 저장 실패 시 기존 스냅샷을 보존한다. 당시 지급량 기본값0은 이후 BUGCOIN-POLICY에서 확정 정책으로 교체했다.
-
-BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체·양수·음수인 행을 대상으로 한다. 0금액은 전체에만 나타난다. 필터 적용 후 페이지 수를 계산하며 필터를 바꾸면 첫 페이지, 사용자를 바꾸면 전체/첫 페이지로 초기화한다. 잔액은 필터와 무관하다. 결과가 없으면 선택한 지급/사용 내역이 없음을 표시하고 탭으로 복귀할 수 있다. API 조회와 저장 계약은 유지한다.
-
-후속 UI 개선에서 BugCoin 페이지 크기를 5개로 변경했다(기본 예시25건은5페이지). 필터·정렬·잔액·API 전체 조회 계약은 유지한다. 목록 날짜는 짧은 연월일로 표시하고 전체 시각·시간대는 time의 접근성 이름으로 보존한다.
-
-## 태그별 공개 퀴즈 목록 (TAG-QUIZ-CATALOG)
-
-- `tagQuizzes`: GET `/tags/{hashtagId}/quizzes`, 요청 `{hashtagId,page,pageSize}`, 응답 `{hashtag,subscribed,items:[{quizId,title,author:{userId,publicId,displayName}}],page,pageSize,total}`. page는 양의 정수, pageSize는 1~50이며 없는 태그는 NOT_FOUND다. 등록된 빈 태그는 total0으로 구분한다.
-- 모든 작성자의 활성 PUBLIC 퀴즈 중 태그에 해당하는 항목을 최근 공개 시각 내림차순·동률 quizId 오름차순으로 정렬한다. PRIVATE/PENDING/삭제/비활성은 제외한다. 정답·해설·문제 본문·원문은 반환하지 않는다.
-- `subscribed`는 현재 더미 사용자의 직접 HASHTAG 구독이다. 방문자 UI는 이 값을 개인 상태로 표시하지 않는다. 목록 조회는 구독을 변경하지 않는다. 기존 subscribe/unsubscribe 성공 시 `tagQuizzes` 사용자별 캐시도 무효화한다.
-- 화면 `/tags/[hashtagId]/quizzes`는 탐색의 query/discoveryPage/subscribed 조건을 보존해 돌아간다. 목록 page와 탐색 discoveryPage는 분리한다. URL user가 없으면 링크·검색으로 임의 사용자를 추가하지 않는다.
-
-### 공개 프로필 학습 활동
-
-`publicLearningDay({ publicId })` → `GET /users/{id}/learning-day`는 프로필 주인의 `LearningDay` 집계(시간대·현지 오늘·오늘 완료·현재 스트릭·완료 날짜·일별 퀴즈 수)만 반환한다. 홈과 동일한 계산을 재사용하며 문제 ID·답안·정오·원문·보상 내역은 포함하지 않는다. 방문자/본인/타인 모두 동일한 공개 집계를 조회한다. Mock 조회는 사용자 시간대 초기화나 마이그레이션·저장을 수행하지 않는다. 없는 publicId는404, 주인의 저장 시간대가 없으면 1단계 데모 사용자별 공개 학습 예시 시간대(Asia/Seoul)를 사용한다. 저장 설정이 우선하며 방문자 시간대를 대신 적용하거나 스냅샷을 변경하지 않는다. 예시 시간대도 없는 경우에만 409 TIMEZONE_REQUIRED다. 이 예시는 실제 사용자 시간대 감지 실패 시의 제품 기본값을 정하지 않는다. 캐시 키는 publicId별 분리, 화면 복귀/60초 주기로 재조회한다. 실제 인증·동의 설정은 이번 단계의 구현 범위가 아니다.
-
-
-### 내 데스크 독립 책상 이동
-
-- `transformDesk`: `PUT /me/desk/table`, 요청 `{ productId: string | null, transform: DeskTransform }`, 응답 `DeskTransforms`. 기본 책상은 `productId: null`, 장착 책상은 현재 상품 ID다. 현재 장착 상태와 다르면 403, 바닥 높이/유한 좌표/회전 범위가 잘못되면 400이다. 다른 사용자 ID는 받지 않는다.
-- 책상 위치·회전과 다른 장착 아이템/버그리의 새 책상 기준 상대 좌표를 같은 상태 쓰기로 저장한다. 다른 아이템의 실제 위치·높이·방향은 유지한다. 기존 책상 상대 저장 좌표 형식과 공개 응답을 유지하며, 기본 책상도 DESK transform을 보존할 수 있다. 구매/장착 권한을 부여하는 요청은 아니다.
-- 저장 실패(503)는 전체 상태를 보존한다. UI는 초안을 유지하고 재시도·취소를 표시한다. Mock 사용자별 localStorage에 한 번 쓰는 범위이며 실제 서버 트랜잭션 보장은 2단계다. 기존 `transformEquipment`는 장착 상품 검증과 장착 미리보기 적용용 계약을 유지한다.
-
-### HTTP 장애 구분 (ERROR-TRANSPORT)
-
-- HTTP 어댑터는 요청 시작부터 JSON 본문 읽기까지 기본 15초 제한을 적용하고 AbortController로 취소한다. 테스트/연결 환경에서 `timeoutMs`로 조정할 수 있다. 성공·실패 모두 타이머를 정리한다.
-- 네트워크 연결 실패는 기존 `NETWORK_ERROR`(합성502), 시간 초과는 `REQUEST_TIMEOUT`(합성504)다. 서버의 실제 HTTP 응답과 구분하려면 상태와 `detail.code`를 함께 확인한다.
-- 계약에 맞는 오류 envelope는 기존 status/code/requestId를 보존한다. 프록시 HTML 등 비계약 오류 응답도 실제 HTTP status를 보존하며 404는 NOT_FOUND, 403은 FORBIDDEN, 5xx는 SERVER_ERROR, 그 외는 HTTP_ERROR로 변환한다. 정상 HTTP 응답의 잘못된 envelope는 INVALID_RESPONSE(합성502)다. 원본 HTML·파싱 예외는 사용자 메시지에 포함하지 않는다.
-- 전송 계층은 요청을 자동 재전송하지 않는다. 특히 응답이 유실된 변경 요청은 처리 여부가 불명확할 수 있으므로 기존 답안·구매의 재조회/중복 방지 계약을 유지한다.
-
-### 개별 문제 평가 — AC-05j
-
-- `quizReaction({ quizId })`: GET `/quizzes/{id}/reaction`, `{ reaction: "LIKE" | "DISLIKE" | null, likeCount: number, dislikeCount: number }`. 현재 퀴즈 접근 가능 여부를 확인하며 완료 풀이를 요구하지 않는다.
-- `updateQuizReaction({ quizId, reaction })`: PUT 같은 경로. 동일 DTO를 반환하며 null은 취소다. 토글이 아니라 목표 값을 저장하므로 같은 요청 재전송은 멱등이다. 이용 불가는 QUIZ_UNAVAILABLE, 잘못된 값은 VALIDATION_ERROR다.
-- 선택 필드 `UserState.quizReactions`는 사용자별 quizId/반응 배열이다. 기존 v1에서 필드가 없으면 빈 선택이며 손상/중복 값은 저장소 오류로 보존한다. 브라우저 저장 실패는 기존 반응을 유지한다. 방문자의 평가 조회는 공개 퀴즈에 한해 합계와 reaction:null을 반환하며 읽기만 수행한다. 방문자는 반응을 저장할 수 없다.
-- Query 키는 `["quizReaction", userId, quizId]`, 성공 시 해당 캐시를 응답으로 교체한다. 목록과 풀이 컨트롤이 동일한 사용자·문제 키를 공유하므로 해당 캐시 갱신으로 동기화한다. 화면 재진입 시 stale query를 재조회한다. 방문자는 userId:null 캐시로 공개 집계를 조회하며 평가 클릭 시 데모 선택만 연다. Mock 합계는 같은 브라우저에 있는 전체 더미 사용자별 반응을 합산하며 서버 전체 사용자 통계가 아니다. 자동 mutation 재시도는 없으며 사용자·문제 전환으로 UI를 초기화한다.
-
-
-### 공개 프로필 섹션 순서
-
-- `profileOrder`: GET `/users/{publicId}/section-order`, 요청 `{ publicId }`, 응답 `{ order: ProfileSection[] }`. 조회는 저장·시간대 초기화·마이그레이션을 수행하지 않는다.
-- `updateProfileOrder`: PUT `/me/section-order`, 요청/응답 `{ order: ProfileSection[] }`. 현재 더미 사용자만 변경하며 대상 사용자 필드 주입을 거부한다.
-- `ProfileSection`은 `DESK`, `QUIZZES`, `ACTIVITY`이며 세 값을 중복·누락 없이 정확히 한 번씩 포함해야 한다. 잘못된 요청은 400, 없는 공개 사용자는 404, 저장 실패는 기존 `STORAGE_UNAVAILABLE` 계약이다.
-- 기존 v1 저장값에 `profileOrder`가 없으면 `DESK → QUIZZES → ACTIVITY`를 반환한다. 손상된 저장 순서는 기존 저장소 오류로 처리하며 덮어쓰지 않는다. 공개 DTO에는 순서만 반환한다.
-- Query 키는 `profileOrder/userId/publicId`, 저장 성공 시 현재 캐시 갱신 및 `profileOrder` 조회 무효화. 실패 시 UI 초안 유지, 자동 mutation 재전송 없음.
-
-### 상품 표시 언어
-
-SHOP-I18N은 기존 `Product` 요청·응답 및 저장 형식을 유지한다. Mock 상품은 `src/lib/shop/catalog.ts`의 한국어 정의로 기존 `name`·`description`을 반환한다. 클라이언트는 상품 ID로 표시 문구만 현재 한국어/영어에 맞추고 검색·정렬에 사용한다. 가격·카테고리·보유 상태는 API 응답이 기준이며 카탈로그에 없는 ID는 응답 이름·설명을 그대로 표시한다. 언어 변경으로 구매·장착 요청이나 상태 저장을 수행하지 않는다.
-
-## BUGCOIN-POLICY 제출·조회 계약
-
-`answer`/`attempt`의 `AttemptView.rewardBugCent`는 해당 Attempt로 실제 지급된 풀이자 보상의 정수 합계다(미제출/무보상0). 완료 재전송은 최초 결과를 반환하며 재계산하지 않는다. 삭제·비공개로 문제 본문이 숨겨져도 확정 합계는 남는다. UI는 기존 제출 성공 후 wallet 무효화를 재사용한다.
-
-`wallet`의 balance와 ledger.amount는 기존 BugCoin 표시 단위를 유지한다. 신규 FIRST_CORRECT/RETRY_CORRECT/DAILY_CORRECT/REVIEW/CREATOR 사유와 수령자에 해당하는 기록을 반환한다. 저장 `rewards`는 정수 amountBugCent, 사용자·풀이자·Quiz·Attempt·사유·학습일·시간대·UTC 시각·멱등 ID를 포함한다. 내부 outbox 형태의 출제자 지급은 풀이자 스냅샷에 함께 저장되어 저장 실패 시 양쪽 지급이 모두 취소된다. 읽기 요청이 과거 풀이를 소급 정산하지 않는다.
-
-기존 저장 데이터의 rewards 부재는 빈 기록으로 호환한다. 새로운 퀴즈에는 불변 createdAt을 저장한다. 생성 시각이 없는 이전 퀴즈는 본인 보상 자격을 추정하지 않는다. 기록 연결이 없는 방문자 체험은 그대로 무보상이며 익명24시간 세션/청구 의존성은 정책 문서의 후속 계약을 따른다.
-
-### 0 BugCoin 사유 — ZERO-REWARD
-
-새 정상 제출은 `AttemptView.rewardOutcome`과 저장 Attempt에 `{ reasonCodes, eligibleAt?, learningDate, timeZone }`를 함께 남긴다. 사유 코드는 INCORRECT, REVIEW_WAIT, OWNER_WAIT, CREATION_UNKNOWN, LEGACY_CORRECT, DAILY_ALREADY_PAID이며 복수 사유를 허용한다. 양수 지급은 빈 사유 배열이다. 대기 사유에만 정확한 UTC `eligibleAt`을 포함한다. 재조회·동일 답안 재제출은 원래 판정을 그대로 반환하며 현재 날짜·시간대·후속 지급으로 재계산하지 않는다. 사유가 없는 v1 이전 기록은 그대로 호환하고 일반 안내만 표시한다. 저장 시 사유 코드·학습일/시간대 일치·대기 시각을 검증한다.
-
-결과 UI는 제출 완료의 정확한0 지급에만 기존 ⓘ Tooltip을 보여준다. 문구는 한국어/영어로 표시하고 시각은 판정 당시 학습 시간대 기준으로 형식화한다. 대기 안내에는 제출 당시 기준과 새 정답 제출 조건을 명시해 자동 지급으로 오해하지 않도록 한다. 양수·미제출·방문자에는 미지급 사유 버튼을 추가하지 않는다. 금액과 ⓘ는 묶되 Tooltip 문장은 줄바꿈한다.

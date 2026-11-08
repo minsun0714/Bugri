@@ -13,22 +13,20 @@ test("breadcrumbs identify the current page without exposing dynamic IDs", () =>
   render(
     <Breadcrumb
       items={getBreadcrumbs(
-        "/developers/private-id/quizzes",
+        "/my/learning/private-attempt-id",
         "friend",
       )}
     />,
   );
   expect(
-    screen.getByRole("link", { name: "개발자 탐색" }),
-  ).toHaveAttribute(
-    "href",
-    "/discover/developers?user=friend",
+    screen.getByRole("link", { name: "풀이 내역" }),
+  ).toHaveAttribute("href", "/my/learning?user=friend");
+  expect(screen.getByText("풀이 결과")).toHaveAttribute(
+    "aria-current",
+    "page",
   );
   expect(
-    screen.getByText("개발자별 공개 퀴즈"),
-  ).toHaveAttribute("aria-current", "page");
-  expect(
-    screen.queryByText("private-id"),
+    screen.queryByText("private-attempt-id"),
   ).not.toBeInTheDocument();
 });
 
@@ -42,9 +40,9 @@ test("home and unknown routes have no guessed breadcrumb", () => {
 test("navigation preserves the demo identity and excludes personal destinations for visitors", () => {
   const member = getNavigationItems("friend");
   expect(
-    member.find(({ label }) => label === "개발자 탐색")
+    member.find(({ label }) => label === "퀴즈 만들기")
       ?.href,
-  ).toBe("/discover/developers?user=friend");
+  ).toBe("/quizzes/authoring?user=friend");
   expect(
     getNavigationItems(null).some(
       ({ label }) => label === "내 퀴즈",
@@ -79,7 +77,7 @@ test("member and visitor headers expose only applicable links", async () => {
     await import("@/components/navigation/product-header");
   const { rerender } = render(
     <HeaderNavigation
-      pathname="/discover/developers"
+      pathname="/quizzes/authoring"
       userId={null}
     />,
   );
@@ -87,7 +85,7 @@ test("member and visitor headers expose only applicable links", async () => {
     screen.queryByRole("link", { name: "내 퀴즈" }),
   ).not.toBeInTheDocument();
   expect(
-    screen.getByRole("link", { name: "개발자 탐색" }),
+    screen.getByRole("link", { name: "퀴즈 만들기" }),
   ).toHaveAttribute("aria-current", "page");
   rerender(
     <HeaderNavigation
@@ -96,7 +94,7 @@ test("member and visitor headers expose only applicable links", async () => {
     />,
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "내 프로필" }),
+    screen.getByRole("button", { name: "내 메뉴" }),
   );
   expect(
     screen.getByRole("link", { name: "내 퀴즈" }),
@@ -122,15 +120,7 @@ test("home is represented by the logo, not a duplicate menu item", () => {
   ).toBe(false);
 });
 
-test("tag discovery has a separate destination", () => {
-  expect(getNavigationItems("friend")).toContainEqual({
-    label: "태그 탐색",
-    href: "/discover/tags?user=friend",
-    activePaths: ["/discover/tags", "/tags"],
-  });
-});
-
-test.each(["/", "/shop", "/discover/developers"])(
+test.each(["/", "/solve", "/quizzes/authoring"])(
   "%s keeps a single header demo selector for members",
   async (pathname) => {
     const { HeaderNavigation } =
@@ -150,7 +140,7 @@ test.each(["/", "/shop", "/discover/developers"])(
     );
     expect(onSignIn).toHaveBeenCalledTimes(1);
     fireEvent.click(
-      screen.getByRole("button", { name: "내 프로필" }),
+      screen.getByRole("button", { name: "내 메뉴" }),
     );
     expect(
       screen.queryByRole("button", {

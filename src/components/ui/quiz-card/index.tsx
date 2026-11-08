@@ -26,6 +26,7 @@ export function QuizCard({
   metadata,
   footer,
   settings,
+  go,
   density = "default",
 }: {
   density?: "default" | "compact";
@@ -35,6 +36,8 @@ export function QuizCard({
   badges?: ReactNode;
   metadata?: ReactNode;
   footer?: ReactNode;
+  /** Show a go-to icon in the title row; the whole card already acts as that link. */
+  go?: boolean;
   settings?: {
     label: string;
     onClick: MouseEventHandler<HTMLButtonElement>;
@@ -45,11 +48,11 @@ export function QuizCard({
 
   const heading = (
     <div
-      className={
+      className={`${
         compact
           ? quizCardStyles.compactTitle
           : quizCardStyles.title
-      }
+      } ${go && !action.disabled ? quizCardStyles.goPad : ""}`}
     >
       <span
         aria-hidden="true"
@@ -85,6 +88,21 @@ export function QuizCard({
       >
         {title}
       </span>
+      {go && !action.disabled && (
+        <svg
+          aria-hidden="true"
+          data-card-go=""
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`${quizCardStyles.go} ${compact ? quizCardStyles.goInsetCompact : quizCardStyles.goInset}`}
+        >
+          <path d="M7 17 17 7M8 7h9v9" />
+        </svg>
+      )}
     </div>
   );
 

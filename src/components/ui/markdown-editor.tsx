@@ -217,7 +217,7 @@ export function MarkdownEditor({
         <div className="grid min-w-0 gap-5 lg:grid-cols-2">
           <section
             aria-label={t("작성")}
-            className={`min-w-0 rounded-2xl border border-line bg-surface p-4 ${responsiveSplit ? "flex flex-col" : ""}`}
+            className={`min-w-0 rounded-surface border border-line bg-surface p-4 ${responsiveSplit ? "flex flex-col" : ""}`}
           >
             <h2 className="mb-3 text-sm font-semibold">
               {t("작성")}
@@ -226,7 +226,7 @@ export function MarkdownEditor({
           </section>
           <section
             aria-label={t("미리보기")}
-            className={`min-w-0 rounded-2xl border border-line bg-surface p-4 ${responsiveSplit ? "flex flex-col" : ""}`}
+            className={`min-w-0 rounded-surface border border-line bg-surface p-4 ${responsiveSplit ? "flex flex-col" : ""}`}
           >
             <h2 className="mb-3 text-sm font-semibold">
               {t("미리보기")}

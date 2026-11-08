@@ -272,11 +272,7 @@ for (const locale of ["ko", "en"]) {
   });
 }
 
-for (const action of [
-  "임시저장",
-  "바로 공개",
-  "퀴즈 삭제",
-]) {
+for (const action of ["임시저장", "퀴즈 삭제"]) {
   test(`completed ${action} flow redirects without a leave warning`, async ({
     page,
   }) => {
@@ -389,7 +385,7 @@ test("desktop empty and long preview panels match writing height", async ({
 });
 
 for (const width of [390, 1280]) {
-  for (const action of ["임시저장", "바로 공개"]) {
+  for (const action of ["임시저장"]) {
     test(`close after one ${action} shows saved results at ${width}px`, async ({
       page,
     }) => {
@@ -410,10 +406,7 @@ for (const width of [390, 1280]) {
         .click();
       await expect(
         modal.getByRole("tab", {
-          name:
-            action === "임시저장"
-              ? "퀴즈 1 · 임시저장됨"
-              : "퀴즈 1 · 공개됨",
+          name: "퀴즈 1 · 임시저장됨",
         }),
       ).toBeVisible();
       const batchUrl = page.url();
@@ -440,7 +433,7 @@ for (const width of [390, 1280]) {
         1,
       );
       await expect(page.getByRole("article")).toContainText(
-        action === "임시저장" ? "검토 필요" : "공개 중",
+        "검토 필요",
       );
       await page.screenshot({
         path: `/tmp/bugri-quiz-close/${width}-${action}.png`,

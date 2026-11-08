@@ -1,42 +1,12 @@
 import type {
-  RewardNonPaymentReason,
-  RewardReason,
-} from "@/api/constants";
-import type {
-  QuizReaction,
-  ProfileSection,
-  ProfileLinkKind,
-} from "@/api/constants";
-/** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
-import {
-  Category,
-  type DeskObject,
-  QuizStatus,
-  type ConversationRole,
-  type LearningMode,
-  type LearningState,
-  type QuizScope,
-  DiscoveryKind,
-} from "@/api/constants";
-
-export {
-  Category,
-  QuizStatus,
-  LearningMode,
-  LearningState,
+  AttemptHistoryFilter,
+  AttemptHistoryMatch,
+  ConversationRole,
   QuizScope,
+  QuizStatus,
 } from "@/api/constants";
 
-export type Visibility = Exclude<
-  QuizStatus,
-  typeof QuizStatus.PENDING
->;
-
-export interface QuizReactionSummary {
-  reaction: QuizReaction | null;
-  likeCount: number;
-  dislikeCount: number;
-}
+export { QuizScope, QuizStatus } from "@/api/constants";
 
 export interface Hashtag {
   id: string;
@@ -138,50 +108,14 @@ export interface GenerationBatch {
   }[];
 }
 
-export type SubscriptionTarget =
-  | { type: "PERSON"; authorUserId: string }
-  | { type: "HASHTAG"; hashtagId: string }
-  | {
-      type: "PERSON_HASHTAG";
-      authorUserId: string;
-      hashtagId: string;
-    };
-
-export type Subscription = SubscriptionTarget & {
-  subscriptionId: string;
-};
-
-export interface LearningQuery {
-  hashtagId?: string | null;
-  mode?: LearningMode;
-}
-
-export interface LearningSelection {
-  hashtagId: string | null;
-  mode: LearningMode;
-  state: LearningState;
-  quiz: LearningQuizView | null;
-  candidateCount: number;
-}
-
 export interface AttemptResult {
-  submittedAnswer: Answer;
-  correct: boolean;
-  answer: Answer;
-  explanation: string;
-}
-
-/** Immutable submission-time explanation; absent on legacy attempts. */
-export interface RewardOutcome {
-  reasonCodes: RewardNonPaymentReason[];
-  eligibleAt?: string;
-  learningDate: string;
-  timeZone: string;
+  submittedAnswer: Answer | null;
+  correct: boolean | null;
+  answer: Answer | null;
+  explanation: string | null;
 }
 
 export interface AttemptView {
-  rewardOutcome?: RewardOutcome;
-  rewardBugCent?: number;
   attemptId: string;
   quizId: string;
   revisionId: string;
@@ -202,91 +136,6 @@ export interface LearningDay {
   dailyCounts: { learningDate: string; count: number }[];
 }
 
-export interface Product {
-  productId: string;
-  name: string;
-  description: string;
-  category: Category;
-  price: number;
-}
-
-export type Equipment = Partial<Record<Category, string>>;
-
-export interface DeskPosition {
-  x: number;
-  y: number;
-}
-
-export type DeskPositions = Partial<
-  Record<Category, DeskPosition>
->;
-
-export type DeskItem =
-  | Exclude<Category, typeof Category.BACKGROUND>
-  | DeskObject;
-
-export type DeskOrder = DeskItem[];
-
-export interface DeskTransform {
-  x: number;
-  y: number;
-  z: number;
-  rotationY: number;
-}
-
-export type DeskTransforms = Partial<
-  Record<Category | DeskObject, DeskTransform>
->;
-
-export interface LedgerEntry {
-  id: string;
-  amount: number;
-  reason:
-    "SEED" | "DAILY_COMPLETION" | "PURCHASE" | RewardReason;
-  reference: string;
-  createdAt: string;
-}
-
-export interface Wallet {
-  balance: number;
-  ledger: LedgerEntry[];
-}
-
-export interface Purchase {
-  purchaseId: string;
-  productId: string;
-  requestKey: string;
-  price: number;
-  purchasedAt: string;
-}
-
-export interface Inventory {
-  products: Product[];
-  equipment: Equipment;
-  positions: DeskPositions;
-  transforms: DeskTransforms;
-  order: DeskOrder;
-}
-
-export interface ProfileLink {
-  kind: ProfileLinkKind;
-  url: string;
-  label?: string;
-}
-
-export interface ProfileAbout {
-  biography: string;
-  links: ProfileLink[];
-}
-
-export interface PublicProfile {
-  user: User;
-  equipment: Equipment;
-  positions: DeskPositions;
-  transforms: DeskTransforms;
-  order: DeskOrder;
-}
-
 export interface VersionRequest {
   quizId: string;
   expectedVersion: number;
@@ -302,90 +151,7 @@ export type PendingRequest = VersionRequest &
     | { action: "MARK_REVIEWED" }
   );
 
-export interface DiscoveryQuery {
-  subscribedOnly?: boolean;
-  kind: DiscoveryKind;
-  query: string;
-  page: number;
-  pageSize: number;
-}
-
-export type DiscoveryItem =
-  | {
-      type: typeof DiscoveryKind.USER;
-      user: User;
-      subscribed: boolean;
-      summary: {
-        publicQuizCount: number;
-        hashtags: Hashtag[];
-      } | null;
-    }
-  | {
-      type: typeof DiscoveryKind.HASHTAG;
-      hashtag: Hashtag;
-      subscribed: boolean;
-      publicQuizCount: number;
-    };
-
-export interface DiscoveryPage {
-  items: DiscoveryItem[];
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
-export interface TagQuizzesPage {
-  hashtag: Hashtag;
-  subscribed: boolean;
-  items: { quizId: string; title: string; author: User }[];
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
-export interface DeveloperPageQuery {
-  publicId: string;
-  page: number;
-  pageSize: number;
-}
-
-export interface DeveloperQuizzesPage {
-  user: User;
-  subscribed: boolean;
-  items: {
-    quizId: string;
-    title: string;
-    hashtagIds: string[];
-    updatedAt: string;
-  }[];
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
-export interface DeveloperTagsPage {
-  items: (Hashtag & {
-    quizCount: number;
-    subscribed: boolean;
-  })[];
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
 export interface ApiOperations {
-  guestQuiz: {
-    request: Record<string, never>;
-    response: LearningQuizView | null;
-  };
-  guestAnswer: {
-    request: {
-      quizId: string;
-      revisionId: string;
-      answer: Answer;
-    };
-    response: AttemptResult;
-  };
   authoringConversation: {
     request: Record<string, never>;
     response: AuthoringConversation;
@@ -407,14 +173,6 @@ export interface ApiOperations {
   };
   generationBatch: {
     request: { batchId: string };
-    response: GenerationBatch;
-  };
-  publishCandidate: {
-    request: {
-      batchId: string;
-      candidateId: string;
-      reviewed: true;
-    };
     response: GenerationBatch;
   };
   editCandidate: {
@@ -464,75 +222,16 @@ export interface ApiOperations {
     response: ReviewQuiz;
   };
   approve: {
-    request: VersionRequest & { visibility?: Visibility };
-    response: ReviewQuiz;
-  };
-  visibility: {
-    request: VersionRequest & { visibility: Visibility };
+    request: VersionRequest & {};
     response: ReviewQuiz;
   };
   deleteQuiz: {
     request: { quizId: string };
     response: { deleted: true };
   };
-  subscriptions: {
-    request: Record<string, never>;
-    response: Subscription[];
-  };
-  subscribe: {
-    request: SubscriptionTarget;
-    response: Subscription;
-  };
-  unsubscribe: {
-    request: { subscriptionId: string };
-    response: { deleted: true };
-  };
-  tagQuizzes: {
-    request: {
-      hashtagId: string;
-      page: number;
-      pageSize: number;
-    };
-    response: TagQuizzesPage;
-  };
-  developerQuizzes: {
-    request: DeveloperPageQuery & {
-      hashtagIds?: string[];
-      hashtagId?: string | null;
-    };
-    response: DeveloperQuizzesPage;
-  };
-  developerTags: {
-    request: DeveloperPageQuery & { query: string };
-    response: DeveloperTagsPage;
-  };
-  searchDiscovery: {
-    request: DiscoveryQuery;
-    response: DiscoveryPage;
-  };
-  discoverUsers: {
-    request: Record<string, never>;
-    response: User[];
-  };
   discoverHashtags: {
     request: Record<string, never>;
     response: Hashtag[];
-  };
-  learningTags: {
-    request: { authorUserId?: string };
-    response: Hashtag[];
-  };
-  learningQuiz: {
-    request: LearningQuery;
-    response: LearningSelection;
-  };
-  learningNext: {
-    request: LearningQuery;
-    response: LearningSelection;
-  };
-  publicLearningDay: {
-    request: { publicId: string };
-    response: LearningDay;
   };
   learningDay: {
     request: Record<string, never>;
@@ -542,25 +241,31 @@ export interface ApiOperations {
     request: Record<string, never>;
     response: { timeZone: string | null };
   };
-  updateTimezone: {
-    request: { timeZone: string };
-    response: { timeZone: string };
-  };
-  quizReaction: {
-    request: { quizId: string };
-    response: QuizReactionSummary;
-  };
-  updateQuizReaction: {
+  attemptHistory: {
     request: {
-      quizId: string;
-      reaction: QuizReaction | null;
+      filter?: AttemptHistoryFilter;
+      query?: string;
+      page?: number;
+      pageSize?: number;
     };
-    response: QuizReactionSummary;
+    response: {
+      items: {
+        attemptId: string;
+        title: string | null;
+        correct: boolean | null;
+        completedAt: string;
+        matchedIn: AttemptHistoryMatch | null;
+        excerpt: string | null;
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+    };
   };
   startAttempt: {
     request: {
       quizId: string;
-      context: "DIRECT" | "LEARNING";
+      context: "DIRECT";
     };
     response: AttemptView;
   };
@@ -571,80 +276,6 @@ export interface ApiOperations {
   answer: {
     request: { attemptId: string; answer: Answer };
     response: AttemptView;
-  };
-  products: {
-    request: { category?: Category };
-    response: Product[];
-  };
-  wallet: {
-    request: Record<string, never>;
-    response: Wallet;
-  };
-  purchase: {
-    request: { productId: string; requestKey: string };
-    response: Purchase;
-  };
-  inventory: {
-    request: Record<string, never>;
-    response: Inventory;
-  };
-  equip: {
-    request: {
-      category: Category;
-      productId: string | null;
-    };
-    response: Equipment;
-  };
-  moveEquipment: {
-    request: {
-      category: Category;
-      productId: string;
-      position: DeskPosition;
-    };
-    response: DeskPositions;
-  };
-  reorderDesk: {
-    request: { order: DeskOrder };
-    response: DeskOrder;
-  };
-  transformDesk: {
-    request: {
-      productId: string | null;
-      transform: DeskTransform;
-    };
-    response: DeskTransforms;
-  };
-  transformBugri: {
-    request: { transform: DeskTransform };
-    response: DeskTransforms;
-  };
-  transformEquipment: {
-    request: {
-      category: Category;
-      productId: string;
-      transform: DeskTransform;
-    };
-    response: DeskTransforms;
-  };
-  profileOrder: {
-    request: { publicId: string };
-    response: ProfileOrder;
-  };
-  updateProfileOrder: {
-    request: ProfileOrder;
-    response: ProfileOrder;
-  };
-  profileAbout: {
-    request: { publicId: string };
-    response: ProfileAbout;
-  };
-  updateProfileAbout: {
-    request: ProfileAbout;
-    response: ProfileAbout;
-  };
-  publicProfile: {
-    request: { publicId: string };
-    response: PublicProfile;
   };
 }
 
@@ -664,9 +295,6 @@ export type ErrorCode =
   | "QUIZ_UNAVAILABLE"
   | "NOT_REVIEWED"
   | "ALREADY_ANSWERED"
-  | "INSUFFICIENT_BALANCE"
-  | "ALREADY_OWNED"
-  | "IDEMPOTENCY_CONFLICT"
   | "TIMEZONE_REQUIRED"
   | "STORAGE_UNAVAILABLE"
   | "STORAGE_CORRUPT"
@@ -698,22 +326,4 @@ export interface ApiTransport {
     operation: K,
     request: Request<K>,
   ): Promise<TransportResponse<Response<K>>>;
-}
-
-export interface ProfileOrder {
-  order: ProfileSection[];
-}
-
-/** Committed in the solver snapshot, including grants addressed to the creator. */
-export interface RewardGrant {
-  id: string;
-  userId: string;
-  solverUserId: string;
-  quizId: string;
-  attemptId: string;
-  reason: RewardReason;
-  amountBugCent: number;
-  createdAt: string;
-  learningDate: string;
-  timeZone: string;
 }

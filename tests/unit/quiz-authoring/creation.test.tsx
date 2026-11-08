@@ -87,7 +87,7 @@ test("outside input generates an editable candidate in the same modal", async ()
     screen.getByRole("button", { name: "닫기" }),
   );
   expect(confirm).toHaveBeenCalledWith(
-    "모달을 닫으면 임시저장하거나 공개하지 않은 퀴즈는 사라집니다. 계속할까요?",
+    "모달을 닫으면 임시저장하지 않은 퀴즈는 사라집니다. 계속할까요?",
   );
   confirm.mockRestore();
 
@@ -122,7 +122,7 @@ test("warns before closing with unhandled candidates and keeps the modal when ca
   );
 
   expect(confirm).toHaveBeenCalledWith(
-    "모달을 닫으면 임시저장하거나 공개하지 않은 퀴즈는 사라집니다. 계속할까요?",
+    "모달을 닫으면 임시저장하지 않은 퀴즈는 사라집니다. 계속할까요?",
   );
   expect(screen.getByRole("dialog")).toBeVisible();
 
@@ -248,7 +248,7 @@ test("a failed save keeps candidates in the modal without completing", async () 
   request.mockRestore();
 });
 
-test.each(["임시저장", "바로 공개"])(
+test.each(["임시저장"])(
   "closing after one %s opens the list only after confirming remaining candidates",
   async (action) => {
     const { onComplete } = setup();
@@ -269,10 +269,7 @@ test.each(["임시저장", "바로 공개"])(
       }),
     );
     await screen.findByRole("tab", {
-      name:
-        action === "임시저장"
-          ? "퀴즈 1 · 임시저장됨"
-          : "퀴즈 1 · 공개됨",
+      name: "퀴즈 1 · 임시저장됨",
     });
     expect(onComplete).not.toHaveBeenCalled();
     fireEvent.click(

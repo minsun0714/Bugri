@@ -4,12 +4,20 @@ import { DemoSessionProvider } from "@/components/navigation/demo-session";
 import { ThemeSync } from "@/components/ui/theme-sync";
 import { themeBootstrapScript } from "@/lib/theme/bootstrap";
 import type { Metadata, Viewport } from "next";
+import { IBM_Plex_Sans_KR } from "next/font/google";
 import "@/app/globals.css";
+
+const ibmPlexSansKr = IBM_Plex_Sans_KR({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  preload: false,
+  variable: "--font-ibm-plex-sans-kr",
+});
 
 export const metadata: Metadata = {
   title: "Bugri | 퀴즈 관리 플랫폼",
   description:
-    "퀴즈를 만들고 공유하며, 구독으로 함께 성장하는 Bugri",
+    "업무 중 배운 개발 지식을 퀴즈로 복습하는 Bugri",
 };
 
 export const viewport: Viewport = {
@@ -20,7 +28,11 @@ export default function RootLayout({
   children,
 }: LayoutProps<"/">) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html
+      lang="ko"
+      className={ibmPlexSansKr.variable}
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{

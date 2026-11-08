@@ -1,14 +1,8 @@
-import {
-  QuizScope,
-  QuizStatus,
-  LearningMode,
-  LearningState,
-} from "@/api/constants";
+import { QuizScope } from "@/api/constants";
 import { createApiClient } from "@/api/client";
 import type {
   Answer,
   QuizContent,
-  Request,
   ReviewQuiz,
 } from "@/api/contracts";
 import {
@@ -16,11 +10,7 @@ import {
   type MockOptions,
 } from "@/mocks/adapter";
 import { generatedContents } from "@/mocks/quizzes";
-import {
-  clone,
-  initialState,
-  storageKey,
-} from "@/mocks/storage";
+import { storageKey } from "@/mocks/storage";
 import { localDate, streak } from "@/services/learning";
 
 const api = (
@@ -76,22 +66,10 @@ async function approve({
   return owner.request("approve", {
     quizId,
     expectedVersion: reviewedVersion,
-    visibility: QuizStatus.PUBLIC,
   });
 }
 
 beforeEach(() => localStorage.clear());
-
-function seedUnsubscribedLearner() {
-  const state = initialState("learner");
-
-  state.subscriptions = [];
-
-  localStorage.setItem(
-    storageKey("learner"),
-    JSON.stringify(state),
-  );
-}
 
 test.each(["", "   ", "😀".repeat(10_001)])(
   "rejects invalid source length/blank",
@@ -218,7 +196,6 @@ test.each(
       client.request("approve", {
         quizId: pending.quizId,
         expectedVersion: pending.version,
-        visibility: QuizStatus.PUBLIC,
       }),
     ).rejects.toMatchObject({
       detail: {
@@ -312,7 +289,6 @@ test("review state resets, stale versions fail, active revision remains and old 
     owner.request("approve", {
       quizId: old.quizId,
       expectedVersion: old.version,
-      visibility: QuizStatus.PRIVATE,
     }),
   ).rejects.toMatchObject({
     detail: {
@@ -400,99 +376,74 @@ test("regeneration failure leaves old pending content and successful prompt inta
   ).toBe("코드를 추가");
 });
 
-test.each([QuizStatus.PRIVATE, "DELETE"] as const)(
-  "%s blocks others pending submissions, preserves completion/ledger, and hides content",
-  async (change) => {
-    const learner = api("learner", {
-      dailyReward: 7,
-    });
+test("deleting a quiz blocks pending submissions, preserves completion and hides content", async () => {
+  const learner = api("learner");
 
-    await learner.request("subscribe", {
-      type: "PERSON",
-      authorUserId: "author",
-    });
+  const done = await learner.request("startAttempt", {
+    quizId: "seed-quiz-1",
+    context: "DIRECT",
+  });
 
-    const done = await learner.request("startAttempt", {
-      quizId: "seed-quiz-1",
-      context: "DIRECT",
-    });
+  const pending = await learner.request("startAttempt", {
+    quizId: "seed-quiz-1",
+    context: "DIRECT",
+  });
 
-    const pending = await learner.request("startAttempt", {
-      quizId: "seed-quiz-1",
-      context: "DIRECT",
-    });
+  await learner.request("answer", {
+    attemptId: done.attemptId,
+    answer: {
+      type: "SINGLE_CHOICE",
+      choiceId: "a",
+    },
+  });
 
-    await learner.request("answer", {
-      attemptId: done.attemptId,
+  const day = await learner.request("learningDay", {});
+
+  await api("author").request("deleteQuiz", {
+    quizId: "seed-quiz-1",
+  });
+
+  await expect(
+    learner.request("answer", {
+      attemptId: pending.attemptId,
       answer: {
         type: "SINGLE_CHOICE",
         choiceId: "a",
       },
-    });
-
-    const wallet = await learner.request("wallet", {}),
-      day = await learner.request("learningDay", {});
-
-    if (change === QuizStatus.PRIVATE)
-      await api("author").request("visibility", {
-        quizId: "seed-quiz-1",
-        expectedVersion: 1,
-        visibility: QuizStatus.PRIVATE,
-      });
-    else
-      await api("author").request("deleteQuiz", {
-        quizId: "seed-quiz-1",
-      });
-
-    await expect(
-      learner.request("answer", {
-        attemptId: pending.attemptId,
-        answer: {
-          type: "SINGLE_CHOICE",
-          choiceId: "a",
-        },
-      }),
-    ).rejects.toMatchObject({
-      status: 409,
-      detail: {
-        code: "QUIZ_UNAVAILABLE",
-      },
-    });
-
-    const retained = await learner.request("attempt", {
-      attemptId: done.attemptId,
-    });
-
-    expect(retained.correct).toBe(true);
-    expect(retained.quiz).toBeNull();
-    expect(retained.result).toBeNull();
-
-    expect(await learner.request("wallet", {})).toEqual(
-      wallet,
-    );
-
-    expect(
-      await learner.request("learningDay", {}),
-    ).toEqual(day);
-
-    expect(
-      (
-        await learner.request("learningQuiz", {
-          hashtagId: "typescript",
-        })
-      ).state,
-    ).toBe(LearningState.EMPTY);
-  },
-);
-
-test("private owner can solve; deleting twice is safe and blocks owner submission", async () => {
-  const owner = api("author");
-
-  await owner.request("visibility", {
-    quizId: "seed-quiz-1",
-    expectedVersion: 1,
-    visibility: QuizStatus.PRIVATE,
+    }),
+  ).rejects.toMatchObject({
+    status: 409,
+    detail: {
+      code: "QUIZ_UNAVAILABLE",
+    },
   });
+
+  const retained = await learner.request("attempt", {
+    attemptId: done.attemptId,
+  });
+
+  expect(retained.correct).toBe(true);
+  expect(retained.quiz).toBeNull();
+  expect(retained.result).toBeNull();
+
+  expect(await learner.request("learningDay", {})).toEqual(
+    day,
+  );
+
+  await expect(
+    learner.request("startAttempt", {
+      quizId: "seed-quiz-1",
+      context: "DIRECT",
+    }),
+  ).rejects.toMatchObject({
+    detail: {
+      code: "QUIZ_UNAVAILABLE",
+    },
+  });
+});
+
+test("owner can solve; deleting twice is safe and blocks owner submission", async () => {
+  const owner = api("author");
 
   const a = await owner.request("startAttempt", {
     quizId: "seed-quiz-1",
@@ -530,215 +481,13 @@ test("private owner can solve; deleting twice is safe and blocks owner submissio
   ).not.toContain("seed-quiz-1");
 });
 
-test.each([
-  [
-    {
-      type: "PERSON",
-      authorUserId: "author",
-    },
-    2,
-  ],
-  [
-    {
-      type: "HASHTAG",
-      hashtagId: "web",
-    },
-    2,
-  ],
-  [
-    {
-      type: "PERSON_HASHTAG",
-      authorUserId: "author",
-      hashtagId: "web",
-    },
-    1,
-  ],
-] as const)(
-  "subscription filters %j",
-  async (target, count) => {
-    seedUnsubscribedLearner();
-
-    const client = api();
-
-    await client.request("subscribe", target);
-
-    expect(
-      (await client.request("learningQuiz", {}))
-        .candidateCount,
-    ).toBe(count);
-  },
-);
-
-test("overlapping subscriptions deduplicate, tag changes preserve records, unsubscribe rechecks start", async () => {
-  seedUnsubscribedLearner();
-
-  const client = api();
-
-  expect(
-    (await client.request("learningQuiz", {})).state,
-  ).toBe(LearningState.EMPTY);
-
-  const person = await client.request("subscribe", {
-    type: "PERSON",
-    authorUserId: "author",
-  });
-
-  await client.request("subscribe", {
-    type: "PERSON",
-    authorUserId: "author",
-  });
-
-  const tag = await client.request("subscribe", {
-    type: "HASHTAG",
-    hashtagId: "typescript",
-  });
-
-  expect(
-    (await client.request("learningQuiz", {}))
-      .candidateCount,
-  ).toBe(2);
-
-  expect(
-    (await client.request("learningTags", {}))
-      .map((t) => t.id)
-      .sort(),
-  ).toEqual(["javascript", "typescript", "web"]);
-
-  await client.request("learningQuiz", {
-    hashtagId: "typescript",
-  });
-
-  const a = await client.request("startAttempt", {
-    quizId: "seed-quiz-1",
-    context: "LEARNING",
-  });
-
-  await client.request("answer", {
-    attemptId: a.attemptId,
-    answer: {
-      type: "SINGLE_CHOICE",
-      choiceId: "a",
-    },
-  });
-
-  expect(
-    await client.request("learningNext", {}),
-  ).toMatchObject({
-    state: LearningState.EXHAUSTED,
-    mode: LearningMode.UNSOLVED,
-    quiz: null,
-  });
-
-  const subs = await client.request("subscriptions", {});
-
-  await client.request("learningQuiz", {
-    hashtagId: "web",
-  });
-
-  expect(
-    (
-      await client.request("learningQuiz", {
-        hashtagId: "typescript",
-      })
-    ).state,
-  ).toBe(LearningState.EXHAUSTED);
-
-  expect(
-    (
-      await client.request("learningQuiz", {
-        mode: LearningMode.REPLAY,
-      })
-    ).state,
-  ).toBe(LearningState.AVAILABLE);
-
-  expect(
-    (await client.request("learningNext", {})).state,
-  ).toBe(LearningState.EXHAUSTED);
-
-  expect(await client.request("subscriptions", {})).toEqual(
-    subs,
-  );
-
-  await client.request("unsubscribe", {
-    subscriptionId: person.subscriptionId,
-  });
-
-  await client.request("unsubscribe", {
-    subscriptionId: tag.subscriptionId,
-  });
-
+test("unknown fields and wrong answer shapes are rejected", async () => {
   await expect(
-    client.request("startAttempt", {
+    api().request("startAttempt", {
       quizId: "seed-quiz-1",
-      context: "LEARNING",
-    }),
-  ).rejects.toMatchObject({
-    detail: {
-      code: "QUIZ_UNAVAILABLE",
-    },
-  });
-});
-
-test("learning next skips the same completed question saved under another quiz id", async () => {
-  seedUnsubscribedLearner();
-
-  const author = initialState("author");
-
-  const original = author.quizzes.find(
-    ({ quizId }) => quizId === "seed-quiz-1",
-  )!;
-
-  author.quizzes.push({
-    ...clone(original),
-    quizId: "duplicate-type-question",
-    active: {
-      ...clone(original.active!),
-      revisionId: "duplicate-type-revision",
-    },
-  });
-
-  localStorage.setItem(
-    storageKey("author"),
-    JSON.stringify(author),
-  );
-
-  const client = api();
-
-  await client.request("subscribe", {
-    type: "PERSON",
-    authorUserId: "author",
-  });
-
-  await client.request("learningQuiz", {
-    hashtagId: "typescript",
-  });
-
-  const attempt = await client.request("startAttempt", {
-    quizId: "seed-quiz-1",
-    context: "LEARNING",
-  });
-
-  await client.request("answer", {
-    attemptId: attempt.attemptId,
-    answer: {
-      type: "SINGLE_CHOICE",
-      choiceId: "a",
-    },
-  });
-
-  const next = await client.request("learningNext", {});
-
-  expect(next.state).toBe(LearningState.EXHAUSTED);
-  expect(next.quiz).toBeNull();
-});
-
-test("unknown fields, quiz subscription and wrong answer shapes are rejected", async () => {
-  await expect(
-    api().request("subscribe", {
-      type: "PERSON",
-      authorUserId: "author",
-      quizId: "seed-quiz-1",
-    } as Request<"subscribe">),
+      context: "DIRECT",
+      unknown: true,
+    } as never),
   ).rejects.toMatchObject({
     detail: {
       code: "VALIDATION_ERROR",
@@ -765,107 +514,10 @@ test("unknown fields, quiz subscription and wrong answer shapes are rejected", a
   });
 });
 
-test("purchase errors do not mutate balance, key reuse conflicts and equipment checks ownership/category", async () => {
-  const client = api();
-  const before = await client.request("wallet", {});
-
-  await expect(
-    client.request("purchase", {
-      productId: "desk-1",
-      requestKey: "expensive",
-    }),
-  ).rejects.toMatchObject({
-    detail: {
-      code: "INSUFFICIENT_BALANCE",
-    },
-  });
-
-  expect(await client.request("wallet", {})).toEqual(
-    before,
-  );
-
-  await expect(
-    client.request("equip", {
-      category: "KEYBOARD",
-      productId: "keyboard-1",
-    }),
-  ).rejects.toMatchObject({
-    status: 403,
-  });
-
-  await client.request("purchase", {
-    productId: "keyboard-1",
-    requestKey: "same",
-  });
-
-  await expect(
-    client.request("purchase", {
-      productId: "accessory-1",
-      requestKey: "same",
-    }),
-  ).rejects.toMatchObject({
-    detail: {
-      code: "IDEMPOTENCY_CONFLICT",
-    },
-  });
-
-  await expect(
-    client.request("purchase", {
-      productId: "keyboard-1",
-      requestKey: "new",
-    }),
-  ).rejects.toMatchObject({
-    detail: {
-      code: "ALREADY_OWNED",
-    },
-  });
-
-  await expect(
-    client.request("equip", {
-      category: "MONITOR",
-      productId: "keyboard-1",
-    }),
-  ).rejects.toMatchObject({
-    detail: {
-      code: "VALIDATION_ERROR",
-    },
-  });
-
-  await client.request("equip", {
-    category: "KEYBOARD",
-    productId: "keyboard-1",
-  });
-
-  expect(
-    await api("author").request("publicProfile", {
-      publicId: "bugri-learner",
-    }),
-  ).toEqual({
-    user: {
-      userId: "learner",
-      publicId: "bugri-learner",
-      displayName: "학습자",
-    },
-    equipment: {
-      KEYBOARD: "keyboard-1",
-    },
-    positions: {},
-    transforms: {},
-    order: [],
-  });
-
-  expect(
-    await client.request("equip", {
-      category: "KEYBOARD",
-      productId: null,
-    }),
-  ).toEqual({});
-});
-
 test("storage failure rolls back and corrupt state is not overwritten", async () => {
   const client = api();
 
-  await client.request("wallet", {});
+  await client.request("learningDay", {});
 
   const before = localStorage.getItem(
     storageKey("learner"),
@@ -881,9 +533,9 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
   });
 
   await expect(
-    broken.request("purchase", {
-      productId: "keyboard-1",
-      requestKey: "test",
+    broken.request("startAttempt", {
+      quizId: "seed-quiz-1",
+      context: "DIRECT",
     }),
   ).rejects.toMatchObject({
     detail: {
@@ -898,7 +550,7 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
   localStorage.setItem(storageKey("learner"), "{broken");
 
   await expect(
-    client.request("wallet", {}),
+    client.request("learningDay", {}),
   ).rejects.toMatchObject({
     detail: {
       code: "STORAGE_CORRUPT",
@@ -911,12 +563,12 @@ test("storage failure rolls back and corrupt state is not overwritten", async ()
 
   localStorage.clear();
 
-  expect((await client.request("wallet", {})).balance).toBe(
-    100,
-  );
+  expect(
+    (await client.request("learningDay", {})).completed,
+  ).toBe(false);
 });
 
-test("timezone detection, explicit fallback and saved preference; no implicit fallback", async () => {
+test("timezone detection, explicit fallback and saved detection; no implicit fallback", async () => {
   const client = api("learner", {
     detectTimeZone: () => undefined,
   });
@@ -942,31 +594,44 @@ test("timezone detection, explicit fallback and saved preference; no implicit fa
     ).timeZone,
   ).toBe("UTC");
 
-  await client.request("updateTimezone", {
-    timeZone: "America/New_York",
-  });
+  localStorage.clear();
 
   expect(
-    (await api().request("learningTimezone", {})).timeZone,
+    (
+      await api("learner", {
+        detectTimeZone: () => "America/New_York",
+      }).request("learningTimezone", {})
+    ).timeZone,
   ).toBe("America/New_York");
 
-  await expect(
-    client.request("updateTimezone", {
-      timeZone: "not-a-zone",
-    }),
-  ).rejects.toMatchObject({
-    detail: {
-      code: "VALIDATION_ERROR",
-    },
-  });
+  // The first detection is saved; a later device zone does not rewrite it.
+  expect(
+    (
+      await api("learner", {
+        detectTimeZone: () => "Asia/Seoul",
+      }).request("learningTimezone", {})
+    ).timeZone,
+  ).toBe("America/New_York");
 });
 
-test("daily completion/replay reward once, midnight, and timezone changes preserve past attribution", async () => {
+function changeStoredTimeZone(timeZone: string) {
+  const state = JSON.parse(
+    localStorage.getItem(storageKey("learner"))!,
+  );
+
+  state.timeZone = timeZone;
+
+  localStorage.setItem(
+    storageKey("learner"),
+    JSON.stringify(state),
+  );
+}
+
+test("daily completion/replay count once, midnight, and timezone changes preserve past attribution", async () => {
   let now = new Date("2026-03-07T14:59:00Z");
 
   const client = api("learner", {
     now: () => now,
-    dailyReward: 5,
   });
 
   async function complete() {
@@ -988,9 +653,9 @@ test("daily completion/replay reward once, midnight, and timezone changes preser
 
   await complete();
 
-  expect((await client.request("wallet", {})).balance).toBe(
-    105,
-  );
+  expect(
+    (await client.request("learningDay", {})).dailyCounts,
+  ).toEqual([{ learningDate: "2026-03-07", count: 1 }]);
 
   now = new Date("2026-03-07T15:01:00Z");
   await complete();
@@ -999,13 +664,7 @@ test("daily completion/replay reward once, midnight, and timezone changes preser
     (await client.request("learningDay", {})).streak,
   ).toBe(2);
 
-  expect((await client.request("wallet", {})).balance).toBe(
-    110,
-  );
-
-  await client.request("updateTimezone", {
-    timeZone: "America/New_York",
-  });
+  changeStoredTimeZone("America/New_York");
 
   expect(
     await client.request("attempt", {
@@ -1015,9 +674,14 @@ test("daily completion/replay reward once, midnight, and timezone changes preser
 
   await complete();
 
-  expect((await client.request("wallet", {})).balance).toBe(
-    110,
-  );
+  expect(
+    (
+      await client.request("learningDay", {})
+    ).dailyCounts.slice(0, 2),
+  ).toEqual([
+    { learningDate: "2026-03-07", count: 1 },
+    { learningDate: "2026-03-08", count: 1 },
+  ]);
 });
 
 test("timezone local dates across DST and stale streaks", () => {
@@ -1096,9 +760,7 @@ test("learning volume counts distinct quizzes per stored local date, retaining w
   now = new Date("2026-03-07T15:01:00Z");
   await complete("seed-quiz-1", wrong);
 
-  await client.request("updateTimezone", {
-    timeZone: "America/New_York",
-  });
+  changeStoredTimeZone("America/New_York");
 
   const owner = api("author");
 

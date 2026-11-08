@@ -6,7 +6,7 @@ for (const width of [1280, 320]) {
   }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ colorScheme: "dark" });
-    await page.goto("/discover/developers?user=learner");
+    await page.goto("/ui-preview?user=learner");
     const root = page.locator("html");
     const picker = page.getByRole("button", {
       name: /모드로 전환/,
@@ -63,23 +63,6 @@ for (const width of [1280, 320]) {
       "data-theme",
       "light",
     );
-    await page
-      .getByRole("link", { name: "Bugri 홈" })
-      .click();
-    // The home route scrolls to its learning section; return to the header.
-    await expect(
-      page.getByRole("heading", {
-        name: "오늘의 퀴즈",
-        exact: true,
-      }),
-    ).toBeVisible();
-    await page.evaluate(() =>
-      window.scrollTo({ top: 0, behavior: "instant" }),
-    );
-    await expect(root).toHaveAttribute(
-      "data-theme",
-      "light",
-    );
     await picker.click();
     await expect(root).toHaveCSS("color-scheme", "dark");
     await page.emulateMedia({ colorScheme: "light" });
@@ -87,27 +70,8 @@ for (const width of [1280, 320]) {
       "data-theme",
       "dark",
     );
-    if (width < 1024)
-      await page
-        .getByRole("button", { name: "메뉴 열기" })
-        .click();
-    await expect(
-      page.getByRole("link", { name: /화면 설정$/ }),
-    ).toHaveCount(0);
-    await page.goto("/settings?user=learner");
-    await expect(page).toHaveURL(/settings\?user=learner/);
-    await page
-      .getByRole("radio", { name: "시스템 설정 따르기" })
-      .check();
-    await expect(root).toHaveAttribute(
-      "data-theme",
-      "light",
-    );
-    await page.emulateMedia({ colorScheme: "dark" });
-    await expect(root).toHaveAttribute(
-      "data-theme",
-      "dark",
-    );
+    // The preview page has no demo selector; check the product header on home.
+    await page.goto("/?user=learner");
     if (width < 1024) {
       const themeBox = await picker.boundingBox();
       const demoBox = await page
@@ -138,7 +102,7 @@ test("saved dark mode is styled before hydration scripts can load", async ({
   await page.route("**/_next/**/*.js*", (route) =>
     route.abort(),
   );
-  await page.goto("/discover/developers");
+  await page.goto("/ui-preview");
   await expect(page.locator("html")).toHaveAttribute(
     "data-theme",
     "dark",
@@ -174,49 +138,6 @@ test("unavailable browser storage still permits an explicit selection", async ({
   );
 });
 
-test("site theme preserves room canvas artwork", async ({
-  page,
-}) => {
-  await page.emulateMedia({ colorScheme: "light" });
-  await page.goto("/users/bugri-learner");
-  const canvas = page.locator(
-    '[data-renderer="canvas"] canvas',
-  );
-  await expect(canvas).toBeVisible();
-  const readArtwork = () =>
-    canvas.evaluate((element) => {
-      const canvas = element as HTMLCanvasElement;
-      const { data } = canvas
-        .getContext("2d")!
-        .getImageData(0, 0, canvas.width, canvas.height);
-      // The corners are deliberately transparent. Compare all painted pixel data.
-      let painted = 0;
-      let hash = 2166136261;
-      for (let index = 0; index < data.length; index += 4) {
-        if (!data[index + 3]) continue;
-        painted++;
-        for (let channel = 0; channel < 4; channel++)
-          hash = Math.imul(
-            hash ^ data[index + channel],
-            16777619,
-          );
-      }
-      return { painted, hash };
-    });
-  await expect
-    .poll(async () => (await readArtwork()).painted)
-    .toBeGreaterThan(1000);
-  const before = await readArtwork();
-  await page
-    .getByRole("button", { name: /모드로 전환/ })
-    .click();
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-theme",
-    "dark",
-  );
-  expect(await readArtwork()).toEqual(before);
-});
-
 test("headerless error pages continue following the system", async ({
   page,
 }) => {
@@ -237,7 +158,7 @@ test("Chrome auto dark mode preserves the mascot in both site themes", async ({
   page,
 }) => {
   await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("/discover/developers");
+  await page.goto("/ui-preview");
   const session = await page.context().newCDPSession(page);
   const picker = page.getByRole("button", {
     name: /모드로 전환/,
@@ -266,89 +187,3 @@ test("Chrome auto dark mode preserves the mascot in both site themes", async ({
     ).toEqual(original);
   }
 });
-
-test("guest settings restore system following and keyboard toggles both ways", async ({
-  page,
-}) => {
-  await page.emulateMedia({ colorScheme: "light" });
-  await page.goto("/discover/developers");
-  await page
-    .getByRole("button", { name: "다크 모드로 전환" })
-    .focus();
-  await page.keyboard.press("Space");
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-theme",
-    "dark",
-  );
-  await page.keyboard.press("Enter");
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-theme",
-    "light",
-  );
-  await expect(
-    page.getByRole("link", {
-      name: "화면 설정",
-      exact: true,
-    }),
-  ).toHaveCount(0);
-  await page.goto("/settings");
-  await expect(page).toHaveURL(/\/settings$/);
-  await page
-    .getByRole("radio", { name: "시스템 설정 따르기" })
-    .check();
-  await page.reload();
-  await expect(
-    page.getByRole("radio", { name: "시스템 설정 따르기" }),
-  ).toBeChecked();
-  await page.emulateMedia({ colorScheme: "dark" });
-  await expect(
-    page.getByRole("button", {
-      name: "라이트 모드로 전환",
-    }),
-  ).toBeVisible();
-});
-
-for (const width of [1280, 320]) {
-  test(`English appearance settings preserve system behavior at ${width}px`, async ({
-    browser,
-    baseURL,
-  }) => {
-    const context = await browser.newContext({
-      baseURL,
-      locale: "en-US",
-      colorScheme: "light",
-      viewport: { width, height: 900 },
-    });
-    const page = await context.newPage();
-    await page.goto("/discover/developers?user=learner");
-    await page
-      .getByRole("button", { name: "Switch to dark mode" })
-      .click();
-    if (width < 1024)
-      await page
-        .getByRole("button", { name: "Open menu" })
-        .click();
-    await expect(
-      page.getByRole("link", {
-        name: /Appearance settings$/,
-      }),
-    ).toHaveCount(0);
-    await page.goto("/settings?user=learner");
-    await expect(
-      page.getByRole("heading", {
-        name: "Appearance settings",
-      }),
-    ).toBeVisible();
-    await page
-      .getByRole("radio", {
-        name: "Follow system settings",
-      })
-      .check();
-    await expect(page.locator("html")).toHaveAttribute(
-      "data-theme",
-      "light",
-    );
-    await expect(page).toHaveURL(/settings\?user=learner/);
-    await context.close();
-  });
-}

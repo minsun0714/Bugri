@@ -1,41 +1,25 @@
-import { QuizReaction } from "@/api/constants";
-import { validProfileOrder } from "@/lib/profile-order";
-import { validateProfileAbout } from "@/lib/profile-about";
-import { deskItems, validOrder } from "@/lib/desk-order";
 import {
-  migratePosition,
-  validTransform,
-} from "@/lib/desk-spatial";
-import {
-  isMovable,
-  validPosition,
-} from "@/lib/desk-layout";
-import {
-  RewardReason,
-  RewardNonPaymentReason,
-  QuizStatus,
-  LearningMode,
-  DeskObject,
-  Category,
   ConversationRole,
+  QuizStatus,
 } from "@/api/constants";
-import { users, hashtags } from "@/mocks/users";
-import { quizzes } from "@/mocks/quizzes";
-import { subscriptions } from "@/mocks/subscriptions";
 import {
   attempts,
+  historyDemoAttempts,
   learningDays,
 } from "@/mocks/learning-history";
-import { demoCoinHistory } from "@/mocks/coin-history";
+import {
+  historyDemoQuizzes,
+  quizzes,
+} from "@/mocks/quizzes";
+import { hashtags } from "@/mocks/users";
 import type { UserState } from "@/services/state";
 import {
   object,
   requireValue,
   ServiceError,
+  source,
   timeZoneValid,
   validateContent,
-  source,
-  categories,
 } from "@/services/validation";
 
 export interface StoragePort {
@@ -50,11 +34,42 @@ export function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
+/** Idempotently adds the demo history (private practice quizzes + completed attempts) to the actor's state. Never touches other users or removes records. */
+export function applyHistoryDemo(state: UserState) {
+  if (state.historyDemoVersion === 1) return;
+
+  const quizIds = new Set(
+    state.quizzes.map(({ quizId }) => quizId),
+  );
+
+  const attemptIds = new Set(
+    state.attempts.map(({ attemptId }) => attemptId),
+  );
+
+  state.quizzes.push(
+    ...clone(
+      historyDemoQuizzes.filter(
+        ({ ownerUserId, quizId }) =>
+          ownerUserId === state.userId &&
+          !quizIds.has(quizId),
+      ),
+    ).map((quiz) => ({ ...quiz, deletedAt: null })),
+  );
+
+  state.attempts.push(
+    ...clone(
+      (historyDemoAttempts[state.userId] ?? []).filter(
+        ({ attemptId }) => !attemptIds.has(attemptId),
+      ),
+    ),
+  );
+
+  state.historyDemoVersion = 1;
+}
+
 export function initialState(userId: string): UserState {
   return clone({
     schemaVersion: 1,
-    learningDemoVersion: 1,
-    coinHistoryDemoVersion: 1,
     userId,
     quizzes: quizzes
       .filter((q) => q.ownerUserId === userId)
@@ -63,26 +78,9 @@ export function initialState(userId: string): UserState {
         deletedAt: null,
       })),
     batches: [],
-    subscriptions: (subscriptions[userId] ?? []).map(
-      (target, index) => ({
-        ...target,
-        subscriptionId: `seed-subscription-${userId}-${index + 1}`,
-      }),
-    ),
     attempts: [...attempts],
     days: [...learningDays],
     timeZone: null,
-    selection: {
-      hashtagId: null,
-      mode: LearningMode.UNSOLVED,
-      quizId: null,
-    },
-    purchases: [],
-    equipment: {},
-    positions: {},
-    transforms: {},
-    order: [],
-    ledger: demoCoinHistory(userId),
   });
 }
 
@@ -93,71 +91,22 @@ function validateState(
 ): asserts value is UserState {
   object(value);
 
-  if (value.quizReactions !== undefined) {
-    requireValue(
-      Array.isArray(value.quizReactions),
-      "저장된 평가가 올바르지 않습니다.",
-    );
-
-    const seen = new Set<string>();
-
-    for (const entry of value.quizReactions) {
-      object(entry);
-
-      requireValue(
-        typeof entry.quizId === "string" &&
-          entry.quizId.length > 0 &&
-          !seen.has(entry.quizId) &&
-          (entry.reaction === QuizReaction.LIKE ||
-            entry.reaction === QuizReaction.DISLIKE),
-        "저장된 평가가 올바르지 않습니다.",
-      );
-
-      seen.add(entry.quizId);
-    }
-  }
-
-  if (value.profileOrder !== undefined) {
-    object(value.profileOrder);
-
-    requireValue(
-      validProfileOrder(value.profileOrder.order),
-      "저장된 섹션 순서가 올바르지 않습니다.",
-    );
-  }
-
-  if (value.profileAbout !== undefined)
-    requireValue(
-      Object.keys(validateProfileAbout(value.profileAbout))
-        .length === 0,
-      "저장된 프로필이 올바르지 않습니다.",
-    );
-
   requireValue(
     value.schemaVersion === 1 && value.userId === userId,
     "저장 버전/사용자가 다릅니다.",
   );
 
   requireValue(
-    value.learningDemoVersion === undefined ||
-      value.learningDemoVersion === 1,
-    "학습 예시 데이터 버전이 호환되지 않습니다.",
-  );
-
-  requireValue(
-    value.coinHistoryDemoVersion === undefined ||
-      value.coinHistoryDemoVersion === 1,
-    "코인 예시 데이터 버전이 호환되지 않습니다.",
+    value.historyDemoVersion === undefined ||
+      value.historyDemoVersion === 1,
+    "기록 데모 버전이 올바르지 않습니다.",
   );
 
   for (const key of [
     "quizzes",
     "batches",
-    "subscriptions",
     "attempts",
     "days",
-    "ledger",
-    "purchases",
   ])
     requireValue(
       Array.isArray(value[key]),
@@ -170,98 +119,8 @@ function validateState(
     "시간대가 손상되었습니다.",
   );
 
-  object(value.selection);
-  object(value.equipment);
-
-  const { selection, equipment } = value;
-
-  if (value.order === undefined) value.order = [];
-
-  requireValue(
-    validOrder(value.order, deskItems(equipment)),
-    "겹침 순서가 손상되었습니다.",
-  );
-
-  // Additive v1 migration: existing purchases/equipment are never reset.
-  if (value.positions === undefined) value.positions = {};
-
-  object(value.positions);
-
-  for (const [category, position] of Object.entries(
-    value.positions,
-  )) {
-    requireValue(
-      isMovable(category) &&
-        validPosition(category, position) &&
-        typeof equipment[category] === "string",
-      "배치 정보가 손상되었습니다.",
-    );
-  }
-
-  if (value.transforms === undefined) {
-    value.transforms = Object.fromEntries(
-      Object.entries(value.positions).map(
-        ([category, position]) => [
-          category,
-          migratePosition(
-            category as import("@/lib/desk-layout").MovableCategory,
-            position as import("@/api/contracts").DeskPosition,
-          ),
-        ],
-      ),
-    );
-  }
-
-  object(value.transforms);
-
-  for (const [category, transform] of Object.entries(
-    value.transforms,
-  )) {
-    requireValue(
-      (category === DeskObject.BUGRI &&
-        validTransform(category, transform)) ||
-        (isMovable(category) &&
-          validTransform(category, transform) &&
-          (category === Category.DESK ||
-            typeof equipment[category] === "string")),
-      "3D 배치 정보가 손상되었습니다.",
-    );
-  }
-
-  requireValue(
-    selection.mode === LearningMode.UNSOLVED ||
-      selection.mode === LearningMode.REPLAY,
-    "학습 모드가 손상되었습니다.",
-  );
-
-  requireValue(
-    selection.hashtagId === null ||
-      hashtags.some((t) => t.id === selection.hashtagId),
-    "선택 태그가 손상되었습니다.",
-  );
-
-  requireValue(
-    selection.quizId === null ||
-      typeof selection.quizId === "string",
-    "학습 선택이 손상되었습니다.",
-  );
-
-  for (const [key, id] of Object.entries(equipment))
-    requireValue(
-      categories.includes(key as never) &&
-        typeof id === "string",
-      "장착 정보가 손상되었습니다.",
-    );
-
-  const {
-    quizzes,
-    batches,
-    subscriptions,
-    attempts,
-    days,
-    ledger,
-    purchases,
-  } = value as unknown as UserState;
+  const { quizzes, batches, attempts, days } =
+    value as unknown as UserState;
 
   const { authoringConversation } = value;
 
@@ -312,7 +171,8 @@ function validateState(
   }
 
   const revision = (
-    r: NonNullable<UserState["quizzes"][number]["active"]>,
+    r: UserState["attempts"][number]["revision"],
+    partialHistory = false,
   ) => {
     object(r);
 
@@ -337,6 +197,7 @@ function validateState(
     validateContent(
       content,
       hashtags.map(({ id }) => id),
+      partialHistory,
     );
   };
 
@@ -425,30 +286,6 @@ function validateState(
     }
   }
 
-  for (const sub of subscriptions) {
-    object(sub);
-
-    requireValue(
-      typeof sub.subscriptionId === "string" &&
-        ["PERSON", "HASHTAG", "PERSON_HASHTAG"].includes(
-          sub.type,
-        ),
-      "구독이 손상되었습니다.",
-    );
-
-    if (sub.type !== "HASHTAG")
-      requireValue(
-        users.some((u) => u.userId === sub.authorUserId),
-        "구독 사용자가 손상되었습니다.",
-      );
-
-    if (sub.type !== "PERSON")
-      requireValue(
-        hashtags.some((t) => t.id === sub.hashtagId),
-        "구독 태그가 손상되었습니다.",
-      );
-  }
-
   for (const a of attempts) {
     object(a);
 
@@ -462,51 +299,7 @@ function validateState(
       "풀이가 손상되었습니다.",
     );
 
-    const { rewardOutcome } = a;
-
-    if (rewardOutcome !== undefined) {
-      object(rewardOutcome);
-
-      const {
-        reasonCodes,
-        eligibleAt,
-        learningDate,
-        timeZone,
-      } = rewardOutcome;
-
-      requireValue(
-        a.completedAt !== null &&
-          Array.isArray(reasonCodes) &&
-          reasonCodes.every((code) =>
-            Object.values(RewardNonPaymentReason).some(
-              (reason) => reason === code,
-            ),
-          ) &&
-          new Set(reasonCodes).size ===
-            reasonCodes.length &&
-          typeof learningDate === "string" &&
-          /^\d{4}-\d{2}-\d{2}$/.test(learningDate) &&
-          learningDate === a.learningDate &&
-          timeZoneValid(timeZone) &&
-          timeZone === a.timeZone &&
-          (eligibleAt === undefined ||
-            (typeof eligibleAt === "string" &&
-              Number.isFinite(Date.parse(eligibleAt)))),
-        "보상 판정 기록이 손상되었습니다.",
-      );
-
-      requireValue(
-        reasonCodes.some(
-          (code) =>
-            code === RewardNonPaymentReason.OWNER_WAIT ||
-            code === RewardNonPaymentReason.REVIEW_WAIT,
-        ) ===
-          (eligibleAt !== undefined),
-        "보상 대기 시각이 손상되었습니다.",
-      );
-    }
-
-    revision(a.revision);
+    revision(a.revision, !!a.completedAt);
   }
 
   for (const d of days) {
@@ -518,73 +311,6 @@ function validateState(
         timeZoneValid(d.timeZone) &&
         typeof d.completedAt === "string",
       "학습일이 손상되었습니다.",
-    );
-  }
-
-  if (value.rewards !== undefined) {
-    requireValue(
-      Array.isArray(value.rewards),
-      "보상 기록이 손상되었습니다.",
-    );
-
-    const ids = new Set<string>();
-
-    for (const entry of value.rewards) {
-      object(entry);
-
-      requireValue(
-        typeof entry.id === "string" &&
-          !ids.has(entry.id) &&
-          entry.solverUserId === userId &&
-          users.some(
-            (user) => user.userId === entry.userId,
-          ) &&
-          typeof entry.quizId === "string" &&
-          typeof entry.attemptId === "string" &&
-          Object.values(RewardReason).some(
-            (reason) => reason === entry.reason,
-          ) &&
-          typeof entry.amountBugCent === "number" &&
-          Number.isSafeInteger(entry.amountBugCent) &&
-          entry.amountBugCent > 0 &&
-          typeof entry.createdAt === "string" &&
-          Number.isFinite(Date.parse(entry.createdAt)) &&
-          typeof entry.learningDate === "string" &&
-          /^\d{4}-\d{2}-\d{2}$/.test(entry.learningDate) &&
-          timeZoneValid(entry.timeZone),
-        "보상 기록이 손상되었습니다.",
-      );
-
-      ids.add(entry.id);
-    }
-  }
-
-  for (const l of ledger) {
-    object(l);
-
-    requireValue(
-      Number.isSafeInteger(l.amount) &&
-        typeof l.id === "string" &&
-        typeof l.reference === "string" &&
-        typeof l.createdAt === "string" &&
-        ["SEED", "DAILY_COMPLETION", "PURCHASE"].includes(
-          l.reason,
-        ),
-      "원장이 손상되었습니다.",
-    );
-  }
-
-  for (const p of purchases) {
-    object(p);
-
-    requireValue(
-      typeof p.purchaseId === "string" &&
-        typeof p.productId === "string" &&
-        typeof p.requestKey === "string" &&
-        Number.isSafeInteger(p.price) &&
-        p.price > 0 &&
-        typeof p.purchasedAt === "string",
-      "구매가 손상되었습니다.",
     );
   }
 }

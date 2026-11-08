@@ -3,15 +3,10 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { InputValidationError } from "@/api/errors";
 
-import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
-import { Dropdown } from "@/components/ui/dropdown";
-import { useEffect, useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import {
-  QuizStatus,
   type Hashtag,
   type ReviewQuiz,
-  type Visibility,
 } from "@/api/contracts";
 import {
   Button,
@@ -22,12 +17,14 @@ import {
 import { ContentFields } from "@/features/quiz-authoring/content-fields";
 import { ContentPreview } from "@/features/quiz-authoring/content-preview";
 import { RequestError } from "@/features/quiz-authoring/feedback";
+import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
+import { styles } from "@/features/quiz-authoring/styles";
+import { leaveMessage } from "@/features/quiz-authoring/use-unsaved-warning";
 import {
   editableContent,
   validateEditor,
 } from "@/features/quiz-authoring/validation";
-import { leaveMessage } from "@/features/quiz-authoring/use-unsaved-warning";
-import { styles } from "@/features/quiz-authoring/styles";
+import { useEffect, useRef, useState } from "react";
 
 export function ReviewEditor({
   api: client,
@@ -67,19 +64,6 @@ export function ReviewEditor({
   const [editing, setEditing] = useState(false);
   const [regenerateOpen, setRegenerateOpen] =
     useState(false);
-  const [visibility, setVisibility] = useState<
-    Visibility | ""
-  >(
-    initialQuiz.status === QuizStatus.PENDING
-      ? ""
-      : initialQuiz.status,
-  );
-  const [nextVisibility, setNextVisibility] =
-    useState<Visibility>(
-      initialQuiz.status === QuizStatus.PUBLIC
-        ? QuizStatus.PRIVATE
-        : QuizStatus.PUBLIC,
-    );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [errors, setErrors] = useState<
@@ -95,9 +79,7 @@ export function ReviewEditor({
   const dirty = edited || prompt !== sentPrompt;
   const statusLabel = quiz.pending
     ? t("검토 중")
-    : quiz.status === QuizStatus.PUBLIC
-      ? t("전체 공개")
-      : t("나만 보기");
+    : t("승인됨");
 
   useEffect(() => {
     onDirty(dirty);
@@ -109,13 +91,6 @@ export function ReviewEditor({
     setContent(editableContent(revision));
     setSource(revision.sourceContent);
     setErrors({});
-    if (result.status !== QuizStatus.PENDING)
-      setVisibility(result.status);
-    setNextVisibility(
-      result.status === QuizStatus.PUBLIC
-        ? QuizStatus.PRIVATE
-        : QuizStatus.PUBLIC,
-    );
     onChanged();
   }
 
@@ -192,7 +167,7 @@ export function ReviewEditor({
   }
 
   function approvePending() {
-    if (!visibility || !quiz.pending) return;
+    if (!quiz.pending) return;
 
     void run(async () => {
       let approvalQuiz = quiz;
@@ -210,14 +185,9 @@ export function ReviewEditor({
         await api.request("approve", {
           quizId: approvalQuiz.quizId,
           expectedVersion: approvalQuiz.version,
-          visibility,
         }),
       );
-      setMessage(
-        visibility === QuizStatus.PUBLIC
-          ? "공개했습니다."
-          : "나만 보기로 승인했습니다.",
-      );
+      setMessage("승인했습니다.");
     });
   }
 
@@ -259,9 +229,9 @@ export function ReviewEditor({
         </p>
       )}
       {!editing && quiz.active && quiz.pending && (
-        <details className="rounded-2xl border border-line bg-surface p-5">
+        <details className="rounded-surface border border-line bg-surface p-5">
           <summary className="cursor-pointer font-semibold text-primary">
-            {t("현재 공개본과 비교")}
+            {t("현재 버전과 비교")}
           </summary>
           <div className="mt-5 grid gap-5 border-t border-line pt-5">
             <h3 className="text-lg">{quiz.active.title}</h3>
@@ -373,31 +343,9 @@ export function ReviewEditor({
           <ContentPreview content={saved} />
           {quiz.pending && (
             <div className="grid items-end gap-3 border-t border-line pt-5 sm:grid-cols-[minmax(0,1fr)_auto]">
-              <Dropdown
-                label={t("승인 공개 범위")}
-                value={visibility}
-                disabled={busy}
-                options={[
-                  {
-                    value: "",
-                    label: t("공개 범위 선택"),
-                  },
-                  {
-                    value: QuizStatus.PRIVATE,
-                    label: t("나만 풀기"),
-                  },
-                  {
-                    value: QuizStatus.PUBLIC,
-                    label: t("공개"),
-                  },
-                ]}
-                onValueChange={(value) =>
-                  setVisibility(value as Visibility | "")
-                }
-              />
               <Button
                 className="sm:min-w-28"
-                disabled={busy || dirty || !visibility}
+                disabled={busy || dirty}
                 onClick={approvePending}
               >
                 {t("승인")}
@@ -466,54 +414,6 @@ export function ReviewEditor({
           </form>
         </Modal>
       )}
-      {!editing && quiz.active && !quiz.pending && (
-        <Card className={styles.stack}>
-          <h3 className="text-xl">
-            {t("현재 버전 공개 범위")}
-          </h3>
-          <Dropdown
-            label={t("변경할 공개 범위")}
-            value={nextVisibility}
-            disabled={busy || dirty}
-            options={[
-              {
-                value: QuizStatus.PRIVATE,
-                label: t("나만 풀기"),
-              },
-              {
-                value: QuizStatus.PUBLIC,
-                label: t("공개"),
-              },
-            ]}
-            onValueChange={(value) =>
-              setNextVisibility(value as Visibility)
-            }
-          />
-          <div className={styles.actions}>
-            <Button
-              variant="secondary"
-              disabled={
-                busy ||
-                dirty ||
-                nextVisibility === quiz.status
-              }
-              onClick={() =>
-                void run(async () => {
-                  accept(
-                    await api.request("visibility", {
-                      ...version,
-                      visibility: nextVisibility,
-                    }),
-                  );
-                  setMessage("공개 범위를 변경했습니다.");
-                })
-              }
-            >
-              {t("공개 범위 변경")}
-            </Button>
-          </div>
-        </Card>
-      )}
       {!editing && (
         <section
           role="group"
@@ -537,7 +437,7 @@ export function ReviewEditor({
               if (
                 !window.confirm(
                   t(
-                    "“{0}” 퀴즈를 삭제할까요?{1} 완료한 풀이 기록과 보상은 유지됩니다.",
+                    "“{0}” 퀴즈를 삭제할까요?{1} 완료한 풀이 기록은 유지됩니다.",
                     {
                       0: saved.title,
                       1: dirty

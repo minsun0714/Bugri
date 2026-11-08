@@ -1,28 +1,26 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { solvingStyles } from "@/components/solving/styles";
 import type { Answer, Question } from "@/api/contracts";
+import { solvingStyles } from "@/components/solving/styles";
 import {
   Button,
   Checkbox,
   Choice,
   TextField,
 } from "@/components/ui";
+import { useEffect, useState } from "react";
 
 export function AnswerForm({
   question,
   onSubmit,
   onDirtyChange,
   pending,
-  reaction,
 }: {
   question: Question;
   onSubmit: (answer: Answer) => void;
   onDirtyChange?: (dirty: boolean) => void;
   pending: boolean;
-  reaction?: ReactNode;
 }) {
   const t = useTranslation();
 
@@ -145,13 +143,8 @@ export function AnswerForm({
         )}
       </fieldset>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {reaction}
         <Button
-          className={
-            reaction
-              ? "ml-auto shrink-0 sm:min-w-36"
-              : "w-full sm:w-auto sm:min-w-36"
-          }
+          className="w-full sm:w-auto sm:min-w-36"
           type="submit"
           disabled={!valid}
           loading={pending}

@@ -3,7 +3,10 @@ import { type UiMessage } from "@/lib/i18n/messages";
 
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import { styles } from "@/components/ui/styles";
+import {
+  searchFieldStyle,
+  styles,
+} from "@/components/ui/styles";
 
 import {
   useEffect,
@@ -308,13 +311,15 @@ export function Avatar({
 export function Card({
   children,
   className = "",
+  variant = "solid",
 }: {
   children: ReactNode;
   className?: string;
+  variant?: "solid" | "note";
 }) {
   return (
     <article
-      className={`${styles["ui-card"]} ${className}`}
+      className={`${styles["ui-card"]} ${variant === "note" ? "!border-2 !border-dashed !border-control-line !bg-canvas" : ""} ${className}`}
     >
       {children}
     </article>
@@ -623,15 +628,6 @@ export function Choice({
   );
 }
 
-export function Coin({ amount }: { amount: number }) {
-  return (
-    <span className={styles["ui-coin"]}>
-      <span aria-hidden="true">B</span>
-      {amount.toLocaleString()} <small>BugCoin</small>
-    </span>
-  );
-}
-
 export function Pagination({
   page,
   total,
@@ -689,5 +685,32 @@ export function Pagination({
         →
       </Button>
     </nav>
+  );
+}
+
+export function SearchField({
+  className,
+  ...props
+}: Omit<
+  Parameters<typeof TextField>[0],
+  "type" | "hideLabel"
+>) {
+  return (
+    <div
+      className={`${searchFieldStyle} ${className ?? ""}`}
+    >
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        className="pointer-events-none absolute left-3 top-3.5 z-10 size-5 text-muted"
+      >
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m16 16 4.5 4.5" strokeLinecap="round" />
+      </svg>
+      <TextField {...props} type="search" hideLabel />
+    </div>
   );
 }

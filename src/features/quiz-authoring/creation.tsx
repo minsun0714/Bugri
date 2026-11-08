@@ -12,9 +12,10 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Generation } from "@/features/quiz-authoring/generation";
 import { RequestError } from "@/features/quiz-authoring/feedback";
 import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authoring-api";
+import { pageTitle } from "@/components/ui/styles";
 
 const closeWarning =
-  "모달을 닫으면 임시저장하거나 공개하지 않은 퀴즈는 사라집니다. 계속할까요?";
+  "모달을 닫으면 임시저장하지 않은 퀴즈는 사라집니다. 계속할까요?";
 
 export function Creation({
   api: client,
@@ -115,9 +116,7 @@ export function Creation({
       aria-label={t("퀴즈 만들기")}
     >
       <div className="flex items-center gap-2">
-        <h1 className="text-xl font-semibold tracking-tight">
-          {t("퀴즈 만들기")}
-        </h1>
+        <h1 className={pageTitle}>{t("퀴즈 만들기")}</h1>
         <Tooltip label={t("퀴즈 만들기 도움말")}>
           {t(
             "현재는 실제 AI 대신 Mock 퀴즈를 제공합니다. 생성한 퀴즈는 대화로 바꾸거나 직접 수정할 수 있습니다. 비밀키·개인정보는 입력하지 마세요.",

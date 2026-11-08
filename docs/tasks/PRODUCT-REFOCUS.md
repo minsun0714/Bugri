@@ -1,6 +1,6 @@
 # PRODUCT-REFOCUS
 
-- 상태: IN_PROGRESS (문서 정리 단계)
+- 상태: DONE (문서 정리). 후속 구현은 TASKS §2 순서로 별도 TASK에서 진행
 - 브랜치: `docs/product-refocus` (dev `9009768`에서 시작)
 - 범위: 제품 방향 재정의에 따른 기준 문서 정리. 앱 코드·테스트·Hook은 변경하지 않는다.
 - 관련: [PRD](../PRD.md) 전체, [페이지 구조](../PAGE_STRUCTURE.md)
@@ -35,16 +35,15 @@
 - 수정: `README.md` 소개·홈 설명, `AGENTS.md` 2단계 설명과 참조 목록, `TASKS.md` 단계·검증 서술.
 - 링크 경로만 수정: `API.md`, `ARCHITECTURE.md`의 BugCoin 정책 링크를 `archive/`로 변경.
 
-## 남은 문서 작업 (코드 삭제 이후)
+## 코드 삭제 이후 문서 갱신 (dev 병합)
 
-병렬로 진행하는 `REMOVE-OUT-OF-SCOPE` 브랜치는 코드만 수정하고, 삭제 목록을 `docs/tasks/REMOVE-OUT-OF-SCOPE.md`에 기록한다. 그 기록을 바탕으로 아래 문서를 갱신한다.
-
-- `docs/API.md`, `docs/ARCHITECTURE.md`: 구독·상점·반응·공개·BugCoin 계약과 PRD v1 AC 번호 참조 정리
-- `.agents/skills/implement-feature/references/verification.md`: 상점·3D E2E 절
-- `.agents/skills/implement-feature/SKILL.md`(구매·구독 예시), `.agents/skills/prepare-pr/SKILL.md`, `docs/HOOKS.md`(상점·3D, 구독 홈 설명)
-- `docs/CODING_CONVENTIONS.md`: `QuizScope.PUBLIC`/`QuizStatus.PUBLIC` 예시
-
-그때까지 위 문서는 현재 코드 기준이며 새 PRD와 다를 수 있다.
+- 삭제 PR #53과 그 사이 dev에 들어온 #50(UI 스타일), #51(풀이 내역 검색)을 `origin/dev`(`de88c89`)에서 이 브랜치로 머지했다.
+- 충돌: `docs/PRD.md`, `docs/PAGE_STRUCTURE.md`. 새 문서를 유지하고, dev 최신판(방문자 랜딩·풀이 내역 요구 포함)을 `archive/PRD-v1.md`, `archive/PAGE_STRUCTURE-v1.md`에 보관했다. 보관본은 dev 최신판과 비교해 상단 안내와 상대 링크 경로만 다르다.
+- 사용자 결정: 풀이 내역(`/my/learning`)은 유지하고 PRD REQ-09로 추가한다. 풀이 내역의 재도전은 복습 일정에 영향을 주지 않는다. 방문자 랜딩(GUEST-LANDING)은 삭제 PR대로 제거된 상태를 유지한다.
+- [REMOVE-OUT-OF-SCOPE](REMOVE-OUT-OF-SCOPE.md) 기록과 현재 코드를 기준으로 갱신:
+  - `docs/API.md`: 남은 22개 연산만 설명하도록 재작성. 시간대 첫 감지값 고정(현재)과 PRD AC-04d의 차이, 다른 사용자의 PUBLIC 퀴즈 직접 풀이 경로(seed 호환) 잔존을 명시.
+  - `docs/ARCHITECTURE.md`: 구독·상점·3D·공개 프로필·반응·BugCoin 절 삭제, 예정 모델(Note, ReviewSchedule)과 2단계 Spring AI 생성 포트 추가.
+  - `verification.md`: 상점·3D E2E 절을 일반 E2E 선택 기준으로 교체. `implement-feature`·`prepare-pr` 스킬, `HOOKS.md`, `CODING_CONVENTIONS.md`, `AGENTS.md`의 상점·구독·보상 예시를 정리.
 
 ## 후속 구현 순서
 
@@ -52,9 +51,7 @@
 
 ## 검증
 
-- 문서 전용 변경이므로 [검증 지침](../../.agents/skills/implement-feature/references/verification.md)의 문서 예외를 적용한다. 앱 lint·타입·테스트·빌드·E2E와 Hook은 실행하지 않는다(코드 변경 없음).
-- `git diff --cached --check` 통과.
-- 변경·신규·보관 문서와 `API.md`·`ARCHITECTURE.md`의 상대 링크 실존 검사(스크립트): 깨진 링크 0건.
-- 보관한 정책 문서를 `archive/` 밖 경로로 가리키는 링크 없음(`docs/tasks`, `docs/ux-reviews` 과거 기록 제외).
-- 새 PRD·PAGE_STRUCTURE·README·TASKS에서 구독·상점·BugCoin·PUBLIC·PENDING 언급은 PRD의 확정 정책 문장과 "사용자 확보 후 재검토" 목록에만 남음.
-- 미확인: `API.md`·`ARCHITECTURE.md`·스킬·HOOKS·CODING_CONVENTIONS 본문의 PRD v1 AC 번호 참조와 제외 기능 설명(위 "남은 문서 작업"에서 처리).
+- 문서 전용 변경이므로 [검증 지침](../../.agents/skills/implement-feature/references/verification.md)의 문서 예외를 적용한다. 이 브랜치가 앱 코드를 변경하지 않으므로 lint·타입·테스트·빌드·E2E와 Hook은 실행하지 않았다. 머지로 들어온 코드는 dev(`de88c89`)와 동일하며 그 검증은 [REMOVE-OUT-OF-SCOPE](REMOVE-OUT-OF-SCOPE.md) 기록을 따른다.
+- 1차 커밋(`28b7603`): `git diff --cached --check` 통과, 상대 링크 깨짐 0건.
+- dev 머지 후: `git diff --cached --check` 통과. `AGENTS.md`·`README.md`·`docs/*.md`·`docs/archive/*.md`·이 TASK·`.agents/skills/**/*.md`의 상대 링크와 앵커 검사(스크립트) 문제 0건. 삭제된 연산·경로 이름(`publishCandidate`, `guestQuiz`, `learningQuiz`, `subscriptions`, `/shop`, `/discover/*` 검색·태그·개발자, `coin-history`, `wallet`) 잔존 0건.
+- 미확인: 코드 주석·테스트 이름에 남은 이전 용어, `docs/tasks`·`docs/ux-reviews` 과거 기록의 이전 경로 언급(과거 기록이므로 수정하지 않음).
