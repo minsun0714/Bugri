@@ -26,7 +26,7 @@ export function QuizCard({
   metadata,
   footer,
   settings,
-  cta,
+  go,
   density = "default",
 }: {
   density?: "default" | "compact";
@@ -36,8 +36,8 @@ export function QuizCard({
   badges?: ReactNode;
   metadata?: ReactNode;
   footer?: ReactNode;
-  /** Visible hint for the primary action (the whole card already acts as that link). */
-  cta?: string;
+  /** Show a go-to icon in the title row; the whole card already acts as that link. */
+  go?: boolean;
   settings?: {
     label: string;
     onClick: MouseEventHandler<HTMLButtonElement>;
@@ -88,6 +88,21 @@ export function QuizCard({
       >
         {title}
       </span>
+      {go && !action.disabled && (
+        <svg
+          aria-hidden="true"
+          data-card-go=""
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={quizCardStyles.go}
+        >
+          <path d="M7 17 17 7M8 7h9v9" />
+        </svg>
+      )}
     </div>
   );
 
@@ -139,15 +154,6 @@ export function QuizCard({
         {metadata && (
           <div className="mt-2 break-words text-sm text-muted [overflow-wrap:anywhere]">
             {metadata}
-          </div>
-        )}
-        {cta && !action.disabled && (
-          <div
-            aria-hidden="true"
-            className={quizCardStyles.cta}
-          >
-            {cta}
-            <span>→</span>
           </div>
         )}
       </div>

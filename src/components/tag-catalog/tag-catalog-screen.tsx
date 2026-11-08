@@ -256,7 +256,7 @@ function Catalog({
               <li key={quizId}>
                 <QuizCard
                   title={title}
-                  cta={t("풀기")}
+                  go
                   action={{
                     href: `/solve?${memberQuery}quiz=${encodeURIComponent(quizId)}`,
                     onClick: (event) => {
