@@ -69,3 +69,9 @@ Bugri is a developer learning platform with AI-generated quizzes.
 
 - Never claim an unexecuted check passed or skip/weaken tests to obtain a pass. Apply the [verification and failure-handling procedure](.agents/skills/implement-feature/references/verification.md) before reporting completion.
 - Require review by someone other than the implementer. The user makes the final merge decision.
+
+## Task documentation
+
+- Read `docs/TASKS.md` for navigation and the relevant `docs/tasks/<TASK-ID>.md` for scope, status, dependencies and verification.
+- Add new tasks as independent files in `docs/tasks/`; do not append task logs or a central registry to TASKS.md. Update the existing task file for follow-up work.
+- Add independent design/review documents in their appropriate folders. Changes to existing product policies, API contracts or architecture must update their authoritative document rather than introduce conflicting copies.
