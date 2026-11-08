@@ -185,11 +185,26 @@ test("saving is blocked while an edit is unapplied, and closing asks only then",
     }),
   ).toBeInTheDocument();
 
-  expect(
+  // Opening the editor without changing anything is not an unapplied edit.
+  fireEvent.change(within(modal).getByLabelText("제목"), {
+    target: { value: "바꾼 제목" },
+  });
+
+  fireEvent.click(
     within(modal).getByRole("button", {
-      name: /남은 퀴즈 모두 저장/,
+      name: "수정 취소",
     }),
-  ).toBeDisabled();
+  );
+
+  fireEvent.click(
+    within(modal).getByRole("button", {
+      name: "직접 수정",
+    }),
+  );
+
+  fireEvent.change(within(modal).getByLabelText("제목"), {
+    target: { value: "다시 바꾼 제목" },
+  });
 
   fireEvent.click(
     within(modal).getByRole("button", { name: "닫기" }),

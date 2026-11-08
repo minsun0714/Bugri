@@ -22,6 +22,8 @@ export interface QuizWorkProps {
   /** Called after every server change so note counts can refresh. */
   onChanged: () => void;
   onDirty?: (dirty: boolean) => void;
+  /** Closes the work area once nothing is left to save. */
+  onClose?: () => void;
 }
 
 const isPending = ({ status }: ReviewQuiz) =>
@@ -80,8 +82,25 @@ export function useQuizWork({
     : null;
   const prompt = quiz ? (prompts[quiz.quizId] ?? "") : "";
 
+  /** Only a real difference from the saved quiz counts as an unapplied edit. */
+  const isEdited = (
+    quizId: string,
+    record: Record<string, QuizContent> = edits,
+  ) => {
+    const found = quizzes.find(
+      (item) => item.quizId === quizId,
+    );
+
+    return (
+      !!found &&
+      quizId in record &&
+      JSON.stringify(record[quizId]) !==
+        JSON.stringify(editableContent(found.revision))
+    );
+  };
+
   const hasDraft = (quizId: string) =>
-    quizId in edits || !!prompts[quizId]?.trim();
+    isEdited(quizId) || !!prompts[quizId]?.trim();
 
   const pending = quizzes.filter(isPending);
 
@@ -95,7 +114,9 @@ export function useQuizWork({
     nextPrompts: Record<string, string>,
   ) {
     onDirty(
-      Object.keys(nextEdits).length > 0 ||
+      Object.keys(nextEdits).some((quizId) =>
+        isEdited(quizId, nextEdits),
+      ) ||
         Object.values(nextPrompts).some(
           (value) => !!value.trim(),
         ),

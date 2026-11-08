@@ -77,12 +77,24 @@ export function QuizWork(props: QuizWorkProps) {
 
   const chatOpen = mode === WorkMode.CHAT && !saved;
   const chatLogRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const { current: log } = chatLogRef;
 
     if (chatOpen && log) log.scrollTop = log.scrollHeight;
   }, [chatOpen, quiz?.version]);
+
+  // Saving or deleting removes the focused button; keep keyboard focus inside the work area.
+  useEffect(() => {
+    if (!notice) return;
+
+    rootRef.current
+      ?.querySelector<HTMLElement>(
+        '[role="tab"][aria-selected="true"]',
+      )
+      ?.focus();
+  }, [notice]);
 
   const tabLabels = quizzes.map((item, index) =>
     t(
@@ -246,6 +258,7 @@ export function QuizWork(props: QuizWorkProps) {
 
   return (
     <section
+      ref={rootRef}
       className="flex min-h-0 flex-1 flex-col gap-4"
       aria-label={t("확인 안 한 퀴즈")}
     >
@@ -291,8 +304,8 @@ export function QuizWork(props: QuizWorkProps) {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="mb-1 text-xs text-muted">
-                  {t("문제")}
-                  {selectedIndex + 1} / {quizzes.length}
+                  {t("문제")} {selectedIndex + 1} /{" "}
+                  {quizzes.length}
                 </p>
                 <h2 className="text-lg font-semibold">
                   {quiz.revision.title}
@@ -334,7 +347,8 @@ export function QuizWork(props: QuizWorkProps) {
                   )}
                 <Button
                   size="sm"
-                  variant="danger"
+                  variant="ghost"
+                  className="text-danger-ink"
                   disabled={busy}
                   onClick={() => setConfirmDelete(true)}
                 >
@@ -365,25 +379,6 @@ export function QuizWork(props: QuizWorkProps) {
                     onChange={edit}
                     onSource={() => {}}
                   />
-                  <div className="mt-4 flex flex-wrap justify-end gap-3">
-                    <Button
-                      size="sm"
-                      onClick={applyEdit}
-                      loading={busy}
-                    >
-                      {t("수정 반영")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        cancelEdit();
-                        setMode(WorkMode.PREVIEW);
-                      }}
-                    >
-                      {t("수정 취소")}
-                    </Button>
-                  </div>
                 </fieldset>
               </div>
             )}
@@ -425,29 +420,59 @@ export function QuizWork(props: QuizWorkProps) {
         />
       )}
 
-      {pendingCount > 0 && !chatOpen && (
+      {editing && mode === WorkMode.EDIT && !chatOpen && (
         <footer className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-line pt-4">
-          {draftCount > 0 && (
-            <p
-              role="status"
-              className="mr-auto text-xs text-muted"
-            >
-              {t(
-                "미반영 수정이 있는 퀴즈는 반영하거나 취소한 뒤 저장하세요.",
-              )}
-            </p>
-          )}
           <Button
-            disabled={busy || draftCount > 0}
-            loading={busy}
-            onClick={saveAll}
+            variant="ghost"
+            disabled={busy}
+            onClick={() => {
+              cancelEdit();
+              setMode(WorkMode.PREVIEW);
+            }}
           >
-            {t("남은 퀴즈 모두 저장 ({0})", {
-              0: pendingCount,
-            })}
+            {t("수정 취소")}
+          </Button>
+          <Button loading={busy} onClick={applyEdit}>
+            {t("수정 반영")}
           </Button>
         </footer>
       )}
+
+      {!(editing && mode === WorkMode.EDIT) &&
+        pendingCount > 0 &&
+        !chatOpen && (
+          <footer className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-line pt-4">
+            {draftCount > 0 && (
+              <p
+                role="status"
+                className="mr-auto text-xs text-muted"
+              >
+                {t(
+                  "미반영 수정이 있는 퀴즈는 반영하거나 취소한 뒤 저장하세요.",
+                )}
+              </p>
+            )}
+            <Button
+              disabled={busy || draftCount > 0}
+              loading={busy}
+              onClick={saveAll}
+            >
+              {t("남은 퀴즈 모두 저장 ({0})", {
+                0: pendingCount,
+              })}
+            </Button>
+          </footer>
+        )}
+
+      {pendingCount === 0 &&
+        quizzes.length > 0 &&
+        !chatOpen && (
+          <footer className="flex shrink-0 justify-end border-t border-line pt-4">
+            <Button onClick={props.onClose}>
+              {t("완료")}
+            </Button>
+          </footer>
+        )}
 
       <ConfirmDialog
         open={confirmDelete}

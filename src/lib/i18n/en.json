@@ -313,5 +313,7 @@
   "퀴즈로 만들기": "Make quizzes",
   "확인 안 한 퀴즈": "Unconfirmed quizzes",
   "확인 안 한 퀴즈 {0}개": "{0} unconfirmed quizzes",
-  "확인 안 한 퀴즈 {0}개 · 이어서 확인": "{0} unconfirmed quizzes · Continue"
+  "확인 안 한 퀴즈 {0}개 · 이어서 확인": "{0} unconfirmed quizzes · Continue",
+  "연결된 퀴즈 {0}개도 함께 삭제돼요. 이미 푼 기록은 풀이 내역에 남아요.": "The {0} linked quizzes are deleted too. Quizzes you already solved stay in your history.",
+  "완료": "Done"
 }

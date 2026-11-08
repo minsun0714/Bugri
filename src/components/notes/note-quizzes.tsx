@@ -109,7 +109,10 @@ export function NoteQuizzes({
           {t(getErrorMessage(generate.error))}
         </p>
       )}
-      <section aria-labelledby="note-quizzes-heading">
+      <section
+        aria-labelledby="note-quizzes-heading"
+        className="pt-4"
+      >
         <h2
           id="note-quizzes-heading"
           className="mb-2 text-lg font-semibold"
@@ -124,45 +127,49 @@ export function NoteQuizzes({
               return (
                 <li
                   key={quizId}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3"
+                  className="grid gap-2 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-3"
                 >
                   <Link
                     href={`/solve?${new URLSearchParams({ user: userId, quiz: quizId })}`}
-                    className="min-w-0 flex-1 rounded text-sm font-semibold text-primary [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-primary"
+                    className="min-w-0 rounded text-sm font-semibold text-primary [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-primary sm:flex-1"
                   >
                     {revision.title}
                   </Link>
-                  <Badge>
-                    {format[revision.question.type]}
-                  </Badge>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      aria-label={t("{0} 수정", {
-                        0: revision.title,
-                      })}
-                      onClick={() => setEditing(quiz)}
-                    >
-                      {t("수정")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      aria-label={t("{0} 삭제", {
-                        0: revision.title,
-                      })}
-                      onClick={() => setDeleting(quiz)}
-                    >
-                      {t("삭제")}
-                    </Button>
+                  <div className="flex flex-wrap items-center gap-2 sm:contents">
+                    <Badge>
+                      {format[revision.question.type]}
+                    </Badge>
+                    <div className="ml-auto flex gap-1 sm:ml-0">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label={t("{0} 수정", {
+                          0: revision.title,
+                        })}
+                        onClick={() => setEditing(quiz)}
+                      >
+                        {t("수정")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-danger-ink"
+                        aria-label={t("{0} 삭제", {
+                          0: revision.title,
+                        })}
+                        onClick={() => setDeleting(quiz)}
+                      >
+                        {t("삭제")}
+                      </Button>
+                    </div>
                   </div>
                 </li>
               );
             })}
           </ul>
         ) : (
-          !confirmed.isPending && (
+          !confirmed.isPending &&
+          pendingCount === 0 && (
             <p className="text-sm text-muted">
               {t("퀴즈 없음")}
             </p>

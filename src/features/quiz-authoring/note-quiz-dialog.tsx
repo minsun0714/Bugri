@@ -78,6 +78,7 @@ export function NoteQuizDialog({
               initialQuizId={initialQuizId}
               onChanged={() => void refresh()}
               onDirty={setDirty}
+              onClose={onClose}
             />
           ) : (
             <Skeleton />

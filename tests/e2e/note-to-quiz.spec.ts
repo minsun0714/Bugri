@@ -127,10 +127,17 @@ test("generating again keeps the earlier unconfirmed quizzes, and closing with a
     .getByRole("button", { name: "직접 수정" })
     .click();
   await expect(
-    modal.getByRole("button", {
-      name: /남은 퀴즈 모두 저장/,
-    }),
-  ).toBeDisabled();
+    modal.getByRole("button", { name: "수정 반영" }),
+  ).toBeVisible();
+
+  // Opening the editor alone changes nothing, so closing asks nothing.
+  await modal
+    .getByRole("button", { name: "수정 취소" })
+    .click();
+  await modal
+    .getByRole("button", { name: "직접 수정" })
+    .click();
+  await modal.getByLabel("제목").first().fill("바꾼 제목");
 
   // A shared modal, never window.confirm.
   page.on("dialog", () => {
