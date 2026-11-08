@@ -9,5 +9,5 @@ export const solvingStyles = {
     "space-y-6 border-t border-line pt-5 [&_.ui-choice]:min-h-14 [&_.ui-choice]:gap-3 [&_.ui-choice]:px-4 [&_.ui-choice]:py-3 [&_.ui-choice]:text-base [&_.ui-choice]:leading-6 [&_.ui-choice]:bg-surface [&_.ui-choice]:transition-colors [&_.ui-choice.selected]:border-primary [&_.ui-choice.selected]:bg-primary/5 [&_.ui-choice:hover]:border-primary/50 [&_.ui-choice:not(.selected):hover]:bg-canvas [&_.ui-choice_input]:size-4.5 [&_.ui-choice_input]:shrink-0 [&_.ui-choice_span]:min-w-0 [&_.ui-choice_span]:break-keep [&_.ui-choice_span]:[overflow-wrap:anywhere]",
   title: pageTitle,
   tagFilter:
-    "w-full sm:w-64 [&>div]:grid-cols-[auto_1fr] [&>div]:items-center [&>div]:gap-3 [&>div>span]:text-muted [&>div>button]:rounded-xl [&>div>button]:font-medium",
+    "w-full sm:w-64 [&>div]:grid-cols-[auto_1fr] [&>div]:items-center [&>div]:gap-3 [&>div>span]:text-muted [&>div>button]:rounded-none [&>div>button]:font-medium",
 };

@@ -96,14 +96,14 @@ export function SubscriptionMenu({
           id={id}
           role="menu"
           aria-label={t("{0} 구독 관리", { 0: name })}
-          className="absolute right-0 top-full z-20 mt-1 min-w-36 rounded-xl border border-line bg-surface p-1 shadow-lg"
+          className="absolute right-0 top-full z-20 mt-1 min-w-36 rounded-none border border-control-line bg-surface-raised p-0"
         >
           <button
             ref={item}
             type="button"
             role="menuitem"
             disabled={busy}
-            className="min-h-11 w-full whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-semibold hover:bg-canvas disabled:opacity-45"
+            className="min-h-11 w-full whitespace-nowrap rounded-none px-3 py-2 text-left text-sm font-semibold hover:bg-canvas disabled:opacity-45"
             onClick={() => {
               trigger.current?.focus();
               setOpen(false);
