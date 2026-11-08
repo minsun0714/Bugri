@@ -262,7 +262,9 @@ test("no match shows the query with a reset; reset clears every condition", asyn
   wrap(<NotesListScreen />);
 
   expect(
-    await screen.findByText("“없는말”와 일치하는 메모가 없어요"),
+    await screen.findByText(
+      "선택한 태그 안에 “없는말”와 일치하는 메모가 없어요",
+    ),
   ).toBeVisible();
 
   fireEvent.click(
@@ -291,9 +293,12 @@ test("an over-long query in the address shows a notice instead of requesting", a
 
   wrap(<NotesListScreen />);
 
-  expect(await screen.findByRole("alert")).toHaveTextContent(
-    "검색어는 100자 이하여야 합니다.",
-  );
+  expect(await screen.findByRole("alert")).toBeVisible();
+
+  // The limit is stated once, by the search field.
+  expect(
+    screen.getAllByText("검색어는 100자 이하여야 합니다."),
+  ).toHaveLength(1);
 
   fireEvent.click(
     screen.getByRole("button", { name: "조건 초기화" }),

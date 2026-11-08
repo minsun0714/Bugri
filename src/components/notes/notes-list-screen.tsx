@@ -61,7 +61,8 @@ function TagFilter({
   const t = useTranslation();
   const { data } = useNoteTags(userId);
   const { data: directory } = useHashtags(userId);
-  const { tagIds, untagged } = condition;
+  const { query, tagIds, untagged } = condition;
+  const searching = query !== "";
 
   if (!data) return null;
 
@@ -88,7 +89,8 @@ function TagFilter({
       <FilterChips
         options={options.map(({ id, count }) => ({
           id,
-          count,
+          // Counts cover all memos, so they are hidden while a search narrows the list.
+          count: searching ? undefined : count,
           label:
             id === untaggedChipId
               ? t("태그 없음")
@@ -134,11 +136,15 @@ function NotesList({ userId }: { userId: string }) {
     }
   }, [data]);
 
-  function change(next: Partial<NotesCondition>) {
-    const { page: nextPage } = next;
+  function change(
+    next: Partial<NotesCondition>,
+    { announce = false } = {},
+  ) {
+    // Only a search or a reset moves focus to the count; toggling chips keeps focus on the chip
+    // and the count is read out through its live region.
+    focusResult.current = announce;
 
     // A changed condition starts from the first page; a page move keeps the rest.
-    focusResult.current = nextPage === undefined;
 
     router.push(
       notesHref(userId, {
@@ -151,11 +157,14 @@ function NotesList({ userId }: { userId: string }) {
   }
 
   const reset = () =>
-    change({
-      query: "",
-      tagIds: [],
-      untagged: false,
-    });
+    change(
+      {
+        query: "",
+        tagIds: [],
+        untagged: false,
+      },
+      { announce: true },
+    );
 
   const controls = (
     <div className="space-y-4">
@@ -164,12 +173,14 @@ function NotesList({ userId }: { userId: string }) {
         label={t("내 노트 검색")}
         placeholder={t("메모와 퀴즈 내용 검색")}
         query={query}
-        onSearch={(next) => change({ query: next })}
+        onSearch={(next) =>
+          change({ query: next }, { announce: true })
+        }
       />
       <TagFilter
         userId={userId}
         condition={condition}
-        onChange={change}
+        onChange={(next) => change(next)}
       />
     </div>
   );
@@ -179,13 +190,10 @@ function NotesList({ userId }: { userId: string }) {
       <div className="space-y-5">
         {controls}
         <div role="alert" className="space-y-3 rounded-xl border border-coral p-4">
-          <p>
-            {t(
-              queryTooLong
-                ? "검색어는 100자 이하여야 합니다."
-                : "주소의 검색 조건이 올바르지 않아요",
-            )}
-          </p>
+          {/* The search field already states the length limit. */}
+          {!queryTooLong && (
+            <p>{t("주소의 검색 조건이 올바르지 않아요")}</p>
+          )}
           <Button variant="secondary" onClick={reset}>
             {t("조건 초기화")}
           </Button>
@@ -239,6 +247,7 @@ function NotesList({ userId }: { userId: string }) {
           total={total}
           filtering={filtering}
           query={query}
+          tagged={tagIds.length > 0 || untagged}
           onReset={reset}
           onFirstPage={() => change({ page: 1 })}
         />
@@ -263,7 +272,7 @@ function NotesList({ userId }: { userId: string }) {
                 <li key={noteId}>
                   <Link
                     href={noteHref(userId, noteId, condition)}
-                    className={`${historyStyles.row} sm:grid-cols-[minmax(0,1fr)_auto]`}
+                    className={`${historyStyles.row} items-start! sm:grid-cols-[minmax(0,1fr)_auto]`}
                   >
                     <span className="col-span-2 min-w-0 sm:col-span-1">
                       <span className="line-clamp-2 text-sm font-medium leading-6 [overflow-wrap:anywhere]">
@@ -382,6 +391,7 @@ function EmptyList({
   total,
   filtering,
   query,
+  tagged,
   onReset,
   onFirstPage,
 }: {
@@ -389,6 +399,7 @@ function EmptyList({
   total: number;
   filtering: boolean;
   query: string;
+  tagged: boolean;
   onReset: () => void;
   onFirstPage: () => void;
 }) {
@@ -413,9 +424,12 @@ function EmptyList({
         description=""
         title={
           query
-            ? t("“{0}”와 일치하는 메모가 없어요", {
-                0: query,
-              })
+            ? t(
+                tagged
+                  ? "선택한 태그 안에 “{0}”와 일치하는 메모가 없어요"
+                  : "“{0}”와 일치하는 메모가 없어요",
+                { 0: query },
+              )
             : t("조건에 맞는 메모가 없어요")
         }
         action={

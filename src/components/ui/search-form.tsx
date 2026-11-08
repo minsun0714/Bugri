@@ -30,7 +30,7 @@ export function SearchForm({
     <form
       role="search"
       aria-label={label}
-      className={searchFormStyle}
+      className={`${searchFormStyle} flex-wrap sm:flex-nowrap`}
       onSubmit={(event) => {
         event.preventDefault();
 
@@ -38,6 +38,7 @@ export function SearchForm({
       }}
     >
       <SearchField
+        className="basis-full sm:basis-0"
         label={label}
         placeholder={placeholder}
         value={draft}
@@ -50,7 +51,7 @@ export function SearchForm({
       />
       <Button
         type="submit"
-        className={searchButtonStyle}
+        className={`${searchButtonStyle} flex-1 sm:flex-none`}
         disabled={invalid}
       >
         {t("검색")}
@@ -59,7 +60,7 @@ export function SearchForm({
         <Button
           type="button"
           variant="secondary"
-          className={searchButtonStyle}
+          className={`${searchButtonStyle} flex-1 sm:flex-none`}
           onClick={() => {
             setDraft("");
             onSearch("");

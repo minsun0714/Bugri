@@ -80,9 +80,11 @@ test("several tags and the no-tags chip are kept in the address and combined wit
   await chip(page, /^태그 없음/).click();
   await expect(page).toHaveURL(/untagged=1/);
   await expect(rows(page)).toHaveCount(3);
+  // Toggling a chip keeps focus on the chip; the count is announced by its live region.
+  await expect(chip(page, /^태그 없음/)).toBeFocused();
   await expect(
     page.getByRole("status").filter({ hasText: "검색 결과 3개" }),
-  ).toBeFocused();
+  ).toBeVisible();
 
   // Search narrows the union: both conditions must hold.
   await searchBox(page).fill("클로저");
@@ -139,9 +141,9 @@ test("invalid address values are explained with a reset", async ({
     `/notes?user=learner&query=${"가".repeat(101)}`,
   );
 
-  await expect(page.getByRole("main").getByRole("alert")).toContainText(
-    "검색어는 100자 이하여야 합니다.",
-  );
+  await expect(
+    page.getByText("검색어는 100자 이하여야 합니다."),
+  ).toHaveCount(1);
 
   await page.getByRole("button", { name: "조건 초기화" }).click();
   await expect(rows(page)).toHaveCount(3);

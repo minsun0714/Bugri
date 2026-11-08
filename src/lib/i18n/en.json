@@ -324,5 +324,6 @@
   "“{0}”와 일치하는 메모가 없어요": "No notes match “{0}”",
   "조건에 맞는 메모가 없어요": "No notes match these filters",
   "조건 초기화": "Reset filters",
-  "주소의 검색 조건이 올바르지 않아요": "The search conditions in the address are not valid"
+  "주소의 검색 조건이 올바르지 않아요": "The search conditions in the address are not valid",
+  "선택한 태그 안에 “{0}”와 일치하는 메모가 없어요": "No notes match “{0}” in the selected tags"
 }
