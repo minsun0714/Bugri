@@ -1,25 +1,20 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import { HomeStreak } from "@/components/streak/home-streak";
-import { ActivityPeriods } from "@/components/streak/activity-periods";
 import { ApiClientError } from "@/api/client";
-import { Button } from "@/components/ui";
-import { Bugri } from "@/components/ui/bugri";
-import { Tooltip } from "@/components/ui/tooltip";
+import { HomeStreak } from "@/components/streak/home-streak";
 import { useLearningDay } from "@/components/streak/queries";
+import { Button } from "@/components/ui";
 
 export function StreakSummary({
   userId,
-  publicId,
 }: {
   userId: string;
-  publicId?: string;
 }) {
   const t = useTranslation();
 
   const { data, isPending, error, refetch, isFetching } =
-    useLearningDay(userId, publicId);
+    useLearningDay(userId);
   const timezoneRequired =
     error instanceof ApiClientError &&
     error.detail.code === "TIMEZONE_REQUIRED";
@@ -27,21 +22,10 @@ export function StreakSummary({
   return (
     <section
       aria-labelledby="learning-streak-heading"
-      className={
-        publicId
-          ? "rounded-surface border border-line bg-surface p-4 sm:p-6"
-          : "rounded-surface border border-line bg-surface px-4 py-3"
-      }
+      className="rounded-surface border border-line bg-surface px-4 py-3"
     >
-      <h2
-        id="learning-streak-heading"
-        className={
-          publicId
-            ? "mb-5 text-xl font-semibold"
-            : "sr-only"
-        }
-      >
-        {publicId ? t("학습 활동") : t("연속 학습")}
+      <h2 id="learning-streak-heading" className="sr-only">
+        {t("연속 학습")}
       </h2>
       {isPending ? (
         <p role="status" className="mt-4 text-muted">
@@ -65,73 +49,8 @@ export function StreakSummary({
             </Button>
           </div>
         </div>
-      ) : data && !publicId ? (
-        <HomeStreak key={userId} data={data} />
       ) : data ? (
-        <div className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_minmax(0,2fr)] lg:items-start lg:gap-8">
-          <div
-            className="flex min-w-0 items-center gap-3 lg:self-center lg:justify-center"
-            role="status"
-          >
-            <div
-              aria-hidden="true"
-              className="relative size-15 shrink-0"
-            >
-              <div className="absolute left-0 top-0 origin-top-left scale-[0.625]">
-                <Bugri
-                  small
-                  mood={
-                    data.completed
-                      ? "complete"
-                      : data.streak > 0 ||
-                          data.completedDates.length > 0
-                        ? "encouraging"
-                        : "neutral"
-                  }
-                />
-              </div>
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1 text-xs font-medium text-muted">
-                <span>{t("연속 학습")}</span>
-                <Tooltip label={t("학습일 기준 안내")}>
-                  {t(
-                    "{0} 기준 · 하루 한 문제를 완료하면 기록돼요. 정답 여부와 관계없이 인정돼요. 하루에 같은 퀴즈를 다시 풀어도 개수는 늘지 않아요.",
-                    { 0: data.timeZone },
-                  )}
-                </Tooltip>
-              </div>
-              <div className="flex items-center gap-3 sm:mt-1">
-                <strong className="text-2xl font-bold tracking-tight text-foreground">
-                  {data.streak > 0
-                    ? t("{0}일 연속", { 0: data.streak })
-                    : publicId
-                      ? t("연속 학습 0일")
-                      : data.completedDates.length > 0
-                        ? t("오늘부터 다시")
-                        : t("오늘부터 시작")}
-                </strong>
-              </div>
-              <p className="mt-1 text-xs text-muted">
-                {data.completed
-                  ? t("✓ 오늘 학습 완료")
-                  : publicId
-                    ? t("오늘 학습 기록 없음")
-                    : data.streak > 0
-                      ? t("오늘 한 문제로 이어가요")
-                      : data.completedDates.length > 0
-                        ? t("한 문제로 다시 시작해요")
-                        : t("한 문제 풀고 첫 기록")}
-              </p>
-            </div>
-          </div>
-          <div className="min-w-0 lg:border-l lg:border-line lg:pl-8">
-            <ActivityPeriods
-              key={publicId ?? userId}
-              data={data}
-            />
-          </div>
-        </div>
+        <HomeStreak key={userId} data={data} />
       ) : null}
     </section>
   );

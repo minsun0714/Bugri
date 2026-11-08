@@ -141,7 +141,7 @@ test("preview-first approval reviews in one action and approved edits preserve t
     screen.getByRole("button", {
       name: "승인",
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   openEditor();
   fireEvent.change(screen.getByLabelText("제목"), {
     target: { value: "새 제목" },
@@ -156,21 +156,11 @@ test("preview-first approval reviews in one action and approved edits preserve t
     screen.queryByLabelText("제목"),
   ).not.toBeInTheDocument();
   fireEvent.click(
-    screen.getByRole("combobox", {
-      name: "승인 공개 범위",
-    }),
-  );
-  fireEvent.click(
-    screen.getByRole("option", {
-      name: "공개",
-    }),
-  );
-  fireEvent.click(
     screen.getByRole("button", {
       name: "승인",
     }),
   );
-  await screen.findByText("공개했습니다.");
+  await screen.findByText("승인했습니다.");
   openEditor();
   fireEvent.change(screen.getByLabelText("제목"), {
     target: { value: "수정본 제목" },
@@ -182,12 +172,12 @@ test("preview-first approval reviews in one action and approved edits preserve t
     "내용을 저장했습니다. 저장된 내용을 다시 확인하세요.",
   );
   expect(
-    screen.getByText("현재 공개본과 비교"),
+    screen.getByText("현재 버전과 비교"),
   ).toBeVisible();
   expect(
     screen.getByText("새 제목", { exact: true }),
   ).not.toBeVisible();
-  fireEvent.click(screen.getByText("현재 공개본과 비교"));
+  fireEvent.click(screen.getByText("현재 버전과 비교"));
   expect(
     screen.getByText("새 제목", { exact: true }),
   ).toBeVisible();
@@ -325,7 +315,7 @@ test("regeneration failure preserves prompt and saved content; retry creates an 
     screen.getByRole("button", {
       name: "승인",
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
 });
 
 test("storage failure keeps unsaved content and does not report success", async () => {

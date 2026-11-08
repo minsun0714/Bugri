@@ -628,15 +628,6 @@ export function Choice({
   );
 }
 
-export function Coin({ amount }: { amount: number }) {
-  return (
-    <span className={styles["ui-coin"]}>
-      <span aria-hidden="true">B</span>
-      {amount.toLocaleString()} <small>BugCoin</small>
-    </span>
-  );
-}
-
 export function Pagination({
   page,
   total,

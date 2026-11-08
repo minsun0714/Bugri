@@ -1,24 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { createBrowserApi } from "@/api/browser";
+import { useQuery } from "@tanstack/react-query";
 
-export function useLearningDay(
-  userId: string,
-  publicId?: string,
-) {
+export function useLearningDay(userId: string) {
   return useQuery({
-    queryKey: publicId
-      ? ["publicLearningDay", publicId]
-      : ["learningDay", userId],
+    queryKey: ["learningDay", userId],
     queryFn: async () => {
       const api = await createBrowserApi({
         mode: "mock",
         userId,
       });
-      return publicId
-        ? api.request("publicLearningDay", { publicId })
-        : api.request("learningDay", {});
+      return api.request("learningDay", {});
     },
     retry: false,
     staleTime: 0,

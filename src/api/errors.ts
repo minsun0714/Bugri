@@ -13,11 +13,6 @@ const messages: Record<ErrorCode, string> = {
   NOT_REVIEWED: "퀴즈 내용을 검토한 뒤 다시 시도해 주세요.",
   ALREADY_ANSWERED:
     "이미 제출한 풀이입니다. 저장된 결과를 확인해 주세요.",
-  INSUFFICIENT_BALANCE:
-    "BugCoin이 부족해요. 다른 상품을 골라보세요.",
-  ALREADY_OWNED: "이미 보관함에 있는 상품이에요.",
-  IDEMPOTENCY_CONFLICT:
-    "요청한 내용이 변경되었습니다. 처리 결과를 확인해 주세요.",
   TIMEZONE_REQUIRED:
     "학습 시간대를 확인할 수 없습니다. 브라우저 시간대 설정을 확인해 주세요.",
   STORAGE_UNAVAILABLE:

@@ -1,11 +1,9 @@
 "use client";
-import Link from "next/link";
-import { RewardExplanation } from "@/components/solving/reward-explanation";
+
 import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useRef, type ReactNode } from "react";
 import type {
-  RewardOutcome,
   Answer,
   AttemptResult,
   LearningQuizView,
@@ -45,32 +43,24 @@ export function QuizPanel({
   completedAt,
   correct,
   learningDate,
-  rewardBugCent,
-  rewardOutcome,
-  rewardHistoryHref,
   focusKey,
   autoFocus = true,
   pending,
   onDirtyChange,
   onSubmit,
   children,
-  reaction,
 }: {
   quiz: LearningQuizView | null;
   result: AttemptResult | null;
   completedAt?: string | null;
   correct?: boolean | null;
   learningDate?: string | null;
-  rewardBugCent?: number;
-  rewardOutcome?: RewardOutcome;
-  rewardHistoryHref?: string;
   focusKey: string;
   autoFocus?: boolean;
   pending: boolean;
   onDirtyChange?: (dirty: boolean) => void;
   onSubmit: (answer: Answer) => void;
   children?: ReactNode;
-  reaction?: ReactNode;
 }) {
   const t = useTranslation();
 
@@ -147,37 +137,6 @@ export function QuizPanel({
                 {t("풀이 완료")}
                 {learningDate ? ` · ${learningDate}` : ""}
               </p>
-              {rewardBugCent !== undefined &&
-                rewardHistoryHref && (
-                  <div className="flex flex-wrap items-center gap-x-3 text-sm">
-                    <span className="inline-flex items-center gap-1">
-                      <span
-                        className={
-                          rewardBugCent > 0
-                            ? "whitespace-nowrap font-semibold tabular-nums text-primary"
-                            : "whitespace-nowrap tabular-nums text-foreground"
-                        }
-                      >
-                        {rewardBugCent > 0 ? "+" : ""}
-                        {(rewardBugCent / 100).toFixed(
-                          2,
-                        )}{" "}
-                        BugCoin
-                      </span>
-                      {rewardBugCent === 0 && (
-                        <RewardExplanation
-                          outcome={rewardOutcome}
-                        />
-                      )}
-                    </span>
-                    <Link
-                      href={rewardHistoryHref}
-                      className={solvingStyles.supportLink}
-                    >
-                      {t("내역 보기")}
-                    </Link>
-                  </div>
-                )}
             </div>
           </div>
         ) : null}
@@ -231,7 +190,6 @@ export function QuizPanel({
           !completedAt && (
             <AnswerForm
               key={focusKey}
-              reaction={reaction}
               question={quiz.question}
               pending={pending}
               onDirtyChange={onDirtyChange}
@@ -242,13 +200,12 @@ export function QuizPanel({
       ) : (
         <p>
           {t(
-            "이 퀴즈는 더 이상 이용할 수 없습니다. 완료 기록과 이미 획득한 성과는 유지됩니다.",
+            "이 퀴즈는 더 이상 이용할 수 없습니다. 완료 기록은 유지됩니다.",
           )}
         </p>
       )}
       {quiz && result ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {reaction}
           {children && (
             <div className="ml-auto">{children}</div>
           )}

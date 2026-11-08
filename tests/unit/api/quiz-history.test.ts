@@ -118,7 +118,7 @@ test("completed attempts are separate, sorted with stable ties, filtered before 
   ).rejects.toMatchObject({ status: 404 });
 });
 
-test("history and result reads never migrate or write legacy activity or wallet", async () => {
+test("history and result reads never migrate or write legacy activity", async () => {
   const completed = await complete();
 
   const state = JSON.parse(
@@ -126,7 +126,6 @@ test("history and result reads never migrate or write legacy activity or wallet"
   );
 
   delete state.learningDemoVersion;
-  delete state.coinHistoryDemoVersion;
   state.timeZone = null;
 
   localStorage.setItem(
@@ -219,9 +218,8 @@ test("current edits do not replace saved results; hidden quizzes keep records bu
   }
 });
 
-test("retry creates a fresh attempt and keeps completed history and earned rewards", async () => {
+test("retry creates a fresh attempt and keeps completed history", async () => {
   const completed = await complete();
-  const wallet = await api().request("wallet", {});
   const day = await api().request("learningDay", {});
 
   const next = await api().request("startAttempt", {
@@ -241,8 +239,6 @@ test("retry creates a fresh attempt and keeps completed history and earned rewar
       attemptId: completed.attemptId,
     }),
   ).toEqual(completed);
-
-  expect(await api().request("wallet", {})).toEqual(wallet);
 
   expect(await api().request("learningDay", {})).toEqual(
     day,

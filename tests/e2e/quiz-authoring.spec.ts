@@ -290,7 +290,7 @@ test("quiz tabs stay visible while only the candidate body scrolls", async ({
   expect((await tabs.boundingBox())?.y).toBe(tabTop);
 });
 
-test("review, approve, revise, regenerate, change visibility and delete", async ({
+test("review, approve, revise, regenerate and delete", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -340,7 +340,7 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     review.getByRole("button", {
       name: "승인",
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(
     review.getByLabel("제목", { exact: true }),
   ).toHaveCount(0);
@@ -367,16 +367,10 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .getByRole("button", { name: "수정 저장", exact: true })
     .click();
   await review
-    .getByRole("combobox", { name: "승인 공개 범위" })
-    .click();
-  await review
-    .getByRole("option", { name: "공개", exact: true })
-    .click();
-  await review
     .getByRole("button", { name: "승인", exact: true })
     .click();
   await expect(review.getByRole("status")).toHaveText(
-    "공개했습니다.",
+    "승인했습니다.",
   );
   await page.reload();
   await expect(
@@ -399,13 +393,8 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     .getByRole("button", { name: "수정 저장", exact: true })
     .click();
   await expect(
-    review.getByText("현재 공개본과 비교"),
+    review.getByText("현재 버전과 비교"),
   ).toBeVisible();
-  await expect(
-    review.getByRole("combobox", {
-      name: "승인 공개 범위",
-    }),
-  ).toHaveText("공개");
   await review
     .getByRole("button", { name: "승인", exact: true })
     .click();
@@ -428,7 +417,7 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
     "수정본을 생성했습니다. 내용을 검토하세요.",
   );
   await expect(
-    review.getByText("현재 공개본과 비교"),
+    review.getByText("현재 버전과 비교"),
   ).toBeVisible();
   await expect(
     review.getByRole("button", {
@@ -438,20 +427,8 @@ test("review, approve, revise, regenerate, change visibility and delete", async 
   await review
     .getByRole("button", { name: "승인", exact: true })
     .click();
-  await review
-    .getByRole("combobox", { name: "변경할 공개 범위" })
-    .click();
-  await review
-    .getByRole("option", { name: "나만 풀기", exact: true })
-    .click();
-  await review
-    .getByRole("button", {
-      name: "공개 범위 변경",
-      exact: true,
-    })
-    .click();
   await expect(
-    review.getByText("나만 보기", { exact: true }),
+    review.getByText("승인됨", { exact: true }),
   ).toBeVisible();
   await expect(page.locator("body")).toHaveJSProperty(
     "scrollWidth",
@@ -547,7 +524,7 @@ test("quiz management keeps compact list filters when returning from review", as
     page.getByRole("heading", { name: "내 퀴즈 2" }),
   ).toBeVisible();
   await expect(
-    list.getByRole("tab", { name: "공개 2" }),
+    list.getByRole("tab", { name: "승인됨 2" }),
   ).toBeVisible();
   await expect(list.getByText("PUBLIC")).toHaveCount(0);
   await list
@@ -610,18 +587,16 @@ test("supplementary help opens on hover, focus and mobile tap", async ({
 test("management dropdown retains keyboard and mobile dismissal", async ({
   page,
 }) => {
-  await page.goto(
-    "/quizzes/authoring/manage?user=author&quiz=seed-quiz-1",
-  );
+  await page.goto("/quizzes/authoring/manage?user=author");
   const trigger = page.getByRole("combobox", {
-    name: "변경할 공개 범위",
+    name: "정렬",
   });
   await trigger.focus();
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("listbox")).toBeVisible();
   await page.keyboard.press("End");
   await page.keyboard.press("Enter");
-  await expect(trigger).toHaveText("공개");
+  await expect(trigger).toHaveText("제목순");
   await page.setViewportSize({ width: 390, height: 844 });
   await trigger.click();
   await expect(page.getByRole("listbox")).toBeVisible();
@@ -634,10 +609,7 @@ test("management dropdown retains keyboard and mobile dismissal", async ({
   await expect(trigger).toBeFocused();
   await trigger.click();
   await page
-    .getByRole("heading", {
-      name: "현재 버전 공개 범위",
-      exact: true,
-    })
+    .getByRole("heading", { name: /^내 퀴즈/ })
     .click();
   await expect(page.getByRole("listbox")).toHaveCount(0);
 });
@@ -696,74 +668,6 @@ test("new generation discards previous pending requests on mobile", async ({
   await expect(
     page.getByRole("list", { name: "추가 요청 기록" }),
   ).toContainText("새로운 요청");
-});
-
-test("initial results hide chat and publish only the displayed quiz", async ({
-  page,
-}) => {
-  await page.goto("/quizzes/authoring");
-  await page
-    .getByRole("textbox", { name: /학습 내용/ })
-    .fill("타입스크립트");
-  await page
-    .getByRole("button", {
-      name: "퀴즈 만들기",
-      exact: true,
-    })
-    .click();
-  const dialog = page.getByRole("dialog");
-  await expect(
-    dialog.getByRole("button", {
-      name: "바로 공개",
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(
-    dialog.getByLabel("퀴즈 1에 추가 요청"),
-  ).toHaveCount(0);
-  await dialog
-    .getByRole("button", { name: "바로 공개", exact: true })
-    .click();
-  await expect(dialog.getByRole("status")).toHaveText(
-    "공개했습니다.",
-  );
-  await expect(
-    dialog.getByRole("tab", { name: "퀴즈 1 · 공개됨" }),
-  ).toBeVisible();
-  await expect(
-    dialog.getByText("공개됨", { exact: true }),
-  ).toBeVisible();
-  for (let index = 2; index <= 4; index += 1) {
-    await dialog
-      .getByRole("tab", {
-        name: `퀴즈 ${index}`,
-        exact: true,
-      })
-      .click();
-    await dialog
-      .getByRole("button", {
-        name: "임시저장",
-        exact: true,
-      })
-      .click();
-  }
-  await expect(page).toHaveURL(
-    /\/quizzes\/authoring\/manage\?user=learner$/,
-  );
-  await page.reload();
-  const published = page.getByRole("article").filter({
-    has: page.getByText("공개 중", { exact: true }),
-  });
-  await expect(published).toHaveCount(1);
-  await published
-    .getByRole("button", { name: /관리하기$/ })
-    .click();
-  await expect(
-    page.getByRole("region", {
-      name: "퀴즈 검토",
-      exact: true,
-    }),
-  ).toContainText("전체 공개");
 });
 
 test("quiz tabs support keyboard selection and editing and saving are immediately visible", async ({

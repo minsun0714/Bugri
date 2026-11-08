@@ -1,9 +1,8 @@
 import type {
   Answer,
-  Category,
   ErrorCode,
-  QuizContent,
   Question,
+  QuizContent,
 } from "@/api/contracts";
 
 export class ServiceError extends Error {
@@ -78,14 +77,6 @@ export function source(
     "sourceContent",
   );
 }
-
-export const categories: Category[] = [
-  "KEYBOARD",
-  "MONITOR",
-  "DESK",
-  "ACCESSORY",
-  "BACKGROUND",
-];
 
 export function timeZoneValid(
   value: unknown,

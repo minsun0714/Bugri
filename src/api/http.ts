@@ -14,8 +14,6 @@ interface Endpoint {
 }
 
 export const endpoints: Record<Operation, Endpoint> = {
-  guestQuiz: { method: "GET", path: "/guest/quiz" },
-  guestAnswer: { method: "POST", path: "/guest/answer" },
   authoringConversation: {
     method: "GET",
     path: "/authoring/conversation",
@@ -35,11 +33,6 @@ export const endpoints: Record<Operation, Endpoint> = {
   generationBatch: {
     method: "GET",
     path: "/generation-batches/{id}",
-    pathKey: "batchId",
-  },
-  publishCandidate: {
-    method: "POST",
-    path: "/generation-batches/{id}/publish",
     pathKey: "batchId",
   },
   editCandidate: {
@@ -86,71 +79,14 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/quizzes/{id}/approve",
     pathKey: "quizId",
   },
-  visibility: {
-    method: "PATCH",
-    path: "/quizzes/{id}/visibility",
-    pathKey: "quizId",
-  },
   deleteQuiz: {
     method: "DELETE",
     path: "/quizzes/{id}",
     pathKey: "quizId",
   },
-  subscriptions: {
-    method: "GET",
-    path: "/subscriptions",
-  },
-  subscribe: {
-    method: "POST",
-    path: "/subscriptions",
-  },
-  unsubscribe: {
-    method: "DELETE",
-    path: "/subscriptions",
-  },
-  tagQuizzes: {
-    method: "GET",
-    path: "/tags/{id}/quizzes",
-    pathKey: "hashtagId",
-  },
-  developerQuizzes: {
-    method: "GET",
-    path: "/developers/{id}/quizzes",
-    pathKey: "publicId",
-  },
-  developerTags: {
-    method: "GET",
-    path: "/developers/{id}/tags",
-    pathKey: "publicId",
-  },
-  searchDiscovery: {
-    method: "GET",
-    path: "/discover/search",
-  },
-  discoverUsers: {
-    method: "GET",
-    path: "/discover/users",
-  },
   discoverHashtags: {
     method: "GET",
     path: "/discover/hashtags",
-  },
-  learningTags: {
-    method: "GET",
-    path: "/learning/tags",
-  },
-  learningQuiz: {
-    method: "GET",
-    path: "/learning/quiz",
-  },
-  learningNext: {
-    method: "POST",
-    path: "/learning/next",
-  },
-  publicLearningDay: {
-    method: "GET",
-    path: "/users/{id}/learning-day",
-    pathKey: "publicId",
   },
   learningDay: {
     method: "GET",
@@ -159,20 +95,6 @@ export const endpoints: Record<Operation, Endpoint> = {
   learningTimezone: {
     method: "GET",
     path: "/me/learning-timezone",
-  },
-  updateTimezone: {
-    method: "PATCH",
-    path: "/me/learning-timezone",
-  },
-  quizReaction: {
-    method: "GET",
-    path: "/quizzes/{id}/reaction",
-    pathKey: "quizId",
-  },
-  updateQuizReaction: {
-    method: "PUT",
-    path: "/quizzes/{id}/reaction",
-    pathKey: "quizId",
   },
   attemptHistory: { method: "GET", path: "/me/attempts" },
   startAttempt: {
@@ -189,69 +111,6 @@ export const endpoints: Record<Operation, Endpoint> = {
     method: "POST",
     path: "/attempts/{id}/answer",
     pathKey: "attemptId",
-  },
-  products: {
-    method: "GET",
-    path: "/shop/products",
-  },
-  wallet: {
-    method: "GET",
-    path: "/me/bugcoin",
-  },
-  purchase: {
-    method: "POST",
-    path: "/shop/purchases",
-  },
-  inventory: {
-    method: "GET",
-    path: "/me/inventory",
-  },
-  equip: {
-    method: "PUT",
-    path: "/me/desk/equipment",
-  },
-  moveEquipment: {
-    method: "PUT",
-    path: "/me/desk/position",
-  },
-  reorderDesk: {
-    method: "PUT",
-    path: "/me/desk/order",
-  },
-  transformDesk: {
-    method: "PUT",
-    path: "/me/desk/table",
-  },
-  transformBugri: {
-    method: "PUT",
-    path: "/me/desk/bugri",
-  },
-  transformEquipment: {
-    method: "PUT",
-    path: "/me/desk/transform",
-  },
-  profileOrder: {
-    method: "GET",
-    path: "/users/{id}/section-order",
-    pathKey: "publicId",
-  },
-  updateProfileOrder: {
-    method: "PUT",
-    path: "/me/section-order",
-  },
-  profileAbout: {
-    method: "GET",
-    path: "/users/{id}/about",
-    pathKey: "publicId",
-  },
-  updateProfileAbout: {
-    method: "PUT",
-    path: "/me/about",
-  },
-  publicProfile: {
-    method: "GET",
-    path: "/users/{id}",
-    pathKey: "publicId",
   },
 };
 

@@ -38,16 +38,29 @@ async function showCurrentMonth(summary: Locator) {
   if (await current.isEnabled()) await current.click();
 }
 
+// Solves one quiz directly, then returns to the home streak summary.
+async function solveQuiz(page: Page) {
+  await page.goto("/solve?user=learner&quiz=seed-quiz-1");
+  await page.getByLabel("number", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "답 제출", exact: true })
+    .click();
+  await expect(
+    page.getByText("정답입니다", { exact: true }),
+  ).toBeVisible();
+  await page.goto("/?user=learner");
+}
+
 async function seedHistory(
   page: Page,
   learningDate: string,
 ) {
   await page
-    .getByRole("heading", {
-      name: "타입 선언",
-      exact: true,
-    })
+    .getByRole("region", { name: "연속 학습", exact: true })
     .waitFor();
+  await page.waitForFunction(() =>
+    localStorage.getItem("bugri:mock:v1:learner"),
+  );
   await page.evaluate((date) => {
     const key = "bugri:mock:v1:learner";
     const state = JSON.parse(localStorage.getItem(key)!);
@@ -101,10 +114,7 @@ test("home streak updates after submission, survives reload and isolates users",
   await page.keyboard.press("Escape");
   await expect(page.getByRole("tooltip")).toHaveCount(0);
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.getByLabel("number", { exact: true }).check();
-  await page
-    .getByRole("button", { name: "답 제출", exact: true })
-    .click();
+  await solveQuiz(page);
   await expect(
     summary.getByText("1일 연속 학습"),
   ).toBeVisible();
@@ -115,13 +125,7 @@ test("home streak updates after submission, survives reload and isolates users",
   await expect(
     summary.getByText("오늘 완료 ✓"),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "다시 풀기", exact: true })
-    .click();
-  await page.getByLabel("number", { exact: true }).check();
-  await page
-    .getByRole("button", { name: "답 제출", exact: true })
-    .click();
+  await solveQuiz(page);
   await expect(
     summary.getByText("1일 연속 학습"),
   ).toBeVisible();
@@ -188,11 +192,11 @@ test("a returning learner restarts without losing earlier completed days", async
   });
   await page.goto("/?user=learner");
   await page
-    .getByRole("heading", {
-      name: "타입 선언",
-      exact: true,
-    })
+    .getByRole("region", { name: "연속 학습", exact: true })
     .waitFor();
+  await page.waitForFunction(() =>
+    localStorage.getItem("bugri:mock:v1:learner"),
+  );
   await page.evaluate(() => {
     const key = "bugri:mock:v1:learner";
     const state = JSON.parse(localStorage.getItem(key)!);
@@ -226,10 +230,7 @@ test("a returning learner restarts without losing earlier completed days", async
   await page.screenshot({
     path: testInfo.outputPath("returning-mobile.png"),
   });
-  await page.getByLabel("number", { exact: true }).check();
-  await page
-    .getByRole("button", { name: "답 제출", exact: true })
-    .click();
+  await solveQuiz(page);
   await expect(
     summary.getByText("1일 연속 학습"),
   ).toBeVisible();
@@ -253,10 +254,7 @@ test("date heading navigates monthly and yearly learning while preserving today'
     name: "연속 학습",
     exact: true,
   });
-  await page.getByLabel("number", { exact: true }).check();
-  await page
-    .getByRole("button", { name: "답 제출", exact: true })
-    .click();
+  await solveQuiz(page);
   await expect(
     summary.getByText("1일 연속 학습"),
   ).toBeVisible();
@@ -392,10 +390,8 @@ test("learning cards keep their height across empty data and four, five and six 
     summary.getByText("총 0개", { exact: true }),
   ).toBeVisible();
   const emptyWeek = (await summary.boundingBox())!.height;
-  await page.getByLabel("number", { exact: true }).check();
-  await page
-    .getByRole("button", { name: "답 제출", exact: true })
-    .click();
+  await solveQuiz(page);
+  await openCalendar(summary);
   await expect(
     summary.getByText("총 1개", { exact: true }),
   ).toBeVisible();
@@ -640,7 +636,7 @@ test("single-year menu stays compact while the two-column month list remains vis
   }
 });
 
-test("compact home exposes the question and only opens the calendar on request", async ({
+test("compact home only opens the calendar on request", async ({
   page,
 }, testInfo) => {
   await page.goto("/?user=learner");
@@ -661,19 +657,19 @@ test("compact home exposes the question and only opens the calendar on request",
       width,
       height: width === 320 ? 568 : 844,
     });
-    await expect(
-      page.getByText("TypeScript에서 숫자 타입은?", {
-        exact: true,
-      }),
-    ).toBeInViewport();
+    await expect(toggle).toBeInViewport();
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          innerWidth,
+      ),
+    ).toBe(true);
     await page.screenshot({
       path: testInfo.outputPath(`compact-${width}.png`),
     });
   }
-  await page.getByLabel("number", { exact: true }).check();
-  await page
-    .getByRole("button", { name: "답 제출", exact: true })
-    .click();
+  await solveQuiz(page);
   await expect(
     summary.getByText("오늘 완료 ✓"),
   ).toBeVisible();

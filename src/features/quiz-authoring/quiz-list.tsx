@@ -1,7 +1,6 @@
 "use client";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
-import type { ReactNode } from "react";
 import {
   QuizStatus,
   type QuizSummary,
@@ -12,15 +11,14 @@ import {
   EmptyState,
   SearchField,
 } from "@/components/ui";
-import { pageTitle, styles } from "@/components/ui/styles";
-import { QuizCard } from "@/components/ui/quiz-card";
 import { Dropdown } from "@/components/ui/dropdown";
+import { QuizCard } from "@/components/ui/quiz-card";
+import { pageTitle, styles } from "@/components/ui/styles";
 
 export const QuizListFilter = {
   ALL: "ALL",
   NEEDS_REVIEW: "NEEDS_REVIEW",
-  PUBLIC: "PUBLIC",
-  PRIVATE: "PRIVATE",
+  APPROVED: "APPROVED",
 } as const;
 
 export type QuizListFilter =
@@ -65,10 +63,8 @@ function matchesFilter(
 ) {
   if (filter === QuizListFilter.NEEDS_REVIEW)
     return needsReview(quiz);
-  if (filter === QuizListFilter.PUBLIC)
-    return quiz.status === QuizStatus.PUBLIC;
-  if (filter === QuizListFilter.PRIVATE)
-    return quiz.status === QuizStatus.PRIVATE;
+  if (filter === QuizListFilter.APPROVED)
+    return quiz.status !== QuizStatus.PENDING;
 
   return true;
 }
@@ -122,11 +118,8 @@ function StatusBadges({ quiz }: { quiz: QuizSummary }) {
 
   return (
     <span className="flex flex-wrap items-center gap-1.5">
-      {quiz.status === QuizStatus.PUBLIC && (
-        <Badge tone="success">{t("공개 중")}</Badge>
-      )}
-      {quiz.status === QuizStatus.PRIVATE && (
-        <Badge>{t("나만 보기")}</Badge>
+      {quiz.status !== QuizStatus.PENDING && (
+        <Badge>{t("승인됨")}</Badge>
       )}
       {review && (
         <Badge tone="warning">
@@ -148,7 +141,6 @@ export function QuizList({
   onViewChange,
   onOpen,
   onRefresh,
-  renderReaction,
   quizHref,
 }: {
   quizzes: QuizSummary[];
@@ -159,7 +151,6 @@ export function QuizList({
   onViewChange: (change: Partial<QuizListView>) => void;
   onOpen: (quizId: string) => void;
   onRefresh: () => void;
-  renderReaction?: (quizId: string) => ReactNode;
   quizHref?: (quizId: string) => string;
 }) {
   const t = useTranslation();
@@ -169,11 +160,8 @@ export function QuizList({
     .trim()
     .toLocaleLowerCase("ko-KR");
   const reviewCount = quizzes.filter(needsReview).length;
-  const publicCount = quizzes.filter(
-    ({ status }) => status === QuizStatus.PUBLIC,
-  ).length;
-  const privateCount = quizzes.filter(
-    ({ status }) => status === QuizStatus.PRIVATE,
+  const approvedCount = quizzes.filter(
+    ({ status }) => status !== QuizStatus.PENDING,
   ).length;
   const filtered = quizzes
     .filter((quiz) => matchesFilter(quiz, filter))
@@ -212,14 +200,9 @@ export function QuizList({
       count: reviewCount,
     },
     {
-      value: QuizListFilter.PUBLIC,
-      label: t("공개"),
-      count: publicCount,
-    },
-    {
-      value: QuizListFilter.PRIVATE,
-      label: t("나만 보기"),
-      count: privateCount,
+      value: QuizListFilter.APPROVED,
+      label: t("승인됨"),
+      count: approvedCount,
     },
   ];
 
@@ -399,12 +382,6 @@ export function QuizList({
                         .map((hashtagId) => `#${hashtagId}`)
                         .join(" ")}
                     </span>
-                    {quiz.status === QuizStatus.PUBLIC &&
-                      renderReaction && (
-                        <div className="shrink-0">
-                          {renderReaction(quiz.quizId)}
-                        </div>
-                      )}
                   </div>
                 }
                 metadata={

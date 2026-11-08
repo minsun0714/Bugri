@@ -15,7 +15,7 @@ import { useAuthoringActions } from "@/features/quiz-authoring/hooks/use-authori
 import { pageTitle } from "@/components/ui/styles";
 
 const closeWarning =
-  "모달을 닫으면 임시저장하거나 공개하지 않은 퀴즈는 사라집니다. 계속할까요?";
+  "모달을 닫으면 임시저장하지 않은 퀴즈는 사라집니다. 계속할까요?";
 
 export function Creation({
   api: client,

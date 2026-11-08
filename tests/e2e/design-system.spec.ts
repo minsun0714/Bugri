@@ -125,13 +125,13 @@ test("showcase interactions, modal keyboard behavior and mobile layout", async (
   ).toBe(true);
 });
 
-test("header logo returns to home from learning and discovery pages", async ({
+test("header logo returns to home from solving, history and authoring pages", async ({
   page,
 }) => {
   for (const path of [
-    "/discover",
+    "/quizzes/authoring",
     "/solve?quiz=seed-quiz-1",
-    "/developers/bugri-author/quizzes",
+    "/my/learning",
   ]) {
     await page.goto(path);
     await page

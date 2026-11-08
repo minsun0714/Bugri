@@ -24,7 +24,11 @@ const search = (
 beforeEach(() => localStorage.clear());
 
 // History reads never write, so a write operation persists the seeded state first.
-const persist = () => api().request("learningQuiz", {});
+const persist = () =>
+  api().request("startAttempt", {
+    quizId: "seed-quiz-1",
+    context: "DIRECT",
+  });
 
 test("without the demo flag history starts empty", async () => {
   const plain = createApiClient(
@@ -48,7 +52,8 @@ test("demo history is merged once, is idempotent and never duplicates on later w
   );
 
   expect(state.historyDemoVersion).toBe(1);
-  expect(state.attempts).toHaveLength(12);
+  // 12 demo attempts plus the two attempts the persisting writes created.
+  expect(state.attempts).toHaveLength(14);
 
   expect(
     new Set(
@@ -56,7 +61,7 @@ test("demo history is merged once, is idempotent and never duplicates on later w
         (a: { attemptId: string }) => a.attemptId,
       ),
     ).size,
-  ).toBe(12);
+  ).toBe(14);
 });
 
 test("demo learner starts with seeded history; other users stay empty", async () => {

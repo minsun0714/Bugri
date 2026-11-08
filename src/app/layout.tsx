@@ -17,7 +17,7 @@ const ibmPlexSansKr = IBM_Plex_Sans_KR({
 export const metadata: Metadata = {
   title: "Bugri | 퀴즈 관리 플랫폼",
   description:
-    "퀴즈를 만들고 공유하며, 구독으로 함께 성장하는 Bugri",
+    "업무 중 배운 개발 지식을 퀴즈로 복습하는 Bugri",
 };
 
 export const viewport: Viewport = {

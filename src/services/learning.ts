@@ -1,8 +1,6 @@
-import { QuizStatus } from "@/api/constants";
 import type {
   LearningQuizView,
   Question,
-  Subscription,
 } from "@/api/contracts";
 import type {
   StoredAttempt,
@@ -29,28 +27,6 @@ export function publicView({
     question,
     hashtagIds,
   };
-}
-
-export function candidates(
-  quizzes: StoredQuiz[],
-  subscriptions: Subscription[],
-  hashtagId?: string | null,
-): StoredQuiz[] {
-  return quizzes.filter(
-    ({ deletedAt, status, active, ownerUserId }) =>
-      !deletedAt &&
-      status === QuizStatus.PUBLIC &&
-      active &&
-      (!hashtagId ||
-        active.hashtagIds.includes(hashtagId)) &&
-      subscriptions.some(
-        (s) =>
-          (s.type === "HASHTAG" ||
-            s.authorUserId === ownerUserId) &&
-          (s.type === "PERSON" ||
-            active.hashtagIds.includes(s.hashtagId)),
-      ),
-  );
 }
 
 export function localDate(
