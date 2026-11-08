@@ -527,16 +527,28 @@ export function createDeskEngine(
     if (state.equipment.BACKGROUND) {
       context.save();
       context.beginPath();
-      context.rect(
+      const reveal = Math.max(
         0,
-        0,
-        canvas.width *
-          Math.max(
-            0,
-            Math.min(1, state.backgroundReveal ?? 1),
-          ),
-        canvas.height,
+        Math.min(1, state.backgroundReveal ?? 1),
       );
+      const diagonal = reveal * 2;
+      context.moveTo(0, 0);
+      if (diagonal <= 1) {
+        context.lineTo(canvas.width * diagonal, 0);
+        context.lineTo(0, canvas.height * diagonal);
+      } else {
+        context.lineTo(canvas.width, 0);
+        context.lineTo(
+          canvas.width,
+          canvas.height * (diagonal - 1),
+        );
+        context.lineTo(
+          canvas.width * (diagonal - 1),
+          canvas.height,
+        );
+        context.lineTo(0, canvas.height);
+      }
+      context.closePath();
       context.clip();
       const pixelZoom =
         (zoom * canvas.width) / (width || 600);

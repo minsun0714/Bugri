@@ -38,6 +38,19 @@ for (const width of [390, 1440]) {
         .getByRole("list", { name: "3D 배치 정보" })
         .locator("li"),
     ).toHaveCount(2);
+    await move(0.765);
+    const monitor = desk
+      .getByRole("list", { name: "3D 배치 정보" })
+      .locator("li")
+      .filter({ hasText: "모니터" });
+    await expect(monitor).toBeAttached();
+    await expect
+      .poll(async () => {
+        const text = await monitor.textContent();
+        return Number(text?.match(/높이\s*([\d.]+)/)?.[1]);
+      })
+      .toBeGreaterThan(1.55);
+    await expect(monitor).toContainText("1.55");
     await move(0.95);
     await expect(
       desk
@@ -118,21 +131,26 @@ test("room paint follows scroll, pauses, and never unpaints", async ({
     canvas.evaluate((element) => {
       const c = element as HTMLCanvasElement;
       const ctx = c.getContext("2d")!;
-      return [0.1, 0.9].map(
-        (x) =>
+      return [
+        [0.1, 0.1],
+        [0.8, 0.1],
+        [0.1, 0.8],
+        [0.9, 0.9],
+      ].map(
+        ([x, y]) =>
           ctx.getImageData(
             Math.floor(c.width * x),
-            Math.floor(c.height * 0.1),
+            Math.floor(c.height * y),
             1,
             1,
           ).data[3],
       );
     });
-  await expect.poll(edges).toEqual([255, 0]);
+  await expect.poll(edges).toEqual([255, 255, 255, 0]);
   await page.waitForTimeout(1200);
-  expect(await edges()).toEqual([255, 0]);
+  expect(await edges()).toEqual([255, 255, 255, 0]);
   await move(1.1);
-  await expect.poll(edges).toEqual([255, 0]);
+  await expect.poll(edges).toEqual([255, 255, 255, 0]);
   await move(1.625);
-  await expect.poll(edges).toEqual([255, 255]);
+  await expect.poll(edges).toEqual([255, 255, 255, 255]);
 });

@@ -92,6 +92,51 @@ export function RewardDesk() {
     };
   }, []);
 
+  const arrivalTimes = useRef(new Map<string, number>());
+  const [arrivals, setArrivals] = useState<
+    Record<string, number>
+  >({});
+  const unlocked = furnishings.filter(
+    ({ start }) => progress >= start,
+  ).length;
+
+  useEffect(() => {
+    if (!unlocked) return;
+    const reduced = matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    const now = performance.now();
+    for (const { category } of furnishings.slice(
+      0,
+      unlocked,
+    )) {
+      if (!arrivalTimes.current.has(category))
+        arrivalTimes.current.set(category, now);
+    }
+    let frame = 0;
+    const animate = (time: number) => {
+      const next: Record<string, number> = {};
+      let pending = false;
+      for (const [
+        category,
+        started,
+      ] of arrivalTimes.current) {
+        const amount =
+          reduced.matches ||
+          innerHeight < 700 ||
+          !CSS.supports("animation-timeline", "view()")
+            ? 1
+            : Math.min(1, (time - started) / 900);
+        next[category] = amount;
+        if (amount < 1) pending = true;
+      }
+      setArrivals(next);
+      if (pending) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [unlocked]);
+
   const equipment: Equipment = {
     [Category.DESK]: "desk-1",
   };
@@ -106,7 +151,7 @@ export function RewardDesk() {
   } of furnishings) {
     if (progress < start) continue;
     equipment[category] = productId;
-    const landing = Math.min(1, (progress - start) / 0.05);
+    const landing = arrivals[category] ?? 0;
     transforms[category] = {
       ...defaultTransforms[category],
       y:
