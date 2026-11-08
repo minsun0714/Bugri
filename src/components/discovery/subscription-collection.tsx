@@ -1,5 +1,7 @@
 "use client";
 
+import { viewAllAction } from "@/components/ui/styles";
+
 import Link from "next/link";
 import { useRef, useState } from "react";
 import type { Subscription } from "@/api/contracts";
@@ -110,6 +112,7 @@ export function SubscriptionCollection({
           <Button
             ref={trigger}
             variant="ghost"
+            className={viewAllAction}
             onClick={() => {
               reset();
               setMessage("");

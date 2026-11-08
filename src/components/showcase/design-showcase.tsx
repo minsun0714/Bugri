@@ -1,5 +1,7 @@
 "use client";
 
+import { viewAllAction } from "@/components/ui/styles";
+
 import { styles } from "@/components/showcase/styles";
 import { Bugri } from "@/components/ui/bugri";
 import { Header } from "@/components/ui/header";
@@ -167,9 +169,10 @@ export default function DesignShowcase() {
                   </Button>
                   <Button
                     variant="ghost"
+                    className={viewAllAction}
                     onClick={() => setToast(true)}
                   >
-                    더 보기 →
+                    전체 보기
                   </Button>
                 </div>
                 <div

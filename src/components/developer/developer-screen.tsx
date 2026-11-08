@@ -1,5 +1,7 @@
 "use client";
 
+import { viewAllAction } from "@/components/ui/styles";
+
 import { createQueryClient } from "@/api/query-client";
 
 import {
@@ -19,6 +21,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useDemoSession } from "@/components/navigation/demo-session";
 import { EditIcon } from "@/components/profile/edit-icon";
 import { profileStyles } from "@/components/profile/styles";
+import { ProfileSections } from "@/components/profile/profile-sections";
 import { ProfileAbout } from "@/components/profile/profile-about";
 import { ApiClientError } from "@/api/client";
 import {
@@ -146,11 +149,13 @@ function Catalog({
   onNotice,
   profile = false,
   afterHeader,
+  activity,
 }: {
   userId: string;
   publicId: string;
   profile?: boolean;
   afterHeader?: ReactNode;
+  activity?: ReactNode;
   filters: Filters;
   navigating: boolean;
   onChange: (filters: Filters) => void;
@@ -253,53 +258,192 @@ function Catalog({
     </Button>
   );
 
-  return (
-    <div className={profile ? "space-y-4" : "space-y-5"}>
-      {profile ? (
-        <ProfileAbout
+  const quizSection = (
+    <section
+      aria-label="개발자의 공개 퀴즈"
+      className={
+        profile ? developerStyles.profileQuizzes : "min-w-0"
+      }
+    >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg">
+          {profile ? "최신 공개 퀴즈" : "공개 퀴즈"}{" "}
+          <span className="text-muted">
+            {profile ? data.items.length : data.total}개
+          </span>
+        </h2>
+        {profile && (
+          <Link
+            href={`/developers/${encodeURIComponent(publicId)}/quizzes?user=${encodeURIComponent(userId)}`}
+            className={viewAllAction}
+          >
+            전체 보기
+          </Link>
+        )}
+        {!profile && hashtagIds.length > 0 && (
+          <div className="flex max-w-full flex-wrap items-center gap-2">
+            {hashtagIds.map((id) => (
+              <button
+                key={id}
+                type="button"
+                aria-label={`${id} 필터 해제`}
+                className="min-h-11 break-all rounded-xl bg-primary/10 px-3 text-xs font-semibold text-primary"
+                onClick={() =>
+                  onChange({
+                    ...filters,
+                    hashtagIds: hashtagIds.filter(
+                      (selected) => selected !== id,
+                    ),
+                    page: 1,
+                  })
+                }
+              >
+                #{id} ×
+              </button>
+            ))}
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={busy}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  hashtagIds: [],
+                  page: 1,
+                })
+              }
+            >
+              전체 퀴즈
+            </Button>
+          </div>
+        )}
+      </div>
+      {data.items.length ? (
+        <ul
+          className={
+            profile
+              ? "grid gap-4 sm:grid-cols-2"
+              : "space-y-4"
+          }
+        >
+          {data.items.map(
+            ({ quizId, title, hashtagIds }) => (
+              <li key={quizId}>
+                <QuizCard
+                  title={title}
+                  action={{
+                    href: `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`,
+                  }}
+                  metadata={hashtagIds
+                    .map((id) => `#${id}`)
+                    .join(" ")}
+                />
+              </li>
+            ),
+          )}
+        </ul>
+      ) : profile ? (
+        <p className="py-2 text-center text-sm text-muted">
+          공개된 퀴즈가 없습니다
+        </p>
+      ) : (
+        <EmptyState
+          title="공개된 퀴즈가 없습니다"
+          description={
+            !profile && hashtagIds.length > 0
+              ? "다른 태그를 선택해 보세요."
+              : "이 개발자가 공개한 퀴즈가 아직 없습니다."
+          }
+        />
+      )}
+      {!profile && (
+        <PageControls
+          label="퀴즈"
+          page={page}
+          total={data.total}
+          pageSize={20}
+          busy={busy}
+          onPage={(next) =>
+            onChange({ ...filters, page: next })
+          }
+        />
+      )}
+    </section>
+  );
+  if (profile)
+    return (
+      <div className="space-y-6">
+        <ProfileSections
           key={`${userId}:${publicId}:${signedIn}`}
           userId={userId}
           publicId={publicId}
           owner={signedIn && data.user.userId === userId}
-          identity={identity}
-          visitorAction={subscription}
           onNotice={onNotice}
-        />
-      ) : (
-        <header className={developerStyles.header}>
-          <span
-            aria-hidden="true"
-            className={developerStyles.avatar}
-          >
-            <Avatar name={data.user.displayName} />
-          </span>
-          {identity}
-          <DeveloperSubscriptionPanel
-            userId={userId}
-            publicId={publicId}
-            authorUserId={data.user.userId}
-            subscribed={data.subscribed}
-          />
-        </header>
-      )}
-      {afterHeader && (
-        <div className="space-y-2">
-          {profile &&
-            signedIn &&
-            data.user.userId === userId && (
-              <div className="flex justify-end">
-                <Link
-                  href={`/my/desk?user=${encodeURIComponent(userId)}`}
-                  className={profileStyles.action}
-                >
-                  <EditIcon />
-                  데스크 편집
-                </Link>
+          renderHeader={(orderAction) => (
+            <div className="space-y-3">
+              {" "}
+              <ProfileAbout
+                key={`${userId}:${publicId}:${signedIn}`}
+                userId={userId}
+                publicId={publicId}
+                owner={
+                  signedIn && data.user.userId === userId
+                }
+                identity={identity}
+                visitorAction={subscription}
+                ownerAction={orderAction}
+                onNotice={onNotice}
+              />
+              {subscribe.error && (
+                <p role="alert">
+                  구독을 저장하지 못했습니다. 다시 시도해
+                  주세요.
+                </p>
+              )}
+            </div>
+          )}
+          sections={{
+            DESK: (
+              <div className="space-y-2">
+                {signedIn &&
+                  data.user.userId === userId && (
+                    <div className="flex justify-end">
+                      <Link
+                        href={`/my/desk?user=${encodeURIComponent(userId)}`}
+                        className={profileStyles.action}
+                      >
+                        <EditIcon />
+                        데스크 편집
+                      </Link>
+                    </div>
+                  )}
+                {afterHeader}
               </div>
-            )}
-          {afterHeader}
-        </div>
-      )}
+            ),
+            QUIZZES: quizSection,
+            ACTIVITY: activity,
+          }}
+        />
+      </div>
+    );
+
+  return (
+    <div className={profile ? "space-y-4" : "space-y-5"}>
+      <header className={developerStyles.header}>
+        <span
+          aria-hidden="true"
+          className={developerStyles.avatar}
+        >
+          <Avatar name={data.user.displayName} />
+        </span>
+        {identity}
+        <DeveloperSubscriptionPanel
+          userId={userId}
+          publicId={publicId}
+          authorUserId={data.user.userId}
+          subscribed={data.subscribed}
+        />
+      </header>
       {subscribe.error && (
         <p role="alert">
           구독을 저장하지 못했습니다. 다시 시도해 주세요.
@@ -381,110 +525,7 @@ function Catalog({
             )}
           </section>
         )}
-        <section
-          aria-label="개발자의 공개 퀴즈"
-          className="min-w-0"
-        >
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg">
-              {profile ? "최신 공개 퀴즈" : "공개 퀴즈"}{" "}
-              <span className="text-muted">
-                {profile ? data.items.length : data.total}개
-              </span>
-            </h2>
-            {profile && (
-              <Link
-                href={`/developers/${encodeURIComponent(publicId)}/quizzes?user=${encodeURIComponent(userId)}`}
-                className="rounded text-sm font-semibold text-primary underline focus-visible:outline-2 focus-visible:outline-primary"
-              >
-                전체 보기 →
-              </Link>
-            )}
-            {!profile && hashtagIds.length > 0 && (
-              <div className="flex max-w-full flex-wrap items-center gap-2">
-                {hashtagIds.map((id) => (
-                  <button
-                    key={id}
-                    type="button"
-                    aria-label={`${id} 필터 해제`}
-                    className="min-h-11 break-all rounded-xl bg-primary/10 px-3 text-xs font-semibold text-primary"
-                    onClick={() =>
-                      onChange({
-                        ...filters,
-                        hashtagIds: hashtagIds.filter(
-                          (selected) => selected !== id,
-                        ),
-                        page: 1,
-                      })
-                    }
-                  >
-                    #{id} ×
-                  </button>
-                ))}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={busy}
-                  onClick={() =>
-                    onChange({
-                      ...filters,
-                      hashtagIds: [],
-                      page: 1,
-                    })
-                  }
-                >
-                  전체 퀴즈
-                </Button>
-              </div>
-            )}
-          </div>
-          {data.items.length ? (
-            <ul
-              className={
-                profile
-                  ? "grid gap-4 sm:grid-cols-2"
-                  : "space-y-4"
-              }
-            >
-              {data.items.map(
-                ({ quizId, title, hashtagIds }) => (
-                  <li key={quizId}>
-                    <QuizCard
-                      title={title}
-                      action={{
-                        href: `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`,
-                      }}
-                      metadata={hashtagIds
-                        .map((id) => `#${id}`)
-                        .join(" ")}
-                    />
-                  </li>
-                ),
-              )}
-            </ul>
-          ) : (
-            <EmptyState
-              title="공개된 퀴즈가 없습니다"
-              description={
-                !profile && hashtagIds.length > 0
-                  ? "다른 태그를 선택해 보세요."
-                  : "이 개발자가 공개한 퀴즈가 아직 없습니다."
-              }
-            />
-          )}
-          {!profile && (
-            <PageControls
-              label="퀴즈"
-              page={page}
-              total={data.total}
-              pageSize={20}
-              busy={busy}
-              onPage={(next) =>
-                onChange({ ...filters, page: next })
-              }
-            />
-          )}
-        </section>
+        {quizSection}
       </div>
     </div>
   );
@@ -493,9 +534,11 @@ function Catalog({
 export function DeveloperScreen({
   profile = false,
   afterHeader,
+  activity,
 }: {
   profile?: boolean;
   afterHeader?: ReactNode;
+  activity?: ReactNode;
 }) {
   const { publicId } = useParams<{ publicId: string }>();
   const params = useSearchParams();
@@ -561,6 +604,7 @@ export function DeveloperScreen({
           key={`${userId}:${publicId}`}
           profile={profile}
           afterHeader={afterHeader}
+          activity={activity}
           userId={userId}
           publicId={publicId}
           filters={filters}

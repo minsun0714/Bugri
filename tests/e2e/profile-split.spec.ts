@@ -221,7 +221,7 @@ test("profile previews latest four and links to the full catalog", async ({
     );
   }
   await quizzes
-    .getByRole("link", { name: "전체 보기 →" })
+    .getByRole("link", { name: "전체 보기" })
     .click();
   await expect(page).toHaveURL(
     /\/developers\/bugri-author\/quizzes\?user=friend$/,

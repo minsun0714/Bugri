@@ -107,3 +107,12 @@ export const ProfileLinkKind = {
 
 export type ProfileLinkKind =
   (typeof ProfileLinkKind)[keyof typeof ProfileLinkKind];
+
+export const ProfileSection = {
+  DESK: "DESK",
+  QUIZZES: "QUIZZES",
+  ACTIVITY: "ACTIVITY",
+} as const;
+
+export type ProfileSection =
+  (typeof ProfileSection)[keyof typeof ProfileSection];

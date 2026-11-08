@@ -255,3 +255,12 @@ BugCoin 내역의 전체·지급(+)·사용(-) 필터는 금액이 각각 전체
 - 네트워크 연결 실패는 기존 `NETWORK_ERROR`(합성502), 시간 초과는 `REQUEST_TIMEOUT`(합성504)다. 서버의 실제 HTTP 응답과 구분하려면 상태와 `detail.code`를 함께 확인한다.
 - 계약에 맞는 오류 envelope는 기존 status/code/requestId를 보존한다. 프록시 HTML 등 비계약 오류 응답도 실제 HTTP status를 보존하며 404는 NOT_FOUND, 403은 FORBIDDEN, 5xx는 SERVER_ERROR, 그 외는 HTTP_ERROR로 변환한다. 정상 HTTP 응답의 잘못된 envelope는 INVALID_RESPONSE(합성502)다. 원본 HTML·파싱 예외는 사용자 메시지에 포함하지 않는다.
 - 전송 계층은 요청을 자동 재전송하지 않는다. 특히 응답이 유실된 변경 요청은 처리 여부가 불명확할 수 있으므로 기존 답안·구매의 재조회/중복 방지 계약을 유지한다.
+
+
+### 공개 프로필 섹션 순서
+
+- `profileOrder`: GET `/users/{publicId}/section-order`, 요청 `{ publicId }`, 응답 `{ order: ProfileSection[] }`. 조회는 저장·시간대 초기화·마이그레이션을 수행하지 않는다.
+- `updateProfileOrder`: PUT `/me/section-order`, 요청/응답 `{ order: ProfileSection[] }`. 현재 더미 사용자만 변경하며 대상 사용자 필드 주입을 거부한다.
+- `ProfileSection`은 `DESK`, `QUIZZES`, `ACTIVITY`이며 세 값을 중복·누락 없이 정확히 한 번씩 포함해야 한다. 잘못된 요청은 400, 없는 공개 사용자는 404, 저장 실패는 기존 `STORAGE_UNAVAILABLE` 계약이다.
+- 기존 v1 저장값에 `profileOrder`가 없으면 `DESK → QUIZZES → ACTIVITY`를 반환한다. 손상된 저장 순서는 기존 저장소 오류로 처리하며 덮어쓰지 않는다. 공개 DTO에는 순서만 반환한다.
+- Query 키는 `profileOrder/userId/publicId`, 저장 성공 시 현재 캐시 갱신 및 `profileOrder` 조회 무효화. 실패 시 UI 초안 유지, 자동 mutation 재전송 없음.

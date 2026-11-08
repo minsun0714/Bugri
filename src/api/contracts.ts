@@ -1,4 +1,7 @@
-import type { ProfileLinkKind } from "@/api/constants";
+import type {
+  ProfileSection,
+  ProfileLinkKind,
+} from "@/api/constants";
 /** Public DTOs shared by the browser mock and future /api/v1 REST transport. */
 import {
   Category,
@@ -589,6 +592,14 @@ export interface ApiOperations {
     };
     response: DeskTransforms;
   };
+  profileOrder: {
+    request: { publicId: string };
+    response: ProfileOrder;
+  };
+  updateProfileOrder: {
+    request: ProfileOrder;
+    response: ProfileOrder;
+  };
   profileAbout: {
     request: { publicId: string };
     response: ProfileAbout;
@@ -653,4 +664,8 @@ export interface ApiTransport {
     operation: K,
     request: Request<K>,
   ): Promise<TransportResponse<Response<K>>>;
+}
+
+export interface ProfileOrder {
+  order: ProfileSection[];
 }

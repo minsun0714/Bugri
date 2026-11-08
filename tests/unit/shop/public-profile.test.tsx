@@ -13,14 +13,17 @@ jest.mock(
   () => ({
     DeveloperScreen: ({
       afterHeader,
+      activity,
     }: {
       afterHeader: React.ReactNode;
+      activity: React.ReactNode;
     }) => (
       <div>
         {afterHeader}
         <section aria-label="개발자의 공개 퀴즈">
           <h1>개발자</h1>
         </section>
+        {activity}
       </div>
     ),
   }),

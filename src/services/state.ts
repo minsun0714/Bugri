@@ -1,5 +1,6 @@
 import type {
   ProfileAbout,
+  ProfileOrder,
   Answer,
   AuthoringConversation,
   Equipment,
@@ -40,6 +41,7 @@ export interface StoredDay {
 export interface UserState {
   schemaVersion: 1;
   profileAbout?: ProfileAbout;
+  profileOrder?: ProfileOrder;
   /** One-time mock fixture upgrade; absent in older v1 snapshots. */
   learningDemoVersion?: 1;
   coinHistoryDemoVersion?: 1;

@@ -1,5 +1,7 @@
 "use client";
 
+import { viewAllAction } from "@/components/ui/styles";
+
 import Link from "next/link";
 import {
   discoveryStyles,
@@ -513,7 +515,8 @@ export function DiscoverySearch({
                 </Button>
               ) : (
                 <Button
-                  variant="secondary"
+                  variant="ghost"
+                  className={viewAllAction}
                   onClick={() =>
                     search({
                       ...request,
