@@ -22,7 +22,7 @@ export function ProfileLinkIcon({
         aria-hidden="true"
         className="inline-flex size-4 shrink-0 items-center justify-center rounded-sm bg-current"
       >
-        <span className="text-[11px] font-bold text-surface">
+        <span className="text-xs font-bold text-surface">
           in
         </span>
       </span>

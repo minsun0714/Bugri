@@ -417,7 +417,7 @@ function ShopContent({
                   className="group overflow-hidden !p-0"
                 >
                   <div className="relative flex h-52 items-center justify-center bg-canvas p-9 transition-colors group-hover:bg-primary/5">
-                    <span className="absolute left-5 top-4 text-[10px] font-bold tracking-[.14em] text-muted">
+                    <span className="absolute left-5 top-4 text-xs font-bold tracking-[.14em] text-muted">
                       {t(categories[category])}
                     </span>
                     <ProductPreview
