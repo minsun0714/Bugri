@@ -70,6 +70,13 @@ export function Creation({
       return;
 
     setOpen(false);
+    if (
+      batch?.candidates.some(
+        ({ savedQuizId }) => !!savedQuizId,
+      )
+    ) {
+      onComplete();
+    }
   }
 
   async function generate() {

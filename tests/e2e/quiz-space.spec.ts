@@ -387,3 +387,69 @@ test("desktop empty and long preview panels match writing height", async ({
     });
   }
 });
+
+for (const width of [390, 1280]) {
+  for (const action of ["임시저장", "바로 공개"]) {
+    test(`close after one ${action} shows saved results at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/quizzes/authoring?user=learner");
+      await page
+        .getByRole("textbox")
+        .fill("HTTP 요청과 응답");
+      await page
+        .getByRole("button", {
+          name: "퀴즈 만들기",
+          exact: true,
+        })
+        .click();
+      const modal = page.getByRole("dialog");
+      await modal
+        .getByRole("button", { name: action, exact: true })
+        .click();
+      await expect(
+        modal.getByRole("tab", {
+          name:
+            action === "임시저장"
+              ? "퀴즈 1 · 임시저장됨"
+              : "퀴즈 1 · 공개됨",
+        }),
+      ).toBeVisible();
+      const batchUrl = page.url();
+      page.once("dialog", (dialog) => dialog.dismiss());
+      await modal
+        .getByRole("button", { name: "닫기", exact: true })
+        .click();
+      await expect(modal).toBeVisible();
+      await expect(page).toHaveURL(batchUrl);
+      page.once("dialog", (dialog) => dialog.accept());
+      if (width === 390)
+        await page.keyboard.press("Escape");
+      else
+        await modal
+          .getByRole("button", {
+            name: "닫기",
+            exact: true,
+          })
+          .click();
+      await expect(page).toHaveURL(
+        /\/quizzes\/authoring\/manage\?user=learner$/,
+      );
+      await expect(page.getByRole("article")).toHaveCount(
+        1,
+      );
+      await expect(page.getByRole("article")).toContainText(
+        action === "임시저장" ? "검토 필요" : "공개 중",
+      );
+      await page.screenshot({
+        path: `/tmp/bugri-quiz-close/${width}-${action}.png`,
+        fullPage: true,
+      });
+      await page.reload();
+      await expect(page.getByRole("article")).toHaveCount(
+        1,
+      );
+    });
+  }
+}

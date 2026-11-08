@@ -247,3 +247,46 @@ test("a failed save keeps candidates in the modal without completing", async () 
   expect(onComplete).not.toHaveBeenCalled();
   request.mockRestore();
 });
+
+test.each(["임시저장", "바로 공개"])(
+  "closing after one %s opens the list only after confirming remaining candidates",
+  async (action) => {
+    const { onComplete } = setup();
+    const confirm = jest
+      .spyOn(window, "confirm")
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "HTTP 응답" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "퀴즈 만들기" }),
+    );
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: action,
+      }),
+    );
+    await screen.findByRole("tab", {
+      name:
+        action === "임시저장"
+          ? "퀴즈 1 · 임시저장됨"
+          : "퀴즈 1 · 공개됨",
+    });
+    expect(onComplete).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "닫기" }),
+    );
+    expect(screen.getByRole("dialog")).toBeVisible();
+    expect(onComplete).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "닫기" }),
+    );
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("dialog"),
+    ).not.toBeInTheDocument();
+    confirm.mockRestore();
+  },
+);
