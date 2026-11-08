@@ -22,6 +22,7 @@ Hook 통과는 build 오류와 E2E 회귀가 없다는 뜻이 아니다. 해당 
 
 - `python3 -B -m unittest discover -s scripts/hooks -p 'test_*.py'`: 8개 통과.
 - `npm run lint`: 통과. `npm test -- --runInBand`: 36 suites / 187 tests 통과. `npm run test:tools`: 3개 통과.
-- `npm run typecheck`: 실패(20개 오류). 이번 변경을 stash한 상태에서도 동일하게 실패하며, 삭제된 페이지(`my`, `shop` 등)를 가리키는 `.next/types/validator.ts`의 오래된 빌드 산출물이 원인이다. `.next`는 Git 제외 대상이고 이 저장소의 `next dev`(포트 3100)가 실행 중이라 삭제하지 않았다. 이 상태에서는 `verify:fast`가 typecheck에서 실패하므로 `.next` 정리 후 재확인이 필요하다.
+- `npm run typecheck`: 처음에는 20개 오류로 실패했다. 이번 변경을 stash한 상태에서도 동일했고, 삭제된 페이지(`my`, `shop` 등)를 가리키는 Git 제외 대상 `.next/types/validator.ts`의 오래된 빌드 산출물이 원인이었다. `.next` 삭제 후 통과.
+- `npm run verify:fast` 전체: `.next` 삭제 후 통과(lint, typecheck, Jest 36 suites / 187 tests, 도구 테스트 3개), 약 13.5초.
 - `npm run build`, E2E: Hook 범위에서 제외했으며 이번 변경에서도 미실행.
 - 미검증: 실제 Claude/Codex 세션에서 Hook이 `verify:fast`를 실행하는 경로, 구현자 외 리뷰.
