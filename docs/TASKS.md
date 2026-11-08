@@ -1,5 +1,29 @@
 # Bugri 개발 단계와 작업 계획
 
+### MERGE-DEV-QUIZ-CARDS — dev 병합
+
+- 상태: DONE. origin/dev f87b0a4와 카드·평가 변경 9개 충돌 해결. 프로필 순서·다국어·compact 카드·평가 동작을 모두 보존했다. Node22.23.3에서 lint·전체 타입·단위325개·도구3개·build·선정 E2E131개 통과. 독립 UX/UI 및 코드리뷰 완료. 영향 없는 상점/3D 전용 E2E는 최신 지침에 따라 제외하며 과거 실패는 유지한다. [충돌 해결·검증 기록](ux-reviews/MERGE-DEV-QUIZ-CARDS.md).
+
+### QUIZ-CARD-ACTIONS — 카드 전체 접근과 설정 아이콘
+
+- 상태: IN_PROGRESS — 구현·독립 UX/UI 완료, 전체 검증 실패로 DONE 보류. AC-05k. 모든 공통 퀴즈 카드 화살표 제거·전체 영역 클릭, 내 퀴즈 우상단 설정 아이콘/관리 텍스트 제거. 후속 요청으로 상태·수정일 및 태그·평가를 각각 한 행으로 묶어 모바일 기본 카드 약194→164px로 축소. 승인 퀴즈 본문은 풀이, 미승인은 검토를 유지하고 평가/작성자링크/설정은 독립 동작.
+- [독립 UX/UI·코드 리뷰](ux-reviews/QUIZ-CARD-ACTIONS.md): R0 및 사용자 추가 요청 C1/R1에서 필수 미해결 없음. PC/mobile·키보드·긴 콘텐츠·게스트·PRIVATE/PENDING 확인. 긴 제목 아이콘 중앙 정렬은 선택 개선 보류.
+- Node v22.23.3. 관련 단위9개·카드 접근/평가 E2E13개 통과. 최종 전체 lint·타입·단위313개·도구3개·build 통과. 전체 E2E204개 중197개 통과·7개 실패(구독 목록/모달2개, 3D5개 시간초과). 실패 기록 및 최종 결과는 리뷰 문서 참조. 테스트 기대값/타임아웃 완화 없음.
+
+### QUIZ-REACTION-CARDS — 아이콘·집계·카드 평가
+
+- 상태: DONE. AC-05j. 풀이 전후·공개 목록에서 엄지 아이콘과 좋아요/싫어요 개수를 표시한다. 풀이 하단은 왼쪽 평가·오른쪽 제출/다음 행동, 목록(태그·개발자·프로필·내 퀴즈 관리 PUBLIC)은 오른쪽 아래다. 사유 없음, 선택·취소·변경·복원 유지. 방문자는 공개 집계만 읽고 명시적 데모 선택 후 다시 눌러 평가한다. 집계는 같은 브라우저의 더미 사용자 반응 합계다.
+- [독립 UX/UI·코드 리뷰](ux-reviews/QUIZ-REACTION-CARDS.md): R0 배치 오판 철회. 사용자 지적 후 C2 상단 배치를 확인했으나 최종 선호로 C3 하단 좌우 배치로 변경했다. 후속 정정으로 목록 오른쪽 복원 및 관리 PUBLIC 누락 연결. 두 리뷰어가 최종 화면을 실제 PC/mobile 브라우저로 확인해 필수 미해결 없음. 세부 한계·합성 스트레스 증거는 리뷰 기록 참조.
+- Node v22.23.3. C3 빌드 `k5K4EsGaln1TCajaTBKU2` 전체 `npm run verify` exit0: lint·타입·단위310개·도구3개·build·E2E197개 통과(`/tmp/bugri-reaction-footer-final-verify.log`). 이후 화면별 정렬/관리 UI 연결 및 관련 테스트·문서만 변경했고 API·저장·집계·의존성·런타임은 동일하다. 최종 UI 후속 변경은 변경 ESLint/Prettier·전체타입·관련단위21개·평가 E2E8개·작성관리 회귀4개·production E2E build·diff 검사로 로컬 완료했다. 최신 코드의 전체197개 재실행을 주장하지 않는다. 로그 `/tmp/bugri-reaction-manage-e2e.log`, `/tmp/bugri-reaction-manage-regression.log`.
+- 이전 실패 기록 유지: guest의 모든 저장키가 없다는 잘못된 가정, API generic 타입, 빈줄 lint로 검증 중단 후 사용자 후속 수정 지시로 재개했다. 이후 화면 전환 대기 전 좌표 읽기를 수정하고, 하단 중심4px 차이는 sr-only 여백 대신 flex gap으로 해결했다. 기대값을 완화하지 않았고 각 관련 재검증은 통과했다. 검증 후 변경은 문서 기록뿐이다.
+
+### QUIZ-REACTIONS — 개별 문제 좋아요·싫어요
+
+- 상태: DONE — 구현·독립 리뷰·전체 검증 완료. AC-05j. 제출 후 개별 문제의 좋아요·싫어요 선택·취소·변경을 사용자·quizId별로 저장한다. 사유·집계는 추가하지 않는다. 재풀이·새로고침 복원 및 실패 보존, 완료/접근 가능 여부 검증을 포함한다.
+- [독립 UX/UI·코드 리뷰](ux-reviews/QUIZ-REACTIONS.md): C1/R1에서 버튼 높이 보완, 수정 1회. PC1280/mobile390 캡처·실제 E2E 조작 증거를 간접 리뷰했으며 필수 미해결 문제 없음. 음성 출력·실제 Tab/다크 테마·로딩/모바일 오류 화면은 미확인.
+- Node v22.23.3. 신규 API 테스트 의도한 선실패 후 4개 통과, 관련 API/HTTP 15개 및 평가 E2E 3개 통과. 변경 ESLint/Prettier·타입·diff 검사 통과. 수정/재실행 1회는 빈 줄 lint 정리, 2회는 기존 API 개수 고정 기대값 51→53 및 신규 GET/PUT 경로 검증 추가였다. 첫 전체 검증은 해당 고정값 테스트에서 멈췄으며 실패 기록 `/tmp/bugri-reactions-verify.log`를 유지한다.
+- 최종 `npm run verify` exit 0: lint·타입·Jest 61 suites/308개·도구3개·production build·E2E194개 통과. 로그 `/tmp/bugri-reactions-verify-r2.log`. 검증 후 변경은 TASKS/리뷰 기록뿐이며 코드·테스트·의존성·런타임은 동일하다.
+
 ### QUIZ-UI-MERGE — 최신 오류 처리와 퀴즈 UI 통합
 
 - 상태: DONE. dev `2baec2e`를 통합한 `b298fea`에서 태그별 퀴즈 페이지의 import 충돌을 해결했다. 공통 QuizCard와 createQueryClient를 모두 보존하고 오류 처리·공개 학습 기록·다중 태그 필터 동작을 유지한다. 독립 통합 코드 리뷰에서 추가 문제 없음.

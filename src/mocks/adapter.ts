@@ -1,3 +1,4 @@
+import { quizReactionSummary } from "@/services/quiz-reactions";
 import { guestLearning } from "@/services/guest-learning";
 import { demoCoinHistory } from "@/mocks/coin-history";
 import { initialBugCoin } from "@/mocks/shop-items";
@@ -16,6 +17,7 @@ import {
 } from "@/services/mock-service";
 import {
   object,
+  text,
   keys,
   requireValue,
   ServiceError,
@@ -83,6 +85,37 @@ export function createMockTransport(
       const requestId = globalThis.crypto.randomUUID();
 
       try {
+        if (
+          operation === "quizReaction" &&
+          userId === "guest"
+        ) {
+          object(request);
+          keys(request, ["quizId"]);
+
+          const { quizId } =
+            request as Request<"quizReaction">;
+
+          text(quizId, "quizId");
+
+          const storage =
+            suppliedStorage ?? window.localStorage;
+
+          const states = users.map(({ userId }) =>
+            readState(storage, userId),
+          );
+
+          return {
+            status: 200,
+            body: {
+              data: quizReactionSummary(
+                null,
+                quizId,
+                states,
+              ) as Response<K>,
+            },
+          };
+        }
+
         if (
           operation === "guestQuiz" ||
           operation === "guestAnswer"

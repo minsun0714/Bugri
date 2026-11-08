@@ -13,6 +13,7 @@ import {
   EmptyState,
   Skeleton,
 } from "@/components/ui";
+import { QuizReactionControl } from "@/components/solving/quiz-reaction";
 import { QuizPanel } from "@/components/solving/quiz-panel";
 import { ErrorNotice } from "@/components/solving/error-notice";
 
@@ -87,6 +88,13 @@ function GuestRound({
     <div className="space-y-4">
       {submit.error && <ErrorNotice error={submit.error} />}
       <QuizPanel
+        reaction={
+          <QuizReactionControl
+            align="left"
+            userId={null}
+            quizId={quiz.data.quizId}
+          />
+        }
         quiz={quiz.data}
         result={submit.data ?? null}
         focusKey={`guest-${round}`}

@@ -62,6 +62,9 @@ function renderList(
   render(
     <QuizList
       quizzes={items}
+      quizHref={(quizId) =>
+        `/solve?user=learner&quiz=${quizId}`
+      }
       view={view}
       createHref="/quizzes/authoring?user=learner"
       isFetching={false}
@@ -225,3 +228,63 @@ test.each([{ items: quizzes }, { items: [] }])(
     );
   },
 );
+
+test("public management cards expose independent reaction controls", () => {
+  const onOpen = jest.fn();
+  render(
+    <QuizList
+      quizzes={quizzes}
+      view={{
+        query: "",
+        filter: QuizListFilter.ALL,
+        sort: QuizListSort.NEWEST,
+        page: 1,
+      }}
+      createHref="/quizzes/authoring?user=learner"
+      isFetching={false}
+      busy={false}
+      onViewChange={jest.fn()}
+      onOpen={onOpen}
+      onRefresh={jest.fn()}
+      renderReaction={(quizId) => (
+        <button aria-label={`${quizId} 좋아요`}>0</button>
+      )}
+    />,
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "public 좋아요" }),
+  );
+  expect(onOpen).not.toHaveBeenCalled();
+  expect(
+    screen.queryByRole("button", {
+      name: "pending 좋아요",
+    }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", {
+      name: "private 좋아요",
+    }),
+  ).not.toBeInTheDocument();
+});
+
+test("approved cards open solving while pending cards keep review access", () => {
+  const { onOpen } = renderList();
+  expect(
+    screen.getByRole("link", { name: "HTTP 상태 코드" }),
+  ).toHaveAttribute(
+    "href",
+    "/solve?user=learner&quiz=public",
+  );
+  expect(
+    screen.getByRole("link", { name: "블록 스코프" }),
+  ).toHaveAttribute(
+    "href",
+    "/solve?user=learner&quiz=private",
+  );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "타입 선언 퀴즈 열기",
+    }),
+  );
+  expect(onOpen).toHaveBeenCalledWith("pending");
+});
