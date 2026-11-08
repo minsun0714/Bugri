@@ -64,7 +64,7 @@ export function GuestLanding() {
           >
             <div className="relative z-10 mx-auto max-w-3xl text-center">
               <h2 className="text-[clamp(1.75rem,3.4vw,3rem)] leading-tight font-extrabold tracking-[-0.04em]">
-                {t("모은 코인으로,")}
+                {t("퀴즈를 풀고,")}
                 <br className="md:hidden" />
                 <span className="text-primary md:ml-2">
                   {t("버그리의 공간을 꾸며요.")}
@@ -72,7 +72,7 @@ export function GuestLanding() {
               </h2>
               <p className="mx-auto mt-3 max-w-xl break-keep text-sm leading-6 text-muted">
                 {t(
-                  "학습 보상 BugCoin으로 상점에서 아이템을 고르고, 나만의 데스크를 꾸며요.",
+                  "퀴즈를 풀고 받은 버그코인으로 상점에서 아이템을 골라요.",
                 )}
               </p>
             </div>
