@@ -4,6 +4,7 @@ import {
   render,
   screen,
 } from "@testing-library/react";
+import { ThemeSettings } from "@/components/ui/theme-settings";
 import { ThemePicker } from "@/components/ui/theme-picker";
 import { themeBootstrapScript } from "@/lib/theme/bootstrap";
 
@@ -36,11 +37,18 @@ function bootstrap() {
 }
 
 function choose(label: string) {
+  if (label === "시스템") {
+    fireEvent.click(
+      screen.getByRole("radio", {
+        name: "시스템 설정 따르기",
+      }),
+    );
+    return;
+  }
   fireEvent.click(
-    screen.getByRole("combobox", { name: "화면 테마" }),
-  );
-  fireEvent.click(
-    screen.getByRole("option", { name: label }),
+    screen.getByRole("button", {
+      name: `${label} 모드로 전환`,
+    }),
   );
 }
 
@@ -80,7 +88,12 @@ test("unknown and inaccessible storage safely follow the system", () => {
 
 test("manual choice persists, overrides system changes, and system mode resumes following", () => {
   bootstrap();
-  render(<ThemePicker />);
+  render(
+    <>
+      <ThemePicker />
+      <ThemeSettings />
+    </>,
+  );
   choose("다크");
   expect(localStorage.getItem("bugri.theme")).toBe("dark");
   act(() => listeners.forEach((listener) => listener()));
@@ -107,19 +120,31 @@ test("blocked writes still allow switching in the current page", () => {
     .mockImplementation(() => {
       throw new Error("blocked");
     });
-  render(<ThemePicker />);
+  render(
+    <>
+      <ThemePicker />
+      <ThemeSettings />
+    </>,
+  );
   choose("다크");
   expect(document.documentElement.dataset.theme).toBe(
     "dark",
   );
   expect(
-    screen.getByRole("combobox", { name: "화면 테마" }),
-  ).toHaveTextContent("다크");
+    screen.getByRole("button", {
+      name: "라이트 모드로 전환",
+    }),
+  ).toBeVisible();
 });
 
 test("another tab's preference and removal are reflected without remounting", () => {
   bootstrap();
-  render(<ThemePicker />);
+  render(
+    <>
+      <ThemePicker />
+      <ThemeSettings />
+    </>,
+  );
   act(() =>
     window.dispatchEvent(
       new StorageEvent("storage", {
@@ -132,8 +157,10 @@ test("another tab's preference and removal are reflected without remounting", ()
     "dark",
   );
   expect(
-    screen.getByRole("combobox", { name: "화면 테마" }),
-  ).toHaveTextContent("다크");
+    screen.getByRole("button", {
+      name: "라이트 모드로 전환",
+    }),
+  ).toBeVisible();
   act(() =>
     window.dispatchEvent(
       new StorageEvent("storage", {
@@ -145,4 +172,21 @@ test("another tab's preference and removal are reflected without remounting", ()
   expect(document.documentElement.dataset.theme).toBe(
     "light",
   );
+});
+
+test("toggle follows resolved system theme before saving the opposite mode", () => {
+  bootstrap();
+  render(<ThemePicker />);
+  expect(
+    screen.queryByRole("combobox"),
+  ).not.toBeInTheDocument();
+  expect(localStorage.getItem("bugri.theme")).toBeNull();
+  act(() => {
+    dark = true;
+    listeners.forEach((listener) => listener());
+  });
+  choose("라이트");
+  expect(localStorage.getItem("bugri.theme")).toBe("light");
+  choose("다크");
+  expect(localStorage.getItem("bugri.theme")).toBe("dark");
 });

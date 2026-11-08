@@ -1,5 +1,25 @@
 # Bugri 개발 단계와 작업 계획
 
+### THEME-LIKES-MERGE — dev 퀴즈 평가 통합
+
+- 상태: DONE. 사용자 pull 충돌 해결 요청으로 HEAD `07a95b2`와 dev `532537e`를 통합한다. TASKS는 양쪽 추가 작업 기록을 보존하고 en.json은 동일 키의 값 일치를 확인한 뒤 테마·평가 번역을 합쳤다. 애플리케이션 동작을 별도 수정하지 않는다.
+- 검증 범위: Node v22.23.3 lint·전체 타입·전체 Jest·도구·production build, 상점 표시·언어·공통 저장 사용처를 포함하는 선택 E2E. 카드·평가·테마 통합에 영향 없는 상세 상점/3D 렌더링·배치 전용 spec은 지침에 따라 제외한다. shop.spec 및 mock-api.spec의 구매/계정/저장 흐름, theme.spec의 방 색상 보존은 유지한다.
+- 독립 정적 리뷰: 양쪽 번역 694키와 TASKS의 모든 비공백 행 보존 확인. 공통 변경은 문서/번역뿐이며 테마 코드는 HEAD, 평가/카드 코드는 incoming 그대로 유지한다. 추가 결함 없음. 의미 있는 별도 UI 구현이 없어 기존 양쪽 화면 리뷰를 유지하고 런타임 통합은 E2E로 확인한다.
+- lint·전체 타입·Jest66 suites/326개·도구3개·production build 통과. 최종 선택 E2E142개 통과. 검증 후 변경은 기록 문서뿐이다. 영향 없는 3D 전용 검사는 사전 계획대로 제외했으므로 npm run verify 전체 통과로 표현하지 않는다. 로그 `/tmp/bugri-theme-likes-build.log`, `/tmp/bugri-theme-likes-e2e.log`.
+- 선택 spec: `coin-history.spec.ts`, `design-system.spec.ts`, `developer-discovery-repair.spec.ts`, `developer.spec.ts`, `discovery-split.spec.ts`, `error-handling.spec.ts`, `home-quiz-review.spec.ts`, `locale.spec.ts`, `markdown-editor.spec.ts`, `mock-api.spec.ts`, `navigation.spec.ts`, `profile-about.spec.ts`, `profile-layout.spec.ts`, `profile-order.spec.ts`, `profile-polish.spec.ts`, `profile-split.spec.ts`, `profile-streak.spec.ts`, `quiz-authoring.spec.ts`, `quiz-card-actions.spec.ts`, `quiz-reactions.spec.ts`, `shop.spec.ts`, `solving.spec.ts`, `streak.spec.ts`, `tag-catalog.spec.ts`, `tag-discovery.spec.ts`, `theme.spec.ts`.
+- 제외 spec: `bugri-tabletop.spec.ts`, `camera-drag-direction.spec.ts`, `desk-3d.spec.ts`, `desk-bugri.spec.ts`, `desk-direct.spec.ts`, `desk-foot-orbit.spec.ts`, `desk-free-placement.spec.ts`, `desk-height.spec.ts`, `desk-independent-trial.spec.ts`, `desk-layer-menu.spec.ts`, `desk-shared-controls.spec.ts`, `desk-visibility.spec.ts`, `front-height-drag.spec.ts`, `item-tabletop.spec.ts`, `monitor-screens.spec.ts`, `my-desk.spec.ts`, `room-projection.spec.ts`, `room-theme-bugri.spec.ts`, `room-zoom.spec.ts`, `scene-centering.spec.ts`, `shop-additive-preview.spec.ts`, `shop-extra-items.spec.ts`, `shop-tryon-edit.spec.ts`, `shop-tryon.spec.ts`, `stable-placement-view.spec.ts`, `trial-zoom.spec.ts`.
+
+
+### THEME-TOGGLE — 헤더 테마 토글
+
+- 상태: DONE(구현·독립 리뷰·dev 통합 및 새 지침의 필수 검증 완료). 사용자 승인에 따라 REQ-15/AC-15a의 헤더 셀렉트를 해·달 아이콘 토글로 바꿨다. 최초 시스템 추종과 명시 선택 저장을 유지하며 `/settings`에서 시스템 추종을 복원한다. 데스크톱은 헤더 링크, 모바일은 햄버거 메뉴에서 방문자·데모 모두 접근한다.
+- [독립 UX/UI 리뷰](ux-reviews/THEME-TOGGLE.md): R0에서 모바일 헤더 3행 문제를 발견해 C1에서 설정 링크를 메뉴로 이동했다. R1에서 두 리뷰어가 320px 헤더 2행·게스트/데모 설정 이동·시스템 복원을 직접 확인했다. 수정 1회, 필수 미해결 없음. UX 리뷰의 코드 점검에서 추가 기능 회귀 없음.
+- Node v22.23.3. 새 settings 모듈 부재로 단위 선실패 후 관련 단위 6개, 최종 관련 E2E 8개 통과. 변경 ESLint/Prettier·diff 검사 통과. 모바일 메뉴의 번호 포함 접근 이름에 맞춰 E2E locator를 수정한 재실행 1회에서 통과했다.
+- 전체 `npm run verify -- -- --workers=1`: lint·타입 통과, Jest 62 suites/312개 중 기존 shop 테스트 2개가 5초 제한 시간 초과(61 suites/310개 통과). 변경 없이 shop/theme 재실행에서 theme는 통과했고 shop 2개가 시간 초과했다(총 15/17 통과). 실패 사례가 달라졌고 시스템 load average가 60~98인 동시 검증 환경을 관찰했지만 환경 원인으로 확정하지 않는다. 테스트 시간 제한·검증 조건 변경 없음. 도구 3개와 production build는 별도 실행해 통과했다.
+- 로그: `/tmp/bugri-theme-toggle-verify.log`, `/tmp/bugri-theme-toggle-unit-retry.log`, `/tmp/bugri-theme-toggle-e2e-final.log`. 전체 E2E 198개 중 196개 통과, 기존 bugri-tabletop PC/모바일 2개가 새로고침 로딩 대기 시간 초과로 실패했다(`/tmp/bugri-theme-toggle-full-e2e.log`). 초기 전체 검증 성공으로 표현하지 않는다. 사용자 pull 오류 해결 요청에 따라 현재 작업을 커밋하고 origin/dev f87b0a4를 통합한 뒤 새 검증 기준으로 재확인한다. 실제 모바일 강제 다크·스크린리더는 미확인. push·PR·merge 없음.
+- dev 통합: 사용자 pull 오류 요청 후 기능 커밋 `f1a2f1f`에 `origin/dev f87b0a4`를 통합했다. product-header/theme-picker 충돌은 upstream 언어 선택·번역과 새 토글을 모두 유지해 해결했다. 설정 화면과 토글 접근성 이름도 번역한다. 독립 UX/UI R2에서 ko/en·1280/320·게스트/데모 8조합과 두 기능 보존을 재확인했다.
+- 통합 검사: Node v22.23.3 lint·전체 타입·Jest64 suites/317개·도구3개 통과. 관련 E2E20개 통과. 최종 production build·선택 E2E129개 모두 통과. 로그 `/tmp/bugri-theme-merge-build.log`, `/tmp/bugri-theme-merge-final-e2e.log`. 최종 코드 검사 후 변경은 검증 기록뿐이다. 새 지침에 따른 24개 실행 spec과 상점/3D 전용 제외 목록·근거는 리뷰 문서에 기록했다. 이전 실패 이력은 유지하며 npm run verify 전체 통과로 표현하지 않는다.
+
 ### MERGE-DEV-QUIZ-CARDS — dev 병합
 
 - 상태: DONE. origin/dev f87b0a4와 카드·평가 변경 9개 충돌 해결. 프로필 순서·다국어·compact 카드·평가 동작을 모두 보존했다. Node22.23.3에서 lint·전체 타입·단위325개·도구3개·build·선정 E2E131개 통과. 독립 UX/UI 및 코드리뷰 완료. 영향 없는 상점/3D 전용 E2E는 최신 지침에 따라 제외하며 과거 실패는 유지한다. [충돌 해결·검증 기록](ux-reviews/MERGE-DEV-QUIZ-CARDS.md).
