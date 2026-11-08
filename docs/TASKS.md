@@ -1743,3 +1743,11 @@
 - 통합 독립리뷰: upstream공통CTA·중복제거·단위테스트와 다크토큰/페이지네이션 보존 확인. UX390px다크 두사용자 생성이동, UI1280/390px양테마 두사용자 총8상태 확인, 추가결함없음. 관련단위11개 통과. 전체검증 진행중.
 
 - PR 통합 검증: Node22.23.3 lint·전체타입·Jest60 suites/304개·도구3개·production build 통과. 전체 E2E190/191 통과, 모바일 구독 모달1개가30초 timeout으로 실패했다(`/tmp/bugri-theme-pr-verify.log`). 코드/테스트 변경 없이 `npm run test:e2e -- tests/e2e/developer-discovery-repair.spec.ts --workers=1` 재실행8개 모두통과(`/tmp/bugri-theme-pr-recheck.log`). 원인은 확정하지 않았으며 최초전체verify exit1을 전체일괄통과로 표현하지 않는다. 성공결과는동일코드에서재사용한다. 실기기미확인·간헐실패이력을명시한 Draft PR을 게시한다. 검증대상061eddd+dev59c4a10 통합이며 이후변경은기록뿐이다.
+
+
+### PROFILE-DND-PR 추가 통합
+
+- PR #33 게시 중 dev에 다크모드 PR #32(`12680f5`)가 병합되어 Draft로 전환한 뒤 `beb2b70`에 추가 통합했다. 문서 3곳은 양쪽 내용을 보존하고 퀴즈 패널 설명을 테마 대응으로 맞췄다. source 자동 통합은 upstream 다크 토큰과 기존 프로필 추가 스타일을 모두 보존한다.
+- Node v22.23.3, `beb2b70`에서 `npm run verify -- -- --workers=2` exit 0: ESLint·전체 TypeScript·Jest 62 suites/311 tests·도구 테스트 3개·production build·Chromium E2E 197개 통과. 로그 `/tmp/profile-dnd-pr-theme-verify.log`. 이전 결과를 대체하는 최종 통합 검증이며 실패·재시도 없음.
+- [독립 UX/UI 통합 리뷰](ux-reviews/PROFILE-DND-INTEGRATION.md): 두 테마·PC/모바일 본인/방문자 화면과 저장/취소/포커스/탐색을 직접 확인해 필수 문제 0개, 수정 0회. upstream 코드·문서 보존 정적 리뷰도 완료. 실기기·스크린리더 등 한계는 리뷰 문서에 기록했다.
+- 검증 후 변경은 작업 기록·리뷰 문서뿐이므로 성공 결과를 재사용한다. 문서 링크·diff check 확인 후 PR을 Ready로 갱신하며 병합은 하지 않는다.
