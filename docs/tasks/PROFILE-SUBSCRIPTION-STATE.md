@@ -1,0 +1,12 @@
+# PROFILE-SUBSCRIPTION-STATE — 프로필 구독 상태 버튼
+
+- 상태: DONE (로컬 범위 검증·독립 리뷰 완료)
+- 요청: 개발자 구독 해제 버튼을 구독 중 상태로 표시. REQ-08/AC-08a의 등록·해제·현재 조건 확인 유지.
+- 범위: 로그인 공개 프로필에 기존 SubscriptionControl 재사용. 미구독은 + 구독하기, 구독은 ✓ 구독 중과 관리 메뉴로 통일. 방문자·카탈로그 동작 유지.
+- UX/UI 사전 논의: 상태 문구 일치에 동의. UX 의견에 따라 관리 메뉴를 재사용하여 즉시 해제 혼동 방지. 화살표는 실제 메뉴 동작과 함께 사용.
+- 검증 계획: 변경 파일 lint/format, 전체 타입, developer 단위, 프로필 구독 PC/모바일 E2E와 독립 UX/UI 리뷰. 상점·3D 동작 영향 없어 전용 spec 제외. Hook 미사용.
+
+- Node v22.23.3, a72d943 + 본 변경에서 변경 코드/테스트 ESLint·Prettier, 전체 TypeScript, developer 단위 4개, 프로필 구독 E2E 2개(1280/390, worker 1) 통과. E2E 서버 production build 성공. 마지막 테스트 포맷 변경은 공백뿐이며 동작 결과 재사용.
+- 최초 TDD 2개 실패 확인 후 구현. E2E 처음 두 실행의 Toast exact locator 실패는 role=status+문구 선택으로 수정해 통과. 마지막 E2E 파일 포맷 검사 실패는 Prettier 적용 후 통과. 테스트 조건/타임아웃 완화 없음.
+- [독립 UX/UI 리뷰](../ux-reviews/PROFILE-SUBSCRIPTION-STATE.md): R0 완료, 추가 수정 0회. 두 리뷰어가 최신 PC/모바일 캡처 6장씩 확인. 방문자·본인은 코드/단위 근거, 실제 기기·실패/저장중·다크/영문 화면 미확인.
+- 작은 컴포넌트 동작 변경의 로컬 검증이며 전체 테스트/PR 최종 검증은 미실행. push/PR/merge 미실행.

@@ -188,12 +188,54 @@ test("public profile requires explicit demo selection and a separate subscriptio
   );
   fireEvent.click(
     await screen.findByRole("button", {
-      name: "개발자 구독하기",
+      name: "타입 개발자 구독하기",
     }),
   );
   expect(
     await screen.findByRole("button", {
-      name: "개발자 구독 해제",
+      name: "타입 개발자 구독 중 · 관리",
     }),
   ).toBeVisible();
+});
+
+test("profile subscribed control opens management before explicit unsubscribe", async () => {
+  const api = await createBrowserApi({
+    mode: "mock",
+    userId: "friend",
+  });
+  await api.request("subscribe", {
+    type: "PERSON",
+    authorUserId: "author",
+  });
+  render(
+    <DemoSessionProvider>
+      <DeveloperScreen profile />
+    </DemoSessionProvider>,
+  );
+  const control = await screen.findByRole("button", {
+    name: "타입 개발자 구독 중 · 관리",
+  });
+  const before = await api.request("subscriptions", {});
+  fireEvent.click(control);
+  expect(control).toHaveAttribute("aria-expanded", "true");
+  expect(await api.request("subscriptions", {})).toEqual(
+    before,
+  );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "타입 개발자 구독 해제",
+    }),
+  );
+  expect(
+    await screen.findByRole("button", {
+      name: "타입 개발자 구독하기",
+    }),
+  ).toBeVisible();
+  expect(
+    (await api.request("subscriptions", {})).some(
+      (item) =>
+        item.type === "PERSON" &&
+        item.authorUserId === "author",
+    ),
+  ).toBe(false);
 });
