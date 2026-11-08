@@ -1,10 +1,15 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { Bugri } from "@/components/ui/bugri";
 
 export function DiscoveryMascot() {
+  const t = useTranslation();
+
   return (
     <div
       role="img"
-      aria-label="돋보기로 개발자를 찾는 버그리"
+      aria-label={t("돋보기로 개발자를 찾는 버그리")}
       className="relative h-18 w-20 shrink-0"
     >
       <div

@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import type { ReactNode } from "react";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
@@ -10,6 +13,8 @@ export function ProductLayout({
   children: ReactNode;
   footerNote?: string;
 }) {
+  const t = useTranslation();
+
   return (
     <div id="top" className="flex min-h-screen flex-col">
       <Header />
@@ -18,7 +23,7 @@ export function ProductLayout({
         {children}
       </main>
       <div id="site-info">
-        <Footer note={footerNote} />
+        <Footer note={t(footerNote)} />
       </div>
     </div>
   );

@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import { Bugri } from "@/components/ui/bugri";
 
 export function ResultBugri({
@@ -5,12 +8,14 @@ export function ResultBugri({
 }: {
   correct?: boolean | null;
 }) {
+  const t = useTranslation();
+
   const celebrating = correct === true;
   const label = celebrating
-    ? "축하하는 버그리"
+    ? t("축하하는 버그리")
     : correct === false
-      ? "응원하는 버그리"
-      : "버그리";
+      ? t("응원하는 버그리")
+      : t("버그리");
 
   return (
     <div

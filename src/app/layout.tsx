@@ -1,3 +1,4 @@
+import { LocalizedText } from "@/components/ui/localized-text";
 import { Suspense } from "react";
 import { DemoSessionProvider } from "@/components/navigation/demo-session";
 import { ThemeSync } from "@/components/ui/theme-sync";
@@ -30,7 +31,11 @@ export default function RootLayout({
       <body>
         <ThemeSync />
         <Suspense
-          fallback={<p role="status">불러오는 중…</p>}
+          fallback={
+            <p role="status">
+              <LocalizedText message="불러오는 중…" />
+            </p>
+          }
         >
           <DemoSessionProvider>
             {children}

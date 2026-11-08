@@ -19,6 +19,7 @@ export default defineConfig({
 
   use: {
     baseURL,
+    locale: "ko-KR",
     trace: "on-first-retry",
   },
 

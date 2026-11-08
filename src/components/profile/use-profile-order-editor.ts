@@ -1,4 +1,9 @@
 "use client";
+import {
+  type UiMessage,
+  message,
+} from "@/lib/i18n/messages";
+
 import { useRef, useState, type PointerEvent } from "react";
 import { ProfileSection } from "@/api/constants";
 import {
@@ -20,7 +25,7 @@ export function useProfileOrderEditor(
   userId: string,
   publicId: string,
   owner: boolean,
-  onNotice: (message: string, duration?: number) => void,
+  onNotice: (message: UiMessage, duration?: number) => void,
 ) {
   const { profile, update } = useProfileOrder(
     userId,
@@ -30,7 +35,8 @@ export function useProfileOrderEditor(
     ProfileSection[] | null
   >(null);
   const [failed, setFailed] = useState(false);
-  const [announcement, setAnnouncement] = useState("");
+  const [announcement, setAnnouncement] =
+    useState<UiMessage>("");
   const [drag, setDrag] = useState<{
     from: ProfileSection;
     to: ProfileSection;
@@ -62,7 +68,10 @@ export function useProfileOrderEditor(
     const next = moveProfileSection(order, from, to);
     setDraft(next);
     setAnnouncement(
-      `${profileSectionLabels[from]}, ${next.indexOf(from) + 1}번째로 이동했습니다.`,
+      message("{0}, {1}번째로 이동했습니다.", {
+        0: message(profileSectionLabels[from]),
+        1: next.indexOf(from) + 1,
+      }),
     );
     requestAnimationFrame(() =>
       handles.current[from]?.focus(),

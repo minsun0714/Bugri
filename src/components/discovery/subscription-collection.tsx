@@ -1,4 +1,7 @@
 "use client";
+import { type UiMessage } from "@/lib/i18n/messages";
+
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { viewAllAction } from "@/components/ui/styles";
 
@@ -32,14 +35,16 @@ export function SubscriptionCollection({
 }: {
   entries: SubscriptionEntry[];
   userId: string;
-  onSuccess: (message: string) => void;
+  onSuccess: (message: UiMessage) => void;
   onPreviewRemoved: () => void;
 }) {
+  const t = useTranslation();
+
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
   const [page, setPage] = useState(1);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<UiMessage>("");
   const trigger = useRef<HTMLButtonElement>(null);
   const results = useRef<HTMLHeadingElement>(null);
   const scrollArea = useRef<HTMLDivElement>(null);
@@ -119,7 +124,7 @@ export function SubscriptionCollection({
               setOpen(true);
             }}
           >
-            전체 보기
+            {t("전체 보기")}
           </Button>
         </div>
       )}
@@ -133,16 +138,16 @@ export function SubscriptionCollection({
               : onPreviewRemoved(),
           );
         }}
-        title="내 구독"
+        title={t("내 구독")}
         layout="conversation"
         initialFocusSelector='input[type="search"]'
       >
         <div className="shrink-0 space-y-3 pb-3">
           <TextField
             type="search"
-            label="내 구독 검색"
+            label={t("내 구독 검색")}
             hideLabel
-            placeholder="이름, 아이디 또는 태그로 검색"
+            placeholder={t("이름, 아이디 또는 태그로 검색")}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -153,7 +158,7 @@ export function SubscriptionCollection({
           />
           <div
             role="group"
-            aria-label="구독 유형"
+            aria-label={t("구독 유형")}
             className="flex flex-wrap gap-2"
           >
             {filters.map(({ value, label }) => (
@@ -169,7 +174,7 @@ export function SubscriptionCollection({
                     scrollArea.current.scrollTop = 0;
                 }}
               >
-                {label}
+                {t(label)}
               </Button>
             ))}
           </div>
@@ -178,7 +183,9 @@ export function SubscriptionCollection({
             tabIndex={-1}
             className="rounded-lg text-sm font-semibold focus-visible:outline-2 focus-visible:outline-primary"
           >
-            구독 {filtered.length.toLocaleString("ko-KR")}개
+            {t("구독 {0}개", {
+              0: filtered.length.toLocaleString(),
+            })}
           </h3>
         </div>
         <div
@@ -187,7 +194,7 @@ export function SubscriptionCollection({
         >
           {filtered.length ? (
             <ul
-              aria-label="전체 구독 목록"
+              aria-label={t("전체 구독 목록")}
               className="divide-y divide-line"
             >
               {rows(
@@ -202,12 +209,14 @@ export function SubscriptionCollection({
             <div className="flex min-h-40 flex-col items-center justify-center gap-3 text-sm text-muted">
               <p>
                 {entries.length
-                  ? "검색 조건에 맞는 구독이 없습니다."
-                  : "아직 구독한 개발자나 태그가 없습니다."}
+                  ? t("검색 조건에 맞는 구독이 없습니다.")
+                  : t(
+                      "아직 구독한 개발자나 태그가 없습니다.",
+                    )}
               </p>
               {(query || filter !== "ALL") && (
                 <Button variant="secondary" onClick={reset}>
-                  조건 초기화
+                  {t("조건 초기화")}
                 </Button>
               )}
             </div>
@@ -217,10 +226,10 @@ export function SubscriptionCollection({
           role="status"
           className="shrink-0 pt-2 text-sm text-primary"
         >
-          {message}
+          {t(message)}
         </div>
         <nav
-          aria-label="구독 페이지"
+          aria-label={t("구독 페이지")}
           className="flex shrink-0 items-center justify-between gap-2 border-t border-line pt-3"
         >
           <Button
@@ -233,7 +242,7 @@ export function SubscriptionCollection({
               results.current?.focus();
             }}
           >
-            이전
+            {t("이전")}
           </Button>
           <span className="text-sm text-muted">
             {currentPage} / {pages}
@@ -248,7 +257,7 @@ export function SubscriptionCollection({
               results.current?.focus();
             }}
           >
-            다음
+            {t("다음")}
           </Button>
         </nav>
       </Modal>

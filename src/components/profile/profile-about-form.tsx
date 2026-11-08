@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useUnsavedWarning } from "@/features/quiz-authoring/use-unsaved-warning";
 
@@ -21,6 +22,8 @@ export function ProfileAboutForm({
   onSave: (value: ProfileAbout) => Promise<unknown>;
   onCancel: () => void;
 }) {
+  const t = useTranslation();
+
   const form = useProfileForm(initial, onSave);
   const {
     biography,
@@ -72,7 +75,7 @@ export function ProfileAboutForm({
       ref={root}
       noValidate
       className="space-y-5"
-      aria-label="프로필 편집"
+      aria-label={t("프로필 편집")}
       onFocusCapture={({ target }) => {
         if (
           target instanceof HTMLElement &&
@@ -87,24 +90,26 @@ export function ProfileAboutForm({
         void save();
       }}
     >
-      <h2 className="text-xl">프로필 편집</h2>
+      <h2 className="text-xl">{t("프로필 편집")}</h2>
       <fieldset
         disabled={busy}
         className="min-w-0 space-y-5"
       >
         <MarkdownEditor
-          label="자기소개 (선택)"
-          placeholder="관심 분야와 하고 있는 일을 자유롭게 소개해 보세요."
+          label={t("자기소개 (선택)")}
+          placeholder={t(
+            "관심 분야와 하고 있는 일을 자유롭게 소개해 보세요.",
+          )}
           density="compact"
           limit={Infinity}
           value={biography}
           onChange={setBiography}
         />
         <section
-          aria-label="프로필 링크"
+          aria-label={t("프로필 링크")}
           className="space-y-3"
         >
-          <h3 className="text-sm">링크 (선택)</h3>
+          <h3 className="text-sm">{t("링크 (선택)")}</h3>
           {rows.map(({ id: rowId, link }, index) => (
             <div
               key={rowId}
@@ -114,7 +119,9 @@ export function ProfileAboutForm({
                 <Dropdown
                   hideLabel
                   triggerClassName="!text-base !font-normal"
-                  label={`링크 종류 ${index + 1}`}
+                  label={t("링크 종류 {0}", {
+                    0: index + 1,
+                  })}
                   value={link.kind}
                   onValueChange={(kind) =>
                     changeLink(rowId, {
@@ -125,7 +132,7 @@ export function ProfileAboutForm({
                     profileLinkLabels,
                   ).map(([value, label]) => ({
                     value,
-                    label,
+                    label: t(label),
                   }))}
                 />
               </div>
@@ -134,8 +141,10 @@ export function ProfileAboutForm({
                   <TextField
                     hideLabel
                     className="!text-base"
-                    placeholder="표시 이름"
-                    label={`표시 이름 ${index + 1}`}
+                    placeholder={t("표시 이름")}
+                    label={t("표시 이름 {0}", {
+                      0: index + 1,
+                    })}
                     value={link.label ?? ""}
                     error={errors[`links.${index}.label`]}
                     onChange={(event) =>
@@ -165,7 +174,9 @@ export function ProfileAboutForm({
                 <Button
                   variant="ghost"
                   className="!size-11 !min-h-11 !p-0 !text-muted"
-                  aria-label={`링크 ${index + 1} 삭제`}
+                  aria-label={t("링크 {0} 삭제", {
+                    0: index + 1,
+                  })}
                   onClick={() => {
                     removeLink(rowId);
                     addButton.current
@@ -192,7 +203,7 @@ export function ProfileAboutForm({
           <div ref={addButton}>
             <Button
               variant="ghost"
-              aria-label="링크 추가"
+              aria-label={t("링크 추가")}
               className={profileStyles.addLink}
               onClick={() => {
                 const rowId = addLink();
@@ -221,13 +232,13 @@ export function ProfileAboutForm({
           </div>
         </section>
       </fieldset>
-      {failure && <p role="alert">{failure}</p>}
+      {failure && <p role="alert">{t(failure)}</p>}
       {discard ? (
         <div
           role="alert"
           className="space-y-3 rounded-xl border border-line p-4"
         >
-          <p>저장하지 않은 변경을 취소할까요?</p>
+          <p>{t("저장하지 않은 변경을 취소할까요?")}</p>
           <div
             ref={continueButton}
             className="flex flex-wrap justify-end gap-2"
@@ -246,10 +257,10 @@ export function ProfileAboutForm({
                     ?.focus();
               }}
             >
-              계속 편집
+              {t("계속 편집")}
             </Button>
             <Button variant="danger" onClick={onCancel}>
-              변경 취소
+              {t("변경 취소")}
             </Button>
           </div>
         </div>
@@ -262,10 +273,10 @@ export function ProfileAboutForm({
               dirty ? setDiscard(true) : onCancel()
             }
           >
-            취소
+            {t("취소")}
           </Button>
           <Button type="submit" loading={busy}>
-            {busy ? "저장 중…" : "저장"}
+            {busy ? t("저장 중…") : t("저장")}
           </Button>
         </div>
       )}

@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import type { QuizContent } from "@/api/contracts";
 import { MarkdownContent } from "@/features/quiz-authoring/markdown-content";
 
@@ -6,6 +9,8 @@ export function ContentPreview({
 }: {
   content: QuizContent;
 }) {
+  const t = useTranslation();
+
   const { question, answer, explanation, hashtagIds } =
     content;
   const answerText =
@@ -27,10 +32,10 @@ export function ContentPreview({
           : "";
 
   const format = {
-    SINGLE_CHOICE: "객관식 · 하나 선택",
-    MULTIPLE_CHOICE: "객관식 · 모두 선택",
-    TRUE_FALSE: "OX 문제",
-    SHORT_ANSWER: "단답형",
+    SINGLE_CHOICE: t("객관식 · 하나 선택"),
+    MULTIPLE_CHOICE: t("객관식 · 모두 선택"),
+    TRUE_FALSE: t("OX 문제"),
+    SHORT_ANSWER: t("단답형"),
   } as const;
 
   return (
@@ -42,7 +47,7 @@ export function ContentPreview({
       </p>
       <MarkdownContent>{question.prompt}</MarkdownContent>
       {"choices" in question && (
-        <ol aria-label="선택지" className="grid gap-2">
+        <ol aria-label={t("선택지")} className="grid gap-2">
           {question.choices.map(({ id, text }, index) => (
             <li
               key={id}
@@ -64,7 +69,7 @@ export function ContentPreview({
       <div className="grid gap-4 rounded-xl bg-canvas p-4">
         <div>
           <h3 className="mb-1 text-xs font-semibold text-muted">
-            정답
+            {t("정답")}
           </h3>
           <p className="whitespace-pre-wrap break-words text-sm font-semibold">
             {answerText}
@@ -72,7 +77,7 @@ export function ContentPreview({
         </div>
         <div>
           <h3 className="mb-1 text-xs font-semibold text-muted">
-            해설
+            {t("해설")}
           </h3>
           <MarkdownContent>{explanation}</MarkdownContent>
         </div>

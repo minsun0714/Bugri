@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import {
   useEffect,
@@ -19,6 +20,8 @@ export function ResponsivePopover({
   label: string;
   children: ReactNode;
 }) {
+  const t = useTranslation();
+
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDialogElement>(null);
@@ -143,7 +146,7 @@ export function ResponsivePopover({
           <Button
             data-panel-close
             variant="ghost"
-            aria-label={`${title} 닫기`}
+            aria-label={t("{0} 닫기", { 0: title })}
             onClick={() => setOpen(false)}
             className="!min-h-11 !min-w-11 !p-2"
           >

@@ -1751,3 +1751,12 @@
 - Node v22.23.3, `beb2b70`에서 `npm run verify -- -- --workers=2` exit 0: ESLint·전체 TypeScript·Jest 62 suites/311 tests·도구 테스트 3개·production build·Chromium E2E 197개 통과. 로그 `/tmp/profile-dnd-pr-theme-verify.log`. 이전 결과를 대체하는 최종 통합 검증이며 실패·재시도 없음.
 - [독립 UX/UI 통합 리뷰](ux-reviews/PROFILE-DND-INTEGRATION.md): 두 테마·PC/모바일 본인/방문자 화면과 저장/취소/포커스/탐색을 직접 확인해 필수 문제 0개, 수정 0회. upstream 코드·문서 보존 정적 리뷰도 완료. 실기기·스크린리더 등 한계는 리뷰 문서에 기록했다.
 - 검증 후 변경은 작업 기록·리뷰 문서뿐이므로 성공 결과를 재사용한다. 문서 링크·diff check 확인 후 PR을 Ready로 갱신하며 병합은 하지 않는다.
+
+## I18N-01 — 한국어·영어 화면 언어
+
+- 상태: IN_PROGRESS — 최종 전체 검증 실패, DONE/커밋 전. REQ-16에 따라 서비스 UI만 번역하며 퀴즈·프로필·사용자 입력은 원문 유지. 브라우저 언어 감지, 명시 선택 저장, 공통 헤더 언어 선택, 오류·접근성 문구를 포함한다.
+- 검증 계획: 언어 선택/복원/저장 차단/콘텐츠 보존 단위 및 E2E, 독립 UX·UI 화면 리뷰, 최종 전체 verify.
+
+- I18N-01 검증: Node v22.23.3. `PLAYWRIGHT_PORT=3447 npm run verify`에서 lint·전체 타입·Jest 64 suites/316개·도구3개·production build 통과, E2E 201개 중198개 통과/3개 실패(exit1). 다국어 E2E4개는 통과했다. 변경 파일 Prettier·diff check 통과. 전체 통과나 병합 준비 완료로 간주하지 않는다.
+- 남은 실패: `profile-split.spec.ts:19`의 ‘개인 관리’ region 이름을 변경해 기존 접근성 계약 회귀(번역 가능한 region 이름 복원 필요). `developer-discovery-repair.spec.ts:317` 구독 모달과 `scene-centering.spec.ts:4` mobile390은30초 시간 초과로 원인 추가 확인 필요. 시간 초과를 환경 문제로 단정하거나 테스트를 제외하지 않았다.
+- 검증 수정·재실행 한도 도달로 추가 재시도 중단. 구현 변경은 미커밋으로 보존하며 push/PR 없음. 최종 로그 `.bugri-hooks/i18n/verify-final.log`, 실패 스냅샷 `test-results/`. [독립 UX/UI·코드 리뷰 및 검증 기록](ux-reviews/I18N-01.md).

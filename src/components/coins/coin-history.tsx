@@ -1,4 +1,8 @@
 "use client";
+import {
+  useLocale,
+  useTranslation,
+} from "@/lib/i18n/use-translation";
 
 import { useState } from "react";
 import type { LedgerEntry } from "@/api/contracts";
@@ -34,6 +38,9 @@ export function CoinHistoryContent({
 }: {
   userId: string;
 }) {
+  const t = useTranslation();
+  const locale = useLocale();
+
   const [selection, setSelection] = useState<{
     userId: string;
     page: number;
@@ -92,23 +99,23 @@ export function CoinHistoryContent({
         id="bugcoin-history-heading"
         className="text-lg font-semibold tracking-tight"
       >
-        BugCoin 내역
+        {t("BugCoin 내역")}
       </h2>
       {isPending && (
         <p role="status" className="mt-5 text-muted">
-          잔액과 내역을 불러오는 중…
+          {t("잔액과 내역을 불러오는 중…")}
         </p>
       )}
       {error && (
         <div className="mt-5 space-y-3">
-          <p role="alert">{errorMessage(error)}</p>
+          <p role="alert">{t(errorMessage(error))}</p>
           <div className="flex justify-end">
             <Button
               variant="secondary"
               loading={isFetching}
               onClick={() => void refetch()}
             >
-              다시 시도
+              {t("다시 시도")}
             </Button>
           </div>
         </div>
@@ -117,17 +124,17 @@ export function CoinHistoryContent({
         <>
           <div className="mb-7 mt-5">
             <span className="block text-sm text-muted">
-              내 잔액
+              {t("내 잔액")}
             </span>
             <span
-              aria-label="내 잔액"
+              aria-label={t("내 잔액")}
               className="mt-2 block [&_.ui-coin]:text-4xl [&_.ui-coin]:tracking-tight [&_.ui-coin]:tabular-nums [&_.ui-coin]:gap-2.5 [&_.ui-coin_>_span]:-rotate-6 [&_.ui-coin_small]:ml-1 [&_.ui-coin_small]:text-sm"
             >
               <Coin amount={data.balance} />
             </span>
           </div>
           <Tabs
-            label="BugCoin 내역 필터"
+            label={t("BugCoin 내역 필터")}
             className="[&_[role=tablist]]:gap-1 [&_[role=tablist]]:border-0 [&_[role=tablist]]:overflow-visible [&_[role=tablist]_button]:min-h-10 [&_[role=tablist]_button]:rounded-xl [&_[role=tablist]_button]:border-0 [&_[role=tablist]_button]:px-4 [&_[role=tablist]_button]:py-2 [&_[role=tablist]_button]:text-sm [&_[role=tablist]_button[aria-selected=true]]:bg-primary/10 [&_[role=tablist]_button[aria-selected=true]]:text-primary"
             panelClassName="pt-3! text-foreground!"
             items={Object.values(HistoryFilter)}
@@ -143,14 +150,14 @@ export function CoinHistoryContent({
             {entries.length === 0 ? (
               <p className="py-10 text-center text-sm text-muted">
                 {filter === HistoryFilter.CREDIT
-                  ? "지급 내역이 없어요."
+                  ? t("지급 내역이 없어요.")
                   : filter === HistoryFilter.DEBIT
-                    ? "사용 내역이 없어요."
-                    : "아직 지급·사용 내역이 없어요."}
+                    ? t("사용 내역이 없어요.")
+                    : t("아직 지급·사용 내역이 없어요.")}
               </p>
             ) : (
               <ul
-                aria-label="지급·사용 내역"
+                aria-label={t("지급·사용 내역")}
                 className="divide-y divide-line/60"
               >
                 {visibleEntries.map(
@@ -161,12 +168,12 @@ export function CoinHistoryContent({
                     >
                       <div>
                         <p className="text-sm font-semibold text-foreground">
-                          {reasons[reason]}
+                          {t(reasons[reason])}
                         </p>
                         <time
                           dateTime={createdAt}
                           aria-label={new Intl.DateTimeFormat(
-                            "ko-KR",
+                            locale,
                             {
                               dateStyle: "long",
                               timeStyle: "long",
@@ -174,26 +181,23 @@ export function CoinHistoryContent({
                           ).format(new Date(createdAt))}
                           className="mt-1 block text-xs text-muted"
                         >
-                          {new Intl.DateTimeFormat(
-                            "ko-KR",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            },
-                          ).format(new Date(createdAt))}
+                          {new Intl.DateTimeFormat(locale, {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          }).format(new Date(createdAt))}
                         </time>
                       </div>
                       <span
                         className={`whitespace-nowrap text-base font-semibold tabular-nums ${amount > 0 ? "text-primary" : "text-foreground"}`}
                       >
                         <span className="sr-only">
-                          {amount < 0 ? "사용 " : "지급 "}
+                          {amount < 0
+                            ? t("사용 ")
+                            : t("지급 ")}
                         </span>
                         {amount > 0 ? "+" : ""}
-                        {amount.toLocaleString(
-                          "ko-KR",
-                        )}{" "}
+                        {amount.toLocaleString(locale)}{" "}
                         <span className="sr-only">
                           BugCoin
                         </span>

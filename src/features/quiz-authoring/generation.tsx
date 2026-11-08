@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useRef, useState } from "react";
 import { QuizScope, QuizStatus } from "@/api/constants";
@@ -21,6 +22,8 @@ import {
 } from "@/features/quiz-authoring/hooks/use-generation";
 
 export function Generation(props: GenerationProps) {
+  const t = useTranslation();
+
   const [modes, setModes] = useState<
     Record<number, string>
   >({});
@@ -81,17 +84,21 @@ export function Generation(props: GenerationProps) {
         ({ quizId }) => quizId === savedQuizId,
       );
 
-      if (!saved) return "상태 확인 중";
+      if (!saved) return t("상태 확인 중");
       if (saved.status === QuizStatus.PUBLIC)
-        return "공개됨";
+        return t("공개됨");
       if (saved.status === QuizStatus.PRIVATE)
-        return "비공개";
-      return "임시저장됨";
+        return t("비공개");
+      return t("임시저장됨");
     },
   );
-  const tabLabels = batch.candidates.map(
-    (_, index) =>
-      `퀴즈 ${index + 1}${savedLabels[index] ? ` · ${savedLabels[index]}` : ""}`,
+  const tabLabels = batch.candidates.map((_, index) =>
+    t("퀴즈 {0}{1}", {
+      0: index + 1,
+      1: savedLabels[index]
+        ? ` · ${savedLabels[index]}`
+        : "",
+    }),
   );
   const manageHref = `/quizzes/authoring/manage?user=${encodeURIComponent(props.userId ?? "learner")}`;
   const allHandled =
@@ -115,7 +122,7 @@ export function Generation(props: GenerationProps) {
   const chatWorkspace = candidate ? (
     <section
       className="flex min-h-0 flex-1 flex-col"
-      aria-label="버그리와 대화"
+      aria-label={t("버그리와 대화")}
     >
       <header className="flex shrink-0 items-center justify-between gap-4 border-b border-line pb-4">
         <Button
@@ -125,11 +132,12 @@ export function Generation(props: GenerationProps) {
           onClick={closeChat}
         >
           <span aria-hidden="true">←</span>
-          퀴즈로 돌아가기
+          {t("퀴즈로 돌아가기")}
         </Button>
         <div className="min-w-0 text-right">
           <p className="text-xs text-muted">
-            퀴즈 {selectedIndex + 1}
+            {t("퀴즈")}
+            {selectedIndex + 1}
           </p>
           <h2 className="truncate text-sm font-semibold text-foreground">
             {candidate.content.title}
@@ -141,14 +149,14 @@ export function Generation(props: GenerationProps) {
         ref={chatLogRef}
         className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto py-5"
         role="log"
-        aria-label="대화 내용"
+        aria-label={t("대화 내용")}
       >
         <div
-          aria-label="첫 사용자 메시지"
+          aria-label={t("첫 사용자 메시지")}
           className="max-w-[90%] justify-self-end rounded-2xl bg-primary/10 px-5 py-4"
         >
           <span className="mb-2 block text-xs font-semibold text-muted">
-            나
+            {t("나")}
           </span>
           <MarkdownContent>
             {batch.sourceContent}
@@ -158,7 +166,7 @@ export function Generation(props: GenerationProps) {
         {candidate.history?.length ? (
           <ol
             className="grid gap-4"
-            aria-label="추가 요청 기록"
+            aria-label={t("추가 요청 기록")}
           >
             {candidate.history.map(
               ({ prompt: sent, content }, index) => (
@@ -168,7 +176,7 @@ export function Generation(props: GenerationProps) {
                   </p>
                   <div className="max-w-[90%] rounded-2xl border border-line bg-canvas px-5 py-4 text-sm">
                     <span className="mb-2 block text-xs font-semibold text-primary">
-                      버그리
+                      {t("버그리")}
                     </span>
                     <p className="mb-2 font-semibold text-foreground">
                       {content.title}
@@ -184,7 +192,7 @@ export function Generation(props: GenerationProps) {
         ) : (
           <div className="max-w-[90%] rounded-2xl border border-line bg-canvas px-5 py-4 text-sm">
             <span className="mb-2 block text-xs font-semibold text-primary">
-              버그리
+              {t("버그리")}
             </span>
             <p className="mb-2 font-semibold text-foreground">
               {candidate.content.title}
@@ -205,8 +213,10 @@ export function Generation(props: GenerationProps) {
       >
         <div className="min-w-0 flex-1">
           <TextArea
-            label={`퀴즈 ${selectedIndex + 1}에 추가 요청`}
-            placeholder="예시를 추가해줘"
+            label={t("퀴즈 {0}에 추가 요청", {
+              0: selectedIndex + 1,
+            })}
+            placeholder={t("예시를 추가해줘")}
             value={prompt}
             disabled={busy}
             rows={2}
@@ -231,8 +241,8 @@ export function Generation(props: GenerationProps) {
         <Button
           size="sm"
           type="submit"
-          aria-label="요청 보내기"
-          title="요청 보내기"
+          aria-label={t("요청 보내기")}
+          title={t("요청 보내기")}
           loading={busy}
           disabled={!prompt.trim()}
           className="size-10 min-h-10! p-0!"
@@ -263,24 +273,24 @@ export function Generation(props: GenerationProps) {
           ? "flex min-h-0 flex-1 flex-col gap-6"
           : styles.stack
       }
-      aria-label="생성 결과 상세"
+      aria-label={t("생성 결과 상세")}
     >
       {!props.embedded && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl font-semibold tracking-tight">
-            생성 결과
+            {t("생성 결과")}
           </h1>
           <a
             className="text-sm font-semibold text-primary"
             href={`/quizzes/authoring?user=${encodeURIComponent(props.userId ?? "learner")}`}
           >
-            대화로 돌아가기
+            {t("대화로 돌아가기")}
           </a>
         </div>
       )}
       {notice && (
         <p role="status" className="text-primary">
-          {notice}
+          {t(notice)}
         </p>
       )}
       <RequestError error={error} />
@@ -292,7 +302,7 @@ export function Generation(props: GenerationProps) {
             disabled={busy}
             onClick={reload}
           >
-            최신 후보 다시 불러오기
+            {t("최신 후보 다시 불러오기")}
           </Button>
         </div>
       )}
@@ -302,7 +312,7 @@ export function Generation(props: GenerationProps) {
             href={reviewHref}
             className="inline-flex min-h-10 items-center justify-center rounded-xl border-2 border-primary-edge bg-primary-solid px-4 py-2 text-sm font-semibold text-on-primary shadow-[0_3px_0_var(--color-primary-edge)]"
           >
-            검토·승인
+            {t("검토·승인")}
           </a>
         </div>
       )}
@@ -314,10 +324,10 @@ export function Generation(props: GenerationProps) {
               ? "flex min-h-0 flex-1 flex-col"
               : styles.stack
           }
-          aria-label="생성 후보"
+          aria-label={t("생성 후보")}
         >
           <Tabs
-            label="퀴즈 선택"
+            label={t("퀴즈 선택")}
             items={tabLabels}
             value={tabLabels[selectedIndex]}
             disabled={busy}
@@ -339,12 +349,13 @@ export function Generation(props: GenerationProps) {
               <div className="min-w-0">
                 <Card
                   className="grid gap-6 text-foreground"
-                  aria-label="버그리 응답"
+                  aria-label={t("버그리 응답")}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="mb-1 text-xs text-muted">
-                        문제 {selectedIndex + 1} /{" "}
+                        {t("문제")}
+                        {selectedIndex + 1} /{" "}
                         {batch.candidates.length}
                       </p>
                       <h2 className="text-lg font-semibold">
@@ -356,7 +367,7 @@ export function Generation(props: GenerationProps) {
                         ["직접 수정", "LLM으로 수정"].map(
                           (label) => (
                             <Button
-                              key={label}
+                              key={t(label)}
                               size="sm"
                               variant="ghost"
                               disabled={busy}
@@ -384,7 +395,7 @@ export function Generation(props: GenerationProps) {
                                   edit(candidate.content);
                               }}
                             >
-                              {label}
+                              {t(label)}
                             </Button>
                           ),
                         )}
@@ -395,14 +406,25 @@ export function Generation(props: GenerationProps) {
                         onClick={() => {
                           if (
                             !window.confirm(
-                              `“${candidate.content.title}” 퀴즈를 삭제할까요?${candidate.savedQuizId ? " 저장하거나 공개한 퀴즈도 목록에서 사라집니다." : ""}`,
+                              t(
+                                "“{0}” 퀴즈를 삭제할까요?{1}",
+                                {
+                                  0: candidate.content
+                                    .title,
+                                  1: candidate.savedQuizId
+                                    ? t(
+                                        " 저장하거나 공개한 퀴즈도 목록에서 사라집니다.",
+                                      )
+                                    : "",
+                                },
+                              ),
                             )
                           )
                             return;
                           deleteCurrent();
                         }}
                       >
-                        퀴즈 삭제
+                        {t("퀴즈 삭제")}
                       </Button>
                     </div>
                   </div>
@@ -441,14 +463,14 @@ export function Generation(props: GenerationProps) {
                               onClick={applyEdit}
                               loading={busy}
                             >
-                              수정 반영
+                              {t("수정 반영")}
                             </Button>
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={cancelEdit}
                             >
-                              수정 취소
+                              {t("수정 취소")}
                             </Button>
                           </div>
                         </fieldset>
@@ -472,7 +494,7 @@ export function Generation(props: GenerationProps) {
                             }
                             onClick={publish}
                           >
-                            바로 공개
+                            {t("바로 공개")}
                           </Button>
                         </div>
                         <div className="flex items-center gap-1">
@@ -485,7 +507,7 @@ export function Generation(props: GenerationProps) {
                               save(candidate.candidateId)
                             }
                           >
-                            임시저장
+                            {t("임시저장")}
                           </Button>
                         </div>
                       </div>
@@ -498,8 +520,10 @@ export function Generation(props: GenerationProps) {
       )}
       {batch && !candidate && (
         <EmptyState
-          title="남은 퀴즈가 없습니다"
-          description="새 퀴즈를 만들면 다시 다듬을 수 있습니다."
+          title={t("남은 퀴즈가 없습니다")}
+          description={t(
+            "새 퀴즈를 만들면 다시 다듬을 수 있습니다.",
+          )}
         />
       )}
     </section>

@@ -1,4 +1,7 @@
 "use client";
+import { type UiMessage } from "@/lib/i18n/messages";
+
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
@@ -27,8 +30,10 @@ export function ProfileAbout({
   identity: ReactNode;
   visitorAction: ReactNode;
   ownerAction?: ReactNode;
-  onNotice: (message: string, duration?: number) => void;
+  onNotice: (message: UiMessage, duration?: number) => void;
 }) {
+  const t = useTranslation();
+
   const { profile, update } = useProfileAbout(
     userId,
     publicId,
@@ -52,9 +57,9 @@ export function ProfileAbout({
   else if (profile.error)
     content = (
       <div role="alert" className="space-y-3">
-        <p>자기소개와 링크를 불러오지 못했습니다.</p>
+        <p>{t("자기소개와 링크를 불러오지 못했습니다.")}</p>
         <Button onClick={() => void profile.refetch()}>
-          프로필 다시 불러오기
+          {t("프로필 다시 불러오기")}
         </Button>
       </div>
     );
@@ -75,7 +80,7 @@ export function ProfileAbout({
     if (biography.trim() || links.length)
       content = (
         <section
-          aria-label="자기소개와 링크"
+          aria-label={t("자기소개와 링크")}
           className="min-w-0 space-y-3"
         >
           {biography.trim() && (
@@ -86,7 +91,10 @@ export function ProfileAbout({
                 skipHtml
                 components={{
                   img: ({ alt }) => (
-                    <span>[이미지: {alt ?? ""}]</span>
+                    <span>
+                      {t("[이미지:")}
+                      {alt ?? ""}]
+                    </span>
                   ),
                 }}
               >
@@ -96,7 +104,7 @@ export function ProfileAbout({
           )}
           {links.length > 0 && (
             <ul
-              aria-label="프로필 링크"
+              aria-label={t("프로필 링크")}
               className="flex flex-wrap items-center gap-x-5 gap-y-1"
             >
               {links.map(({ kind, label, url }, index) => (
@@ -114,7 +122,7 @@ export function ProfileAbout({
                     <span className="min-w-0 break-all">
                       {kind === ProfileLinkKind.OTHER
                         ? label
-                        : profileLinkLabels[kind]}
+                        : t(profileLinkLabels[kind])}
                       {kind === ProfileLinkKind.OTHER && (
                         <span className="ml-1.5 inline-block max-w-full break-all align-bottom text-xs font-normal text-muted">
                           · {new URL(url).hostname}
@@ -129,7 +137,7 @@ export function ProfileAbout({
                     </span>
                     <span className="sr-only">
                       {" "}
-                      (새 탭)
+                      {t("(새 탭)")}
                     </span>
                   </a>
                 </li>
@@ -143,7 +151,7 @@ export function ProfileAbout({
   return (
     <section
       ref={root}
-      aria-label="공개 프로필 정보"
+      aria-label={t("공개 프로필 정보")}
       className="grid w-full grid-cols-1 items-start gap-x-6 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto]"
     >
       <header className="min-w-0 self-center">
@@ -153,7 +161,7 @@ export function ProfileAbout({
         !editing && (
           <div
             role="group"
-            aria-label="프로필 관리"
+            aria-label={t("프로필 관리")}
             className="flex items-center justify-end gap-3"
           >
             {ownerAction}
@@ -167,7 +175,7 @@ export function ProfileAbout({
               }}
             >
               <EditIcon />
-              프로필 편집
+              {t("프로필 편집")}
             </Button>
           </div>
         )

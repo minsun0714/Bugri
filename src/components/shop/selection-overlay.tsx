@@ -1,3 +1,6 @@
+"use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
+
 import {
   useState,
   useEffect,
@@ -26,6 +29,8 @@ export function SelectionOverlay({
   ) => void;
   onStep: (tool: DeskTool, direction: number) => void;
 }) {
+  const t = useTranslation();
+
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -139,20 +144,22 @@ export function SelectionOverlay({
     >
       <div
         role="group"
-        aria-label="선택 테두리"
+        aria-label={t("선택 테두리")}
         className="absolute left-[var(--selection-x)] top-[var(--selection-y)] h-[var(--selection-height)] w-[var(--selection-width)] border-2 border-primary before:absolute before:-left-1 before:-top-1 before:size-2 before:border before:border-primary before:bg-surface after:absolute after:-bottom-1 after:-right-1 after:size-2 after:border after:border-primary after:bg-surface"
       />
       <div
         className="pointer-events-auto absolute left-[var(--controls-x)] top-[var(--controls-y)] "
         role="group"
-        aria-label="선택 상품 조작"
+        aria-label={t("선택 상품 조작")}
       >
         <Button
           size="sm"
           variant="ghost"
           className="relative !h-7 !min-h-0 !w-7 !rounded-full !border-0 !p-0 !shadow-none !text-primary touch-none !cursor-grab active:!cursor-grabbing after:absolute after:left-1/2 after:top-full after:h-1 after:w-px after:bg-primary"
-          aria-label="선택 상품 회전"
-          title="누른 채 좌우로 드래그해 회전 · 방향키로 15도씩 조절"
+          aria-label={t("선택 상품 회전")}
+          title={t(
+            "누른 채 좌우로 드래그해 회전 · 방향키로 15도씩 조절",
+          )}
           disabled={disabled}
           onPointerDown={(event) =>
             onStart(event, DeskTool.ROTATE)
@@ -181,7 +188,7 @@ export function SelectionOverlay({
           <Button
             size="sm"
             variant="ghost"
-            aria-label="선택 아이템 메뉴"
+            aria-label={t("선택 아이템 메뉴")}
             aria-haspopup="menu"
             aria-expanded={open}
             disabled={disabled}
@@ -204,15 +211,15 @@ export function SelectionOverlay({
             <div
               ref={menu}
               role="menu"
-              aria-label="겹침 순서 변경"
+              aria-label={t("겹침 순서 변경")}
               onKeyDown={menuKeyDown}
               className="pointer-events-auto absolute left-[var(--menu-x)] top-[var(--menu-y)] z-50 w-44 rounded-xl border border-line bg-surface p-1 shadow-lg"
             >
               {[
-                [LayerAction.FORWARD, "앞으로 가져오기"],
-                [LayerAction.BACKWARD, "뒤로 보내기"],
-                [LayerAction.FRONT, "맨 앞으로 보내기"],
-                [LayerAction.BACK, "맨 뒤로 보내기"],
+                [LayerAction.FORWARD, t("앞으로 가져오기")],
+                [LayerAction.BACKWARD, t("뒤로 보내기")],
+                [LayerAction.FRONT, t("맨 앞으로 보내기")],
+                [LayerAction.BACK, t("맨 뒤로 보내기")],
               ].map(([action, label]) => (
                 <Button
                   key={action}

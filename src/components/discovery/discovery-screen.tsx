@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { createQueryClient } from "@/api/query-client";
 
@@ -22,6 +23,8 @@ export function DiscoveryScreen({
 }: {
   kind: DiscoveryQuery["kind"];
 }) {
+  const t = useTranslation();
+
   const params = useSearchParams();
   const { signedIn, signIn } = useDemoSession();
   const router = useRouter();
@@ -58,25 +61,27 @@ export function DiscoveryScreen({
           <div className={tagDiscoveryStyles.heading}>
             <TagExplorer />
             <h1 className="text-2xl tracking-tight sm:text-3xl">
-              태그 탐색
+              {t("태그 탐색")}
             </h1>
           </div>
         ) : (
-          <h1 className="text-3xl">개발자 탐색</h1>
+          <h1 className="text-3xl">{t("개발자 탐색")}</h1>
         )}
         {signedIn && !isTags && (
           <FeatureSectionShell
             id="subscriptions"
-            title="내 구독"
+            title={t("내 구독")}
           />
         )}
         {isTags && request.subscribedOnly && !signedIn ? (
           <div className="space-y-3">
             <p>
-              내 구독을 보려면 데모 로그인이 필요합니다.
+              {t(
+                "내 구독을 보려면 데모 로그인이 필요합니다.",
+              )}
             </p>
             <Button onClick={() => setLoginOpen(true)}>
-              데모 로그인
+              {t("데모 로그인")}
             </Button>
           </div>
         ) : (
@@ -113,20 +118,20 @@ export function DiscoveryScreen({
         <Modal
           open={loginOpen}
           onClose={() => setLoginOpen(false)}
-          title="데모 로그인이 필요합니다"
+          title={t("데모 로그인이 필요합니다")}
         >
           <div className="space-y-5 p-6">
             <p>
-              태그 구독과 학습은 데모 로그인 후 이용할 수
-              있습니다. 로그인 후 원하는 동작을 다시 선택해
-              주세요.
+              {t(
+                "태그 구독과 학습은 데모 로그인 후 이용할 수 있습니다. 로그인 후 원하는 동작을 다시 선택해 주세요.",
+              )}
             </p>
             <div className="flex flex-wrap justify-end gap-3">
               <Button
                 variant="secondary"
                 onClick={() => setLoginOpen(false)}
               >
-                취소
+                {t("취소")}
               </Button>
               <Button
                 onClick={() => {
@@ -134,7 +139,7 @@ export function DiscoveryScreen({
                   setLoginOpen(false);
                 }}
               >
-                데모 로그인
+                {t("데모 로그인")}
               </Button>
             </div>
           </div>
