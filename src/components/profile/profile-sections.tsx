@@ -6,7 +6,7 @@ import {
   useProfileOrderEditor,
   profileSectionLabels as labels,
 } from "@/components/profile/use-profile-order-editor";
-import { EditIcon } from "@/components/profile/edit-icon";
+import { OrderIcon } from "@/components/profile/order-icon";
 import { profileStyles } from "@/components/profile/styles";
 import { Button, Modal, Skeleton } from "@/components/ui";
 
@@ -59,7 +59,7 @@ export function ProfileSections({
       disabled={!profile.data || !!profile.error}
       onClick={start}
     >
-      <EditIcon />
+      <OrderIcon />
       순서 편집
     </Button>
   ) : null;
