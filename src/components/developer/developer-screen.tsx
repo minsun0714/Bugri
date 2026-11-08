@@ -563,8 +563,6 @@ export function DeveloperScreen({
   afterHeader?: ReactNode;
   activity?: ReactNode;
 }) {
-  const t = useTranslation();
-
   const { publicId } = useParams<{ publicId: string }>();
   const params = useSearchParams();
   const { signedIn } = useDemoSession();
@@ -616,18 +614,6 @@ export function DeveloperScreen({
   return (
     <QueryClientProvider client={client}>
       <div className={profile ? "space-y-6" : "space-y-3"}>
-        {!profile && (
-          <Link
-            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary focus-visible:text-primary"
-            href={withDemoUser(
-              "/discover/developers",
-              signedIn ? userId : null,
-            )}
-          >
-            <span aria-hidden="true">←</span>
-            {t("탐색으로 돌아가기")}
-          </Link>
-        )}
         <Catalog
           key={`${userId}:${publicId}`}
           profile={profile}

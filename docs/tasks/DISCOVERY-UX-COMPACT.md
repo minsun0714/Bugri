@@ -63,3 +63,12 @@
 
 - C3/R3: 동일 독립 UX/UI 리뷰어 재검증 완료, 새 미해결 문제 없음. UX는 legacy URL→전체해제 키보드→구독패널 독립검색→Escape 복귀 직접 확인. 기존 UX-01은 검색 기능 제거로 해당 없음. 전체 수정 회차3회, 이후 코드 변경 없이 문서만 기록하고 커밋.
 - 이번 변경: developer-screen/queries/styles, 관련 unit2/E2E3 파일, PRD·API 표시 정책 설명, TASK/리뷰. 번역·공통 UI·서비스·Mock 저장 구조 변경 없음. push/PR/merge 없음.
+
+## 후속: 중복 탐색 복귀 링크 제거
+
+- 사용자 승인으로 개발자별 퀴즈 목록의 별도 ‘탐색으로 돌아가기’ 링크만 제거. 브레드크럼의 개발자 탐색 링크/더미 사용자 유지. 태그별 페이지·프로필·공통 navigation 불변.
+- 단순 링크 제거로 화면 재설계/새 기능 없음. scoped lint/format·타입, developer E2E(1280/390, 브레드크럼 링크 유지와 중복 링크 부재 포함), 독립 인접 화면 확인으로 검증. 전체 pipeline/상점3D 반복 안 함.
+
+- 결과: Node22.23.3 scoped ESLint/Prettier·typecheck·developer E2E6건 통과(내부 production build 포함). 1280/390 브레드크럼 href 및 중복링크 부재 assertion 통과. /tmp/bugri-backlink 한영1280/390/320 캡처·가로넘침 측정 완료, 메인이 ko390/en1280 실제이미지 확인. 브레드크럼→작성자 정보가 바로 이어짐.
+- 독립 ui_review 코드 검토: 비profile 중복링크/불필요 번역 훅만 제거, 브레드크럼 사용자정보·키보드 복귀 경로 유지, 문제 없음. 코드 기반 한계 명시(독립 실제화면 리뷰로 주장하지 않음). 단순 링크 제거로 추가 전체 UX루프 없음.
+- 코드/테스트/본TASK 3파일만 후속 커밋. push/PR/merge 없음.
