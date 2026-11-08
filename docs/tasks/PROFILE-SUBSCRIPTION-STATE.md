@@ -15,3 +15,9 @@
 
 - 상태: DONE. 사용자 지적에 따라 구현 환경 설명을 제거하고 비로그인 버튼을 `구독하기`로 통일. 기존 signIn 경계와 사용자 선택 후 명시적 구독 동작은 유지. 인증 자체 교체는 이번 범위 아님.
 - 후속 검증: 변경 파일 lint/format·전체 타입·단위4·PC/모바일 E2E2 통과. 최초 테스트 옵션 타입 오류 수정 후 통과. 동일 UX/UI 리뷰어 R1에서 방문자 캡처2장씩 직접 확인, 추가 문제 없음.
+
+## PR 검증
+
+- 검증 코드 b992863, Node22.23.3. 전체 lint/타입/Jest/도구/build 및 상점·3D 전용을 제외한 E2E 27개 spec 실행 완료. 프로필·탐색·공통 이동/언어/theme 혼합 spec 유지. 상점 구매·3D 배치/회전/렌더링은 코드 영향 없어 제외.
+- 최종 결과: lint·전체 타입·Jest69 suites/362개·도구3개·production build·선정 E2E142개 모두 통과. E2E worker1, 포트3109, 로그 `/tmp/bugri-subscription-pr-e2e.log`. 코드 b992863 이후 검증 기록만 변경.
+- E2E 실행 spec: tests/e2e/bugcoin-rewards.spec.ts, tests/e2e/coin-history.spec.ts, tests/e2e/design-system.spec.ts, tests/e2e/developer-discovery-repair.spec.ts, tests/e2e/developer.spec.ts, tests/e2e/discovery-split.spec.ts, tests/e2e/error-handling.spec.ts, tests/e2e/home-quiz-review.spec.ts, tests/e2e/locale.spec.ts, tests/e2e/markdown-editor.spec.ts, tests/e2e/mock-api.spec.ts, tests/e2e/navigation.spec.ts, tests/e2e/profile-about.spec.ts, tests/e2e/profile-layout.spec.ts, tests/e2e/profile-order.spec.ts, tests/e2e/profile-polish.spec.ts, tests/e2e/profile-split.spec.ts, tests/e2e/profile-streak.spec.ts, tests/e2e/profile-subscription-state.spec.ts, tests/e2e/quiz-authoring.spec.ts, tests/e2e/quiz-card-actions.spec.ts, tests/e2e/quiz-reactions.spec.ts, tests/e2e/solving.spec.ts, tests/e2e/streak.spec.ts, tests/e2e/tag-catalog.spec.ts, tests/e2e/tag-discovery.spec.ts, tests/e2e/theme.spec.ts
