@@ -46,7 +46,7 @@ export function ContentFields({
   }
 
   const sectionClass =
-    "grid gap-5 rounded-2xl border border-line bg-surface p-4 sm:p-5";
+    "grid gap-5 rounded-sm border border-line bg-surface p-4 sm:p-5";
   const compactEditor = "[&_textarea]:min-h-36!";
 
   return (

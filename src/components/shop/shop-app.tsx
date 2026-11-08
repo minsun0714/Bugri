@@ -413,6 +413,7 @@ function ShopContent({
               return (
                 <Card
                   key={productId}
+                  variant="note"
                   className="group overflow-hidden !p-0"
                 >
                   <div className="relative flex h-52 items-center justify-center bg-canvas p-9 transition-colors group-hover:bg-primary/5">

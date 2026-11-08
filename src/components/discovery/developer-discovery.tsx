@@ -250,7 +250,7 @@ function DeveloperContent({
         </div>
       </div>
       <form
-        className="flex items-start gap-2 rounded-3xl border border-line bg-surface p-3 sm:gap-3 sm:p-4"
+        className="flex items-start gap-2 rounded-sm border border-line bg-surface p-3 sm:gap-3 sm:p-4"
         onSubmit={(event) => {
           event.preventDefault();
           if (Array.from(draft.value.trim()).length > 100) {
@@ -307,7 +307,7 @@ function DeveloperContent({
         </div>
       )}
       {signedIn && validUser && (
-        <details className="group rounded-3xl border border-line bg-surface px-5 py-2">
+        <details className="group rounded-sm border border-line bg-surface px-5 py-2">
           <summary
             ref={subscriptionSummary}
             className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-xl py-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden"
@@ -600,7 +600,7 @@ function DeveloperContent({
                   })}
                 </ul>
               ) : (
-                <div className="rounded-3xl border border-dashed border-line bg-surface px-5 py-10 text-center text-sm text-muted break-keep">
+                <div className="rounded-sm border border-line bg-canvas px-5 py-10 text-center text-sm text-muted break-keep">
                   {t(
                     "검색 결과가 없습니다. 검색어를 바꿔 보세요.",
                   )}

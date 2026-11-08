@@ -93,7 +93,7 @@ export function PublicDesk({
           afterHeader={
             <section
               aria-label={t("공개 데스크")}
-              className="rounded-3xl border border-line bg-surface p-4"
+              className="rounded-sm border border-line bg-surface p-4"
             >
               <ShopProvider>
                 <QueryBoundary

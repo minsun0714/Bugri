@@ -416,7 +416,7 @@ export function DiscoverySearch({
                 return (
                   <li
                     key={id}
-                    className={discoveryStyles.card}
+                    className={tagDiscoveryStyles.card}
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <span

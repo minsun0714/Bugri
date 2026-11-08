@@ -21,7 +21,7 @@ export const styles = {
   "ui-avatar":
     "ui-avatar inline-grid place-items-center w-10 h-10 rounded-full bg-accent-soft text-primary font-bold text-[14px] shrink-0 border-2 border-secondary-edge [&.sm]:w-7 [&.sm]:h-7 [&.sm]:text-xs [&.lg]:w-14 [&.lg]:h-14 [&.lg]:text-[20px]",
   "ui-card":
-    "ui-card border border-line rounded-[20px] bg-surface p-6 min-w-0 max-[1100px]:p-5 max-[400px]:p-4.5",
+    "ui-card border border-line rounded-sm bg-surface p-6 min-w-0 max-[1100px]:p-5 max-[400px]:p-4.5",
   "ui-alert":
     "ui-alert flex gap-3 p-3.75 rounded-[8px] bg-success-soft text-success-ink text-[12px] [&_>_span]:font-extrabold [&_strong]:font-[650] [&_p]:text-xs [&_p]:mt-1.25 [&_p]:leading-[1.6] [&.warning]:bg-warning-soft [&.warning]:text-warning-ink [&.danger]:bg-danger-soft [&.danger]:text-danger-ink [&.neutral]:bg-neutral-soft [&.neutral]:text-neutral-ink",
   "ui-empty":
@@ -92,3 +92,9 @@ export const searchButtonStyle =
   "!min-h-12 !rounded-2xl !px-5";
 export const searchFormStyle =
   "flex items-start gap-2 sm:gap-3";
+
+// Card surfaces. Solid is the default; the dashed note surface is for browse/reward cards (tags, shop).
+export const cardSurface =
+  "rounded-sm border border-line bg-surface";
+export const noteSurface =
+  "rounded-sm border-2 border-dashed border-control-line bg-canvas";

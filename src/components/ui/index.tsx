@@ -311,13 +311,15 @@ export function Avatar({
 export function Card({
   children,
   className = "",
+  variant = "solid",
 }: {
   children: ReactNode;
   className?: string;
+  variant?: "solid" | "note";
 }) {
   return (
     <article
-      className={`${styles["ui-card"]} ${className}`}
+      className={`${styles["ui-card"]} ${variant === "note" ? "!border-2 !border-dashed !border-control-line !bg-canvas" : ""} ${className}`}
     >
       {children}
     </article>
