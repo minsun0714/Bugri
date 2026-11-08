@@ -33,3 +33,12 @@ export const AttemptContext = {
 
 export type AttemptContext =
   (typeof AttemptContext)[keyof typeof AttemptContext];
+
+/** Where a memo search query matched; null when no query was given. */
+export const NoteMatch = {
+  BODY: "BODY",
+  QUIZ: "QUIZ",
+} as const;
+
+export type NoteMatch =
+  (typeof NoteMatch)[keyof typeof NoteMatch];

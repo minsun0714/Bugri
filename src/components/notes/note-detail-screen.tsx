@@ -7,7 +7,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import {
+  notesHref,
+  parseNotesParams,
+} from "@/components/notes/search-params";
 import { ApiClientError } from "@/api/client";
 import { getErrorMessage } from "@/api/errors";
 import type { Note } from "@/api/contracts";
@@ -94,7 +101,10 @@ function NoteBody({
     focusAfter.current = null;
   }, [editing]);
 
-  const listHref = `/notes?${new URLSearchParams({ user: userId })}`;
+  const listHref = notesHref(
+    userId,
+    parseNotesParams(useSearchParams()),
+  );
 
   function startEditing() {
     setDraft(note.content);
@@ -305,7 +315,10 @@ function NoteDetail({
   const { data, error, isPending, isFetching, refetch } =
     useNote(userId, noteId);
 
-  const listHref = `/notes?${new URLSearchParams({ user: userId })}`;
+  const listHref = notesHref(
+    userId,
+    parseNotesParams(useSearchParams()),
+  );
 
   if (isPending) return <Skeleton />;
 

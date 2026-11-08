@@ -20,6 +20,7 @@ export const endpoints: Record<Operation, Endpoint> = {
     pathKey: "noteId",
   },
   notes: { method: "GET", path: "/notes" },
+  noteTags: { method: "GET", path: "/notes/tags" },
   note: {
     method: "GET",
     path: "/notes/{id}",
