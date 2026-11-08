@@ -35,16 +35,19 @@ function setup(fail = false) {
       ...(fail ? { generate: () => [] } : {}),
     }),
   );
+  const onComplete = jest.fn();
   render(
     <AuthoringQueryProvider>
       <Creation
         api={api}
         userId="learner"
+        onComplete={onComplete}
         onGenerated={jest.fn()}
         onDirty={jest.fn()}
       />
     </AuthoringQueryProvider>,
   );
+  return { onComplete, api };
 }
 test("outside input generates an editable candidate in the same modal", async () => {
   setup();
@@ -125,8 +128,8 @@ test("warns before closing with unhandled candidates and keeps the modal when ca
 
   confirm.mockRestore();
 });
-test("closes without a warning after every candidate is handled", async () => {
-  setup();
+test("completes without a close action or warning after every candidate is handled", async () => {
+  const { onComplete } = setup();
   const confirm = jest.spyOn(window, "confirm");
 
   fireEvent.change(screen.getByRole("textbox"), {
@@ -148,15 +151,17 @@ test("closes without a warning after every candidate is handled", async () => {
     fireEvent.click(
       screen.getByRole("button", { name: "임시저장" }),
     );
-    await screen.findByRole("tab", {
-      name: `퀴즈 ${index} · 임시저장됨`,
-    });
+    if (index < 4) {
+      await screen.findByRole("tab", {
+        name: `퀴즈 ${index} · 임시저장됨`,
+      });
+      expect(onComplete).not.toHaveBeenCalled();
+    }
   }
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "닫기" }),
+  await waitFor(() =>
+    expect(onComplete).toHaveBeenCalledTimes(1),
   );
-
   expect(confirm).not.toHaveBeenCalled();
   expect(
     screen.queryByRole("dialog"),
@@ -179,3 +184,109 @@ test("failed generation keeps outside input and offers retry inside the modal", 
     "실패해도 남길 내용",
   );
 });
+
+test("writing and preview tabs keep source, code and count before generation", () => {
+  setup();
+  const source =
+    "HTTP 응답\n```typescript\n  const status = 200;\n```😀";
+  const input = screen.getByRole("textbox");
+
+  expect(input).toHaveValue("");
+  expect(input).toHaveAttribute(
+    "placeholder",
+    expect.stringContaining("HTTP"),
+  );
+  expect(
+    screen.getByRole("tab", { name: "작성" }),
+  ).toHaveAttribute("aria-selected", "true");
+  fireEvent.change(input, { target: { value: source } });
+  fireEvent.keyDown(
+    screen.getByRole("tab", { name: "작성" }),
+    { key: "End" },
+  );
+  expect(
+    screen.getByRole("tab", { name: "미리보기" }),
+  ).toHaveFocus();
+  expect(screen.getByRole("tabpanel")).toHaveTextContent(
+    "const status = 200;",
+  );
+  expect(
+    screen.getByText(`${[...source].length} / 10,000자`),
+  ).toBeVisible();
+  fireEvent.keyDown(
+    screen.getByRole("tab", { name: "미리보기" }),
+    { key: "Home" },
+  );
+  expect(screen.getByRole("textbox")).toHaveValue(source);
+});
+
+test("a failed save keeps candidates in the modal without completing", async () => {
+  const { api, onComplete } = setup();
+
+  fireEvent.change(screen.getByRole("textbox"), {
+    target: { value: "HTTP 응답" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "퀴즈 만들기" }),
+  );
+  await screen.findByRole("button", { name: "임시저장" });
+  const request = jest
+    .spyOn(api, "request")
+    .mockRejectedValueOnce(new Error("save failed"));
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "임시저장" }),
+  );
+  await screen.findByRole("alert");
+  expect(screen.getByRole("dialog")).toBeVisible();
+  expect(
+    screen
+      .getAllByRole("tab")
+      .filter((tab) => tab.textContent?.startsWith("퀴즈")),
+  ).toHaveLength(4);
+  expect(onComplete).not.toHaveBeenCalled();
+  request.mockRestore();
+});
+
+test.each(["임시저장", "바로 공개"])(
+  "closing after one %s opens the list only after confirming remaining candidates",
+  async (action) => {
+    const { onComplete } = setup();
+    const confirm = jest
+      .spyOn(window, "confirm")
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "HTTP 응답" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "퀴즈 만들기" }),
+    );
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: action,
+      }),
+    );
+    await screen.findByRole("tab", {
+      name:
+        action === "임시저장"
+          ? "퀴즈 1 · 임시저장됨"
+          : "퀴즈 1 · 공개됨",
+    });
+    expect(onComplete).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "닫기" }),
+    );
+    expect(screen.getByRole("dialog")).toBeVisible();
+    expect(onComplete).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "닫기" }),
+    );
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("dialog"),
+    ).not.toBeInTheDocument();
+    confirm.mockRestore();
+  },
+);

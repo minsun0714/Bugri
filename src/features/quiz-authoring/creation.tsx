@@ -3,7 +3,7 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { InputValidationError } from "@/api/errors";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ApiClient } from "@/api/client";
 import type { GenerationBatch } from "@/api/contracts";
 import { Button, Modal } from "@/components/ui";
@@ -21,12 +21,14 @@ export function Creation({
   userId,
   initialBatch,
   onGenerated,
+  onComplete,
   onDirty,
 }: {
   api: ApiClient;
   userId: string;
   initialBatch?: GenerationBatch;
   onGenerated: (batch: GenerationBatch) => void;
+  onComplete: () => void;
   onDirty: (dirty: boolean) => void;
 }) {
   const t = useTranslation();
@@ -41,6 +43,20 @@ export function Creation({
   const [error, setError] = useState<unknown>(null);
   const [editing, setEditing] = useState(false);
   const locked = useRef(false);
+  const completed = useRef(false);
+  const allHandled =
+    !!batch &&
+    !editing &&
+    batch.candidates.every(
+      ({ savedQuizId }) => !!savedQuizId,
+    );
+
+  useEffect(() => {
+    if (!allHandled || completed.current) return;
+
+    completed.current = true;
+    onComplete();
+  }, [allHandled, onComplete]);
 
   function closeModal() {
     const hasUnhandledCandidates = batch?.candidates.some(
@@ -54,6 +70,13 @@ export function Creation({
       return;
 
     setOpen(false);
+    if (
+      batch?.candidates.some(
+        ({ savedQuizId }) => !!savedQuizId,
+      )
+    ) {
+      onComplete();
+    }
   }
 
   async function generate() {
@@ -101,32 +124,37 @@ export function Creation({
           )}
         </Tooltip>
       </div>
-      <fieldset disabled={busy} className="min-w-0">
-        <MarkdownEditor
-          layout="split"
-          label={t("학습 내용과 요청")}
-          value={source}
-          preserveOverflow
-          onChange={(value) => {
-            setSource(value);
-            onDirty(
-              editing ||
-                value !== (batch?.sourceContent ?? ""),
-            );
-          }}
-        />
-      </fieldset>
-      <div className="flex flex-wrap justify-end gap-3">
-        <Button
-          onClick={() => void generate()}
-          loading={busy}
-        >
-          {t("퀴즈 만들기")}
-        </Button>
+      <div className="grid min-w-0 gap-3">
+        <fieldset disabled={busy} className="min-w-0">
+          <MarkdownEditor
+            layout="responsive"
+            placeholder={t(
+              "HTTP 요청에는 메서드와 경로가 포함됩니다. GET은 데이터를 조회하고 POST는 데이터를 전송합니다. 서버는 상태 코드와 응답 본문을 반환합니다. 200은 성공, 404는 요청한 리소스를 찾을 수 없음을 뜻합니다.",
+            )}
+            label={t("학습 내용과 요청")}
+            value={source}
+            preserveOverflow
+            onChange={(value) => {
+              setSource(value);
+              onDirty(
+                editing ||
+                  value !== (batch?.sourceContent ?? ""),
+              );
+            }}
+          />
+        </fieldset>
+        <div className="flex flex-wrap justify-end gap-3">
+          <Button
+            onClick={() => void generate()}
+            loading={busy}
+          >
+            {t("퀴즈 만들기")}
+          </Button>
+        </div>
       </div>
       {!open && <RequestError error={error} />}
       <Modal
-        open={open}
+        open={open && !allHandled}
         onClose={closeModal}
         title={t("버그리와 퀴즈 다듬기")}
         layout="conversation"

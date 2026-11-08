@@ -26,7 +26,9 @@ export function QuizCard({
   metadata,
   footer,
   settings,
+  density = "default",
 }: {
+  density?: "default" | "compact";
   title: string;
   label?: string;
   action: CardAction;
@@ -39,8 +41,16 @@ export function QuizCard({
     disabled?: boolean;
   };
 }) {
+  const compact = density === "compact";
+
   const heading = (
-    <div className={quizCardStyles.title}>
+    <div
+      className={
+        compact
+          ? quizCardStyles.compactTitle
+          : quizCardStyles.title
+      }
+    >
       <span
         aria-hidden="true"
         className={quizCardStyles.notebook}
@@ -70,7 +80,9 @@ export function QuizCard({
           />
         </svg>
       </span>
-      <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+      <span
+        className={`min-w-0 break-words [overflow-wrap:anywhere] ${compact ? "line-clamp-2" : ""}`}
+      >
         {title}
       </span>
     </div>
@@ -78,12 +90,17 @@ export function QuizCard({
 
   return (
     <article
-      className={quizCardStyles.card}
+      className={
+        compact
+          ? quizCardStyles.compactCard
+          : quizCardStyles.card
+      }
       aria-label={label}
     >
       {action.href !== undefined ? (
         <Link
           href={action.href}
+          title={compact ? title : undefined}
           aria-label={title}
           aria-disabled={action.disabled || undefined}
           tabIndex={action.disabled ? -1 : undefined}
@@ -103,6 +120,7 @@ export function QuizCard({
           type="button"
           onClick={action.onClick}
           disabled={action.disabled}
+          title={compact ? title : undefined}
           aria-label={action.label}
           className={`${quizCardStyles.access} ${settings ? "pr-13" : ""}`}
         >
