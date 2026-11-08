@@ -121,6 +121,7 @@ export function HeaderNavigation({
               <button
                 ref={profileTrigger}
                 type="button"
+                aria-label={t("내 프로필")}
                 aria-expanded={profileOpen}
                 aria-controls={profileId}
                 onClick={() =>
@@ -134,8 +135,18 @@ export function HeaderNavigation({
                 >
                   B
                 </span>
-                <span>{t("내 프로필")}</span>
-                <span aria-hidden="true">⌄</span>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-4 shrink-0"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               {profileOpen && (
                 <nav
