@@ -8,9 +8,10 @@ export function useAttemptHistory(
   userId: string,
   filter: AttemptHistoryFilter,
   page: number,
+  query = "",
 ) {
   return useQuery({
-    queryKey: ["history", userId, filter, page],
+    queryKey: ["history", userId, filter, query, page],
     queryFn: async () =>
       (
         await createBrowserApi({ mode: "mock", userId })
@@ -18,6 +19,7 @@ export function useAttemptHistory(
         filter,
         page,
         pageSize: 20,
+        ...(query ? { query } : {}),
       }),
     retry: false,
     staleTime: 0,

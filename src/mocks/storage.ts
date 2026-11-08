@@ -20,10 +20,14 @@ import {
   ConversationRole,
 } from "@/api/constants";
 import { users, hashtags } from "@/mocks/users";
-import { quizzes } from "@/mocks/quizzes";
+import {
+  historyDemoQuizzes,
+  quizzes,
+} from "@/mocks/quizzes";
 import { subscriptions } from "@/mocks/subscriptions";
 import {
   attempts,
+  historyDemoAttempts,
   learningDays,
 } from "@/mocks/learning-history";
 import { demoCoinHistory } from "@/mocks/coin-history";
@@ -48,6 +52,39 @@ export const storageKey = (userId: string) =>
 
 export function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
+}
+
+/** Idempotently adds the demo history (private practice quizzes + completed attempts) to the actor's state. Never touches other users or removes records. */
+export function applyHistoryDemo(state: UserState) {
+  if (state.historyDemoVersion === 1) return;
+
+  const quizIds = new Set(
+    state.quizzes.map(({ quizId }) => quizId),
+  );
+
+  const attemptIds = new Set(
+    state.attempts.map(({ attemptId }) => attemptId),
+  );
+
+  state.quizzes.push(
+    ...clone(
+      historyDemoQuizzes.filter(
+        ({ ownerUserId, quizId }) =>
+          ownerUserId === state.userId &&
+          !quizIds.has(quizId),
+      ),
+    ).map((quiz) => ({ ...quiz, deletedAt: null })),
+  );
+
+  state.attempts.push(
+    ...clone(
+      (historyDemoAttempts[state.userId] ?? []).filter(
+        ({ attemptId }) => !attemptIds.has(attemptId),
+      ),
+    ),
+  );
+
+  state.historyDemoVersion = 1;
 }
 
 export function initialState(userId: string): UserState {
@@ -142,6 +179,12 @@ function validateState(
     value.learningDemoVersion === undefined ||
       value.learningDemoVersion === 1,
     "학습 예시 데이터 버전이 호환되지 않습니다.",
+  );
+
+  requireValue(
+    value.historyDemoVersion === undefined ||
+      value.historyDemoVersion === 1,
+    "기록 데모 버전이 올바르지 않습니다.",
   );
 
   requireValue(

@@ -1,4 +1,7 @@
-import type { AttemptHistoryFilter } from "@/api/constants";
+import type {
+  AttemptHistoryFilter,
+  AttemptHistoryMatch,
+} from "@/api/constants";
 import type {
   RewardNonPaymentReason,
   RewardReason,
@@ -561,6 +564,7 @@ export interface ApiOperations {
   attemptHistory: {
     request: {
       filter?: AttemptHistoryFilter;
+      query?: string;
       page?: number;
       pageSize?: number;
     };
@@ -570,6 +574,8 @@ export interface ApiOperations {
         title: string | null;
         correct: boolean | null;
         completedAt: string;
+        matchedIn: AttemptHistoryMatch | null;
+        excerpt: string | null;
       }[];
       page: number;
       pageSize: number;

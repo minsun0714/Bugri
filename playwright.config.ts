@@ -33,7 +33,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `BUGRI_UI_PREVIEW=1 npm run build && npm run start -- --hostname 127.0.0.1 -p ${port}`,
+    command: `NEXT_PUBLIC_DEMO_HISTORY=0 BUGRI_UI_PREVIEW=1 npm run build && npm run start -- --hostname 127.0.0.1 -p ${port}`,
     wait: {
       stdout: /Ready in/,
     },

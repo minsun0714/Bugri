@@ -19,6 +19,7 @@ import {
   Button,
   EmptyState,
   Pagination,
+  SearchField,
   Skeleton,
   Tabs,
 } from "@/components/ui";
@@ -30,14 +31,125 @@ import { Bugri } from "@/components/ui/bugri";
 import { historyStyles } from "@/components/learning-history/styles";
 import {
   pageTitle,
+  searchButtonStyle,
   viewAllAction,
 } from "@/components/ui/styles";
+import { historyQueryMaxLength } from "@/services/history-search";
 
 const koreanLabels = {
   [AttemptHistoryFilter.ALL]: "전체",
   [AttemptHistoryFilter.CORRECT]: "정답",
   [AttemptHistoryFilter.INCORRECT]: "오답",
 };
+
+function historyHref(
+  userId: string,
+  filter: AttemptHistoryFilter,
+  page: number,
+  query: string,
+) {
+  return `/my/learning?${new URLSearchParams({
+    user: userId,
+    filter,
+    ...(query ? { query } : {}),
+    page: String(page),
+  })}`;
+}
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Wraps the searched words in <mark>; plain text when there is no query. */
+function Highlight({
+  text,
+  query,
+}: {
+  text: string;
+  query: string;
+}) {
+  const words = query.trim().split(/\s+/).filter(Boolean);
+
+  if (!words.length) return <>{text}</>;
+
+  const pattern = new RegExp(
+    `(${words.map(escapeRegExp).join("|")})`,
+    "gi",
+  );
+
+  return (
+    <>
+      {text.split(pattern).map((part, index) =>
+        index % 2 ? (
+          <mark
+            key={index}
+            className="rounded-sm bg-lime/60 px-0.5 text-foreground"
+          >
+            {part}
+          </mark>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
+function HistorySearch({
+  query,
+  onSearch,
+}: {
+  query: string;
+  onSearch: (query: string) => void;
+}) {
+  const t = useTranslation();
+  const [draft, setDraft] = useState(query);
+  const invalid =
+    [...draft.trim()].length > historyQueryMaxLength;
+
+  return (
+    <form
+      role="search"
+      aria-label={t("풀이 내역 검색")}
+      className="flex items-start gap-2 sm:gap-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!invalid) onSearch(draft.trim());
+      }}
+    >
+      <SearchField
+        label={t("풀이 내역 검색")}
+        placeholder={t("제목이나 문제 내용 검색")}
+        value={draft}
+        error={
+          invalid
+            ? t("검색어는 100자 이하여야 합니다.")
+            : undefined
+        }
+        onChange={(event) => setDraft(event.target.value)}
+      />
+      <Button
+        type="submit"
+        className={searchButtonStyle}
+        disabled={invalid}
+      >
+        {t("검색")}
+      </Button>
+      {query && (
+        <Button
+          type="button"
+          variant="secondary"
+          className={searchButtonStyle}
+          onClick={() => {
+            setDraft("");
+            onSearch("");
+          }}
+        >
+          {t("검색 초기화")}
+        </Button>
+      )}
+    </form>
+  );
+}
 
 const linkStyle =
   "inline-flex min-h-11 items-center rounded text-sm font-semibold text-primary focus-visible:outline-2 focus-visible:outline-primary";
@@ -58,17 +170,21 @@ function HistorySession({
     Object.values(AttemptHistoryFilter).find(
       (value) => value === requestedFilter,
     ) ?? AttemptHistoryFilter.ALL;
+  const query = [...(params.get("query") ?? "").trim()]
+    .slice(0, historyQueryMaxLength)
+    .join("");
   const requestedPage = Number(params.get("page") ?? 1);
   const page =
     Number.isSafeInteger(requestedPage) && requestedPage > 0
       ? requestedPage
       : 1;
-  const query = new URLSearchParams({
+  const detailParams = new URLSearchParams({
     user: userId,
     filter,
+    ...(query ? { query } : {}),
     page: String(page),
   });
-  const backHref = `/my/learning?${query}`;
+  const backHref = historyHref(userId, filter, page, query);
 
   if (attemptId)
     return (
@@ -85,10 +201,20 @@ function HistorySession({
       userId={userId}
       filter={filter}
       page={page}
-      detailQuery={query.toString()}
-      onChange={(nextFilter, nextPage) => {
+      query={query}
+      detailQuery={detailParams.toString()}
+      onChange={(
+        nextFilter,
+        nextPage,
+        nextQuery = query,
+      ) => {
         router.push(
-          `/my/learning?${new URLSearchParams({ user: userId, filter: nextFilter, page: String(nextPage) })}`,
+          historyHref(
+            userId,
+            nextFilter,
+            nextPage,
+            nextQuery,
+          ),
           { scroll: false },
         );
       }}
@@ -102,6 +228,7 @@ function HistoryList({
   userId,
   filter,
   page,
+  query,
   detailQuery,
   onChange,
   locale,
@@ -110,10 +237,12 @@ function HistoryList({
   userId: string;
   filter: AttemptHistoryFilter;
   page: number;
+  query: string;
   detailQuery: string;
   onChange: (
     filter: AttemptHistoryFilter,
     page: number,
+    query?: string,
   ) => void;
   locale: string;
   t: ReturnType<typeof useTranslation>;
@@ -127,9 +256,14 @@ function HistoryList({
         }
       : koreanLabels;
   const { data, error, isPending, isFetching, refetch } =
-    useAttemptHistory(userId, filter, page);
+    useAttemptHistory(userId, filter, page, query);
   return (
-    <div className="min-w-0">
+    <div className="min-w-0 space-y-5">
+      <HistorySearch
+        key={query}
+        query={query}
+        onSearch={(next) => onChange(filter, 1, next)}
+      />
       <Tabs
         className={historyStyles.filters}
         label={t("풀이 내역 필터")}
@@ -173,6 +307,7 @@ function HistoryList({
                     title,
                     correct,
                     completedAt,
+                    excerpt,
                   }) => (
                     <li key={attemptId}>
                       <Link
@@ -180,8 +315,21 @@ function HistoryList({
                         className={historyStyles.row}
                       >
                         <span className="col-span-2 min-w-0 text-sm font-semibold [overflow-wrap:anywhere] sm:col-span-1">
-                          {title ??
-                            t("이용할 수 없는 퀴즈")}
+                          <Highlight
+                            text={
+                              title ??
+                              t("이용할 수 없는 퀴즈")
+                            }
+                            query={title ? query : ""}
+                          />
+                          {excerpt && (
+                            <span className="mt-1 block text-xs font-normal leading-5 text-muted">
+                              <Highlight
+                                text={excerpt}
+                                query={query}
+                              />
+                            </span>
+                          )}
                         </span>
                         <Badge
                           tone={
@@ -217,18 +365,34 @@ function HistoryList({
             ) : (
               <EmptyState
                 description=""
-                title={t(
-                  data.total > 0
-                    ? "이 페이지에는 풀이 내역이 없어요"
-                    : filter === AttemptHistoryFilter.ALL
-                      ? "아직 풀이 내역이 없어요"
-                      : filter ===
-                          AttemptHistoryFilter.CORRECT
-                        ? "정답 기록이 없어요"
-                        : "오답 기록이 없어요",
-                )}
+                title={
+                  query && data.total === 0
+                    ? t("“{0}”와 일치하는 풀이가 없어요", {
+                        0: query,
+                      })
+                    : t(
+                        data.total > 0
+                          ? "이 페이지에는 풀이 내역이 없어요"
+                          : filter ===
+                              AttemptHistoryFilter.ALL
+                            ? "아직 풀이 내역이 없어요"
+                            : filter ===
+                                AttemptHistoryFilter.CORRECT
+                              ? "정답 기록이 없어요"
+                              : "오답 기록이 없어요",
+                      )
+                }
                 action={
-                  data.total > 0 ? (
+                  query && data.total === 0 ? (
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        onChange(filter, 1, "")
+                      }
+                    >
+                      {t("검색 초기화")}
+                    </Button>
+                  ) : data.total > 0 ? (
                     <Button
                       variant="secondary"
                       onClick={() => onChange(filter, 1)}
@@ -266,7 +430,7 @@ function HistoryList({
                   page={page}
                   total={Math.ceil(data.total / 20)}
                   onChange={(nextPage) =>
-                    onChange(filter, nextPage)
+                    onChange(filter, nextPage, query)
                   }
                 />
               </div>

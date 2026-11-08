@@ -11,6 +11,7 @@ export async function createBrowserApi(
         userId: string;
         fallbackTimeZone?: string;
         dailyReward?: number;
+        demoHistory?: boolean;
       }
     | { mode: "http"; baseUrl?: string },
 ): Promise<ApiClient> {
@@ -18,7 +19,14 @@ export async function createBrowserApi(
     const { createMockTransport } =
       await import("@/mocks/adapter");
 
-    return createApiClient(createMockTransport(config));
+    return createApiClient(
+      createMockTransport({
+        // Product build only; unit tests leave the flag unset and start from an empty learner.
+        demoHistory:
+          process.env.NEXT_PUBLIC_DEMO_HISTORY === "1",
+        ...config,
+      }),
+    );
   }
 
   const { createHttpTransport } =
