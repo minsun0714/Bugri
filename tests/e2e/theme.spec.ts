@@ -91,9 +91,10 @@ for (const width of [1280, 320]) {
       await page
         .getByRole("button", { name: "메뉴 열기" })
         .click();
-    await page
-      .getByRole("link", { name: /화면 설정$/ })
-      .click();
+    await expect(
+      page.getByRole("link", { name: /화면 설정$/ }),
+    ).toHaveCount(0);
+    await page.goto("/settings?user=learner");
     await expect(page).toHaveURL(/settings\?user=learner/);
     await page
       .getByRole("radio", { name: "시스템 설정 따르기" })
@@ -284,9 +285,13 @@ test("guest settings restore system following and keyboard toggles both ways", a
     "data-theme",
     "light",
   );
-  await page
-    .getByRole("link", { name: "화면 설정", exact: true })
-    .click();
+  await expect(
+    page.getByRole("link", {
+      name: "화면 설정",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page.goto("/settings");
   await expect(page).toHaveURL(/\/settings$/);
   await page
     .getByRole("radio", { name: "시스템 설정 따르기" })
@@ -323,9 +328,12 @@ for (const width of [1280, 320]) {
       await page
         .getByRole("button", { name: "Open menu" })
         .click();
-    await page
-      .getByRole("link", { name: /Appearance settings$/ })
-      .click();
+    await expect(
+      page.getByRole("link", {
+        name: /Appearance settings$/,
+      }),
+    ).toHaveCount(0);
+    await page.goto("/settings?user=learner");
     await expect(
       page.getByRole("heading", {
         name: "Appearance settings",
