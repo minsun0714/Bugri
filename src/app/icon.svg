@@ -1,0 +1,37 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  role="img"
+  aria-label="버그리"
+>
+  <rect width="64" height="64" rx="14" fill="#f8f6ff" />
+  <path
+    d="M20 16 16 8m-1 0h2M44 16l4-8m-1 0h2"
+    fill="none"
+    stroke="#6544dc"
+    stroke-linecap="round"
+    stroke-width="4"
+  />
+  <path
+    d="M10 35c0-13 8-20 22-20s22 7 22 20v5c0 12-8 18-22 18S10 52 10 40Z"
+    fill="#dcf58c"
+    stroke="#6544dc"
+    stroke-width="4"
+  />
+  <circle cx="23" cy="34" r="3" fill="#29243d" />
+  <circle cx="41" cy="34" r="3" fill="#29243d" />
+  <path
+    d="M25 43c2 4 12 4 14 0"
+    fill="none"
+    stroke="#29243d"
+    stroke-linecap="round"
+    stroke-width="3.5"
+  />
+  <path
+    d="M15 42h6M43 42h6"
+    fill="none"
+    stroke="#f87981"
+    stroke-linecap="round"
+    stroke-width="3"
+  />
+</svg>

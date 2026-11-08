@@ -1,0 +1,33 @@
+# P08-MY-DESK-ENTRY R0 UX·UI 리뷰
+
+## 대상·증거
+
+검토용 가설: 개인 관리에서 데스크 꾸미기에 진입하려는 사용자. 확정은 짧은 이름·제목옆 제거·BugCoin 아래 다른 관리항목과 세로로 묶기. HEAD2f66561 + page.tsx diff. 별도 새 컨텍스트 UX/UI 리뷰어가 전용3156 실제 Chromium PC1280×900·mobile390×844 화면을 먼저 보고 코드를 확인했다. 각 리뷰어 코드 변경 없음.
+
+## 관점별 결과
+
+| 관점 | UX 근거 | UI 근거 |
+| --- | --- | --- |
+| 목적/위계 | 개인 잔액·관리 화면으로 읽힘 | BugCoin 다음 개인관리, 제목옆 중복행동 없음 |
+| 첫 화면 | 링크는PC y937.5/mobile y921.5, 스크롤 필요. 확정배치 절충 | 카드→관리목록 분리와4행 정렬 유지 |
+| 행동/이동 | 꾸미기 동사·화살표, 클릭/Tab→Enter user=author 유지 | 진한 본문색·화살표가 이동가능성 전달 |
+| 밀도/여백 | 불필요한 문구 없음 | 같은 기준선·구분선·61px 행높이 |
+| 상태/피드백 | hover/focus·정상 이동 | 보라2px outline 직접 확인 |
+| 모바일/키보드 | 350×61px, Tab접근, 넘침 없음 | 390px 텍스트/화살표 한 줄 유지 |
+| 사용자 상태 | author 쿼리 및 데모 로그인 전후 확인 | author쿼리/로그인전 헤더 확인. 실제 인증 검증 아님 |
+
+## 문제·처리·회차
+
+두 역할 필수 수정 문제0개. R0 수정0회 종료. 데스크 진입에 필요한 스크롤은 사용자 확정 배치에 따른 절충으로 유지한다. 사용자 요청을 리뷰어 발견으로 기록하지 않는다.
+
+## 한계·캡처
+
+데스크 내부 편집/저장, CoinHistory오류/빈상태, 실제 스크린리더 음성은 미확인. 타인 공개화면은 제외범위다.
+
+UI `/tmp/bugri-desk-entry.png`, `/tmp/bugri-desk-entry-mobile.png`. UX `/tmp/desk-ux-pc.png`, `/tmp/desk-ux-mobile.png`, 로그인후 `/tmp/desk-ux-pc-signedin.png`, `/tmp/desk-ux-mobile-signedin.png`.
+
+## 사용자 요청 C1 / R1
+
+사용자가 ‘데스크 꾸미기 바로가기’와 삭제 중 판단을 맡겼다. 마이페이지의 데스크 진입경로를 유지하고 이동임을 명시하는 이름을 선택했다. 리뷰어 발견 결함이 아닌 사용자 요청이다. 각 기존 리뷰어가 최신3157 production PC1280×900/mobile390×844에서 재확인했다. 최종명칭 한 줄·61px높이·화살표정렬·관리그룹·넘침없음·Tab/2px포커스·Enter /my/desk?user=author 보존 모두 직접 확인, 회귀0개. UX는 데모 로그인 상태도 확인했다. R0의 범위외 한계 유지. 공통 수정1회/R1 종료.
+
+최신 UI `/tmp/bugri-desk-shortcut.png`, `/tmp/bugri-desk-shortcut-mobile.png`; UX `/tmp/desk-ux-r1-pc.png`, `/tmp/desk-ux-r1-mobile.png`.
