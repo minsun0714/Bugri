@@ -46,6 +46,7 @@ next-env.d.ts
 # Browser test artifacts
 /test-results/
 /playwright-report/
+/.playwright-mcp/
 
 # Claude personal settings
 /.claude/settings.local.json
