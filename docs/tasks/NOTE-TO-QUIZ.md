@@ -1,6 +1,6 @@
 # NOTE-TO-QUIZ
 
-- 상태: 구현 완료, 검증 결과는 아래. 독립 UX/UI 재검증(R1)은 진행 상태를 아래 "UX 리뷰 결과"에 기록한다.
+- 상태: 구현·검증 완료. UX/UI 리뷰 수정 3회 완료(차단 없음, 보류 항목은 UX 리뷰 문서 참고). 사용자의 최종 확인 전이며 병합 판단은 사용자 몫이다.
 - 기준: PRD REQ-01 AC-01d/e/f, REQ-02 AC-02a~j, REQ-05, REQ-09, §7; 사용자 확정(2026-11-08).
 - 브랜치: `feat/quiz`. push·PR 없음.
 - 제외: 복습 일정·오늘 복습(review-schedule), 노트 검색·태그 필터(notes-search), 방문자 체험(guest-demo), PRD 정책 변경.
@@ -41,12 +41,12 @@ Node v22.23.3. 처음 구현은 Codex가 시작했으나 중단되어(미커밋 
 | `npm ci` | 성공 |
 | `npm run lint` | 통과 |
 | `npm run typecheck` | 통과 (`next build` 이후 생성된 타입 사용) |
-| `npm test -- --runInBand` | 32 suites / 183 tests 통과 |
+| `npm test -- --runInBand` | 32 suites / 186 tests 통과 |
 | `npm run test:tools` | 3 pass |
 | `npm run build` | 성공 |
 | `npm run test:e2e` | 57 통과 (note-to-quiz 신규 6, 모바일 390/320 포함) |
 
-dev 병합(`git pull origin dev`) 후 재검증은 아래에 이어서 기록한다.
+`git pull origin dev`(Playwright MCP 지침 포함) 병합 후 마지막 코드 변경 뒤에 위 명령 전체(lint, typecheck, Jest 186, test:tools, build, E2E 57)를 다시 실행해 모두 통과했다. MCP 화면 확인은 별도의 수동 확인이며 E2E를 대신하지 않는다. Stop Hook은 arm하지 않았다.
 
 ## UX 리뷰 결과
 
