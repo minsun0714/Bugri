@@ -163,9 +163,11 @@ test("home streak updates after submission, survives reload and isolates users",
   ).toHaveCount(1);
 
   await page
-    .getByRole("button", {
-      name: "데모 사용자 선택",
-    })
+    .getByRole("button", { name: "내 메뉴", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "내 메뉴" })
+    .getByRole("button", { name: "데모 사용자 선택" })
     .click();
   const dialog = page.getByRole("dialog", {
     name: "데모 사용자 선택",
@@ -344,9 +346,11 @@ test("date heading navigates monthly and yearly learning while preserving today'
     .getByRole("combobox", { name: /연도 선택$/ })
     .click();
   await page
-    .getByRole("button", {
-      name: "데모 사용자 선택",
-    })
+    .getByRole("button", { name: "내 메뉴", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "내 메뉴" })
+    .getByRole("button", { name: "데모 사용자 선택" })
     .click();
   const dialog = page.getByRole("dialog", {
     name: "데모 사용자 선택",
@@ -549,9 +553,11 @@ test("history navigation stops at the first learning month and resets for an emp
   ).toBeEnabled();
 
   await page
-    .getByRole("button", {
-      name: "데모 사용자 선택",
-    })
+    .getByRole("button", { name: "내 메뉴", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "내 메뉴" })
+    .getByRole("button", { name: "데모 사용자 선택" })
     .click();
   const dialog = page.getByRole("dialog", {
     name: "데모 사용자 선택",
@@ -660,6 +666,8 @@ test("compact home only opens the calendar on request", async ({
       width,
       height: width === 320 ? 568 : 844,
     });
+    // The quick note sits above the streak, so scroll it into view first.
+    await toggle.scrollIntoViewIfNeeded();
     await expect(toggle).toBeInViewport();
     expect(
       await page.evaluate(

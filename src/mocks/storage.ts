@@ -170,6 +170,32 @@ function validateState(
     }
   }
 
+  const { notes } = value;
+
+  if (notes !== undefined) {
+    requireValue(
+      Array.isArray(notes),
+      "메모 목록이 손상되었습니다.",
+    );
+
+    for (const n of notes as unknown[]) {
+      object(n);
+
+      requireValue(
+        typeof n.noteId === "string" &&
+          Number.isInteger(n.version) &&
+          Number(n.version) > 0 &&
+          typeof n.createdAt === "string" &&
+          typeof n.updatedAt === "string" &&
+          (n.deletedAt === null ||
+            typeof n.deletedAt === "string"),
+        "메모가 손상되었습니다.",
+      );
+
+      source(n.content, "content");
+    }
+  }
+
   const revision = (
     r: UserState["attempts"][number]["revision"],
     partialHistory = false,

@@ -55,6 +55,23 @@ export const endpoints: Record<Operation, Endpoint> = {
     path: "/generation-batches/{id}/save",
     pathKey: "batchId",
   },
+  notes: { method: "GET", path: "/notes" },
+  note: {
+    method: "GET",
+    path: "/notes/{id}",
+    pathKey: "noteId",
+  },
+  createNote: { method: "POST", path: "/notes" },
+  updateNote: {
+    method: "PUT",
+    path: "/notes/{id}",
+    pathKey: "noteId",
+  },
+  deleteNote: {
+    method: "DELETE",
+    path: "/notes/{id}",
+    pathKey: "noteId",
+  },
   quizzes: {
     method: "GET",
     path: "/quizzes",

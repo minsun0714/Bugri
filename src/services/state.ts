@@ -2,11 +2,16 @@ import type {
   Answer,
   AuthoringConversation,
   GenerationBatch,
+  Note,
   ReviewQuiz,
   Revision,
 } from "@/api/contracts";
 
 export interface StoredQuiz extends ReviewQuiz {
+  deletedAt: string | null;
+}
+
+export interface StoredNote extends Note {
   deletedAt: string | null;
 }
 
@@ -39,6 +44,8 @@ export interface UserState {
   /** Set once the optional history search demo fixtures were merged. */
   historyDemoVersion?: 1;
   authoringConversation?: AuthoringConversation;
+  /** Absent in snapshots written before notes existed; treated as an empty list. */
+  notes?: StoredNote[];
   userId: string;
   quizzes: StoredQuiz[];
   batches: GenerationBatch[];

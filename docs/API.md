@@ -2,7 +2,7 @@
 
 현재 코드(`src/api/contracts.ts`, `src/api/http.ts`)가 제공하는 22개 연산의 사용 계약이다. 제품 규칙은 [PRD](PRD.md), 화면 흐름은 [페이지 구조](PAGE_STRUCTURE.md)를 따른다. 2026-11-08 범위 축소로 삭제한 연산(구독·탐색·상점·BugCoin·데스크·공개 프로필·반응·방문자 체험 등 34개)의 목록은 [REMOVE-OUT-OF-SCOPE](tasks/REMOVE-OUT-OF-SCOPE.md)에 있고, 이전 계약은 git 기록으로 확인한다.
 
-새 PRD의 메모(REQ-01)·복습 주기(REQ-03)·저장 즉시 내 퀴즈(AC-02e) 계약은 아직 없다. 해당 구현 TASK에서 이 문서에 추가한다.
+메모(REQ-01)는 [메모 절](#메모--notes)에 있다(NOTES TASK). 복습 주기(REQ-03)·저장 즉시 내 퀴즈(AC-02e) 계약은 아직 없으며 해당 구현 TASK에서 이 문서에 추가한다.
 
 ## UI 연결
 
@@ -43,6 +43,27 @@ Spring Boot 연결 시 `createBrowserApi({ mode: 'http', baseUrl: '/api/v1' })`�
 - `/quizzes/authoring`, `/quizzes/authoring/manage`, `/quizzes/authoring/results`: 퀴즈 생성과 내 퀴즈 관리.
 - `/my/learning`, `/my/learning/[attemptId]`: 개인 풀이 내역(아래 절).
 - 헤더의 ‘데모 사용자 선택’은 공통 선택 모달에서 사용자를 명시적으로 선택한 뒤 URL `user`를 갱신한다. 사용자 전환 시 기존 `attempt`를 제거해 이전 사용자의 풀이를 섞지 않는다. 실제 인증 기능이 아니다.
+
+## 메모 — NOTES
+
+본인만 쓰는 메모 계약이다(PRD REQ-01). 연산 5개를 `src/api/contracts.ts`와 `src/api/http.ts`에 정의했고, 위 "22개 연산" 표에는 아직 반영하지 않았다.
+
+| 연산 | HTTP | 요청 | 응답 |
+| --- | --- | --- | --- |
+| `notes` | GET /notes | `{ page?, pageSize? }` | `{ items: { noteId, excerpt, createdAt, updatedAt }[], page, pageSize, total }` |
+| `note` | GET /notes/{id} | `{ noteId }` | `{ noteId, content, version, createdAt, updatedAt }` |
+| `createNote` | POST /notes | `{ content }` | 위 Note, version 1 |
+| `updateNote` | PUT /notes/{id} | `{ content, expectedVersion }` | 위 Note, version 증가 |
+| `deleteNote` | DELETE /notes/{id} | `{ noteId }` | `{ deleted: true }` |
+
+- 목록은 삭제되지 않은 본인 메모를 최신 작성순으로 반환한다. page 기본 1(양의 안전 정수), pageSize 기본 20(1~50). 범위 밖 페이지는 빈 `items`와 전체 `total`을 반환한다. `excerpt`는 본문 앞 200 코드 포인트이며 목록·검색 표시용이다. 본문 전체는 `note`로만 받는다.
+- 본문은 기존 학습 내용 검증(`source`)을 재사용한다. 공백뿐이면 거부하고, 코드 블록을 포함한 유니코드 코드 포인트 최대 10,000자를 넘으면 400 VALIDATION_ERROR(필드 `content`)다. 본문은 자르거나 정규화하지 않아 코드 블록·줄바꿈·들여쓰기를 그대로 보존하며, HTML·스크립트 문자열도 텍스트일 뿐 실행하지 않는다. 알 수 없는 요청 필드는 거부한다.
+- 수정은 `expectedVersion`이 저장된 version과 다르면 409 VERSION_CONFLICT이며 저장된 메모를 바꾸지 않는다. 성공하면 version과 updatedAt을 갱신한다.
+- 본인 메모만 조회·수정·삭제한다. 다른 사용자의 메모와 없는 메모는 모두 404 NOT_FOUND라 존재 여부를 구분하지 않는다. 삭제한 메모는 목록·상세·수정에서 404다.
+- `deleteNote`는 soft delete(`deletedAt`)이며 멱등이다. 삭제한 메모를 다시 삭제해도 `{ deleted: true }`다. 연결 퀴즈의 함께 삭제는 note-to-quiz TASK 범위이며 현재 메모에는 퀴즈가 없다.
+- 저장: `UserState.notes`는 선택 필드다. 이 필드가 없는 기존 `schemaVersion: 1` 스냅샷은 그대로 읽히고 빈 목록으로 취급하며, 읽기 요청은 필드를 만들지 않는다. 첫 `createNote`가 단일 setItem으로 필드를 추가한다. 형식이 잘못된 `notes`는 STORAGE_CORRUPT이며 덮어쓰지 않는다. 저장 실패(STORAGE_UNAVAILABLE) 시 기존 상태가 유지된다.
+- UI 연결: Query 키는 `['notes', userId, 'list', page]`, `['notes', userId, 'detail', noteId]`다. 변경 성공 후 `['notes', userId]` 전체를 무효화하고, 삭제 시 상세 캐시를 제거한다.
+- 화면 경로: `/`(홈 빠른 메모), `/notes?user=&page=`(내 노트), `/notes/{noteId}?user=`(메모 상세). 저장 토스트의 "메모 보기"는 상세로 이동한다(PRD의 "퀴즈로 만들기"는 note-to-quiz에서 교체).
 
 ## 상태 상수
 
