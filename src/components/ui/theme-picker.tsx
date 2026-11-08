@@ -34,7 +34,7 @@ export function ThemePicker() {
             : ThemePreference.DARK,
         )
       }
-      className="size-11 shrink-0 !rounded-full !border !border-line !bg-surface !p-0 !text-foreground hover:!bg-canvas hover:!transform-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:ml-auto"
+      className="size-11 shrink-0 !rounded-none !border-0 !border-b-2 !border-control-line !bg-surface-raised !p-0 !text-foreground hover:!transform-none hover:outline-2 hover:outline-control-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:ml-auto"
     >
       <svg
         aria-hidden="true"

@@ -22,7 +22,7 @@ export function LanguagePicker() {
             value === Locale.EN ? Locale.EN : Locale.KO,
           )
         }
-        triggerClassName="!rounded-full !px-3 !py-2 !text-xs"
+        triggerClassName="!px-3 !py-2 !text-xs"
       />
     </div>
   );
