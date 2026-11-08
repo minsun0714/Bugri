@@ -39,6 +39,7 @@ import {
   Toast,
 } from "@/components/ui";
 import { developerStyles } from "@/components/developer/styles";
+import { SubscriptionControl } from "@/components/discovery/subscription-control";
 import { DeveloperSubscriptionPanel } from "@/components/developer/subscription-panel";
 import { FilterChips } from "@/components/ui/filter-chips";
 
@@ -236,45 +237,65 @@ function Catalog({
       </Link>
     </div>
   );
-  const subscription = (profile || !data.subscribed) && (
-    <Button
-      className="ml-auto"
-      variant="secondary"
-      disabled={busy}
-      onClick={() => {
-        if (profile && !signedIn) {
-          signIn();
-          return;
-        }
-        void subscribe
-          .mutateAsync({
-            target: {
-              type: "PERSON",
-              authorUserId: data.user.userId,
-            },
-            subscribed: profile ? data.subscribed : false,
-          })
-          .then(() =>
-            onNotice(
-              profile && data.subscribed
-                ? message("{0}님 구독을 취소했습니다.", {
-                    0: data.user.displayName,
-                  })
-                : message("{0}님을 구독했습니다.", {
-                    0: data.user.displayName,
-                  }),
-            ),
-          )
-          .catch(() => undefined);
-      }}
-    >
-      {profile && !signedIn
-        ? t("데모 사용자 선택 후 구독하기")
-        : profile && data.subscribed
-          ? t("개발자 구독 해제")
-          : t("개발자 구독하기")}
-    </Button>
-  );
+  const subscription =
+    profile && signedIn ? (
+      <SubscriptionControl
+        userId={userId}
+        name={data.user.displayName}
+        target={{
+          type: "PERSON",
+          authorUserId: data.user.userId,
+        }}
+        subscribed={data.subscribed}
+        signedIn={signedIn}
+        onLogin={() => signIn()}
+        onSuccess={onNotice}
+        disabled={busy}
+      />
+    ) : (
+      (profile || !data.subscribed) && (
+        <Button
+          className="ml-auto"
+          variant="secondary"
+          disabled={busy}
+          onClick={() => {
+            if (profile && !signedIn) {
+              signIn();
+              return;
+            }
+            void subscribe
+              .mutateAsync({
+                target: {
+                  type: "PERSON",
+                  authorUserId: data.user.userId,
+                },
+                subscribed: profile
+                  ? data.subscribed
+                  : false,
+              })
+              .then(() =>
+                onNotice(
+                  profile && data.subscribed
+                    ? message(
+                        "{0}님 구독을 취소했습니다.",
+                        {
+                          0: data.user.displayName,
+                        },
+                      )
+                    : message("{0}님을 구독했습니다.", {
+                        0: data.user.displayName,
+                      }),
+                ),
+              )
+              .catch(() => undefined);
+          }}
+        >
+          {profile && !signedIn
+            ? t("구독하기")
+            : t("개발자 구독하기")}
+        </Button>
+      )
+    );
 
   const quizSection = (
     <section
