@@ -60,3 +60,8 @@
 - 초기 E2E 전체 실행에서 헤더 변경으로 15건이 실패해 해당 spec을 새 헤더에 맞게 고쳤다(위 범위 절). `npm run typecheck`는 `next build`/dev가 `LayoutProps`를 생성하기 전에는 `src/app/layout.tsx`에서 실패한다(기존 동작).
 - UX·UI 리뷰: [docs/ux-reviews/NOTES.md](../ux-reviews/NOTES.md). 수정 2회(C1, C2), 차단 문제 없음.
 - 미실행·미확인: Hook은 사용하지 않았다(Claude 환경). 리뷰의 미확인 범위(포커스 링, reduced-motion, 모바일 소프트 키보드 등)는 UX 기록에 있다.
+
+## dev 병합 후 재검증
+
+- `origin/dev`(`f481bc0`)를 병합했다(`38b8520`). 충돌은 `docs/ARCHITECTURE.md`의 Note·Quiz 행뿐이며 Note 행은 이 브랜치의 계약, Quiz 행은 dev의 상태 정리 문구를 유지했다. 코드가 함께 병합되어 최종 검증을 다시 수행했다(Node v22.23.3).
+- `npm run lint`·`npm run typecheck` 통과, `npm test -- --runInBand` 38 suites·212 tests 통과, `npm run test:tools` 3 pass, `npm run build` 통과, `npm run test:e2e` 74 passed(전체 spec).
