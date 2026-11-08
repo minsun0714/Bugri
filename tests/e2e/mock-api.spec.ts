@@ -226,7 +226,20 @@ test("browser generation → review → subscription → solve/replay → purcha
       .request("inventory", {}),
   }));
 
-  expect(restored.wallet.balance).toBe(70);
+  // Initial 100 + first correct 1 + daily bonus 1 - keyboard 30.
+  expect(restored.wallet.balance).toBe(72);
+
+  expect(
+    restored.wallet.ledger.filter(
+      ({ reason }) => reason === "FIRST_CORRECT",
+    ),
+  ).toHaveLength(1);
+
+  expect(
+    restored.wallet.ledger.filter(
+      ({ reason }) => reason === "DAILY_CORRECT",
+    ),
+  ).toHaveLength(1);
 
   expect(restored.inventory.equipment.KEYBOARD).toBe(
     "keyboard-1",

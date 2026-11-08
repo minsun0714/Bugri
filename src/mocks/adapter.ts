@@ -41,7 +41,7 @@ export interface MockOptions {
   detectTimeZone?: () => string | undefined;
   /** No product default has been decided. Only use an explicitly chosen fallback. */
   fallbackTimeZone?: string;
-  /** Fixture configuration, not an approved economy policy. Default: no reward minting. */
+  /** Fixture configuration, not an approved economy policy. Explicit override for legacy tests; omitted uses the approved BugCoin policy. */
   dailyReward?: number;
   generate?: MockGenerator;
   reply?: (
@@ -266,7 +266,7 @@ export function createMockTransport(
           id: () => globalThis.crypto.randomUUID(),
           generate: options.generate ?? defaultGenerate,
           reply: options.reply ?? mockAuthoringReply,
-          dailyReward: dailyReward ?? 0,
+          dailyReward,
         };
 
         // Upgrade only the actor's legacy snapshot. Service-level subscribe deduplicates targets.

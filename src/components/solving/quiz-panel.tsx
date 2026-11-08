@@ -1,8 +1,11 @@
 "use client";
+import Link from "next/link";
+import { RewardExplanation } from "@/components/solving/reward-explanation";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { useEffect, useRef, type ReactNode } from "react";
 import type {
+  RewardOutcome,
   Answer,
   AttemptResult,
   LearningQuizView,
@@ -41,6 +44,9 @@ export function QuizPanel({
   completedAt,
   correct,
   learningDate,
+  rewardBugCent,
+  rewardOutcome,
+  rewardHistoryHref,
   focusKey,
   pending,
   onDirtyChange,
@@ -53,6 +59,9 @@ export function QuizPanel({
   completedAt?: string | null;
   correct?: boolean | null;
   learningDate?: string | null;
+  rewardBugCent?: number;
+  rewardOutcome?: RewardOutcome;
+  rewardHistoryHref?: string;
   focusKey: string;
   pending: boolean;
   onDirtyChange?: (dirty: boolean) => void;
@@ -132,6 +141,37 @@ export function QuizPanel({
                 {t("풀이 완료")}
                 {learningDate ? ` · ${learningDate}` : ""}
               </p>
+              {rewardBugCent !== undefined &&
+                rewardHistoryHref && (
+                  <div className="flex flex-wrap items-center gap-x-3 text-sm">
+                    <span className="inline-flex items-center gap-1">
+                      <span
+                        className={
+                          rewardBugCent > 0
+                            ? "whitespace-nowrap font-semibold tabular-nums text-primary"
+                            : "whitespace-nowrap tabular-nums text-foreground"
+                        }
+                      >
+                        {rewardBugCent > 0 ? "+" : ""}
+                        {(rewardBugCent / 100).toFixed(
+                          2,
+                        )}{" "}
+                        BugCoin
+                      </span>
+                      {rewardBugCent === 0 && (
+                        <RewardExplanation
+                          outcome={rewardOutcome}
+                        />
+                      )}
+                    </span>
+                    <Link
+                      href={rewardHistoryHref}
+                      className={solvingStyles.supportLink}
+                    >
+                      {t("내역 보기")}
+                    </Link>
+                  </div>
+                )}
             </div>
           </div>
         ) : null}
