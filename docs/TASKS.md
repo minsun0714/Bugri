@@ -1754,9 +1754,16 @@
 
 ## I18N-01 — 한국어·영어 화면 언어
 
-- 상태: IN_PROGRESS — 최종 전체 검증 실패, DONE/커밋 전. REQ-16에 따라 서비스 UI만 번역하며 퀴즈·프로필·사용자 입력은 원문 유지. 브라우저 언어 감지, 명시 선택 저장, 공통 헤더 언어 선택, 오류·접근성 문구를 포함한다.
+- 상태: IN_PROGRESS — 구현 커밋, 최종 검증 미완료. REQ-16에 따라 서비스 UI만 번역하며 퀴즈·프로필·사용자 입력은 원문 유지. 브라우저 언어 감지, 명시 선택 저장, 공통 헤더 언어 선택, 오류·접근성 문구를 포함한다.
 - 검증 계획: 언어 선택/복원/저장 차단/콘텐츠 보존 단위 및 E2E, 독립 UX·UI 화면 리뷰, 최종 전체 verify.
 
 - I18N-01 검증: Node v22.23.3. `PLAYWRIGHT_PORT=3447 npm run verify`에서 lint·전체 타입·Jest 64 suites/316개·도구3개·production build 통과, E2E 201개 중198개 통과/3개 실패(exit1). 다국어 E2E4개는 통과했다. 변경 파일 Prettier·diff check 통과. 전체 통과나 병합 준비 완료로 간주하지 않는다.
 - 남은 실패: `profile-split.spec.ts:19`의 ‘개인 관리’ region 이름을 변경해 기존 접근성 계약 회귀(번역 가능한 region 이름 복원 필요). `developer-discovery-repair.spec.ts:317` 구독 모달과 `scene-centering.spec.ts:4` mobile390은30초 시간 초과로 원인 추가 확인 필요. 시간 초과를 환경 문제로 단정하거나 테스트를 제외하지 않았다.
-- 검증 수정·재실행 한도 도달로 추가 재시도 중단. 구현 변경은 미커밋으로 보존하며 push/PR 없음. 최종 로그 `.bugri-hooks/i18n/verify-final.log`, 실패 스냅샷 `test-results/`. [독립 UX/UI·코드 리뷰 및 검증 기록](ux-reviews/I18N-01.md).
+- 검증 수정·재실행 한도 도달로 추가 재시도 중단. 당시 구현 변경은 미커밋으로 보존했다. 이후 사용자 요청에 따라 아래와 같이 커밋했다. push/PR 없음. 최종 로그 `.bugri-hooks/i18n/verify-final.log`, 실패 스냅샷 `test-results/`. [독립 UX/UI·코드 리뷰 및 검증 기록](ux-reviews/I18N-01.md).
+
+### I18N-01 후속 — 접근성 이름 기대값과 구독 모달 확인
+
+- 사용자가 ‘데스크 꾸미기 바로가기’ 영역 이름을 유지하고 테스트를 맞추도록 명시했다. 앞선 ‘기존 개인 관리 이름 복원 필요’ 판단은 이 요청으로 대체한다. `profile-split.spec.ts`의 region 이름만 변경하고 링크 경로 검증은 유지했다.
+- Node v22.23.3에서 `PLAYWRIGHT_PORT=3447 npm run test:e2e -- tests/e2e/profile-split.spec.ts tests/e2e/developer-discovery-repair.spec.ts --grep 'private management|subscription modal' --workers=1 --trace=on` 실행: 두 테스트 통과(각6.6초/7.3초). 변경 테스트 ESLint·Prettier 통과. 새 전체 verify 통과를 의미하지 않는다.
+- 구독 모달 애플리케이션 코드는 변경하지 않았다. 이전 실패 스냅샷은 author 검색 완료·관리 버튼에 초점·해제 메뉴 닫힘 상태였다. 단독 실행에서는 검색→필터→해제→초점 복귀→재진입→이동 모두 통과했다. 이전 병렬 실행의 시간 초과 원인은 미확정이며 서버 요청이30초 걸렸다고 해석하지 않는다. mobile390 scene-centering 실패는 이번 재검증 범위 밖으로 남는다.
+- 이전 검증 한도 중단 뒤 사용자의 명시적인 테스트 수정·실패 확인 요청에 따라 이 두 검사를 재실행했다. 로그 `.bugri-hooks/i18n/followup-e2e.log`, trace는 `test-results/`에 보존한다. 사용자 요청으로 다국어 기능은 `3777037`에 커밋했으며, 접근성 이름 테스트와 이 후속 기록은 별도 커밋한다. 미통과 상태로 남은 것은 mobile390 scene-centering 검사이며 전체 verify 성공으로 표시하지 않는다.
