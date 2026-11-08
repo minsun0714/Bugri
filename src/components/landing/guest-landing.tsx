@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useLandingReturn } from "@/components/landing/use-landing-return";
 import { KnowledgePuzzle } from "@/components/landing/knowledge-puzzle";
 import { RewardDesk } from "@/components/landing/reward-desk";
 import { styles } from "@/components/ui/styles";
@@ -9,9 +10,11 @@ import { useTranslation } from "@/lib/i18n/use-translation";
 
 export function GuestLanding() {
   const t = useTranslation();
+  const section = useLandingReturn();
 
   return (
     <section
+      ref={section}
       aria-labelledby="landing-title"
       className="relative mb-12 [view-timeline-name:--learning-story] [view-timeline-axis:block] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-[490svh]"
     >
