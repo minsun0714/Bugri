@@ -7,7 +7,7 @@ import {
 
 async function openCalendar(summary: Locator) {
   const toggle = summary.getByRole("button", {
-    name: "달력",
+    name: "학습 기록",
     exact: true,
   });
   await expect(toggle).toBeVisible();
@@ -649,7 +649,7 @@ test("compact home exposes the question and only opens the calendar on request",
     exact: true,
   });
   const toggle = summary.getByRole("button", {
-    name: "달력",
+    name: "학습 기록",
     exact: true,
   });
   await expect(toggle).toHaveAttribute(

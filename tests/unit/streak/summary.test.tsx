@@ -55,7 +55,7 @@ test("keeps yesterday's streak and navigates monthly completion states across a 
     screen.queryByRole("table"),
   ).not.toBeInTheDocument();
   fireEvent.click(
-    screen.getByRole("button", { name: "달력" }),
+    screen.getByRole("button", { name: "학습 기록" }),
   );
   expect(screen.getByRole("table")).toBeVisible();
   fireEvent.click(
@@ -141,7 +141,7 @@ test("returning learners keep their history and are invited to restart, not crea
     screen.queryByText("한 문제 풀고 첫 기록"),
   ).not.toBeInTheDocument();
   fireEvent.click(
-    screen.getByRole("button", { name: "달력" }),
+    screen.getByRole("button", { name: "학습 기록" }),
   );
   fireEvent.click(
     screen.getByRole("button", { name: "이전 기간" }),
@@ -154,7 +154,9 @@ test("returning learners keep their history and are invited to restart, not crea
 test("shows daily unique counts including zero alongside the learning dates", async () => {
   setup();
   fireEvent.click(
-    await screen.findByRole("button", { name: "달력" }),
+    await screen.findByRole("button", {
+      name: "학습 기록",
+    }),
   );
   expect(
     await screen.findByLabelText(
@@ -204,7 +206,7 @@ test("public activity requests the profile owner and resets across profiles", as
 test("submission refresh preserves the chosen disclosure state and switching users closes it", async () => {
   const { client, rerender, view } = setup();
   const toggle = await screen.findByRole("button", {
-    name: "달력",
+    name: "학습 기록",
   });
   expect(toggle).toHaveAttribute("aria-expanded", "false");
   request.mockResolvedValue({
@@ -231,7 +233,9 @@ test("submission refresh preserves the chosen disclosure state and switching use
   fireEvent.click(toggle);
   rerender(view("friend"));
   expect(
-    await screen.findByRole("button", { name: "달력" }),
+    await screen.findByRole("button", {
+      name: "학습 기록",
+    }),
   ).toHaveAttribute("aria-expanded", "false");
 });
 

@@ -44,7 +44,7 @@ export function HomeStreak({
           role="status"
           className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5"
         >
-          <strong className="text-sm font-semibold text-foreground sm:text-base">
+          <strong className="break-keep text-sm font-semibold text-foreground sm:text-base">
             {streak > 0
               ? t("{0}일 연속 학습", { 0: streak })
               : hasHistory
@@ -64,15 +64,24 @@ export function HomeStreak({
         <Button
           variant="ghost"
           size="sm"
-          className="min-h-11 shrink-0"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1.5"
           aria-expanded={expanded}
           aria-controls={calendarId}
           onClick={() => setExpanded(!expanded)}
         >
-          {t("달력")}{" "}
-          <span aria-hidden="true">
-            {expanded ? "⌃" : "⌄"}
-          </span>
+          {t("학습 기록")}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`size-4 shrink-0 ${expanded ? "rotate-180" : ""}`}
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
         </Button>
       </div>
       <div id={calendarId} hidden={!expanded}>
