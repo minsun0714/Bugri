@@ -211,3 +211,8 @@ REQ-15의 표시 설정은 `src/lib/theme`의 타입·브라우저 저장 어댑
 
 
 평가 컨트롤의 기본 정렬은 목록 카드용 오른쪽이다. 풀이/방문자 체험만 `align="left"`를 명시하고 AnswerForm의 제출 행 또는 결과 행동 행에 둔다. 작성 관리의 QuizList는 PUBLIC 카드 footer에 주입된 평가 UI를 렌더하며, AuthoringWorkspace가 현재 사용자와 typed API 컨트롤을 연결한다. 관리 진입 버튼과 평가 버튼은 형제여서 평가 클릭이 상세 이동을 발생시키지 않는다.
+
+
+### 퀴즈 카드 전체 접근과 설정
+
+QuizCard는 제목 Link/button의 after 영역을 카드 전체로 확장해 기본 접근 영역으로 사용하고, 비상호작용 본문은 pointer-events-none으로 클릭을 전달한다. 설정과 footer의 평가·작성자 링크는 독립된 상위 클릭 영역이며 중첩 링크/버튼은 만들지 않는다. 제목은 접근 링크의 이름으로 제공하고 키보드 포커스는 카드 외곽에 표시한다. 내 퀴즈의 승인된 PUBLIC/PRIVATE 본문은 solve URL, PENDING 본문은 기존 검토 동작이다. 우상단 설정은 관리/수정본 검토를 열며 하단 actionText와 화살표를 제거한다. QuizList는 상태·수정일을 metadata에, 태그와 평가를 footer의 좌우 영역에 함께 배치해 별도 행을 줄인다.

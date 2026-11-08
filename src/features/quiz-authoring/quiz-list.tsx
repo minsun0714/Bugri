@@ -135,6 +135,7 @@ export function QuizList({
   onOpen,
   onRefresh,
   renderReaction,
+  quizHref,
 }: {
   quizzes: QuizSummary[];
   view: QuizListView;
@@ -145,6 +146,7 @@ export function QuizList({
   onOpen: (quizId: string) => void;
   onRefresh: () => void;
   renderReaction?: (quizId: string) => ReactNode;
+  quizHref?: (quizId: string) => string;
 }) {
   const { query, filter, sort, page } = view;
   const normalizedQuery = query
@@ -364,37 +366,49 @@ export function QuizList({
                 key={quiz.quizId}
                 title={quiz.title}
                 label={quiz.title}
-                action={{
+                action={
+                  quiz.status !== QuizStatus.PENDING &&
+                  quizHref
+                    ? {
+                        href: quizHref(quiz.quizId),
+                        disabled: busy,
+                      }
+                    : {
+                        onClick: () => onOpen(quiz.quizId),
+                        disabled: busy,
+                        label: `${quiz.title} 퀴즈 열기`,
+                      }
+                }
+                settings={{
                   onClick: () => onOpen(quiz.quizId),
                   disabled: busy,
                   label: `${quiz.title} ${review ? "검토하기" : "관리하기"}`,
                 }}
-                badges={<StatusBadges quiz={quiz} />}
                 footer={
-                  quiz.status === QuizStatus.PUBLIC &&
-                  renderReaction ? (
-                    <div className="mt-3">
-                      {renderReaction(quiz.quizId)}
-                    </div>
-                  ) : undefined
+                  <div className="mt-2 flex items-end justify-between gap-3">
+                    <span className="min-w-0 flex-1 break-words text-sm text-muted [overflow-wrap:anywhere]">
+                      {quiz.hashtagIds
+                        .map((hashtagId) => `#${hashtagId}`)
+                        .join(" ")}
+                    </span>
+                    {quiz.status === QuizStatus.PUBLIC &&
+                      renderReaction && (
+                        <div className="shrink-0">
+                          {renderReaction(quiz.quizId)}
+                        </div>
+                      )}
+                  </div>
                 }
                 metadata={
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <StatusBadges quiz={quiz} />
                     <time
                       dateTime={quiz.updatedAt}
                       aria-label={`마지막 수정 ${exactTime(quiz.updatedAt)}`}
                     >
                       {relativeTime(quiz.updatedAt)}
                     </time>
-                    {quiz.hashtagIds.map((hashtagId) => (
-                      <span key={hashtagId}>
-                        #{hashtagId}
-                      </span>
-                    ))}
                   </span>
-                }
-                actionText={
-                  review ? "검토하기" : "관리하기"
                 }
               />
             );

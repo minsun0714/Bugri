@@ -62,6 +62,9 @@ function renderList(
   render(
     <QuizList
       quizzes={items}
+      quizHref={(quizId) =>
+        `/solve?user=learner&quiz=${quizId}`
+      }
       view={view}
       createHref="/quizzes/authoring?user=learner"
       isFetching={false}
@@ -262,4 +265,26 @@ test("public management cards expose independent reaction controls", () => {
       name: "private 좋아요",
     }),
   ).not.toBeInTheDocument();
+});
+
+test("approved cards open solving while pending cards keep review access", () => {
+  const { onOpen } = renderList();
+  expect(
+    screen.getByRole("link", { name: "HTTP 상태 코드" }),
+  ).toHaveAttribute(
+    "href",
+    "/solve?user=learner&quiz=public",
+  );
+  expect(
+    screen.getByRole("link", { name: "블록 스코프" }),
+  ).toHaveAttribute(
+    "href",
+    "/solve?user=learner&quiz=private",
+  );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "타입 선언 퀴즈 열기",
+    }),
+  );
+  expect(onOpen).toHaveBeenCalledWith("pending");
 });

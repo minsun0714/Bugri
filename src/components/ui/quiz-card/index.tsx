@@ -1,11 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import type { MouseEventHandler, ReactNode } from "react";
+import { Button } from "@/components/ui";
 import { quizCardStyles } from "@/components/ui/quiz-card/styles";
 
 type CardAction =
   | {
       href: string;
       onClick?: MouseEventHandler<HTMLAnchorElement>;
+      disabled?: boolean;
     }
   | {
       href?: never;
@@ -21,7 +25,7 @@ export function QuizCard({
   badges,
   metadata,
   footer,
-  actionText,
+  settings,
 }: {
   title: string;
   label?: string;
@@ -29,10 +33,14 @@ export function QuizCard({
   badges?: ReactNode;
   metadata?: ReactNode;
   footer?: ReactNode;
-  actionText?: string;
+  settings?: {
+    label: string;
+    onClick: MouseEventHandler<HTMLButtonElement>;
+    disabled?: boolean;
+  };
 }) {
   const heading = (
-    <>
+    <div className={quizCardStyles.title}>
       <span
         aria-hidden="true"
         className={quizCardStyles.notebook}
@@ -65,32 +73,7 @@ export function QuizCard({
       <span className="min-w-0 break-words [overflow-wrap:anywhere]">
         {title}
       </span>
-      <span
-        aria-hidden="true"
-        className={quizCardStyles.arrow}
-      >
-        →
-      </span>
-    </>
-  );
-  const details = (
-    <>
-      {badges && (
-        <span className="mt-3 flex flex-wrap gap-2">
-          {badges}
-        </span>
-      )}
-      {metadata && (
-        <span className="mt-3 block break-words text-sm text-muted [overflow-wrap:anywhere]">
-          {metadata}
-        </span>
-      )}
-      {actionText && (
-        <span className="mt-3 block text-right text-xs font-semibold text-primary">
-          {actionText}
-        </span>
-      )}
-    </>
+    </div>
   );
 
   return (
@@ -99,31 +82,74 @@ export function QuizCard({
       aria-label={label}
     >
       {action.href !== undefined ? (
-        <>
-          <Link
-            href={action.href}
-            onClick={action.onClick}
-            className={quizCardStyles.title}
-          >
-            {heading}
-          </Link>
-          {details}
-        </>
+        <Link
+          href={action.href}
+          aria-label={title}
+          aria-disabled={action.disabled || undefined}
+          tabIndex={action.disabled ? -1 : undefined}
+          onClick={(event) => {
+            if (action.disabled) {
+              event.preventDefault();
+              return;
+            }
+            action.onClick?.(event);
+          }}
+          className={`${quizCardStyles.access} ${settings ? "pr-13" : ""}`}
+        >
+          {heading}
+        </Link>
       ) : (
         <button
           type="button"
           onClick={action.onClick}
           disabled={action.disabled}
           aria-label={action.label}
-          className="group block w-full rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+          className={`${quizCardStyles.access} ${settings ? "pr-13" : ""}`}
         >
-          <span className={quizCardStyles.title}>
-            {heading}
-          </span>
-          {details}
+          {heading}
         </button>
       )}
-      {footer}
+      <div className="pointer-events-none">
+        {badges && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {badges}
+          </div>
+        )}
+        {metadata && (
+          <div className="mt-2 break-words text-sm text-muted [overflow-wrap:anywhere]">
+            {metadata}
+          </div>
+        )}
+      </div>
+      {settings && (
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={settings.label}
+          onClick={settings.onClick}
+          disabled={settings.disabled}
+          className={quizCardStyles.settings}
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-5"
+          >
+            <path d="m10 3-.5 2a7 7 0 0 0-2 1.2l-2-.6-2 3.4L5 10.5a7 7 0 0 0 0 3L3.5 15l2 3.4 2-.6a7 7 0 0 0 2 1.2l.5 2h4l.5-2a7 7 0 0 0 2-1.2l2 .6 2-3.4-1.5-1.5a7 7 0 0 0 0-3L20.5 9l-2-3.4-2 .6a7 7 0 0 0-2-1.2L14 3Z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </Button>
+      )}
+      {footer && (
+        <div className={quizCardStyles.footer}>
+          {footer}
+        </div>
+      )}
     </article>
   );
 }

@@ -321,6 +321,9 @@ function Workspace({
       )}
       {!quizId && (
         <QuizList
+          quizHref={(quizId) =>
+            `/solve?user=${encodeURIComponent(userId)}&quiz=${encodeURIComponent(quizId)}`
+          }
           renderReaction={(quizId) => (
             <QuizReactionControl
               key={`${userId}:${quizId}`}
