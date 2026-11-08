@@ -12,8 +12,26 @@ import type { Request } from "@/api/contracts";
 export const notesKey = (userId: string) =>
   ["notes", userId] as const;
 
-const listKey = (userId: string, page: number) =>
-  [...notesKey(userId), "list", page] as const;
+export interface NotesListCondition {
+  page: number;
+  query: string;
+  tagIds: string[];
+  untagged: boolean;
+  hasPending: boolean;
+}
+
+const listKey = (
+  userId: string,
+  { page, query, tagIds, untagged, hasPending }: NotesListCondition,
+) =>
+  [
+    ...notesKey(userId),
+    "list",
+    { query, tagIds, untagged, hasPending, page },
+  ] as const;
+
+export const noteTagsKey = (userId: string) =>
+  [...notesKey(userId), "tags"] as const;
 
 export const noteKey = (userId: string, noteId: string) =>
   [...notesKey(userId), "detail", noteId] as const;
@@ -23,14 +41,37 @@ export const apiFor = (userId: string) =>
 
 export const notesPageSize = 20;
 
-export function useNotes(userId: string, page: number) {
+export function useNotes(
+  userId: string,
+  condition: NotesListCondition,
+  enabled = true,
+) {
+  const { page, query, tagIds, untagged, hasPending } = condition;
+
   return useQuery({
-    queryKey: listKey(userId, page),
+    queryKey: listKey(userId, condition),
+    enabled,
     queryFn: async () =>
       (await apiFor(userId)).request("notes", {
         page,
         pageSize: notesPageSize,
+        ...(query ? { query } : {}),
+        ...(tagIds.length ? { tagIds } : {}),
+        ...(untagged ? { untagged } : {}),
+        ...(hasPending ? { hasPending } : {}),
       }),
+    retry: false,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  });
+}
+
+/** Tag choices for the filter chips. Refetched with the list after any memo or quiz change. */
+export function useNoteTags(userId: string) {
+  return useQuery({
+    queryKey: noteTagsKey(userId),
+    queryFn: async () =>
+      (await apiFor(userId)).request("noteTags", {}),
     retry: false,
     staleTime: 0,
     refetchOnWindowFocus: false,

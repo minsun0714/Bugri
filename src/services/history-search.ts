@@ -24,7 +24,7 @@ export function questionBody(question: Question): string {
   ].join("\n");
 }
 
-function excerptAround(body: string, words: string[]) {
+export function excerptAround(body: string, words: string[]) {
   const flat = body.replace(/\s+/g, " ");
   const lower = flat.toLowerCase();
 

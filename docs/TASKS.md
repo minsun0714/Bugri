@@ -16,7 +16,7 @@
    - 선행 수정 완료([OWNER-ONLY-TIMEZONE](tasks/OWNER-ONLY-TIMEZONE.md)): 다른 사용자의 퀴즈 풀이 차단(작성자 전용, PRD §7), 접속 시 브라우저 시간대 재감지·갱신(AC-04d)
 4. 메모로 퀴즈 만들기: 생성 결과는 PENDING, 저장하면 CONFIRMED(PRD AC-02h~j), 개별·일괄 저장, "확인 안 한 퀴즈" 이어서 확인, 다시 만들면 기존 PENDING 유지, LLM 태그 자동 부여(Mock). PRIVATE/PUBLIC·검토·승인 흐름과 `discoverHashtags` 이름 등 잔재 정리 — 구현 완료(검증 결과와 남은 확인은 [NOTE-TO-QUIZ](tasks/NOTE-TO-QUIZ.md)). 기존 저장 데이터는 옮기지 않고 schemaVersion 2 시드로 초기화한다.
 5. 복습 주기와 홈 "오늘 복습", 연속 학습일 연결
-6. 내 노트 검색·태그 필터
+6. 내 노트 검색·태그 필터 — 구현 완료 ([NOTES-SEARCH](tasks/NOTES-SEARCH.md), [UX 리뷰](ux-reviews/NOTES-SEARCH.md))
 7. 방문자 홈 예시 체험
 
 각 단계의 범위·상태·검증 결과는 해당 TASK 문서에 기록한다.
