@@ -12,7 +12,7 @@ import type {
 } from "@/api/contracts";
 import { Category, DeskObject } from "@/api/constants";
 import { Button } from "@/components/ui";
-import { artworkNames } from "@/components/shop/artwork";
+import { useProductNames } from "@/components/shop/use-product-names";
 import { EditableDeskScene } from "@/components/shop/editable-desk-scene";
 import { sceneKeyDown } from "@/components/shop/scene-keyboard";
 import { useSpatialEditor } from "@/components/shop/use-spatial-editor";
@@ -45,6 +45,7 @@ export function DeskEditor({
   disabled: boolean;
 }) {
   const t = useTranslation();
+  const artworkNames = useProductNames();
 
   const layers = useDeskOrder({
     order,

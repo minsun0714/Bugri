@@ -1,10 +1,11 @@
 import * as Zdog from "zdog";
 import { render, screen } from "@testing-library/react";
-import {
-  ProductArtwork,
-  artworkNames,
-} from "@/components/shop/artwork";
+import { ProductArtwork } from "@/components/shop/artwork";
 import { model } from "@/components/shop/zdog/models";
+
+import { productNames } from "@/lib/shop/catalog";
+
+const artworkNames = productNames("ko");
 
 const ids = [
   "keyboard-3",

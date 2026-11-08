@@ -12,7 +12,7 @@ import {
   type SceneTarget,
 } from "@/components/shop/zdog/scene-state";
 import type { LayerAction } from "@/api/constants";
-import { artworkNames } from "@/components/shop/artwork";
+import { useProductNames } from "@/components/shop/use-product-names";
 import {
   useRef,
   useState,
@@ -60,6 +60,7 @@ export function useProductTrial({
   ) => Promise<unknown>;
 }) {
   const t = useTranslation();
+  const artworkNames = useProductNames();
 
   const { category, productId } = product;
   const movable = isMovable(category) ? category : null;

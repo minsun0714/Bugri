@@ -1,4 +1,5 @@
 "use client";
+import { useProductNames } from "@/components/shop/use-product-names";
 import { useTranslation } from "@/lib/i18n/use-translation";
 
 import { productColor } from "@/components/shop/product-colors";
@@ -10,23 +11,6 @@ import type { MovableCategory } from "@/lib/desk-layout";
 import type { Equipment } from "@/api/contracts";
 
 /** Original vector artwork. Shared scene coordinates keep thumbnails and equipment identical. */
-export const artworkNames: Record<string, string> = {
-  "keyboard-1": "새싹 키보드",
-  "keyboard-2": "라벤더 키보드",
-  "monitor-1": "집중 모니터",
-  "monitor-2": "미드나잇 모니터",
-  "desk-1": "원목 책상",
-  "desk-2": "크림 스튜디오 책상",
-  "accessory-1": "화분",
-  "accessory-2": "버섯 조명",
-  "background-1": "정원",
-  "background-2": "달빛 작업실",
-  "keyboard-3": "오션 키보드",
-  "monitor-3": "스카이 모니터",
-  "desk-3": "민트 책상",
-  "accessory-3": "블루 화분",
-  "background-3": "노을 작업실",
-};
 
 function Keyboard({
   violet = false,
@@ -597,6 +581,7 @@ export function DeskScene({
   ) => ReactNode;
 }) {
   const t = useTranslation();
+  const artworkNames = useProductNames();
 
   const id = useId();
   const names = Object.values(equipment).map(

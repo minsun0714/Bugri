@@ -1,5 +1,9 @@
 "use client";
-import { useTranslation } from "@/lib/i18n/use-translation";
+import { localizeProduct } from "@/lib/shop/catalog";
+import {
+  useLocale,
+  useTranslation,
+} from "@/lib/i18n/use-translation";
 
 import { Dropdown } from "@/components/ui/dropdown";
 import { DeskEditor } from "@/components/shop/desk-editor";
@@ -66,6 +70,7 @@ function ShopContent({
   editing: boolean;
 }) {
   const t = useTranslation();
+  const locale = useLocale();
 
   const {
     products,
@@ -94,7 +99,12 @@ function ShopContent({
   );
   const collectionHeading =
     useRef<HTMLHeadingElement | null>(null);
-  const [trial, setTrial] = useState<Product | null>(null);
+  const [trialProduct, setTrial] = useState<Product | null>(
+    null,
+  );
+  const trial = trialProduct
+    ? localizeProduct(trialProduct, locale)
+    : null;
   const [message, setMessage] = useState("");
   const [actionError, setActionError] =
     useState<unknown>(null);
@@ -111,19 +121,18 @@ function ShopContent({
       ({ productId }) => productId,
     ),
   );
-  const query = search.trim().toLocaleLowerCase("ko-KR");
+  const query = search.trim().toLocaleLowerCase(locale);
   const filtered =
-    (editing
-      ? inventory.data?.products
-      : products.data
-    )?.filter(
-      (product) =>
-        (!category || product.category === category) &&
-        (!query ||
-          `${product.name} ${product.description}`
-            .toLocaleLowerCase("ko-KR")
-            .includes(query)),
-    ) ?? [];
+    (editing ? inventory.data?.products : products.data)
+      ?.map((product) => localizeProduct(product, locale))
+      .filter(
+        (product) =>
+          (!category || product.category === category) &&
+          (!query ||
+            `${product.name} ${product.description}`
+              .toLocaleLowerCase(locale)
+              .includes(query)),
+      ) ?? [];
   const visible =
     sort === ProductSort.DEFAULT
       ? filtered
@@ -135,7 +144,7 @@ function ShopContent({
 
           return left.name.localeCompare(
             right.name,
-            "ko-KR",
+            locale,
           );
         });
   const pending =

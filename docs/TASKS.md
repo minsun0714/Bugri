@@ -1840,6 +1840,17 @@
 - 문서만 변경했다. 실행 스크립트의 자동 제외 기능은 추가하지 않았으며 기존 실패를 삭제하거나 테스트를 약화하지 않았다. 이 문서 변경을 위한 앱 pipeline·Hook은 실행하지 않는다.
 - 문서 링크·정합성·diff 검사 통과. 스킬 quick_validate는 환경에 PyYAML이 없어 실행 차단되었으며 frontmatter·참조·적용 조건은 직접 확인했다. 구현자 외 최종 리뷰와 병합 판단은 사용자에게 남긴다.
 
+## SHOP-I18N — 상품 다국어 카탈로그
+
+- 상태: DONE(요청된 기능 및 dev 통합 검증). REQ-09/REQ-10 및 기존 한국어·영어 지원 범위. 15종 상품의 이름·설명을 상품 ID별 필수 ko/en 문구로 통합하고 표시·검색·이름순 정렬·보관함·미리보기 이름에 적용한다.
+- 검증 계획: 카탈로그 완전성/기존 API 값 보존과 언어 전환 검색·정렬 테스트, 관련 상점 단위 테스트, 전체 타입 및 변경 파일 정적 검사. E2E는 상품 언어·검색·정렬·접근성 표시를 worker1로 확인한다. 배치·회전·확대 렌더러는 변경하지 않아 관련 3D 제스처 spec은 제외한다.
+- 기능 검증: Node v22.23.3. 최초 신규 단위 테스트의 영문 상품명 미표시 실패 확인 후 구현. 관련 Jest 13 suites/58개, 전체 lint·typecheck, 변경 파일 Prettier·diff check 통과. 최초 타입 검사는 Next 생성 타입 부재와 제거한 artworkNames를 참조하던 기존 테스트 때문에 실패했고 `next typegen` 및 새 카탈로그 참조로 해결(수정1). production build 및 기존 locale E2E4개 통과. 신규 E2E의 검색 입력 role을 textbox→searchbox로 바로잡아 PC1280/mobile390 두 흐름 통과(수정2, 기존 assertion/timeout 완화 없음). `.bugri-hooks/shop-i18n/` 화면 캡처, `/tmp/shop-i18n-*.log` 검증 기록. 사용자 pull 중단 요청에 따라 기능 커밋 후 origin/dev 통합 검증 예정.
+- [독립 UX/UI 및 코드 R0](ux-reviews/SHOP-I18N.md): 실제 PC/mobile ko/en 및 검색→미리보기→구매→보관함 확인, 필수문제0, UI수정0회. 기능 로컬 검증 완료. 통합 검증은 아래에 별도 기록한다.
+- dev 통합: 기능 `0a7b11a` 커밋 후 `origin/dev`의 `1c5004e`를 자동 병합했다. 충돌 없이 상품 번역 카탈로그와 테마 토글/화면 설정 변경을 함께 보존했다.
+- 통합 최종 검증 선택: 전체 lint·typecheck·Jest·도구 테스트·production build 및 비상점/3D E2E 전체(coin-history, design-system, developer-discovery-repair, developer, discovery-split, error-handling, home-quiz-review, locale, markdown-editor, mock-api, navigation, profile-about/layout/order/polish/split/streak, quiz-authoring/card-actions/reactions, solving, streak, tag-catalog/discovery, theme)와 shop-locale을 worker1로 실행한다. 상품 배치/구매 규칙·렌더러는 동일하므로 desk-*·my-desk·기존 shop*·bugri-tabletop·camera-drag-direction·front-height-drag·item-tabletop·monitor-screens·room-*·scene-centering·stable-placement-view·trial-zoom은 제외한다. shop-locale에서 변경된 표시·검색·정렬·언어 전환 및 구매 후 보관함 표시는 포함한다.
+- 통합 초기 타입 검사는 새 `/settings` 경로와 이전 Next 생성 타입이 불일치해 실패했다. 통합 production build가 경로 타입을 재생성한 뒤 typecheck를 재실행했다(수정3: 생성 산출물 갱신, 앱/테스트 코드 변경 없음). 기능 테스트의 최초 의도 실패 외 수정·재검증3회 기록을 유지한다. 통합 정적 독립 리뷰에서도 양쪽 문서/번역과 언어 선택·테마 토글 공존을 확인했다.
+- 최종 통합 결과: `d2c10a1` 코드·Node v22.23.3에서 lint·typecheck·Jest67 suites/329개·도구3개·production build 및 선택 E2E136개(worker1) 모두 통과. 로그 `/tmp/shop-i18n-final-{lint-2,types-2,jest,tools,e2e}.log`. 전체 3D를 포함한 verify 통과를 뜻하지 않는다. 변경 코드 Prettier·diff check 통과, 검증 후 변경은 결과 문서뿐이다. 독립 UX/UI R0 필수문제0 및 통합 정적 리뷰 완료. 기능/병합/검증기록을 로컬 커밋하며 push·PR 없음.
+
 ## BUGCOIN-DEV-MERGE — origin/dev 다국어 통합
 
 - 상태: DONE(충돌 해결·선정된 통합 검증 완료). 사용자 요청으로 이미 진행 중이던 HEAD(bebb3f0)와 origin/dev(f87b0a4) 병합 충돌3개를 해결한다. ARCHITECTURE/TASKS는 양쪽 섹션과 기존 실패 기록을 보존하고, QuizPanel은 Link·번역 hook·보상 표시를 함께 유지한다. 보상 사유5개와 내역 링크 영어 번역 및 영어 지급→내역 통합 테스트를 추가한다.
@@ -1860,3 +1871,10 @@
 
 - 추가 사용자 pull: origin/dev1c5004e 테마토글과 진행중파일이 겹쳐 tooltip 작업을 명명된stash로 보관했다. 테마병합 en.json충돌에서 두사전을 보존하고 관련11개통과 후3306472에 병합. stash재적용 사전충돌은 stashbase 대비 새8개키만 최신사전에 반영하여 해결했다. 독립리뷰가 양부모번역·tooltip8키·코드복원을 확인했다.
 - 최종 결과(3306472+ZERO-REWARD): 전체 lint·typecheck·Jest68 suites/358 tests·도구3개·production build 통과. 선택27파일 E2E148개 worker1/port3430에서 전부 통과(2.5분). 변경파일 Prettier·diff 검사 통과. 상세3D26파일 제외 근거는 위 기록 참조. 검증 후 변경은 기록문서뿐이며 결과를 재사용한다. 로그 `.bugri-hooks/zero-reward/{static-final,unit-final,tools-final,build-final,e2e-final}.log`.
+
+## SHOP-I18N-REWARD-MERGE — 보상 정책 dev 통합
+
+- 상태: DONE(충돌 해결·선정된 통합 검증 완료). 사용자 요청으로 진행 중인 HEAD a853e7b와 origin/dev 18bbfd1 병합의 API/TASKS 충돌을 해결한다. 상점 상품 표시 언어와 BugCoin 정책/미지급 사유 계약·작업 기록을 모두 보존한다. 앱 코드는 자동 병합 결과를 유지한다.
+- 검증 계획: Node22.23.3에서 전체 lint·typecheck·Jest·도구·production build 및 비상점/3D 전체 E2E와 shop.spec.ts/shop-locale.spec.ts를 worker1로 실행한다. 새 보상·저장 변경의 지갑/구매 영향은 포함하고, 렌더러·배치/회전/확대 입력은 바뀌지 않아 상세3D 전용 spec은 제외한다. 선택/제외 목록은 `.bugri-hooks/shop-reward-merge/`에 기록한다. 이전 기능 검증 결과를 새 통합 코드의 성공으로 재사용하지 않는다.
+- 독립 정적 리뷰: merge-base 대비 API/TASKS 양부모 추가문구 보존, 보상 API·서비스·저장소·풀이UI는 MERGE_HEAD와 동일, 카탈로그·상점·상품seed는 HEAD와 동일함을 확인했다. en.json 중복키0/HEAD 키누락·값변경0, dev 대비 빠진15개 상품명은 카탈로그 이전분이다. 미해결 인덱스·충돌마커 없음, 차단 결함0. 선택28파일/제외26파일을 기록했다.
+- 최종 결과: Node v22.23.3, 전체 lint·typecheck·Jest69 suites/361개·도구3개·production build 및 선택28파일 E2E150개(worker1/port3471) 전부 통과. 실패/재시도0, diff check통과. 로그 `.bugri-hooks/shop-reward-merge/{lint,types,jest,tools,e2e}.log`. 검증 후 변경은 결과 문서뿐이며 전체3D 검증 성공으로 표현하지 않는다. 원격dev 재조회도18bbfd1로 동일했다. 병합 커밋을 PR38 브랜치에 푸시하고 검증 근거를 갱신하며 PR 자체 병합은 하지 않는다.

@@ -384,3 +384,41 @@ it("follows the layout user when switching shop accounts", async () => {
     screen.getByLabelText("내 잔액"),
   ).toHaveTextContent("70");
 });
+
+it("switches product text and searches and sorts the displayed language", async () => {
+  const { act } = await import("@testing-library/react");
+  const { setLocale } = await import("@/lib/i18n/store");
+  render(<ShopApp />);
+  await screen.findByRole("heading", {
+    name: "새싹 키보드",
+  });
+  act(() => setLocale("en"));
+  expect(
+    screen.getByRole("heading", {
+      name: "Sprout keyboard",
+    }),
+  ).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Search items"), {
+    target: { value: "sage" },
+  });
+  expect(screen.getAllByRole("article")).toHaveLength(1);
+  fireEvent.change(screen.getByLabelText("Search items"), {
+    target: { value: "" },
+  });
+  fireEvent.click(
+    screen.getByRole("combobox", { name: "Sort items" }),
+  );
+  fireEvent.click(
+    screen.getByRole("option", { name: "Name" }),
+  );
+  expect(
+    within(screen.getAllByRole("article")[0]).getByRole(
+      "heading",
+      { level: 3 },
+    ),
+  ).toHaveTextContent("Blue plant");
+  act(() => setLocale("ko"));
+  expect(
+    screen.getByRole("heading", { name: "새싹 키보드" }),
+  ).toBeInTheDocument();
+});
