@@ -140,7 +140,7 @@ test("scroll assembles the puzzle, reverses, and keeps captions separate", async
   );
   await page.evaluate(
     (y) => scrollTo({ top: y, behavior: "instant" }),
-    box.y + (box.height - 1000) * 0.5,
+    box.y + (box.height - 1000) * (0.5 / 1.625),
   );
   await expect
     .poll(() =>
@@ -150,7 +150,7 @@ test("scroll assembles the puzzle, reverses, and keeps captions separate", async
   for (const progress of [0.58, 0.62, 0.66, 0.74]) {
     await page.evaluate(
       (y) => scrollTo({ top: y, behavior: "instant" }),
-      box.y + (box.height - 1000) * progress,
+      box.y + (box.height - 1000) * (progress / 1.625),
     );
     await page.waitForTimeout(50);
     const visible = await story

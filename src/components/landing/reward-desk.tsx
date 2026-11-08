@@ -41,6 +41,11 @@ export function RewardDesk() {
   const t = useTranslation();
   const host = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
+  // The last 150svh is dedicated to painting the room; never rewind.
+  const backgroundReveal = Math.min(
+    1,
+    Math.max(0, (progress - 1) / 0.625),
+  );
 
   useEffect(() => {
     const section = host.current?.closest("section");
@@ -56,14 +61,17 @@ export function RewardDesk() {
         innerHeight < 700 ||
         !CSS.supports("animation-timeline", "view()")
       ) {
-        setProgress(1);
+        setProgress(1.625);
         return;
       }
       const { top, height } =
         section.getBoundingClientRect();
       const next = Math.min(
-        1,
-        Math.max(0, -top / (height - innerHeight)),
+        1.625,
+        Math.max(
+          0,
+          (-top / (height - innerHeight)) * 1.625,
+        ),
       );
       setProgress((previous) =>
         Math.max(previous, Math.round(next * 200) / 200),
@@ -87,7 +95,7 @@ export function RewardDesk() {
   const equipment: Equipment = {
     [Category.DESK]: "desk-1",
   };
-  if (progress >= 0.98)
+  if (progress >= 1)
     equipment[Category.BACKGROUND] = "background-1";
   const transforms: DeskTransforms = {};
 
@@ -117,16 +125,17 @@ export function RewardDesk() {
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 z-10 overflow-hidden ${progress >= 0.86 ? "invisible" : ""}`}
       >
-        <span className="absolute left-1/2 top-0 grid size-9 place-items-center rounded-full border-[3px] border-coin-edge bg-coin-body font-bold text-coin-ink motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:animate-reward-coin motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-timeline:--learning-story] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-range:contain_0%_contain_100%]">
+        <span className="absolute left-1/2 top-0 grid size-9 place-items-center rounded-full border-[3px] border-coin-edge bg-coin-body font-bold text-coin-ink motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:animate-reward-coin motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-timeline:--learning-story] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-range:contain_0%_contain_61.538%]">
           B
         </span>
-        <span className="absolute left-[65%] top-8 grid size-9 place-items-center rounded-full border-[3px] border-coin-edge bg-coin-body font-bold text-coin-ink motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:animate-reward-coin-late motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-timeline:--learning-story] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-range:contain_0%_contain_100%]">
+        <span className="absolute left-[65%] top-8 grid size-9 place-items-center rounded-full border-[3px] border-coin-edge bg-coin-body font-bold text-coin-ink motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:animate-reward-coin-late motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-timeline:--learning-story] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-range:contain_0%_contain_61.538%]">
           B
         </span>
       </div>
       <div className="h-[min(44svh,460px)] overflow-hidden [&_[data-renderer]]:h-[min(44svh,460px)] [&_[data-renderer]]:scale-125 md:h-[min(50svh,520px)] md:[&_[data-renderer]]:h-[min(50svh,520px)] [&_canvas]:pointer-events-none [&_[data-renderer]]:pointer-events-none">
         {progress >= 0.56 ? (
           <ThreeView
+            backgroundReveal={backgroundReveal}
             equipment={equipment}
             transforms={transforms}
             readOnly

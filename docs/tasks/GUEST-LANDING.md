@@ -60,3 +60,17 @@
 - 사용자 피드백은 별도 범위 조정으로 기록하며 리뷰어 지적과 구분. 선택적 SR 좌표 낭독 개선은 보류. 실제 SR 및 렌더러 실패 재현 미실행.
 
 - 최종 코드 검증 후 변경은 TASK/리뷰/페이지 구조 기록뿐. git diff --check 통과 후 기능 커밋. push/PR 없음.
+
+## 배경 좌→우 스크롤 전개
+
+- 사용자 요청: 배경을 아주 천천히 왼쪽부터 채우되 자동재생 금지. 스크롤 정지/역방향에서도 채운 상태 유지.
+- 최종 설계: 총 490svh, 기존 퍼즐/꾸미기 이동 거리 유지 후 배경 전용 150svh 추가. CSS 타임라인 범위를 61.538%로 맞추고 마지막 구간은 최고 progress로 room clip 너비를 계산. 자동 타이머 없음.
+- 공통 3D 렌더러 optional backgroundReveal 기본값1. 가구 렌더 후 paintRoom만 canvas clip 적용/restore, 기존 사용처는 전체 배경 유지. 랜딩은 기본 backdrop을 사용해 clip 밖에 배경이 미리 보이지 않음.
+- 공통 렌더러 변경으로 최종 검증 적용: 전체 lint/typecheck/Jest/tools 및 production build, 상점·3D 제외 기준으로 E2E 선택. 배경·투영·기본 3D 회귀는 room-theme-bugri/room-projection/desk-3d 포함. 상품 구매·드래그·회전/높이·기타 상점 spec은 입력·구매·좌표변환 변경 없음으로 제외. 그 외 전체 spec 포함, worker1. 선택 파일은 실행 `/tmp/bugri-story/final-specs.txt`에 기록.
+- 전체 lint/typecheck 통과, Jest 71 suites/364 tests 통과, 도구3개 통과. 선택 E2E 최초 154통과/2실패(locale의 구 헤딩 기대값), 해당 파일 수정 후 재검증. production build 통과.
+
+- 확장 E2E에서 기존 locale.spec의 방문자 홈 헤딩 기대값 2건이 이전 ‘오늘의 퀴즈’ 문구로 남아 실패. 승인된 기존 랜딩의 ‘한 문제, 직접 풀어볼까요?’ 및 영문으로 테스트 기대값을 일치시킴. 단언·timeout 약화 없음, 제품코드 변경 없음. 완료 후 locale spec 재검증 예정.
+
+- 배경 pixel E2E: 좌10%/우90% alpha[255,0]→1.2초정지 동일→역스크롤 동일→완료[255,255] 통과. 독립 UX/UI는 최신 반/완성 PC/모바일 캡처와 코드 확인, 필수문제0, 수정0회. 직접조작 미완료 한계는 리뷰기록에 분리.
+
+- locale.spec 재실행 4/4통과. 최종 선택156개는 154개 성공 결과+수정된 locale4개 재실행 결과로 충족. 제품코드·환경 변경 없이 테스트 기대값만 수정하여 나머지 결과 재사용. 실패원인 수정/재실행1회. 최종 문서만 갱신 후 git diff --check 및 커밋. 미리보기3189 자체 dev 재시작 후 퀴즈 hydration 확인.

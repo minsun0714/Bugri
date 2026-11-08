@@ -525,6 +525,19 @@ export function createDeskEngine(
     paintLayers(illustration, context, owners, order);
     context.restore();
     if (state.equipment.BACKGROUND) {
+      context.save();
+      context.beginPath();
+      context.rect(
+        0,
+        0,
+        canvas.width *
+          Math.max(
+            0,
+            Math.min(1, state.backgroundReveal ?? 1),
+          ),
+        canvas.height,
+      );
+      context.clip();
       const pixelZoom =
         (zoom * canvas.width) / (width || 600);
       paintRoom(
@@ -542,6 +555,7 @@ export function createDeskEngine(
             perspectiveFit,
         ),
       );
+      context.restore();
     }
     if (state.directManipulation && !state.readOnly) {
       const bounds = picker.render(

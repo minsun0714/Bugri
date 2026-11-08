@@ -13,7 +13,7 @@ export function GuestLanding() {
   return (
     <section
       aria-labelledby="landing-title"
-      className="relative mb-12 [view-timeline-name:--learning-story] [view-timeline-axis:block] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-[340svh]"
+      className="relative mb-12 [view-timeline-name:--learning-story] [view-timeline-axis:block] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-[490svh]"
     >
       <div className="py-6 motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:sticky motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:top-0 motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:flex motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:h-svh motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:max-h-[1000px] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:flex-col motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:justify-center md:py-10">
         <div className="mb-5 flex items-center justify-between gap-4">

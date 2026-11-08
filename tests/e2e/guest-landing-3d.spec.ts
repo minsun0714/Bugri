@@ -24,7 +24,7 @@ for (const width of [390, 1440]) {
     const move = async (progress: number) => {
       await page.evaluate(
         (top) => scrollTo({ top, behavior: "instant" }),
-        box.y + (box.height - height) * progress,
+        box.y + (box.height - height) * (progress / 1.625),
       );
     };
     const desk = page.getByTestId("reward-desk");
@@ -61,7 +61,7 @@ for (const width of [390, 1440]) {
         return pixels;
       }),
     ).toBeGreaterThan(50);
-    await move(0.98);
+    await move(1.625);
     await expect(
       desk.getByRole("group", { name: /정원/ }),
     ).toBeVisible();
@@ -89,3 +89,50 @@ for (const width of [390, 1440]) {
     ).toHaveCount(5);
   });
 }
+
+test("room paint follows scroll, pauses, and never unpaints", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await expect(
+    page.getByRole("button", {
+      name: "답 제출",
+      exact: true,
+    }),
+  ).toBeAttached();
+  const box = (await page
+    .locator('section[aria-labelledby="landing-title"]')
+    .boundingBox())!;
+  const move = async (progress: number) =>
+    page.evaluate(
+      (top) => scrollTo({ top, behavior: "instant" }),
+      box.y + (box.height - 1000) * (progress / 1.625),
+    );
+  await move(1.3125);
+  const canvas = page
+    .getByTestId("reward-desk")
+    .locator("canvas");
+  await expect(canvas).toBeVisible();
+  const edges = () =>
+    canvas.evaluate((element) => {
+      const c = element as HTMLCanvasElement;
+      const ctx = c.getContext("2d")!;
+      return [0.1, 0.9].map(
+        (x) =>
+          ctx.getImageData(
+            Math.floor(c.width * x),
+            Math.floor(c.height * 0.1),
+            1,
+            1,
+          ).data[3],
+      );
+    });
+  await expect.poll(edges).toEqual([255, 0]);
+  await page.waitForTimeout(1200);
+  expect(await edges()).toEqual([255, 0]);
+  await move(1.1);
+  await expect.poll(edges).toEqual([255, 0]);
+  await move(1.625);
+  await expect.poll(edges).toEqual([255, 255]);
+});

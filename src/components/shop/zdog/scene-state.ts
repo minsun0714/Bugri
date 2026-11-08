@@ -26,6 +26,8 @@ export interface DeskSceneState extends Omit<
   | "onCamera"
 > {
   selected: SpatialTarget | null;
+  /** Optional left-to-right room reveal; furnishings remain fully visible. */
+  backgroundReveal?: number;
   onCamera?: (yaw: number, pitch: number) => void;
   layerOrder?: readonly SceneTarget[];
   /** Frozen item coordinate frame while the trial desk moves independently. */

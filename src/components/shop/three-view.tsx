@@ -218,7 +218,9 @@ export function ThreeView(props: Props) {
           style={
             {
               "--room-backdrop": roomTheme(
-                props.equipment.BACKGROUND,
+                props.backgroundReveal === undefined
+                  ? props.equipment.BACKGROUND
+                  : undefined,
               ).backdrop,
             } as CSSProperties
           }

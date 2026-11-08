@@ -52,7 +52,7 @@ export function KnowledgePuzzle() {
       {pieces.map(({ label, path, x, y, className }) => (
         <g
           key={label}
-          className={`${className} origin-center motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-timeline:--learning-story] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-range:contain_0%_contain_100%]`}
+          className={`${className} origin-center motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-timeline:--learning-story] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-range:contain_0%_contain_61.538%]`}
         >
           <path
             d={path}
@@ -73,7 +73,7 @@ export function KnowledgePuzzle() {
         x="200"
         y="325"
         textAnchor="middle"
-        className="fill-primary text-[15px] font-bold motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:animate-puzzle-caption motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-timeline:--learning-story] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-range:contain_0%_contain_100%]"
+        className="fill-primary text-[15px] font-bold motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:animate-puzzle-caption motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-timeline:--learning-story] motion-safe:[@media(min-height:700px)]:supports-[animation-timeline:view()]:[animation-range:contain_0%_contain_61.538%]"
       >
         {t("하나씩 연결된, 내 지식")}
       </text>
