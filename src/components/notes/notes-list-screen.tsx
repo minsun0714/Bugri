@@ -123,6 +123,7 @@ function NotesList({ userId }: { userId: string }) {
   const condition = { query, tagIds, untagged, page };
   const filtering = hasCondition(condition);
   const countRef = useRef<HTMLParagraphElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
   const focusResult = useRef(false);
 
   const { data, error, isPending, isFetching, refetch } =
@@ -132,7 +133,12 @@ function NotesList({ userId }: { userId: string }) {
   useEffect(() => {
     if (focusResult.current && data) {
       focusResult.current = false;
-      countRef.current?.focus();
+
+      // With no condition left there is no count line, so focus returns to the search box.
+      (
+        countRef.current ??
+        controlsRef.current?.querySelector("input")
+      )?.focus();
     }
   }, [data]);
 
@@ -167,7 +173,7 @@ function NotesList({ userId }: { userId: string }) {
     );
 
   const controls = (
-    <div className="space-y-4">
+    <div ref={controlsRef} className="space-y-4">
       <SearchForm
         key={query}
         label={t("내 노트 검색")}
@@ -189,15 +195,22 @@ function NotesList({ userId }: { userId: string }) {
     return (
       <div className="space-y-5">
         {controls}
-        <div role="alert" className="space-y-3 rounded-xl border border-coral p-4">
-          {/* The search field already states the length limit. */}
-          {!queryTooLong && (
-            <p>{t("주소의 검색 조건이 올바르지 않아요")}</p>
-          )}
+        {/* The search field states the length limit itself; only the way out is added. */}
+        {queryTooLong ? (
           <Button variant="secondary" onClick={reset}>
             {t("조건 초기화")}
           </Button>
-        </div>
+        ) : (
+          <div
+            role="alert"
+            className="space-y-3 rounded-xl border border-coral p-4"
+          >
+            <p>{t("주소의 검색 조건이 올바르지 않아요")}</p>
+            <Button variant="secondary" onClick={reset}>
+              {t("조건 초기화")}
+            </Button>
+          </div>
+        )}
       </div>
     );
 

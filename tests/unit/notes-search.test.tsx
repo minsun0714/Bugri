@@ -293,7 +293,9 @@ test("an over-long query in the address shows a notice instead of requesting", a
 
   wrap(<NotesListScreen />);
 
-  expect(await screen.findByRole("alert")).toBeVisible();
+  expect(
+    await screen.findByRole("button", { name: "조건 초기화" }),
+  ).toBeVisible();
 
   // The limit is stated once, by the search field.
   expect(

@@ -217,7 +217,7 @@ test.describe("English", () => {
     ).toBeVisible();
 
     await expect(
-      page.getByRole("status").filter({ hasText: "0 results" }),
+      page.getByRole("status").filter({ hasText: "Results: 0" }),
     ).toBeFocused();
 
     await page
